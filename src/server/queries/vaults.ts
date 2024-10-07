@@ -15,6 +15,7 @@ const vaults = gql`
     totalValue
     lockedLiquidity
     apeAddress
+    taxAmount
     apeCollateral
     teaCollateral
   }
