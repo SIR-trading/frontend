@@ -61,13 +61,18 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     }
   }, [useEthRaw, formData.long]);
 
-  const { requests, isApproveFetching, isMintFetching, userBalance } =
-    useTransactions({
-      useEth,
-      isApe,
-      vaultsQuery,
-      decimals,
-    });
+  const {
+    requests,
+    userBalanceFetching,
+    isApproveFetching,
+    isMintFetching,
+    userBalance,
+  } = useTransactions({
+    useEth,
+    isApe,
+    vaultsQuery,
+    decimals,
+  });
   if (useEth) {
     decimals = 18;
   }
@@ -184,6 +189,25 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
   if (isPending || isConfirming) {
     submitButtonText = "Pending...";
   }
+  const [isApproving, setIsApproving] = useState(false);
+  // Below is logic to prevent a Approval transaction from showing "Transaction Successful" in modal.
+  useEffect(() => {
+    if (submitType === ESubmitType.approve) {
+      setIsApproving(true);
+    }
+  }, [isConfirming, submitType]);
+  const utils = api.useUtils();
+  useEffect(() => {
+    if (isConfirmed && isApproving) {
+      utils.user.getBalance
+        .invalidate()
+        .then(() => {
+          reset();
+          setIsApproving(false);
+        })
+        .catch((e) => console.log(e));
+    }
+  }, [isApproving, reset, isConfirmed, utils.user.getBalance]);
   const deposit = form.getValues("deposit");
   return (
     <Card>
@@ -197,7 +221,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
             {!isConfirmed && (
               <>
                 <TransactionStatus
-                  isTxPending={isConfirming}
+                  showLoading={isConfirming || userBalanceFetching}
                   waitForSign={isPending}
                   action={submitType === ESubmitType.mint ? "Mint" : "Approve"}
                 />
@@ -222,8 +246,12 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
                 )}
               </>
             )}
-
-            {isConfirmed && (
+            {isConfirming && isApproving && (
+              <div>
+                <h1>Loading...</h1>
+              </div>
+            )}
+            {isConfirmed && !isApproving && (
               <div className="space-y-2">
                 <div className="flex justify-center">
                   <CircleCheck size={40} color="#F0C775" />
@@ -300,7 +328,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
         <Estimations
           isApe={isApe}
           disabled={!Boolean(quoteData)}
-          ape={formatNumber(formatUnits(quoteData ?? 0n, decimals))}
+          ape={formatNumber(formatUnits(quoteData ?? 0n, 18))}
         />
 
         <MintFormSubmit.Root>

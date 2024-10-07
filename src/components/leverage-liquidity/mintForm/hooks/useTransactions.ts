@@ -27,7 +27,7 @@ export function useTransactions({
   const formData = form.watch();
 
   const { address } = useAccount();
-  const { data: userBalance } = api.user.getBalance.useQuery(
+  const { data: userBalance, isFetching } = api.user.getBalance.useQuery(
     {
       userAddress: address,
       tokenAddress: formatDataInput(formData.long),
@@ -61,6 +61,7 @@ export function useTransactions({
     isApproveFetching: approveSimulate.isFetching,
     isMintFetching: mintFetching,
     userBalance,
+    userBalanceFetching: isFetching,
   };
 }
 

@@ -3,22 +3,22 @@ import { useMemo } from "react";
 
 interface StatusProps {
   waitForSign: boolean;
-  isTxPending: boolean;
+  showLoading: boolean;
   action?: string;
 }
 export function TransactionStatus({
   action,
-  isTxPending,
+  showLoading,
   waitForSign,
 }: StatusProps) {
   const data = useMemo(() => {
     if (waitForSign) {
       return { message: "Please Sign Transaction." };
     }
-    if (isTxPending) {
+    if (showLoading) {
       return { message: <LoaderCircle className="animate-spin" /> };
     }
     return { message: action ?? "Mint" };
-  }, [waitForSign, isTxPending, action]);
+  }, [waitForSign, showLoading, action]);
   return <h2 className="text-left text-lg">{data.message}</h2>;
 }

@@ -127,7 +127,7 @@ export default function CreateVaultForm() {
             <TransactionStatus
               action="Create"
               waitForSign={isPending}
-              isTxPending={isConfirming}
+              showLoading={isConfirming}
             />
             <TransactionInfoCreateVault
               leverageTier={formData.leverageTier}

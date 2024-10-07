@@ -4,12 +4,12 @@ import {
   formatNumber,
   getLeverageRatio,
   getLogoAsset,
-  mapLeverage,
+  // mapLeverage,
   roundDown,
 } from "@/lib/utils";
 
 import {
-  HoverCardArrow,
+  // HoverCardArrow,
   HoverCardContent,
   HoverCardTrigger,
 } from "@radix-ui/react-hover-card";
@@ -128,13 +128,14 @@ export function VaultTableRow({
                 ) : (
                   <span>Moderately profitable</span>
                 ))}
-              {variant.variant === "red" && isApe ? (
-                <span>
-                  Degraded, insufficient liquidity for constant leverage.
-                </span>
-              ) : (
-                <span>Minimally profitable</span>
-              )}
+              {variant.variant === "red" &&
+                (isApe ? (
+                  <span>
+                    Degraded, insufficient liquidity for constant leverage.
+                  </span>
+                ) : (
+                  <span>Minimally profitable</span>
+                ))}
             </div>
           </HoverCardContent>
         </HoverCard>

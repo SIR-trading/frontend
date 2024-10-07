@@ -134,13 +134,13 @@ const UnstakeForm = ({
                 <TransactionStatus
                   action="Unstake"
                   waitForSign={isPending}
-                  isTxPending={isConfirming}
+                  showLoading={isConfirming}
                 />
-                <div className="py-2 flex justify-between items-center">
-                  <h2 className="text-gray-400 text-sm">Amount</h2>
+                <div className="flex items-center justify-between py-2">
+                  <h2 className="text-sm text-gray-400">Amount</h2>
                   <h3 className="text-xl">
                     {form.getValues("amount")}
-                    <span className="text-gray-400 pl-[2px] text-[12px]">
+                    <span className="pl-[2px] text-[12px] text-gray-400">
                       SIR
                     </span>
                   </h3>
@@ -186,7 +186,7 @@ const UnstakeForm = ({
               onChange={setClaimFees}
             ></ClaimFeesCheckbox>
 
-            <div className=" flex-col flex items-center justify-center mt-[20px]">
+            <div className=" mt-[20px] flex flex-col items-center justify-center">
               {address && (
                 <Button
                   variant={"submit"}
@@ -211,7 +211,7 @@ const UnstakeForm = ({
                 </Button>
               )}
               {form.formState.errors.root?.message && (
-                <div className="w-[450px] pt-[20px] flex justify-center items-center">
+                <div className="flex w-[450px] items-center justify-center pt-[20px]">
                   <p className="h-[20px] text-center text-sm text-red-400">
                     {address && <>{form.formState.errors.root?.message}</>}
                   </p>
