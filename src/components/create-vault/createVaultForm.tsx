@@ -11,7 +11,7 @@ import { CreateVaultInputValues } from "@/lib/schemas";
 import type { TAddressString, TCreateVaultKeys } from "@/lib/types";
 import { useCreateVault } from "./hooks/useCreateVault";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { getLogoAsset, mapLeverage } from "@/lib/utils";
+import { getLogoAsset } from "@/lib/utils";
 import ImageWithFallback from "../shared/ImageWithFallback";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioItem } from "./radioItem";
@@ -42,7 +42,7 @@ export default function CreateVaultForm() {
     resolver: zodResolver(CreateVaultInputValues),
     mode: "all",
     defaultValues: {
-      leverageTier: "2",
+      leverageTier: "-1",
       longToken: "",
       versusToken: "",
     },
@@ -101,6 +101,33 @@ export default function CreateVaultForm() {
     "VAULTID",
   );
   const isValid = useMemo(() => {
+    if (formData.longToken.length !== 42 && formData.longToken.length > 0) {
+      return { isValid: false, error: "Invalid Long Token Address!" };
+    }
+    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
+      return { isValid: false, error: "Invalid Versus Token Address!" };
+    }
+    if (formData.longToken.length === 42) {
+      if (!formData.longToken.startsWith("0x")) {
+        return {
+          isValid: false,
+          error: "Long Token has an Invalid Address Format.",
+        };
+      }
+    }
+
+    if (formData.versusToken.length === 42) {
+      if (!formData.versusToken.startsWith("0x")) {
+        return {
+          isValid: false,
+          error: "Long Token has an Invalid Address Format.",
+        };
+      }
+    }
+    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
+      return { isValid: false, error: "Invalid Versus Token Address!" };
+    }
+
     if (vaultData === 0) {
       return { isValid: false, error: "Invalid Vault." };
     }
@@ -115,12 +142,12 @@ export default function CreateVaultForm() {
     } else {
       return { isValid: false, error: "" };
     }
-  }, [data?.request, vaultData]);
+  }, [data?.request, vaultData, formData.longToken, formData.versusToken]);
   console.log(isValid, "");
   const [openModal, setOpenModal] = useState(false);
   return (
     <FormProvider {...form}>
-      <form className="space-y-6">
+      <form className="space-y-4">
         <TransactionModal.Root setOpen={setOpenModal} open={openModal}>
           <TransactionModal.Close setOpen={setOpenModal} />
           <TransactionModal.InfoContainer>
@@ -148,40 +175,7 @@ export default function CreateVaultForm() {
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
 
-        <div className="grid  gap-y-2">
-          <div className="w-full space-y-2 ">
-            <FormField
-              control={form.control}
-              name="leverageTier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leverage</FormLabel>{" "}
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="grid grid-cols-4 gap-4"
-                  >
-                    {["-4", "-3", "-2", "-1", "0", "1", "2"].map((e) => {
-                      return (
-                        <RadioItem
-                          key={e}
-                          setValue={setLeverageTier}
-                          fieldValue={field.value}
-                          value={e}
-                        />
-                      );
-                    })}
-                  </RadioGroup>
-                </FormItem>
-              )}
-            />
-
-            {
-              <p className="text-sm text-red-400">
-                {form.formState.errors.leverageTier?.message}
-              </p>
-            }
-          </div>
+        <div className="grid  gap-y-4">
           <div className="w-full space-y-2">
             <TokenInput name="longToken" title="Long Token" />
             <QuickSelects name="longToken" tokens={tokens} />
@@ -192,7 +186,41 @@ export default function CreateVaultForm() {
             <QuickSelects name="versusToken" tokens={tokens} />
           </div>
         </div>
-        <div className="flex flex-col items-center ">
+
+        <div className="w-full ">
+          <FormField
+            control={form.control}
+            name="leverageTier"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Leverage</FormLabel>{" "}
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="grid grid-cols-4 gap-4"
+                >
+                  {["-4", "-3", "-2", "-1", "0", "1", "2"].map((e) => {
+                    return (
+                      <RadioItem
+                        key={e}
+                        setValue={setLeverageTier}
+                        fieldValue={field.value}
+                        value={e}
+                      />
+                    );
+                  })}
+                </RadioGroup>
+              </FormItem>
+            )}
+          />
+
+          {
+            <p className="text-sm text-red-400">
+              {form.formState.errors.leverageTier?.message}
+            </p>
+          }
+        </div>
+        <div className="flex flex-col items-center pt-4">
           <Button
             onClick={() => {
               setOpenModal(true);
@@ -204,8 +232,8 @@ export default function CreateVaultForm() {
             Create
           </Button>
 
-          <div className="flex pt-1 md:w-[450px]">
-            <span className="text-[12px] text-red-400">
+          <div className="flex pt-2 md:w-[450px]">
+            <span className="text-[13px] text-red-400">
               {isValid.error ? isValid.error : ""}
             </span>
           </div>
@@ -275,6 +303,12 @@ function TokenInput({
                 textSize="sm"
                 step="any"
                 {...field}
+                onChange={(e) => {
+                  // const pattern = /^[0-9]*[.,]?[0-9]*$/;
+                  const pattern = /^[0-9A-Fa-f]+$/;
+                  if (pattern.test(e.target.value))
+                    return field.onChange(e.target.value);
+                }}
               ></Input>
             </FormControl>
           </FormItem>
