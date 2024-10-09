@@ -2,12 +2,15 @@ import "../styles/globals.css";
 import "@radix-ui/themes/styles.css";
 import { TRPCReactProvider } from "@/trpc/react";
 // import Image from "next/image";
+
+import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
 import { headers } from "next/headers";
 import { Header } from "@/components/header";
 import { Inter, Bebas_Neue } from "next/font/google";
 import Footer from "@/components/footer";
 import Bg from "../../public/background.png";
+import Warning from "@/components/ui/warning";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -57,13 +60,15 @@ export default function RootLayout({
             backgroundBlendMode: "lighten",
             boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.5)",
           }}
-          className="absolute opacity-100 top-0 left-0 w-full h-full z-[-1]"
+          className="absolute left-0 top-0 z-[-1] h-full w-full opacity-100"
         ></div>
+
+        <Toaster />
         <TRPCReactProvider>
           <EvmProvider cookie={cookie}>
             <div className=" flex min-h-screen flex-col">
               <Header />
-
+              <Warning />
               {children}
               <Footer />
             </div>
