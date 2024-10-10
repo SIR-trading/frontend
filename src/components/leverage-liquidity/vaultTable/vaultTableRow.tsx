@@ -67,6 +67,7 @@ export function VaultTableRow({
       }
     }
   };
+
   return (
     <tr
       onClick={() => {
@@ -128,6 +129,7 @@ export function VaultTableRow({
                 ) : (
                   <span>Moderately profitable</span>
                 ))}
+              
               {variant.variant === "red" &&
                 (isApe ? (
                   <span>
@@ -143,7 +145,10 @@ export function VaultTableRow({
 
       <th className="flex items-center justify-end gap-x-1 text-right md:col-span-2">
         <span>
-          {formatNumber(formatUnits(parseUnits(pool.totalValue, 0), 18), 4)}
+          {formatNumber(
+            formatUnits(parseUnits(pool.totalValue, 0), pool.apeDecimals),
+            4,
+          )}
         </span>
         <span className=" hidden font-light text-gray-300 md:block">
           {pool.collateralSymbol}
@@ -152,3 +157,4 @@ export function VaultTableRow({
     </tr>
   );
 }
+// a

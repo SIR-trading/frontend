@@ -6,6 +6,7 @@ const vaults = gql`
 
   fragment VaultFields on Vault {
     debtToken
+    apeDecimals
     debtSymbol
     collateralToken
     collateralSymbol

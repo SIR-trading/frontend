@@ -708,11 +708,12 @@ type Vault {
   leverageTier: Int!
   totalValue: BigInt!
   lockedLiquidity: BigInt!
-  totalApe: BigInt!
+  totalTea: BigInt!
   apeCollateral: BigInt!
   teaCollateral: BigInt!
   taxAmount: BigInt!
   apeAddress: Bytes!
+  apeDecimals: Int!
 }
 
 input Vault_filter {
@@ -860,14 +861,14 @@ input Vault_filter {
   lockedLiquidity_lte: BigInt
   lockedLiquidity_in: [BigInt!]
   lockedLiquidity_not_in: [BigInt!]
-  totalApe: BigInt
-  totalApe_not: BigInt
-  totalApe_gt: BigInt
-  totalApe_lt: BigInt
-  totalApe_gte: BigInt
-  totalApe_lte: BigInt
-  totalApe_in: [BigInt!]
-  totalApe_not_in: [BigInt!]
+  totalTea: BigInt
+  totalTea_not: BigInt
+  totalTea_gt: BigInt
+  totalTea_lt: BigInt
+  totalTea_gte: BigInt
+  totalTea_lte: BigInt
+  totalTea_in: [BigInt!]
+  totalTea_not_in: [BigInt!]
   apeCollateral: BigInt
   apeCollateral_not: BigInt
   apeCollateral_gt: BigInt
@@ -902,6 +903,14 @@ input Vault_filter {
   apeAddress_not_in: [Bytes!]
   apeAddress_contains: Bytes
   apeAddress_not_contains: Bytes
+  apeDecimals: Int
+  apeDecimals_not: Int
+  apeDecimals_gt: Int
+  apeDecimals_lt: Int
+  apeDecimals_gte: Int
+  apeDecimals_lte: Int
+  apeDecimals_in: [Int!]
+  apeDecimals_not_in: [Int!]
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
   and: [Vault_filter]
@@ -918,11 +927,12 @@ enum Vault_orderBy {
   leverageTier
   totalValue
   lockedLiquidity
-  totalApe
+  totalTea
   apeCollateral
   teaCollateral
   taxAmount
   apeAddress
+  apeDecimals
 }
 
 type _Block_ {
