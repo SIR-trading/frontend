@@ -100,34 +100,36 @@ export default function CreateVaultForm() {
     },
     "VAULTID",
   );
-  const isValid = useMemo(() => {
+  const longTokenValid = useMemo(() => {
     if (formData.longToken.length !== 42 && formData.longToken.length > 0) {
       return { isValid: false, error: "Invalid Long Token Address!" };
-    }
-    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
-      return { isValid: false, error: "Invalid Versus Token Address!" };
     }
     if (formData.longToken.length === 42) {
       if (!formData.longToken.startsWith("0x")) {
         return {
           isValid: false,
-          error: "Long Token has an Invalid Address Format.",
+          error: "Long Token has an Invalid Address.",
         };
       }
+    }
+    return { isValid: true, error: null };
+  }, [formData.longToken]);
+  const versusTokenValid = useMemo(() => {
+    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
+      return { isValid: false, error: "Invalid Versus Token Address!" };
     }
 
     if (formData.versusToken.length === 42) {
       if (!formData.versusToken.startsWith("0x")) {
         return {
           isValid: false,
-          error: "Long Token has an Invalid Address Format.",
+          error: "Versus Token has an Invalid Address.",
         };
       }
     }
-    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
-      return { isValid: false, error: "Invalid Versus Token Address!" };
-    }
-
+    return { isValid: true, error: null };
+  }, [formData.versusToken]);
+  const isValid = useMemo(() => {
     if (vaultData === 0) {
       return { isValid: false, error: "Invalid Vault." };
     }
@@ -178,11 +180,22 @@ export default function CreateVaultForm() {
         <div className="grid  gap-y-4">
           <div className="w-full space-y-2">
             <TokenInput name="longToken" title="Long Token" />
+            {!longTokenValid.isValid && (
+              <span className="text-sm text-red-400">
+                {versusTokenValid.error}
+              </span>
+            )}
             <QuickSelects name="longToken" tokens={tokens} />
           </div>
 
           <div className="w-full space-y-2">
             <TokenInput name="versusToken" title="Versus Token" />
+
+            {!versusTokenValid.isValid && (
+              <span className="text-sm text-red-400">
+                {versusTokenValid.error}
+              </span>
+            )}
             <QuickSelects name="versusToken" tokens={tokens} />
           </div>
         </div>
