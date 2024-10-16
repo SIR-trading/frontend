@@ -43,14 +43,8 @@ const StakeForm = ({ balance, allowance }: Props) => {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const safeStake = useMemo(() => {
-    return z.coerce.number().safeParse(formData.stake);
-  }, [formData.stake]);
-
   const { Stake, isFetching } = useStake({
-    amount: safeStake.success
-      ? parseUnits(safeStake.data.toString() ?? "0", 12)
-      : undefined,
+    amount: parseUnits(formData.stake ?? "0", 12),
   });
 
   const { approveSimulate } = useApproveErc20({
@@ -78,7 +72,7 @@ const StakeForm = ({ balance, allowance }: Props) => {
 
   const { isValid, errorMessage } = useCheckSubmitValid({
     decimals: 12,
-    deposit: safeStake.success ? safeStake.data.toString() : "0",
+    deposit: formData.stake ?? "0",
     depositToken: SirContract.address,
     requests: {
       approveWriteRequest: approveSimulate?.data?.request as SimulateReq,
@@ -106,7 +100,7 @@ const StakeForm = ({ balance, allowance }: Props) => {
 
   return (
     <>
-      <Card className="mx-auto w-[80%]">
+      <Card className="mx-auto w-[600px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <FormLabel htmlFor="stake">Stake:</FormLabel>
@@ -115,7 +109,7 @@ const StakeForm = ({ balance, allowance }: Props) => {
               balance={formatUnits(balance ?? 0n, 12)}
             ></StakeInput>
 
-            <div className=" flex-col flex items-center justify-center pt-[20px]">
+            <div className=" flex flex-col items-center justify-center pt-[20px]">
               {address && (
                 <Button variant={"submit"} type="submit" disabled={!isValid}>
                   {form.formState.errors.root?.message

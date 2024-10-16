@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
@@ -11,10 +10,9 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import UnstakeInput from "./unstakeInput";
 import type { TUnstakeFormFields } from "@/lib/types";
 import ClaimFeesCheckbox from "@/components/stake/unstakeForm/claimFeesCheck";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { type SimulateContractReturnType, parseUnits, formatUnits } from "viem";
-import { z } from "zod";
 import { useUnstake } from "../hooks/useUnstake";
 
 import { useWriteContract } from "wagmi";
@@ -42,21 +40,14 @@ const UnstakeForm = ({
   claimResult,
   claimFetching,
 }: Props) => {
-  console.log({ balance });
   const form = useFormContext<TUnstakeFormFields>();
   const formData = form.watch();
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const safeAmount = useMemo(() => {
-    return z.coerce.number().safeParse(formData.amount);
-  }, [formData.amount]);
-
   const { Unstake, isFetching: unstakeFetching } = useUnstake({
-    amount: safeAmount.success
-      ? parseUnits(safeAmount.data.toString() ?? "0", 12)
-      : undefined,
+    amount: parseUnits(formData.amount ?? "0", 12),
   });
 
   const { writeContract, reset, data: hash, isPending } = useWriteContract();
@@ -73,7 +64,7 @@ const UnstakeForm = ({
     }
   }, [form, isConfirmed, utils.user.getUnstakedSirBalance]);
   const { isValid, errorMessage } = useCheckSubmitValid({
-    deposit: safeAmount.success ? safeAmount.data.toString() : "0",
+    deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {
       mintRequest: Unstake?.request as SimulateReq,

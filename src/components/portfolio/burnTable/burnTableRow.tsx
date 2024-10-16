@@ -33,6 +33,7 @@ export function BurnTableRow({
   // const hasUnclaimedSir = isApe ? false : rewards > 0n;
   const teaBalance = formatUnits(teaBal ?? 0n, row.positionDecimals);
   const apeBalance = formatUnits(apeBal ?? 0n, row.positionDecimals);
+  console.log(row, "ROW", { isApe });
   const rewards = formatUnits(teaRewards ?? 0n, 12);
   return (
     <>
