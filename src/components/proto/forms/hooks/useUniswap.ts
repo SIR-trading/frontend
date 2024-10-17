@@ -13,12 +13,13 @@ export function useUniswap({ token, userAddress }: Props) {
     abi: UniswapV2Router.abi,
     functionName: "swapETHForExactTokens",
     args: [
-      parseUnits("1", 1),
-      [WETH_ADDRESS],
+      parseUnits("10000", 1),
+      [WETH_ADDRESS, token],
       userAddress,
       BigInt(Math.floor(Date.now() / 1000) + 60 * 10000000),
     ],
     value: parseUnits("1", 18),
   });
+  console.log(data, error);
   return { data, error };
 }

@@ -72,9 +72,7 @@ export function UniswapV2Form() {
           />
         </div>
 
-        <Button disabled={!Boolean(data?.request)} type="submit">
-          Submit
-        </Button>
+        <Button disabled={!Boolean(data?.request)}>Submit</Button>
       </form>
     </Form>
   );

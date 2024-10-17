@@ -17,14 +17,14 @@ export function Header() {
             src={hat as StaticImageData}
             alt="Sir Icon"
           />
-          <h1 className="sir-shadow font-lora drop-shadow-md text-[32px] font-bold text-white">
+          <h1 className="sir-shadow font-lora text-[32px] font-bold text-white drop-shadow-md">
             SIR.TRADING
           </h1>
         </div>
       </Link>
       <div className="col-span-3 flex justify-center">
         <nav className="hidden lg:block">
-          <ul className="flex gap-x-[16px] nav-shadow rounded-md bg-[#0A0A0F] px-[12px] py-[12px] font-semibold text-muted-foreground">
+          <ul className="nav-shadow flex gap-x-[16px] rounded-md bg-secondary px-[12px] py-[12px] font-semibold text-muted-foreground">
             <div className="flex gap-x-[16px]   rounded-md">
               <NavItem url={"/"}>Leverage</NavItem>
               <NavItem url={"/liquidity"}>Liquidity</NavItem>
@@ -35,7 +35,7 @@ export function Header() {
           </ul>
         </nav>
       </div>
-      <div className="flex items-center gap-x-2 justify-end">
+      <div className="flex items-center justify-end gap-x-2">
         <CustomConnectButton />
         <SideNav />
       </div>

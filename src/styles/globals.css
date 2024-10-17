@@ -28,8 +28,8 @@ html {
 
     --primary: 240, 15%, 30%;
     --primary-foreground: 360, 100%, 100%;
-
-    --secondary: 240, 20%, 5%;
+    --secondary: 248, 74%, 8%;
+    /*--secondary: 240, 20%, 5%;*/
     --secondary-100: 240, 15%, 26%;
     --secondary-200: 240, 15%, 24%;
     --secondary-300: 240, 15%, 20%;

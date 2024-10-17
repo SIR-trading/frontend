@@ -150,6 +150,22 @@ export const userRouter = createTRPCRouter({
 
       return result;
     }),
+
+  getUnclaimedContributorRewards: publicProcedure
+    .input(
+      z.object({
+        user: z.string().startsWith("0x").length(42).optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const result = await readContract({
+        abi: SirContract.abi,
+        address: SirContract.address,
+        functionName: "contributorUnclaimedSIR",
+        args: [input.user as TAddressString],
+      });
+      return result;
+    }),
   getUnstakedSirBalance: publicProcedure
     .input(
       z.object({

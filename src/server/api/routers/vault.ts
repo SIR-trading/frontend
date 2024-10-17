@@ -21,7 +21,7 @@ export const vaultRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      const a = await readContract({
+      const result = await readContract({
         ...AssistantContract,
         functionName: "getVaultStatus",
         args: [
@@ -32,8 +32,7 @@ export const vaultRouter = createTRPCRouter({
           },
         ],
       });
-      console.log(a, "A");
-      return a;
+      return result;
     }),
   getApeParams: publicProcedure
     .input(z.object({ address: z.string().startsWith("0x") }))

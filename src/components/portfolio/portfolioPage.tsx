@@ -11,22 +11,22 @@ import { SirCard } from "./sirCard";
 export default function PortfolioPage() {
   const [value, setValue] = useState<"ape" | "tea" | "all">("all");
   return (
-    <div className="xl:w-[1250px] lg:w-[1000px]">
+    <div className="lg:w-[1000px] xl:w-[1250px]">
       <div className="pt-[44px]"></div>
       <Container>
-        <Card className=" px-4 w-full">
+        <Card className=" w-full px-4">
           <div className="space-y-3 ">
             <SirCard />
-            <div className="grid grid-cols-2 pt-2  gap-x-3">
+            <div className="grid grid-cols-2 gap-x-3  pt-2">
               {/* <SirCard /> */}
               <StakedCard />
               <ClaimCard />
             </div>
           </div>
           <div className="pt-8"></div>
-          <div className="bg-secondary-400 px-4 py-2 rounded-md">
-            <div className="flex  justify-between items-center pb-4 lg:pb-8 ">
-              <h2 className="flex text-gray-200 gap-x-1 pb-1 items-center text-sm ">
+          <div className="rounded-md bg-secondary-400 px-4 py-2">
+            <div className="flex  items-center justify-between pb-4 lg:pb-8 ">
+              <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
                 <span>My Tokens</span>
               </h2>
               <Slider value={value} setValue={setValue} />
@@ -49,7 +49,7 @@ function Slider({
 }) {
   return (
     <div>
-      <div className="rounded-full flex gap-x-1  items-center border border-secondary-100">
+      <div className="flex items-center gap-x-1  rounded-full border border-secondary-100">
         <Slide active={value === "all"} onClick={() => setValue("all")}>
           All
         </Slide>
@@ -77,7 +77,7 @@ function Slide({
     <div
       onClick={onClick}
       data-active={active ? "true" : ""}
-      className=" w-12 text-center data-[active=true]:bg-secondary-100 rounded-full px-3 text-sm py-1 cursor-pointer"
+      className=" w-12 cursor-pointer rounded-full px-3 py-1 text-center text-sm data-[active=true]:bg-secondary-100"
     >
       {children}
     </div>

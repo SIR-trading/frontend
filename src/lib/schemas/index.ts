@@ -34,13 +34,15 @@ export const tokenSchema = z.object({
   decimals: z.number().int(),
   status: z.enum(["active", "inactive"]),
   id: z.string(),
-  tags: z.array(z.string()),
-  links: z.array(
-    z.object({
-      name: z.string(),
-      url: z.string().url(),
-    }),
-  ),
+  tags: z.array(z.string()).optional(),
+  links: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string().url(),
+      }),
+    )
+    .optional(),
 });
 // {
 //     "name": "TrueUSD",
