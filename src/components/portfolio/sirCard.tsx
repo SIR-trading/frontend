@@ -122,7 +122,7 @@ export function SirCard() {
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
-        <div className="flex items-center justify-between">
+        <div className="items-center justify-between md:flex">
           <div className="flex justify-between text-3xl   ">
             <div className="flex items-end gap-x-1">
               <span>{formatNumber(formatUnits(totalBalance ?? 0n, 12))}</span>
