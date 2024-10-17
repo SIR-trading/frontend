@@ -13,7 +13,7 @@ interface Props {
 }
 export function ClaimModal({ open, setOpen }: Props) {
   type SimulateReq = SimulateContractReturnType["request"] | undefined;
-  const { Claim, isFetching: claimFetching } = useClaim();
+  const { claimData, isFetching: claimFetching } = useClaim();
   const { isConnected, address } = useAccount();
   const { data: ethBalance } = api.user.getEthBalance.useQuery(
     {
@@ -40,16 +40,16 @@ export function ClaimModal({ open, setOpen }: Props) {
         className="bg-transparent "
       >
         <div
-          className={`rounded-xl relative w-[500px]  transition-all duration-700  bg-secondary-700 text-white`}
+          className={`relative w-[500px] rounded-xl  bg-secondary-700 text-white  transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
-          <ClaimFees
-            ethBalance={formatEther(ethBalance ?? 0n)}
-            claimAmount={formatEther(dividends ?? 0n)}
-            claimSimulate={Claim?.request as SimulateReq}
-            claimResult={Claim?.result}
-            claimFetching={claimFetching}
-          ></ClaimFees>
+          {/* <ClaimFees */}
+          {/*   ethBalance={formatEther(ethBalance ?? 0n)} */}
+          {/*   claimAmount={formatEther(dividends ?? 0n)} */}
+          {/*   claimSimulate={Claim?.request as SimulateReq} */}
+          {/*   claimResult={Claim?.result} */}
+          {/*   claimFetching={claimFetching} */}
+          {/* ></ClaimFees> */}
         </div>
       </AlertDialogContent>
     </AlertDialog>
