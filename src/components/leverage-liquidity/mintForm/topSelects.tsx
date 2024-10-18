@@ -14,17 +14,7 @@ export default function TopSelects({
   leverageTiers,
 }: Props) {
   return (
-    <div className=" grid md:grid-cols-3 gap-x-4">
-      <Select
-        name="versus"
-        title="Versus:"
-        form={form}
-        items={versus.map((e) => ({
-          label: e.debtSymbol,
-          value: e.debtToken + "," + e.debtSymbol,
-          imageUrl: getLogoAsset(e.debtToken as `0x${string}`),
-        }))}
-      />
+    <div className=" grid gap-x-4 md:grid-cols-3">
       <Select
         name="long"
         title="Go long:"
@@ -33,6 +23,16 @@ export default function TopSelects({
           label: e.collateralSymbol,
           value: e.collateralToken + "," + e.collateralSymbol,
           imageUrl: getLogoAsset(e.collateralToken as `0x${string}`),
+        }))}
+      />
+      <Select
+        name="versus"
+        title="Versus:"
+        form={form}
+        items={versus.map((e) => ({
+          label: e.debtSymbol,
+          value: e.debtToken + "," + e.debtSymbol,
+          imageUrl: getLogoAsset(e.debtToken as `0x${string}`),
         }))}
       />
       <Select

@@ -1,6 +1,5 @@
 import { useApproveErc20 } from "@/components/shared/hooks/useApproveErc20";
 import { useMintApeOrTea } from "@/components/shared/hooks/useMintApeOrTea";
-import { AssistantContract } from "@/contracts/assistant";
 import { VaultContract } from "@/contracts/vault";
 import type { TMintFormFields, TVaults } from "@/lib/types";
 import { formatDataInput, findVault } from "@/lib/utils";

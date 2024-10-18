@@ -181,14 +181,6 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
       setOpenTransactionModal(false);
     }
   };
-  let submitButtonText =
-    submitType === ESubmitType.mint ? "Confirm Mint" : "Confirm Approve";
-  if (isConfirmed) {
-    submitButtonText = "Close";
-  }
-  if (isPending || isConfirming) {
-    submitButtonText = "Pending...";
-  }
   const [isApproving, setIsApproving] = useState(false);
   // Below is logic to prevent a Approval transaction from showing "Transaction Successful" in modal.
   useEffect(() => {
@@ -302,8 +294,11 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
                 onClick={modalSubmit}
                 disabled={(!isValid && !isConfirmed) || isPending}
                 loading={isPending || isConfirming}
+                isConfirmed={isConfirmed}
               >
-                {submitButtonText}
+                {submitType === ESubmitType.mint
+                  ? "Confirm Mint"
+                  : "Confirm Approve"}
               </TransactionModal.SubmitButton>
             }
           </TransactionModal.StatSubmitContainer>
