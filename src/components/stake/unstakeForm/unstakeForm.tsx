@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
@@ -11,10 +10,9 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import UnstakeInput from "./unstakeInput";
 import type { TUnstakeFormFields } from "@/lib/types";
 import ClaimFeesCheckbox from "@/components/stake/unstakeForm/claimFeesCheck";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { type SimulateContractReturnType, parseUnits, formatUnits } from "viem";
-import { z } from "zod";
 import { useUnstake } from "../hooks/useUnstake";
 
 import { useWriteContract } from "wagmi";
@@ -42,21 +40,14 @@ const UnstakeForm = ({
   claimResult,
   claimFetching,
 }: Props) => {
-  console.log({ balance });
   const form = useFormContext<TUnstakeFormFields>();
   const formData = form.watch();
 
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const safeAmount = useMemo(() => {
-    return z.coerce.number().safeParse(formData.amount);
-  }, [formData.amount]);
-
   const { Unstake, isFetching: unstakeFetching } = useUnstake({
-    amount: safeAmount.success
-      ? parseUnits(safeAmount.data.toString() ?? "0", 12)
-      : undefined,
+    amount: parseUnits(formData.amount ?? "0", 12),
   });
 
   const { writeContract, reset, data: hash, isPending } = useWriteContract();
@@ -73,7 +64,7 @@ const UnstakeForm = ({
     }
   }, [form, isConfirmed, utils.user.getUnstakedSirBalance]);
   const { isValid, errorMessage } = useCheckSubmitValid({
-    deposit: safeAmount.success ? safeAmount.data.toString() : "0",
+    deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {
       mintRequest: Unstake?.request as SimulateReq,
@@ -134,13 +125,13 @@ const UnstakeForm = ({
                 <TransactionStatus
                   action="Unstake"
                   waitForSign={isPending}
-                  isTxPending={isConfirming}
+                  showLoading={isConfirming}
                 />
-                <div className="py-2 flex justify-between items-center">
-                  <h2 className="text-gray-400 text-sm">Amount</h2>
+                <div className="flex items-center justify-between py-2">
+                  <h2 className="text-sm text-gray-400">Amount</h2>
                   <h3 className="text-xl">
                     {form.getValues("amount")}
-                    <span className="text-gray-400 pl-[2px] text-[12px]">
+                    <span className="pl-[2px] text-[12px] text-gray-400">
                       SIR
                     </span>
                   </h3>
@@ -186,7 +177,7 @@ const UnstakeForm = ({
               onChange={setClaimFees}
             ></ClaimFeesCheckbox>
 
-            <div className=" flex-col flex items-center justify-center mt-[20px]">
+            <div className=" mt-[20px] flex flex-col items-center justify-center">
               {address && (
                 <Button
                   variant={"submit"}
@@ -211,7 +202,7 @@ const UnstakeForm = ({
                 </Button>
               )}
               {form.formState.errors.root?.message && (
-                <div className="w-[450px] pt-[20px] flex justify-center items-center">
+                <div className="flex w-[450px] items-center justify-center pt-[20px]">
                   <p className="h-[20px] text-center text-sm text-red-400">
                     {address && <>{form.formState.errors.root?.message}</>}
                   </p>

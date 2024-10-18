@@ -169,7 +169,7 @@ export function formatNumber(
   }
   if (n > 9999) {
     const num = numeral(n);
-    return num.format("0.0a");
+    return num.format("0.0a").toUpperCase();
   }
   if (decimals) {
     n = roundDown(n, decimals);

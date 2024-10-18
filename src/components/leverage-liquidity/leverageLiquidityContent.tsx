@@ -24,7 +24,7 @@ export default function LeverageLiquidityContent({
             <div className="flex h-full flex-col justify-between">
               <VaultTable isApe={isApe} vaultQuery={vaultsQuery} />
               <Pagination
-                max={Math.ceil((vaultsQuery?.vaults.length ?? 0) / 10)}
+                max={Math.ceil((vaultsQuery?.vaults.length ?? 0) / 8)}
               />
             </div>
           </Card>

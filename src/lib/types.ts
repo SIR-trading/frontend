@@ -2,6 +2,17 @@ import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 import type { CreateVaultInputValues } from "./schemas";
 
+export type TCollateral = readonly {
+  reserveApes: bigint;
+  reserveLPers: bigint;
+  tickPriceX42: bigint;
+}[];
+
+export type TCollateralResp = readonly {
+  reserveApes: string;
+  reserveLPers: string;
+  tickPriceX42: string;
+}[];
 export type TAddressString = `0x${string}`;
 // vaultParams.debtToken, vaultParams.collateralToken, vaultParams.leverageTier, vaultId
 export type TPool = {
@@ -20,19 +31,22 @@ export interface VaultFieldFragment {
   debtSymbol: string;
   collateralToken: string;
   collateralSymbol: string;
+  taxAmount: string;
   vaultId: string;
   leverageTier: number;
   lockedLiquidity: string;
   totalTea: string;
   totalValue: string;
+  apeDecimals: number;
   apeAddress: TAddressString;
-  apeCollateral: string;
-  teaCollateral: string;
 }
-
+export type TVault = VaultFieldFragment & {
+  apeCollateral: bigint;
+  teaCollateral: bigint;
+};
 export type TVaults =
   | {
-      vaults: VaultFieldFragment[];
+      vaults: TVault[];
     }
   | undefined;
 export enum LeverageTier {

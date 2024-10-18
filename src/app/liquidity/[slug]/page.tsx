@@ -3,13 +3,18 @@ import LeverageLiquidityPage from "@/components/leverage-liquidity/leverageLiqui
 import MintForm from "@/components/leverage-liquidity/mintForm/mintForm";
 import { getVaultData } from "@/lib/getVaults";
 
-export default async function Home() {
-  const { vaultQuery } = await getVaultData(0);
+// import { unstable_cache } from "next/cache";
+export const revalidate = 10;
+export default async function Home({ params }: { params: { slug: string } }) {
+  const { slug } = params;
+  const offset = isFinite(parseInt(slug)) ? parseInt(slug) : 0;
+  const { vaultQuery } = await getVaultData(offset);
+
   return (
     <main className="flex  flex-col items-center justify-center text-white">
-      <LeverageLiquidityPage title="Provide Liquidity">
+      <LeverageLiquidityPage title={"Take on Leverage"}>
         <LeverageLiquidityContent
-          isApe={false}
+          isApe
           form={<MintForm isApe vaultsQuery={vaultQuery} />}
           vaultsQuery={vaultQuery}
         ></LeverageLiquidityContent>

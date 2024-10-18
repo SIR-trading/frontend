@@ -182,7 +182,7 @@ export default function BurnForm({
               <TransactionStatus
                 action={isClaimingRewards ? "Claim Rewards" : "Burn"}
                 waitForSign={isPending}
-                isTxPending={isConfirming}
+                showLoading={isConfirming}
               />
               {isClaimingRewards && (
                 <div className=" pt-4 ">

@@ -63,6 +63,7 @@ export default function BurnTable({
           id: r.vaultId,
           balance: r.balance,
           user: r.user,
+          positionDecimals: r.positionDecimals,
           collateralSymbol: r.collateralSymbol,
           debtSymbol: r.debtSymbol,
           collateralToken: r.collateralToken,

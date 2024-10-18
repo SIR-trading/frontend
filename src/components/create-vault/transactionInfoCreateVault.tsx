@@ -22,6 +22,7 @@ export default function TransactionInfoCreateVault({
         (r) => r.json(),
       );
       const result = tokenSchema.safeParse(resp);
+      console.log(result, "RESULT");
       return result;
     },
   });
@@ -46,18 +47,40 @@ export default function TransactionInfoCreateVault({
 
           {isFetchingLong && <TextSkele />}
           {!isFetchingLong && (
-            <span className="text-[14px] text-gray-200">
-              {longTokenData?.success ? longTokenData.data.name : "Unknown"}
-            </span>
+            <div className="flex items-center gap-x-1">
+              <span className="text-[14px] text-gray-200">
+                {longTokenData?.success ? longTokenData.data.symbol : "Unknown"}
+              </span>
+
+              <ImageWithFallback
+                alt={longTokenData?.success ? longTokenData.data.symbol : ""}
+                src={getLogoAsset(longToken as TAddressString)}
+                width={20}
+                height={20}
+              />
+            </div>
           )}
         </div>
         <div className=" flex  justify-between gap-y-1">
           <span className="text-[12px] text-gray-300">Versus</span>
           {isFetching && <TextSkele />}
           {!isFetching && (
-            <span className="text-[14px] text-gray-200">
-              {versusTokenData?.success ? versusTokenData.data.name : "unknown"}
-            </span>
+            <div className="flex items-center gap-x-1">
+              <span className="text-[14px] text-gray-200">
+                {versusTokenData?.success
+                  ? versusTokenData.data.symbol
+                  : "unknown"}
+              </span>
+
+              <ImageWithFallback
+                width={20}
+                height={20}
+                alt={
+                  versusTokenData?.success ? versusTokenData.data.symbol : ""
+                }
+                src={getLogoAsset(versusToken as TAddressString)}
+              />
+            </div>
           )}
         </div>
         <div className="flex justify-between gap-y-1">

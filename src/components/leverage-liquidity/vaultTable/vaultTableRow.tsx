@@ -6,14 +6,19 @@ import {
   getLogoAsset,
   roundDown,
 } from "@/lib/utils";
+import type { StaticImageData } from "next/image";
+import Image from "next/image";
+import boostIcon from "@/../public/boost_icon.svg";
+import { HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card";
 import unknownImg from "@/../public/IconUnknown.png";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
-import type { VaultFieldFragment } from "@/lib/types";
+import type { TVault } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
+import { HoverCard } from "@/components/ui/hover-card";
 
 export function VaultTableRow({
   pool,
@@ -21,7 +26,7 @@ export function VaultTableRow({
 }: {
   badgeVariant: VariantProps<typeof badgeVariants>;
   number: string;
-  pool: VaultFieldFragment;
+  pool: TVault;
   isApe: boolean;
 }) {
   const fee = calculateApeVaultFee(pool.leverageTier) * 100;
@@ -38,18 +43,28 @@ export function VaultTableRow({
   }, [pool.lockedLiquidity, pool.totalTea]);
 
   const { setValue } = useMintFormProviderApi();
-  const teaColl = parseUnits(pool.teaCollateral, 18);
-  const apeColl = parseUnits(pool.apeCollateral, 18);
-  const tvlPercent =
-    parseFloat(formatUnits(apeColl, 18)) / parseFloat(formatUnits(teaColl, 18));
-  const showTvlPercent = tvlPercent < pool.leverageTier;
+  const teaCollateral = parseFloat(formatUnits(pool.teaCollateral, 18));
+  const apeCollateral = parseFloat(formatUnits(pool.apeCollateral, 18));
+  const tvl = apeCollateral + teaCollateral;
+  const tvlPercent = tvl / apeCollateral;
   const variant = useCalculateVaultHealth({
     tvl: parseUnits(pool.totalValue, 18),
     isApe,
     leverageTier: pool.leverageTier,
-    apeCollateral: parseUnits(pool.apeCollateral, 18),
-    teaCollateral: parseUnits(pool.teaCollateral, 18),
+    apeCollateral: pool.apeCollateral,
+    teaCollateral: pool.teaCollateral,
   });
+  const showPercent = () => {
+    if (!isFinite(tvlPercent)) {
+      return false;
+    }
+    if (isApe) {
+      if (variant.variant === "red") {
+        return true;
+      }
+    }
+  };
+  const parsedTaxAmount = parseUnits(pool.taxAmount, 0);
   return (
     <tr
       onClick={() => {
@@ -57,10 +72,37 @@ export function VaultTableRow({
         setValue("long", pool.collateralToken + "," + pool.collateralSymbol);
         setValue("leverageTier", pool.leverageTier.toString());
       }}
-      className="grid cursor-pointer text-sm grid-cols-6   md:grid-cols-9 rounded-md px-1 py-1 text-left text-[16px] font-normal transition-colors hover:bg-primary"
+      className="grid cursor-pointer grid-cols-6 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9"
     >
-      <th className="">{pool.vaultId}</th>
-      <th className="md:col-span-3 items-center flex">
+      <th className="">
+        <div className="flex items-center gap-x-1">
+          <span>{pool.vaultId}</span>
+          {parsedTaxAmount > 0n && (
+            <HoverCard openDelay={0} closeDelay={20}>
+              <HoverCardTrigger asChild>
+                <div>
+                  <Image
+                    src={boostIcon as StaticImageData}
+                    height={22}
+                    width={22}
+                    alt="Boost Icon"
+                  />
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent side="top" alignOffset={10}>
+                <div className="mt-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+                  <span>
+                    {`LPers of this vault are rewarded with
+                    ${formatNumber(formatUnits(parsedTaxAmount * 24n * 60n * 60n, 12), 10)}
+                    SIR/day.`}
+                  </span>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+        </div>
+      </th>
+      <th className="flex items-center md:col-span-3">
         <ImageWithFallback
           fallbackImageUrl={unknownImg}
           className="h-6 w-6 rounded-full "
@@ -83,26 +125,70 @@ export function VaultTableRow({
         </span>
       </th>
       <th className="flex items-center">
-        <h4 className="text-gray-200 font-normal">{formatNumber(POL, 1)}%</h4>
+        <h4 className="font-normal text-gray-200">{formatNumber(POL, 1)}%</h4>
       </th>
-      <th className="flex text-[13px] text-red-400 font-normal gap-x-1 items-center">
+      <th className="flex items-center gap-x-1 text-[13px] font-normal text-red-400">
         {roundDown(fee, 2)}%{" "}
       </th>
       <th className="pl-2">
-        <Badge
-          {...variant}
-          className="text-[10px]"
-        >{`${getLeverageRatio(pool.leverageTier)}x${showTvlPercent ? "(" + formatNumber(tvlPercent, 2) + "x)" : ""}`}</Badge>
+        <HoverCard openDelay={0} closeDelay={20}>
+          <HoverCardTrigger asChild>
+            <div>
+              <Badge {...variant} className="text-nowrap text-[9px]">
+                {`${getLeverageRatio(pool.leverageTier)}x${showPercent() ? " (" + formatNumber(tvlPercent, 2) + "x)" : ""}`}
+              </Badge>
+            </div>
+          </HoverCardTrigger>
+          <HoverCardContent side="bottom" alignOffset={10}>
+            <div className="mt-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+              <DisplayBadgeInfo
+                variant={variant}
+                isApe={false}
+              ></DisplayBadgeInfo>
+            </div>
+          </HoverCardContent>
+        </HoverCard>
       </th>
 
-      <th className="md:col-span-2 flex justify-end items-center gap-x-1 text-right">
+      <th className="flex items-center justify-end gap-x-1 text-right md:col-span-2">
         <span>
-          {formatNumber(formatUnits(parseUnits(pool.totalValue, 0), 18), 4)}
+          {formatNumber(
+            formatUnits(parseUnits(pool.totalValue, 0), pool.apeDecimals),
+            4,
+          )}
         </span>
-        <span className=" hidden md:block text-gray-300 font-light">
+        <span className=" hidden font-light text-gray-300 md:block">
           {pool.collateralSymbol}
         </span>
       </th>
     </tr>
   );
+}
+
+function DisplayBadgeInfo({
+  variant,
+  isApe,
+}: {
+  variant: VariantProps<typeof badgeVariants>;
+  isApe: boolean;
+}) {
+  if (variant.variant === "green") {
+    return isApe ? (
+      <span>Healthy, more than enough liquidity.</span>
+    ) : (
+      <span>Highly profitable</span>
+    );
+  } else if (variant.variant === "yellow") {
+    isApe ? (
+      <span>Borderline, just enough liquidity.</span>
+    ) : (
+      <span>Moderately profitable</span>
+    );
+  } else if (variant.variant === "red") {
+    return isApe ? (
+      <span>Degraded, insufficient liquidity for constant leverage.</span>
+    ) : (
+      <span>Minimally profitable</span>
+    );
+  }
 }

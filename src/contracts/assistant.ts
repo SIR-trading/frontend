@@ -24,6 +24,26 @@ export const AssistantContract = {
     },
     {
       type: "function",
+      name: "getReserves",
+      inputs: [
+        { name: "vaultIds", type: "uint48[]", internalType: "uint48[]" },
+      ],
+      outputs: [
+        {
+          name: "reserves",
+          type: "tuple[]",
+          internalType: "struct SirStructs.Reserves[]",
+          components: [
+            { name: "reserveApes", type: "uint144", internalType: "uint144" },
+            { name: "reserveLPers", type: "uint144", internalType: "uint144" },
+            { name: "tickPriceX42", type: "int64", internalType: "int64" },
+          ],
+        },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
       name: "getVaultStatus",
       inputs: [
         {

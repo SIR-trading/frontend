@@ -30,13 +30,13 @@ const StakeData = () => {
   }, [unstakedSupply, totalSupply, totalValueLocked]);
 
   return (
-    <div className="flex justify-evenly py-[24px]">
-      <div className="bg-secondary rounded-md w-[47%] py-2 flex flex-col justify-center items-center gap-2">
+    <div className="mx-auto grid w-[600px] grid-cols-2 gap-x-4 py-[24px] ">
+      <div className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="text-sm font-medium">Total SIR Locked</div>
         {/* <div className="text-2xl font-semibold font-lora">
           {parseFloat(formatUnits(totalValueLocked ?? 0n, 12)).toFixed(4)}
         </div> */}
-        <div className="text-2xl font-semibold font-lora">
+        <div className="font-lora text-2xl font-semibold">
           {(() => {
             const value = parseFloat(formatUnits(totalValueLocked ?? 0n, 12));
             if (value >= 1e9) {
@@ -51,13 +51,12 @@ const StakeData = () => {
           })()}
         </div>
       </div>
-
-      <div className="bg-secondary rounded-md w-[47%] py-2 flex flex-col justify-center items-center gap-2">
-        <div className="flex flex-row w-full items-center justify-center">
-          <div className="text-sm font-medium px-2">Staking APR</div>
+      <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
+        <div className="flex w-full flex-row items-center justify-center">
+          <div className="px-2 text-sm font-medium">Staking APR</div>
           <AprInfo></AprInfo>
         </div>
-        <div className="text-2xl font-semibold font-lora">N/A</div>
+        <div className="font-lora text-2xl font-semibold">N/A</div>
       </div>
     </div>
   );
