@@ -22,7 +22,7 @@ import MintFormSubmit from "./submit";
 import { useFormSuccessReset } from "./hooks/useFormSuccessReset";
 import { useTransactions } from "./hooks/useTransactions";
 import { TransactionStatus } from "./transactionStatus";
-import { CircleCheck } from "lucide-react";
+import { ChevronDown, CircleCheck } from "lucide-react";
 import TransactionModal from "@/components/shared/transactionModal";
 import { WETH_ADDRESS } from "@/data/constants";
 import { useGetReceivedTokens } from "./hooks/useGetReceivedTokens";
@@ -274,17 +274,11 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
             {submitType === ESubmitType.mint && !isConfirmed && (
               <TransactionModal.StatContainer>
                 <TransactionModal.StatRow
-                  info={
-                    isApe
-                      ? "Apes pay fees only twice: once when minting and once when burning their APE tokens. No additional fees are charged while holding APE tokens, regardless of the duration."
-                      : "Gentlemen pay fees when minting and burning liquidity. These fees deter attacks and reward early liquidity providers. It's advantageous to mint TEA early and burn it late."
-                  }
                   title={"Fee Percent"}
                   value={fee ? fee.toString() + "%" : "0%"}
                 />
 
                 <TransactionModal.StatRow
-                  info=""
                   title="Fee Amount"
                   value={
                     formatNumber(
@@ -342,6 +336,12 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
             submitType={submitType}
           />
           <MintFormSubmit.ConnectButton />
+          <MintFormSubmit.FeeInfo
+            feeValue={form.getValues("long").split(",")[1]}
+            isApe={isApe}
+            fee={fee}
+            deposit={form.getValues("deposit")}
+          />
           <MintFormSubmit.Errors>
             <>{form.formState.errors.root?.message}</>
           </MintFormSubmit.Errors>
