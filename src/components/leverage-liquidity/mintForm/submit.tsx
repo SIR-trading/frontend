@@ -79,7 +79,7 @@ const FeeInfo = ({
     return undefined;
   }
   return (
-    <div className="w-[450px] text-gray-200">
+    <div className="w-[450px]  text-gray-200">
       <div className="flex justify-between text-[14px]">
         <div className="flex gap-x-1">
           <span>{fee ? fee.toString() + "%" : "0%"} </span> <span>in fees</span>
@@ -100,7 +100,7 @@ const FeeInfo = ({
       {open && (
         <div className="animate-fade-in pt-1 text-[14px] text-gray-100">
           <div className="flex justify-between py-1">
-            <span>Fee Amount</span>
+            <span className="select-none">Fee Amount</span>
             <span className="text-white">
               {formatNumber(
                 parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100),
@@ -108,7 +108,7 @@ const FeeInfo = ({
               <span className="text-gray-400"> {feeValue}</span>
             </span>
           </div>
-          <div className="pt-1  text-[14px] text-gray-500">
+          <div className="pt-1  text-[14px] text-gray-400">
             {isApe
               ? "Apes pay fees only twice: once when minting and once when burning their APE tokens. No additional fees are charged while holding APE tokens, regardless of the duration."
               : "Gentlemen pay fees when minting and burning liquidity. These fees deter attacks and reward early liquidity providers. It's advantageous to mint TEA early and burn it late."}
