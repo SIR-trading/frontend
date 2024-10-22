@@ -75,7 +75,7 @@ const FeeInfo = ({
   isApe: boolean;
 }) => {
   const [open, setOpen] = useState(false);
-  if (fee === undefined || deposit === undefined || feeValue === undefined) {
+  if (feeValue === "" || deposit === "" || !isFinite(parseFloat(fee ?? ""))) {
     return undefined;
   }
   return (
