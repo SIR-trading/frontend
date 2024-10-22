@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import { ESubmitType } from "./hooks/useCheckSubmitValid";
 import { ChevronDown } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
+import { isValid } from "zod";
 
 const SubmitContext = React.createContext(undefined);
 
@@ -68,16 +69,20 @@ const FeeInfo = ({
   isApe,
   feeValue,
   deposit,
+  isValid,
 }: {
   fee: string | undefined;
   deposit: string | undefined;
   feeValue: string | undefined;
   isApe: boolean;
+  isValid: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   if (feeValue === "" || deposit === "" || !isFinite(parseFloat(fee ?? ""))) {
     return undefined;
   }
+  console.log(isValid, "IS VALID");
+  if (!isValid) return;
   return (
     <div className="w-[450px]  text-gray-200">
       <div className="flex justify-between text-[14px]">
