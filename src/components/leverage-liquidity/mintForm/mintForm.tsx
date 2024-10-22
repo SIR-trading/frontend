@@ -210,7 +210,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
   }, [isApproving, reset, isConfirmed, utils.user.getBalance]);
   const deposit = form.getValues("deposit");
   return (
-    <Card>
+    <Card className="min-h-[550px]">
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <TransactionModal.Root
           setOpen={setOpenTransactionModal}
