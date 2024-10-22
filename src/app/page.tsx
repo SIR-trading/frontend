@@ -1,6 +1,5 @@
 import LeverageLiquidityContent from "@/components/leverage-liquidity/leverageLiquidityContent";
 import LeverageLiquidityPage from "@/components/leverage-liquidity/leverageLiquidityPage";
-import LeverageLiquiditySkeleton from "@/components/leverage-liquidity/leverageLiquiditySkeleton";
 import MintForm from "@/components/leverage-liquidity/mintForm/mintForm";
 import { getVaultData } from "@/lib/getVaults";
 
@@ -14,7 +13,6 @@ export default async function Home() {
           form={<MintForm isApe vaultsQuery={vaultQuery} />}
           vaultsQuery={vaultQuery}
         ></LeverageLiquidityContent>
-        {/* <LeverageLiquiditySkeleton></LeverageLiquiditySkeleton> */}
       </LeverageLiquidityPage>
     </main>
   );
