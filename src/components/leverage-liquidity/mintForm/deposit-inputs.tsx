@@ -126,6 +126,11 @@ function AssetInfo({
       </>
     );
   }
+  console.log(depositAsset?.split(","), "DESPOSIT ASSET");
+  console.log(
+    getLogoAsset(depositAsset?.split(",")[0] as TAddressString),
+    "LOGO ASSET",
+  );
   return (
     <>
       {depositAsset && (

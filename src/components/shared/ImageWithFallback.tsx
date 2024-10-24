@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
 import unknownImg from "@/../public/IconUnknown.png";
@@ -28,6 +28,9 @@ const ImageWithFallback = (props: Props) => {
   let { fallbackImageUrl } = props;
   const { src, ...rest } = props;
   const [imgSrc, setImgSrc] = useState<string | StaticImageData>(src);
+  useEffect(() => {
+    setImgSrc(src);
+  }, [src]);
   fallbackImageUrl = unknownImg as string | StaticImageData;
   delete rest.fallbackImageUrl;
   return (
