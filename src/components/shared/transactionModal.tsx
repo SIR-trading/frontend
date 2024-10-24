@@ -17,10 +17,10 @@ function Root({ open, setOpen, children }: Props) {
         align="center"
         animate="none"
         closeColor={"black"}
-        className="bg-transparent z-[400]"
+        className="z-[400] bg-transparent"
       >
         <div
-          className={`rounded-xl relative transition-all duration-700  bg-secondary-800 text-white`}
+          className={`relative rounded-xl bg-secondary-800 text-white  transition-all duration-700`}
         >
           {children}
         </div>
@@ -29,11 +29,11 @@ function Root({ open, setOpen, children }: Props) {
   );
 }
 const StatContainer = ({ children }: { children: ReactNode }) => (
-  <div className="flex flex-col w-full py-2 gap-y-1">{children}</div>
+  <div className="flex w-full flex-col gap-y-1 py-2">{children}</div>
 );
 function StatSubmitContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="flex py-4 px-6 w-full flex-col gap-y-4 items-center  rounded-md">
+    <div className="flex w-full flex-col items-center gap-y-4 rounded-md px-6  py-4">
       {children}
     </div>
   );
@@ -41,7 +41,7 @@ function StatSubmitContainer({ children }: { children: ReactNode }) {
 
 function InfoContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="px-6 rounded-tr-xl rounded-tl-xl bg-secondary-600 pt-5 pb-6">
+    <div className="rounded-tl-xl rounded-tr-xl bg-secondary-600 px-6 pb-6 pt-5">
       {children}
     </div>
   );
@@ -49,7 +49,7 @@ function InfoContainer({ children }: { children: ReactNode }) {
 
 function Disclaimer({ children }: { children: ReactNode }) {
   return (
-    <div className="text-[12px] italic text-gray-400 items-center pt-2 w-[300px]">
+    <div className="w-[300px] items-center pt-2 text-[12px] italic text-gray-400">
       <span>{children}</span>
     </div>
   );
@@ -77,9 +77,9 @@ function StatRow({
   value: string;
 }) {
   return (
-    <div className="flex  justify-between relative text-[13px]">
+    <div className="relative  flex justify-between text-[13px]">
       <h3 className="text-gray-300 ">
-        <span className="flex z-20 items-center gap-x-1">
+        <span className="z-20 flex items-center gap-x-1">
           {title} {info && <ToolTip>{info}</ToolTip>}
         </span>
       </h3>
