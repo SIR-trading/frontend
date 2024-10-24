@@ -7,8 +7,8 @@ export default function TransactionSuccess({
   amountReceived,
   assetReceived,
 }: {
-  amountReceived: bigint | undefined;
-  assetReceived: string;
+  amountReceived?: bigint | undefined;
+  assetReceived?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -16,10 +16,12 @@ export default function TransactionSuccess({
         <CircleCheck size={40} color="#F0C775" />
       </div>
       <h2 className="text-center">Transaction Successful!</h2>
-      <h3 className="text-center">
-        {assetReceived} received:{" "}
-        {formatNumber(formatUnits(amountReceived ?? 0n, 18), 6)}
-      </h3>
+      {amountReceived && (
+        <h3 className="text-center">
+          {assetReceived} received:{" "}
+          {formatNumber(formatUnits(amountReceived ?? 0n, 18), 6)}
+        </h3>
+      )}
     </div>
   );
 }

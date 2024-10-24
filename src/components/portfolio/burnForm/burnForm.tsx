@@ -162,13 +162,7 @@ export default function BurnForm({
     }
   }, [isConfirmed, reset, open]);
 
-  let submitButtonText = isClaimingRewards ? "Confirm Claim" : "Confirm Burn";
-  if (isPending || isConfirming) {
-    submitButtonText = "Pending...";
-  }
-  if (isConfirmed) {
-    submitButtonText = "Close";
-  }
+  const submitButtonText = isClaimingRewards ? "Confirm Claim" : "Confirm Burn";
 
   let fee = useGetFee({ isApe, levTier });
   fee = fee ?? "";
@@ -182,7 +176,7 @@ export default function BurnForm({
               <TransactionStatus
                 action={isClaimingRewards ? "Claim Rewards" : "Burn"}
                 waitForSign={isPending}
-                isTxPending={isConfirming}
+                showLoading={isConfirming}
               />
               {isClaimingRewards && (
                 <div className=" pt-4 ">
@@ -233,6 +227,7 @@ export default function BurnForm({
             disabled={false}
             loading={isConfirming || isPending}
             onClick={() => onSubmit()}
+            isConfirmed={isConfirmed}
           >
             {submitButtonText}
           </TransactionModal.SubmitButton>

@@ -1,34 +1,110 @@
-import React, { useState } from "react";
-import { Card } from "../ui/card";
+import React, { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { api } from "@/trpc/react";
-import { useAccount } from "wagmi";
-import { ClaimModal } from "./claimModal";
-import { formatEther } from "viem";
-
+import { useEffect } from "react";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { formatEther, formatUnits } from "viem";
+import { useClaim } from "../stake/hooks/useClaim";
+import TransactionModal from "../shared/transactionModal";
+import TransactionSuccess from "../shared/transactionSuccess";
+import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
 export default function ClaimCard() {
-  const { isConnected, address } = useAccount();
   const [openModal, setOpenModal] = useState(false);
 
+  const { claimData } = useClaim();
+
+  const { isConnected, address } = useAccount();
+
   const { data: dividends } = api.user.getDividends.useQuery(
+    { staker: address },
     {
-      staker: address,
+      enabled: isConnected,
     },
-    { enabled: isConnected },
   );
+
+  const { writeContract, data: hash, isPending, reset } = useWriteContract();
+  const { isSuccess: isConfirmed, isLoading: isConfirming } =
+    useWaitForTransactionReceipt({ hash });
+  const isValid = useMemo(() => {
+    if (claimData?.request) {
+      return { isValid: true, error: null };
+    } else {
+      return { isValid: false, error: "Error Occured." };
+    }
+  }, [claimData?.request]);
+
+  const onSubmit = () => {
+    if (claimData?.request) {
+      writeContract(claimData?.request);
+    }
+  };
+
+  useEffect(() => {
+    if (isConfirmed && !openModal) {
+      reset();
+    }
+  }, [isConfirmed, reset, openModal]);
+
   return (
     <div className=" border-secondary-300">
-      <ClaimModal open={openModal} setOpen={setOpenModal} />
-      <div className="bg-secondary-400 px-2 py-2 rounded-md text-2xl">
-        <h2 className="flex text-gray-200 gap-x-1 pb-1 items-center text-sm ">
-          <span>Claimable Dividends</span>
+      <TransactionModal.Root setOpen={setOpenModal} open={openModal}>
+        <TransactionModal.InfoContainer>
+          <TransactionStatus
+            waitForSign={isPending}
+            action="Claim"
+            showLoading={isConfirming}
+            isConfirmed={isConfirmed}
+          />
+          {!isConfirmed && (
+            <div>
+              <h3 className=" space-x-0.5 py-2">
+                <span className="text-xl">
+                  {formatUnits(dividends ?? 0n, 18)}
+                </span>
+                <span className="text-gray-400">Eth</span>
+              </h3>
+            </div>
+          )}
+          {isConfirmed && <TransactionSuccess />}
+        </TransactionModal.InfoContainer>
+        <TransactionModal.Close setOpen={setOpenModal} />
+        <TransactionModal.StatSubmitContainer>
+          <TransactionModal.SubmitButton
+            isConfirmed={isConfirmed}
+            disabled={isPending || isConfirming}
+            loading={isPending || isConfirming}
+            onClick={() => {
+              if (isConfirmed) {
+                setOpenModal(false);
+              } else {
+                onSubmit();
+              }
+            }}
+          >
+            Claim
+          </TransactionModal.SubmitButton>
+        </TransactionModal.StatSubmitContainer>
+      </TransactionModal.Root>
+      {/* <claimDataModal open={openModal} setOpen={setOpenModal} /> */}
+      <div className="rounded-md bg-secondary-400 px-2 py-2 text-2xl">
+        <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
+          <span>Dividends</span>
         </h2>
         <div className="flex items-center justify-between">
           <h3 className="text-3xl">
             {formatEther(dividends ?? 0n)}
-            <span className="text-gray-500 text-sm"> ETH</span>
+            <span className="text-sm text-gray-500"> ETH</span>
           </h3>
-          <Button onClick={() => setOpenModal(true)} className="py-2">
+          <Button
+            onClick={() => {
+              if (isValid.isValid) setOpenModal(true);
+            }}
+            className="py-2"
+          >
             Claim
           </Button>
         </div>

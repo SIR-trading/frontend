@@ -6,6 +6,7 @@ const vaults = gql`
 
   fragment VaultFields on Vault {
     debtToken
+    apeDecimals
     debtSymbol
     collateralToken
     collateralSymbol
@@ -15,12 +16,14 @@ const vaults = gql`
     totalValue
     lockedLiquidity
     apeAddress
+    taxAmount
+    apeDecimals
     apeCollateral
     teaCollateral
   }
 
   query VaultQuery {
-    vaults {
+    vaults(orderDirection: desc, orderBy: totalValue) {
       ...VaultFields
     }
   }
@@ -35,6 +38,7 @@ const userApePositionsQuery = gql`
       balance
       debtToken
       debtSymbol
+      positionDecimals
       collateralToken
       collateralSymbol
       leverageTier
@@ -48,6 +52,7 @@ const userTeaPositionsQuery = gql`
       user
       vaultId
       balance
+      positionDecimals
       debtToken
       debtSymbol
       collateralToken
@@ -76,12 +81,14 @@ export const executeGetUserApePositions = async ({
 
 export const executeVaultsQuery = async () => {
   const result = await graphqlClient.request(vaults);
+  console.log(result, "RESULT");
   return result as TVaults;
 };
 
 export type TUserPosition = {
   id: string;
   balance: bigint;
+  positionDecimals: number;
   user: TAddressString;
   collateralSymbol: string;
   debtSymbol: string;

@@ -10,8 +10,12 @@ import { Button } from "../ui/button";
 import { CreateVaultInputValues } from "@/lib/schemas";
 import type { TAddressString, TCreateVaultKeys } from "@/lib/types";
 import { useCreateVault } from "./hooks/useCreateVault";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { getLogoAsset, mapLeverage } from "@/lib/utils";
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
+import { getLogoAsset } from "@/lib/utils";
 import ImageWithFallback from "../shared/ImageWithFallback";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioItem } from "./radioItem";
@@ -19,6 +23,7 @@ import TransactionModal from "../shared/transactionModal";
 import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
 import TransactionInfoCreateVault from "./transactionInfoCreateVault";
 import { api } from "@/trpc/react";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 const tokens = [
   {
     address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" as TAddressString,
@@ -38,6 +43,8 @@ const tokens = [
   },
 ];
 export default function CreateVaultForm() {
+  const { openConnectModal } = useConnectModal();
+  const { isConnected } = useAccount();
   const form = useForm<z.infer<typeof CreateVaultInputValues>>({
     resolver: zodResolver(CreateVaultInputValues),
     mode: "all",
@@ -84,7 +91,7 @@ export default function CreateVaultForm() {
     {
       debtToken: formData.versusToken,
       collateralToken: formData.longToken,
-      leverageTier: 2,
+      leverageTier: parseInt(formData.leverageTier),
     },
     {
       enabled,
@@ -100,6 +107,35 @@ export default function CreateVaultForm() {
     },
     "VAULTID",
   );
+  const longTokenValid = useMemo(() => {
+    if (formData.longToken.length !== 42 && formData.longToken.length > 0) {
+      return { isValid: false, error: "Invalid Long Token Address!" };
+    }
+    if (formData.longToken.length === 42) {
+      if (!formData.longToken.startsWith("0x")) {
+        return {
+          isValid: false,
+          error: "Long Token has an Invalid Address.",
+        };
+      }
+    }
+    return { isValid: true, error: null };
+  }, [formData.longToken]);
+  const versusTokenValid = useMemo(() => {
+    if (formData.versusToken.length !== 42 && formData.versusToken.length > 0) {
+      return { isValid: false, error: "Invalid Versus Token Address!" };
+    }
+
+    if (formData.versusToken.length === 42) {
+      if (!formData.versusToken.startsWith("0x")) {
+        return {
+          isValid: false,
+          error: "Versus Token has an Invalid Address.",
+        };
+      }
+    }
+    return { isValid: true, error: null };
+  }, [formData.versusToken]);
   const isValid = useMemo(() => {
     if (vaultData === 0) {
       return { isValid: false, error: "Invalid Vault." };
@@ -127,7 +163,7 @@ export default function CreateVaultForm() {
             <TransactionStatus
               action="Create"
               waitForSign={isPending}
-              isTxPending={isConfirming}
+              showLoading={isConfirming}
             />
             <TransactionInfoCreateVault
               leverageTier={formData.leverageTier}
@@ -139,11 +175,16 @@ export default function CreateVaultForm() {
             <TransactionModal.SubmitButton
               disabled={!isValid}
               loading={isPending || isConfirming}
+              isConfirmed={isConfirmed}
               onClick={() => {
-                onSubmit();
+                if (isConfirmed) {
+                  setOpenModal(false);
+                } else {
+                  onSubmit();
+                }
               }}
             >
-              {isPending || isConfirming ? "Pending..." : "Create"}
+              Create
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
@@ -151,11 +192,22 @@ export default function CreateVaultForm() {
         <div className="grid  gap-y-4">
           <div className="w-full space-y-2">
             <TokenInput name="longToken" title="Long Token" />
+            {!longTokenValid.isValid && (
+              <span className="text-sm text-red-400">
+                {versusTokenValid.error}
+              </span>
+            )}
             <QuickSelects name="longToken" tokens={tokens} />
           </div>
 
           <div className="w-full space-y-2">
             <TokenInput name="versusToken" title="Versus Token" />
+
+            {!versusTokenValid.isValid && (
+              <span className="text-sm text-red-400">
+                {versusTokenValid.error}
+              </span>
+            )}
             <QuickSelects name="versusToken" tokens={tokens} />
           </div>
         </div>
@@ -170,11 +222,12 @@ export default function CreateVaultForm() {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="grid grid-cols-4 gap-4"
+                  className="grid grid-cols-3 gap-4"
                 >
-                  {["-4", "-3", "-2", "-1", "0", "1", "2"].map((e) => {
+                  {["-4", "-3", "-2", "-1", "0", "1", "2"].map((e, index) => {
                     return (
                       <RadioItem
+                        index={index}
                         key={e}
                         setValue={setLeverageTier}
                         fieldValue={field.value}
@@ -194,19 +247,34 @@ export default function CreateVaultForm() {
           }
         </div>
         <div className="flex flex-col items-center pt-4">
-          <Button
-            onClick={() => {
-              setOpenModal(true);
-            }}
-            type="button"
-            disabled={!isValid.isValid}
-            variant={"submit"}
-          >
-            Create
-          </Button>
-
-          <div className="flex pt-1 md:w-[450px]">
-            <span className="text-[12px] text-red-400">
+          {isConnected && (
+            <Button
+              onClick={() => {
+                if (isConnected) {
+                  setOpenModal(true);
+                } else {
+                }
+              }}
+              type="button"
+              disabled={!isValid.isValid}
+              variant={"submit"}
+            >
+              Create
+            </Button>
+          )}
+          {!isConnected && (
+            <Button
+              type="button"
+              variant={"submit"}
+              onClick={() => {
+                openConnectModal?.();
+              }}
+            >
+              Connect Wallet
+            </Button>
+          )}
+          <div className="flex pt-2 md:w-[450px]">
+            <span className="text-[13px] text-red-400">
               {isValid.error ? isValid.error : ""}
             </span>
           </div>

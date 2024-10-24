@@ -72,7 +72,7 @@ const AlertDialogOverlay = React.forwardRef<
   <Dialog.Overlay
     ref={ref}
     className={cn(
-      `data-[state:closed]:animate-out data-[state:closed]:fade-out data-[state:closed]:duration-1000 fixed inset-0 bg-black/50 backdrop-blur-sm
+      `data-[state:closed]:animate-out data-[state:closed]:fade-out data-[state:closed]:duration-1000 fixed inset-0 bg-black/20 backdrop-blur-sm
        duration-1000 fade-in data-[state=open]:animate-in ${onTop ? "z-[400]" : ""} 
       `,
       className,

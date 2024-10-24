@@ -9,6 +9,10 @@ export const env = createEnv({
   server: {
     RPC_URL: z.string(),
     SUBGRAPH_URL: z.string(),
+    KV_REST_API_READ_ONLY_TOKEN: z.string(),
+    KV_REST_API_TOKEN: z.string(),
+    KV_REST_API_URL: z.string(),
+    KV_URL: z.string(),
   },
 
   /**
@@ -37,7 +41,10 @@ export const env = createEnv({
     SUBGRAPH_URL: process.env.SUBGRAPH_URL,
     NEXT_PUBLIC_ASSISTANT_ADDRESS: process.env.NEXT_PUBLIC_ASSISTANT_ADDRESS,
     NEXT_PUBLIC_SIR_ADDRESS: process.env.NEXT_PUBLIC_SIR_ADDRESS,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    KV_REST_API_READ_ONLY_TOKEN: process.env.KV_REST_API_TOKEN,
+    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
+    KV_REST_API_URL: process.env.KV_REST_API_URL,
+    KV_URL: process.env.KV_URL, // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
@@ -46,7 +53,7 @@ export const env = createEnv({
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   /**
    * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
-   * `SOME_VAR=''` will throw an error.
+   * `SOME_VAR:''` will throw an error.
    */
   emptyStringAsUndefined: true,
 });

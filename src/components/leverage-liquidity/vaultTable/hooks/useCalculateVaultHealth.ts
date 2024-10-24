@@ -1,4 +1,5 @@
 import type { badgeVariants } from "@/components/ui/badge";
+import { mapLeverage } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import { formatUnits } from "viem";
 
@@ -16,17 +17,18 @@ export default function useCalculateVaultHealth({
   isApe,
 }: Props): VariantProps<typeof badgeVariants> {
   const ape = parseFloat(formatUnits(apeCollateral, 18));
-  const gentlement = parseFloat(formatUnits(teaCollateral, 18));
-  const Gmin = (leverageTier - 1) * ape;
+  const gentlemen = parseFloat(formatUnits(teaCollateral, 18));
+  const leverageRatio = mapLeverage(leverageTier.toString());
+  const Gmin = (parseFloat(leverageRatio ?? "0") - 1) * ape;
   const mult = Gmin * 1.25;
-  if (mult > gentlement) {
-    return isApe ? { variant: "red" } : { variant: "green" };
+  if (gentlemen > mult) {
+    return isApe ? { variant: "green" } : { variant: "red" };
   }
-  if (Gmin > gentlement) {
+  if (gentlemen > Gmin) {
     return isApe ? { variant: "yellow" } : { variant: "yellow" };
   }
-  if (gentlement > Gmin) {
-    return isApe ? { variant: "green" } : { variant: "red" };
+  if (Gmin > gentlemen) {
+    return isApe ? { variant: "red" } : { variant: "green" };
   }
   return { variant: "green" };
 }

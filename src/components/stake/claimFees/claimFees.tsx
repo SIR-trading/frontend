@@ -61,13 +61,14 @@ const ClaimFees = ({
           <TransactionModal.InfoContainer>
             <TransactionStatus
               waitForSign={isPending}
-              isTxPending={isConfirming}
+              showLoading={isConfirming}
             />
             <h2>Amount to Claim</h2>
             <h3>{formatNumber(claimAmount ?? "0")}</h3>
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
+              isConfirmed={isConfirmed}
               disabled={Boolean(claimSimulate) && Boolean(claimResult)}
               onClick={() => onSubmit()}
               loading={isPending || isConfirming}
@@ -76,14 +77,14 @@ const ClaimFees = ({
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
-        <h2 className="text-center text-2xl pb-6 font-lora ">Claim</h2>
+        <h2 className="pb-6 text-center font-lora text-2xl ">Claim</h2>
         <div className=" rounded-md bg-secondary-300 px-3 py-2">
-          <div className="text-sm font-medium leading-none py-1">
+          <div className="py-1 text-sm font-medium leading-none">
             Amount to claim{" "}
           </div>
           <div className="flex justify-between">
             <div className="flex flex-col justify-between">
-              <div className="h-10 w-40 rounded-md ring-offset-background bg-card text-[28px]">
+              <div className="h-10 w-40 rounded-md bg-card text-[28px] ring-offset-background">
                 {formatNumber(claimAmount ?? "0")}
               </div>
               {/* <div className="pt-2 text-sm italic text-gray-500">$66.88</div> */}
@@ -110,7 +111,7 @@ const ClaimFees = ({
             </div>
           </div>
         </div>
-        <div className=" flex-col flex items-center justify-center mt-[20px]">
+        <div className=" mt-[20px] flex flex-col items-center justify-center">
           {address && (
             <Button
               variant={"submit"}

@@ -15,14 +15,14 @@ interface TooltipsProps {
 const ToolTip: FC<TooltipsProps> = ({ children, size }) => {
   return (
     <HoverCard openDelay={0} closeDelay={20}>
-      <HoverCardTrigger asChild>
+      <HoverCardTrigger>
         <Info size={size ?? 16} />
       </HoverCardTrigger>
       <HoverCardContent side="top" alignOffset={10}>
-        <div className="bg-secondary-300 max-w-[200px] py-2 px-2 rounded-md">
+        <div className="max-w-[200px] rounded-md bg-white px-2 py-2 text-gray-800">
           {children}
         </div>
-        <HoverCardArrow className="fill-secondary-300" height={15} width={14} />
+        <HoverCardArrow className="fill-white" height={15} width={14} />
       </HoverCardContent>
     </HoverCard>
   );

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export const useClaim = () => {
   const {
-    data: Claim,
+    data: claimData,
     error,
     refetch,
     isFetching,
@@ -20,5 +20,5 @@ export const useClaim = () => {
     refetch().catch((e) => console.log(e));
   }, [refetch]);
 
-  return { Claim, isFetching, error };
+  return { claimData, isFetching, error };
 };
