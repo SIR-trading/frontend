@@ -36,8 +36,14 @@ interface Props {
  * Contains form actions and validity.
  */
 export default function MintForm({ vaultsQuery, isApe }: Props) {
+  const [useEthRaw, setUseEth] = useState(false);
+  const { address } = useAccount();
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
+  const { data: userEthBalance } = api.user.getEthBalance.useQuery(
+    { userAddress: address },
+    { enabled: Boolean(address) && Boolean(formData.long) },
+  );
 
   const { data: decimalData } = api.erc20.getErc20Decimals.useQuery(
     {
@@ -49,7 +55,6 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
   );
 
   let decimals = decimalData ?? 18;
-  const [useEthRaw, setUseEth] = useState(false);
   const useEth = useMemo(() => {
     // Ensure use eth toggle is not used on non-weth tokens
     if (
@@ -80,12 +85,6 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     formData,
     vaultsQuery,
   });
-  const { address } = useAccount();
-
-  const { data: userEthBalance } = api.user.getEthBalance.useQuery(
-    { userAddress: address },
-    { enabled: Boolean(address) && Boolean(formData.long) },
-  );
 
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
   const {

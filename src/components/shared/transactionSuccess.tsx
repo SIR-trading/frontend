@@ -6,9 +6,11 @@ import { formatUnits } from "viem";
 export default function TransactionSuccess({
   amountReceived,
   assetReceived,
+  decimals,
 }: {
   amountReceived?: bigint | undefined;
   assetReceived?: string;
+  decimals?: number;
 }) {
   return (
     <div className="space-y-2">
@@ -19,7 +21,7 @@ export default function TransactionSuccess({
       {amountReceived && (
         <h3 className="text-center">
           {assetReceived} received:{" "}
-          {formatNumber(formatUnits(amountReceived ?? 0n, 18), 6)}
+          {formatNumber(formatUnits(amountReceived ?? 0n, decimals ?? 18), 6)}
         </h3>
       )}
     </div>

@@ -13,12 +13,12 @@ import { useState } from "react";
 import Image from "next/image";
 import { formatUnits } from "viem";
 import { formatNumber } from "@/lib/utils";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import sirIcon from "../../../public/images/sir-logo.svg";
 import TransactionModal from "../shared/transactionModal";
 import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
+import { StakeModal } from "../shared/stake/stakeModal";
+import StakeFormProvider from "../providers/stakeFormProvider";
 
 export function SirCard() {
   const { isConnected, address } = useAccount();
@@ -63,18 +63,22 @@ export function SirCard() {
     }
   }, [isConfirmed, reset, open, utils.user.getUnclaimedContributorRewards]);
   const unclaimedRewards = unclaimedData ?? 0n;
+  const [stakeModal, setStakeModal] = useState(false);
   return (
     <div className=" border-b border-secondary-200 pb-2">
       <div className=" rounded-md px-2 pb-2 text-2xl">
         <div className="flex justify-between pb-2">
           <h2 className="text-sm text-gray-200">Total SIR</h2>
-          <Link
-            href="/stake"
-            className="flex items-center gap-x-1  text-sm text-blue-400"
+          <Button
+            onClick={() => setStakeModal(true)}
+            type="button"
+            className="p-2"
           >
-            <span className="underline  underline-offset-2">Stake</span>
-            <ChevronRight size={18} />
-          </Link>
+            Stake
+          </Button>
+          <StakeFormProvider>
+            <StakeModal setOpen={setStakeModal} open={stakeModal}></StakeModal>
+          </StakeFormProvider>
         </div>
         <TransactionModal.Root setOpen={setOpen} open={open}>
           <TransactionModal.Close setOpen={setOpen} />

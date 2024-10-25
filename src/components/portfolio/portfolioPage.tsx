@@ -4,7 +4,7 @@ import BurnTable from "./burnTable/burnTable";
 import { Card } from "../ui/card";
 import { Container } from "../ui/container";
 // import PageHeader from "../shared/pageHeader";
-import { StakedCard } from "./stakedCard";
+import { UnstakeCard } from "./unstakeCard";
 import ClaimCard from "./claimCard";
 import { SirCard } from "./sirCard";
 
@@ -19,7 +19,7 @@ export default function PortfolioPage() {
             <SirCard />
             <div className="grid grid-cols-2 gap-x-3  pt-2">
               {/* <SirCard /> */}
-              <StakedCard />
+              <UnstakeCard />
               <ClaimCard />
             </div>
           </div>

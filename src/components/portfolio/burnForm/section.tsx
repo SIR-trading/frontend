@@ -1,9 +1,9 @@
 import { BalancePercent } from "@/components/shared/balancePercent";
 import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatBigInt } from "@/lib/utils";
 import { formatUnits } from "viem";
 import type { TBurnForm } from "./burnForm";
+import { formatNumber } from "@/lib/utils";
 
 export function Section({
   form,
@@ -11,12 +11,14 @@ export function Section({
   balance,
   vaultId,
   isApe,
+  positionDecimals,
 }: {
   form: TBurnForm;
   bg: string;
   balance: bigint | undefined;
   vaultId: string;
   isApe: boolean;
+  positionDecimals: number;
 }) {
   return (
     <div className={`w-full rounded-md ${bg} px-2 py-3`}>
@@ -63,7 +65,8 @@ export function Section({
         />
 
         <span className="text-sm italic text-gray-500">
-          Balance {formatBigInt(balance, 4)}
+          Balance{" "}
+          {formatNumber(formatUnits(balance ?? 0n, positionDecimals), 8)}
         </span>
       </div>
     </div>

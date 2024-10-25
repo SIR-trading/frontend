@@ -6,9 +6,10 @@ import { useEffect } from "react";
 
 interface Props {
   amount: bigint | undefined;
+  unstakeAndClaimFees: boolean;
 }
 
-export const useUnstake = ({ amount }: Props) => {
+export const useUnstake = ({ amount, unstakeAndClaimFees }: Props) => {
   const {
     data: Unstake,
     error,
@@ -16,7 +17,7 @@ export const useUnstake = ({ amount }: Props) => {
     isFetching,
   } = useSimulateContract({
     ...SirContract,
-    functionName: "unstake",
+    functionName: unstakeAndClaimFees ? "unstakeAndClaim" : "unstake",
     args: [amount ?? 0n],
   });
 

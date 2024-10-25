@@ -1,11 +1,12 @@
-import { AlertDialog, AlertDialogContent } from "../ui/alert-dialog";
-import TransactionModal from "../shared/transactionModal";
-import UnstakeForm from "./unstakeForm";
+import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
+import TransactionModal from "../transactionModal";
+import StakeForm from "./stakeForm/stakeForm";
+
 interface Props {
   open: boolean;
   setOpen: (b: boolean) => void;
 }
-export function UnstakeModal({ open, setOpen }: Props) {
+export function StakeModal({ open, setOpen }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent
@@ -19,8 +20,8 @@ export function UnstakeModal({ open, setOpen }: Props) {
           className={`relative rounded-xl bg-secondary-600 text-white  transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
-          <h1 className="pt-4 text-center font-lora text-2xl">Unstake</h1>
-          <UnstakeForm></UnstakeForm>
+          <h1 className="pt-4 text-center font-lora text-2xl">Stake</h1>
+          <StakeForm></StakeForm>
         </div>
       </AlertDialogContent>
     </AlertDialog>

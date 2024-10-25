@@ -14,8 +14,8 @@ import { parseUnits } from "viem";
 // export const revalidate = 6000;
 const getVaults = async () => {
   const vaults = await executeVaultsQuery();
-  const randomI = randomInt(1000);
-  return { vaults, randomI };
+  console.log(vaults, "VAULTS");
+  return { vaults };
 };
 const getCollateralAmounts = async (vaultIds: number[]) => {
   const result = await readContract({
@@ -31,6 +31,7 @@ export const getVaultData = async (offset: number) => {
   const v = await getVaults();
 
   vaultQuery = v.vaults;
+  console.log(vaultQuery, "Vault Query");
   // if (!vaults) {
   //   // Don't block with await only need for next cache
   //   kv.set("vaults", JSON.stringify(vaultQuery), { ex: 60 * 4 }).catch((e) => {
@@ -61,7 +62,12 @@ export const getVaultData = async (offset: number) => {
       };
     });
   } else {
-    collateral = await getCollateralAmounts(vaultIds ?? []);
+    try {
+      collateral = await getCollateralAmounts(vaultIds ?? []);
+    } catch (e) {
+      collateral = [];
+      console.log(e);
+    }
   }
 
   kv.set(

@@ -34,12 +34,10 @@ export function useGetReceivedTokens({ logs, apeAddress, isApe }: Props) {
           }
         });
       } else {
-        console.log(logs, VaultContract.address);
         const foundLogs = logs.filter(
           (l) =>
             l.address.toLowerCase() === VaultContract.address.toLowerCase(),
         );
-        console.log(foundLogs);
         if (!foundLogs) return;
         foundLogs.forEach((log) => {
           const parse = decodeEventLog({

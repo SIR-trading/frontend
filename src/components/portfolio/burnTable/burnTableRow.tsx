@@ -33,7 +33,7 @@ export function BurnTableRow({
   // const hasUnclaimedSir = isApe ? false : rewards > 0n;
   const teaBalance = formatUnits(teaBal ?? 0n, row.positionDecimals);
   const apeBalance = formatUnits(apeBal ?? 0n, row.positionDecimals);
-  console.log(row, "ROW", { isApe });
+  console.log(row, { isApe }, teaBal, "TEA BAL");
   const rewards = formatUnits(teaRewards ?? 0n, 12);
   return (
     <>
@@ -64,11 +64,13 @@ export function BurnTableRow({
                   disabled={teaRewards === 0n}
                   className="h-7 rounded-full px-5 text-[14px] "
                 >
-                  Claim{" "}
-                  <span className="pl-1 text-[14px] text-gray-300">
-                    {formatNumber(rewards, 3)}
-                    <span className="pl-[2px] ">SIR</span>
-                  </span>
+                  <div>
+                    <span>Claim</span>
+                    <span className="pl-1 text-[12px] text-gray-300">
+                      <span>{formatNumber(rewards, 2)}</span>
+                      <span className="pl-[2px] ">SIR</span>
+                    </span>
+                  </div>
                 </Button>
               )}
               <Button

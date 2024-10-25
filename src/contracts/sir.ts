@@ -3,11 +3,6 @@ import { EContracts, getAddress } from "@/lib/contractAddresses";
 export const SirContract = {
   address: getAddress(EContracts.SIR),
   abi: [
-    {
-      type: "constructor",
-      inputs: [{ name: "weth", type: "address", internalType: "address" }],
-      stateMutability: "nonpayable",
-    },
     { type: "receive", stateMutability: "payable" },
     {
       type: "function",
@@ -97,11 +92,7 @@ export const SirContract = {
       name: "collectFeesAndStartAuction",
       inputs: [{ name: "token", type: "address", internalType: "address" }],
       outputs: [
-        {
-          name: "totalFeesToStakers",
-          type: "uint112",
-          internalType: "uint112",
-        },
+        { name: "totalFees", type: "uint256", internalType: "uint256" },
       ],
       stateMutability: "nonpayable",
     },
@@ -145,6 +136,13 @@ export const SirContract = {
     {
       type: "function",
       name: "lPerMint",
+      inputs: [{ name: "vaultId", type: "uint256", internalType: "uint256" }],
+      outputs: [{ name: "rewards", type: "uint80", internalType: "uint80" }],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "lPerMintAndStake",
       inputs: [{ name: "vaultId", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "rewards", type: "uint80", internalType: "uint80" }],
       stateMutability: "nonpayable",
@@ -318,6 +316,12 @@ export const SirContract = {
           indexed: true,
           internalType: "address",
         },
+        {
+          name: "feesToBeAuctioned",
+          type: "uint256",
+          indexed: false,
+          internalType: "uint256",
+        },
       ],
       anonymous: false,
     },
@@ -411,6 +415,31 @@ export const SirContract = {
     },
     {
       type: "event",
+      name: "RewardsClaimed",
+      inputs: [
+        {
+          name: "contributor",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        {
+          name: "vaultId",
+          type: "uint256",
+          indexed: true,
+          internalType: "uint256",
+        },
+        {
+          name: "rewards",
+          type: "uint80",
+          indexed: false,
+          internalType: "uint80",
+        },
+      ],
+      anonymous: false,
+    },
+    {
+      type: "event",
       name: "Staked",
       inputs: [
         {
@@ -473,7 +502,7 @@ export const SirContract = {
     { type: "error", name: "NewAuctionCannotStartYet", inputs: [] },
     { type: "error", name: "NoAuction", inputs: [] },
     { type: "error", name: "NoAuctionLot", inputs: [] },
-    { type: "error", name: "NoFeesCollectedYet", inputs: [] },
+    { type: "error", name: "NoFeesCollected", inputs: [] },
     { type: "error", name: "PermitDeadlineExpired", inputs: [] },
   ] as const,
 };
