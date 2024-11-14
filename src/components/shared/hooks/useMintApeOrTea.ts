@@ -27,7 +27,6 @@ export function useMintApeOrTea({
     collateralToken: collateralToken as TAddressString,
     leverageTier,
   };
-  console.log(`AMOUNT: ${amount}`);
   const tokenAmount = useEth ? 0n : amount;
   const ethAmount = useEth ? amount : 0n;
   const {

@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 import type { TAddressString, TMintForm } from "@/lib/types";
 import { BalancePercent } from "@/components/shared/balancePercent";
 import Image from "next/image";
-
-import { formatNumber, getLogoAsset, inputPatternMatch } from "@/lib/utils";
+import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { WETH_ADDRESS } from "@/data/constants";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
+import { getLogoAsset } from "@/lib/assets";
 interface Props {
   form: TMintForm;
   depositAsset: string | undefined;
@@ -134,11 +134,6 @@ function AssetInfo({
       </>
     );
   }
-  console.log(depositAsset?.split(","), "DESPOSIT ASSET");
-  console.log(
-    getLogoAsset(depositAsset?.split(",")[0] as TAddressString),
-    "LOGO ASSET",
-  );
   return (
     <>
       {depositAsset && (

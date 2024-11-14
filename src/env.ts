@@ -1,6 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
-
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -15,6 +14,7 @@ export const env = createEnv({
     KV_URL: z.string(),
     TURSO_DATABASE_URL: z.string(),
     TURSO_AUTH_TOKEN: z.string(),
+    ALCHEMY_BEARER: z.string(),
   },
 
   /**
@@ -37,6 +37,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    ALCHEMY_BEARER: process.env.ALCHEMY_BEARER,
     NEXT_PUBLIC_BASE_FEE: process.env.NEXT_PUBLIC_BASE_FEE,
     NEXT_PUBLIC_MINTING_FEE: process.env.NEXT_PUBLIC_MINTING_FEE,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,

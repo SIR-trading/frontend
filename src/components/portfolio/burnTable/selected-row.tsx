@@ -1,5 +1,5 @@
 import type { TAddressString } from "@/lib/types";
-import { formatNumber, getLeverageRatio } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import BurnForm from "../burnForm/burnForm";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { useTeaAndApeBals } from "./hooks/useTeaAndApeBals";
@@ -7,6 +7,7 @@ import { formatEther, formatUnits } from "viem";
 import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import { useEffect } from "react";
+import { getLeverageRatio } from "@/lib/utils/calculations";
 
 export default function SelectedRow({
   params,

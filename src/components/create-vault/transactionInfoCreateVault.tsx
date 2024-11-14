@@ -1,9 +1,10 @@
 import React from "react";
 import ImageWithFallback from "../shared/ImageWithFallback";
-import { getLogoAsset, getLogoJson, mapLeverage } from "@/lib/utils";
+import { mapLeverage } from "@/lib/utils";
 import type { TAddressString } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { tokenSchema } from "@/lib/schemas";
+import { getLogoAsset, getLogoJson } from "@/lib/assets";
 
 export default function TransactionInfoCreateVault({
   leverageTier,

@@ -14,7 +14,6 @@ import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
 
 import usestakeError from "@/components/stake/hooks/useUnstakeError";
-import { useCheckSubmitValid } from "@/components/leverage-liquidity/mintForm/hooks/useCheckSubmitValid";
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
@@ -23,6 +22,7 @@ import { useStake } from "@/components/stake/hooks/useStake";
 import type { TUnstakeFormFields } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGetReceivedSir } from "@/components/portfolio/hooks/useGetReceivedSir";
+import { useCheckStakeValidity } from "./useCheckStakeValidity";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -48,7 +48,7 @@ const StakeForm = () => {
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
   // REFACTOR THIS INTO REUSABLE HOOK
-  const { isValid, errorMessage } = useCheckSubmitValid({
+  const { isValid, errorMessage } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {

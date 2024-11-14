@@ -1,12 +1,11 @@
 import { formatNumber } from "@/lib/utils";
 import { calculateApeVaultFee } from "@/lib/utils/calculations";
 import { useMemo } from "react";
-
 interface Props {
   levTier: string;
   isApe: boolean;
 }
-export default function useGetFee({ levTier, isApe }: Props) {
+export default function useFormFee({ levTier, isApe }: Props) {
   const fee = useMemo(() => {
     const lev = parseFloat(levTier);
     if (!isApe) {

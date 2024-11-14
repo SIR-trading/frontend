@@ -15,7 +15,6 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import { getLogoAsset } from "@/lib/utils";
 import ImageWithFallback from "../shared/ImageWithFallback";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioItem } from "./radioItem";
@@ -25,6 +24,7 @@ import TransactionInfoCreateVault from "./transactionInfoCreateVault";
 import { api } from "@/trpc/react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useCheckValidityCreactVault } from "./hooks/useCheckValidityCreateVault";
+import { getLogoAsset } from "@/lib/assets";
 const tokens = [
   {
     address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" as TAddressString,

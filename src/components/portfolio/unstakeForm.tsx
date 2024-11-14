@@ -11,7 +11,6 @@ import { type SimulateContractReturnType, parseUnits, formatUnits } from "viem";
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
 import useUnstakeError from "@/components/stake/hooks/useUnstakeError";
-import { useCheckSubmitValid } from "@/components/leverage-liquidity/mintForm/hooks/useCheckSubmitValid";
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
@@ -20,6 +19,7 @@ import StakeInput from "@/components/shared/stake/stakeInput";
 import { useUnstake } from "../stake/hooks/useUnstake";
 import ClaimFeesCheckbox from "./claimFeesCheck";
 import { useGetReceivedSir } from "./hooks/useGetReceivedSir";
+import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -66,7 +66,7 @@ const UnstakeForm = () => {
     utils.user.getUserSirDividends,
   ]);
 
-  const { isValid, errorMessage } = useCheckSubmitValid({
+  const { isValid, errorMessage } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {

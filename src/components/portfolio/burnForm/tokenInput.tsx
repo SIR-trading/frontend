@@ -5,7 +5,7 @@ import { formatUnits } from "viem";
 import type { TBurnForm } from "./burnForm";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
 
-export function Section({
+export function TokenInput({
   form,
   bg,
   balance,

@@ -3,7 +3,6 @@ import { env } from "@/env";
 import { useMemo } from "react";
 import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
-import { useCalculateMaxApe } from "./useCalculateMaxApe";
 
 interface Props {
   deposit: string | undefined;
@@ -19,8 +18,6 @@ interface Props {
   approveFetching?: boolean;
   useEth?: boolean;
   decimals: number;
-  vaultId: number;
-  leverageTier: string;
 }
 export enum ESubmitType {
   "mint",
@@ -34,7 +31,7 @@ export enum ESubmitType {
  * errorMessage -
  * submitType - 'approve' | 'mint'
  */
-export const useCheckSubmitValid = ({
+export const useCheckStakeValidity = ({
   deposit,
   tokenAllowance,
   mintFetching,
@@ -44,11 +41,7 @@ export const useCheckSubmitValid = ({
   ethBalance,
   useEth,
   decimals,
-  vaultId,
-  leverageTier,
 }: Props) => {
-  const maxApe = useCalculateMaxApe({ vaultId, leverageTier }) ?? 0n;
-  console.log(maxApe, "MAX APE");
   const chainId = useGetChainId();
   const { isValid, errorMessage, submitType } = useMemo(() => {
     if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
@@ -67,13 +60,6 @@ export const useCheckSubmitValid = ({
       };
     }
 
-    if (maxApe < parseUnits(deposit ?? "0", decimals)) {
-      return {
-        isValid: false,
-        errorMessage: "Insufficent liquidity in Vault!",
-        submitType: ESubmitType.mint,
-      };
-    }
     if (useEth) {
       if ((ethBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
         return {
@@ -153,7 +139,6 @@ export const useCheckSubmitValid = ({
     }
   }, [
     chainId,
-    maxApe,
     deposit,
     decimals,
     useEth,

@@ -1,14 +1,11 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { formatUnits, getAddress } from "viem";
-import type { TAddressString, TMintFormFields, TVaults } from "./types";
-import { assetSchema } from "./schemas";
+import { formatUnits } from "viem";
+import type { TAddressString, TMintFormFields, TVaults } from "../types";
 import { z } from "zod";
 import numeral from "numeral";
-import { ASSET_REPO, BASE_FEE, L_FEE } from "@/data/constants";
-import { env } from "@/env";
-import sirIcon from "../../public/images/sir-logo.svg";
-import type { StaticImageData } from "next/image";
+import { BASE_FEE, L_FEE } from "@/data/constants";
+import { getLeverageRatio } from "./calculations";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -16,58 +13,6 @@ export function add(n: number, a: number) {
   return n + a;
 }
 
-export function getLogoAsset(address: `0x${string}` | undefined) {
-  if (!address) {
-    return "";
-  }
-  const getChainName = () => {
-    const chainId = env.NEXT_PUBLIC_CHAIN_ID;
-    if (chainId === "1") {
-      return "ethereum";
-    }
-    if (chainId === "11155111") {
-      return "sepolia";
-    }
-    if (chainId === "17000") {
-      return "holesky";
-    }
-  };
-  if (address === env.NEXT_PUBLIC_SIR_ADDRESS) {
-    return sirIcon as StaticImageData;
-  }
-  const chainName = getChainName();
-  return `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/logo.png`;
-}
-
-export function getLogoJson(address: `0x${string}` | undefined) {
-  if (!address) {
-    return "";
-  }
-  const getChainName = () => {
-    const chainId = env.NEXT_PUBLIC_CHAIN_ID;
-    if (chainId === "1") {
-      return "ethereum";
-    }
-    if (chainId === "11155111") {
-      return "sepolia";
-    }
-    if (chainId === "17000") {
-      return "holesky";
-    }
-  };
-
-  const chainName = getChainName();
-  return `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/info.json`;
-}
-export async function getAssetInfo(address: TAddressString | undefined) {
-  if (!address) {
-    throw Error("No address provided.");
-  }
-  const result: unknown = await fetch(
-    `${ASSET_REPO}/blockchains/ethereum/assets/${getAddress(address)}/info.json`,
-  ).then((r) => r.json());
-  return assetSchema.safeParse(result);
-}
 export function mapLeverage(key: string): string | undefined {
   if (key === "2") {
     return "5";
@@ -86,15 +31,6 @@ export function mapLeverage(key: string): string | undefined {
   } else {
     return undefined; // Return undefined if the key does not match any condition
   }
-}
-/**
- * To compute the leverage ratio: l = 1+2^k where k is the leverageTier.
- * @param LeverageTier - number
- *
- */
-export function getLeverageRatio(k: number) {
-  const result = 1 + 2 ** k;
-  return result;
 }
 
 export function formatDataInput(s: string) {
@@ -127,16 +63,6 @@ export function getApeAddress({
   vaultAddress: TAddressString;
   apeHash: TAddressString;
 }) {
-  // if (vaultId === undefined) {
-  //   return "0xff" as TAddressString;
-  // }
-  // const packed = encodePacked(
-  //   ["bytes1", "bytes20", "bytes32", "bytes32"],
-  //   ["0xff", vaultAddress, toHex(vaultId, { size: 32 }), apeHash],
-  // );
-  // const raw = keccak256(packed);
-  // const result = ("0x" + raw.slice(-40)) as TAddressString;
-
   return vaultId;
 }
 
@@ -194,6 +120,20 @@ export function formatBigInt(b: bigint | undefined, fixed: number) {
     Math.floor(parseFloat(formatUnits(b ?? 0n, 18)) * 10 ** fixed) /
     10 ** fixed;
   return parseFloat(parsed.toFixed(fixed));
+}
+
+export function calculateStakingAPR(
+  stakedSir: bigint,
+  amountEth: bigint,
+  rounding: bigint,
+) {
+  const totalValue = 500n / 3n;
+  const sirPrice = totalValue / 20000000n;
+  const ethPrice = 2000n;
+  // need rounding because bigint doesn't go below 0, too keep decimals places
+  const result =
+    (12n * 100n * amountEth * ethPrice * rounding) / (sirPrice * stakedSir);
+  return result / rounding;
 }
 
 /**

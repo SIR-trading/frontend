@@ -1,13 +1,14 @@
 import Select from "@/components/shared/Select";
+import { getLogoAsset } from "@/lib/assets";
 import type { TMintForm, VaultFieldFragment } from "@/lib/types";
-import { getLeverageRatio, getLogoAsset } from "@/lib/utils";
+import { getLeverageRatio } from "@/lib/utils/calculations";
 interface Props {
   form: TMintForm;
   long: VaultFieldFragment[];
   versus: VaultFieldFragment[];
   leverageTiers: number[];
 }
-export default function TopSelects({
+export default function VaultParamsInputSelects({
   form,
   long,
   versus,

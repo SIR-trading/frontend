@@ -11,7 +11,16 @@ export const vaultRouter = createTRPCRouter({
     const vaults = await executeVaultsQuery();
     return vaults;
   }),
-
+  getReserves: publicProcedure
+    .input(z.object({ vaultId: z.number() }))
+    .query(async ({ input }) => {
+      const result = await readContract({
+        ...AssistantContract,
+        args: [[input.vaultId]],
+        functionName: "getReserves",
+      });
+      return result;
+    }),
   getVaultExists: publicProcedure
     .input(
       z.object({

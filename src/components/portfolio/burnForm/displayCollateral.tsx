@@ -1,6 +1,7 @@
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
-import { formatNumber, getLogoAsset } from "@/lib/utils";
-export function SectionTwo({
+import { getLogoAsset } from "@/lib/assets";
+import { formatNumber } from "@/lib/utils";
+export function DisplayCollateral({
   bg,
   data,
   amount,
