@@ -11,7 +11,7 @@ export default function Estimations({
 }) {
   return (
     <div className={` pt-2 ${disabled ? "opacity-50" : ""}`}>
-      <h2 className="text-sm">You receive:</h2>
+      <h2 className="text-sm">You receive</h2>
       <div className="pt-1"></div>
       <div className="rounded-md bg-primary p-3">
         <h2 className={`text-md `}>

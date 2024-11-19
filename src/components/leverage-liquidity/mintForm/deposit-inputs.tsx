@@ -19,7 +19,7 @@ import { LoaderCircle } from "lucide-react";
 function Root({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <FormLabel htmlFor="deposit">Deposit:</FormLabel>
+      <FormLabel htmlFor="deposit">Deposit</FormLabel>
       <div className="pt-1"></div>
       {children}
     </div>

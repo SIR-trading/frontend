@@ -49,6 +49,7 @@
     "graphql-request": "^7.0.1",
     "graphql-tag": "^2.12.6",
     "lucide-react": "^0.368.0",
+    "motion": "^11.11.17",
     "next": "^14.2.15",
     "numeral": "^2.0.6",
     "pino-pretty": "^11.0.0",

@@ -6,6 +6,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
+import { motion } from "motion/react";
 import { useSelectMemo } from "./hooks/useSelectMemo";
 import { formatUnits } from "viem";
 import { useFormContext } from "react-hook-form";
@@ -288,31 +289,32 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
           disabled={!Boolean(quoteData)}
           ape={formatUnits(quoteData ?? 0n, decimals)}
         />
-
-        <MintFormSubmit.Root>
-          {isApe && (
-            <p className="pb-2 text-center text-sm text-gray-500 md:w-[450px]">{`With leveraging you risk losing up to 100% of your deposit, you can not lose more than your deposit`}</p>
-          )}
-          <MintFormSubmit.OpenTransactionModalButton
-            isValid={isValid}
-            onClick={() => {
-              setOpenTransactionModal(true);
-              onSubmit();
-            }}
-            submitType={submitType}
-          />
-          <MintFormSubmit.ConnectButton />
-          <MintFormSubmit.FeeInfo
-            feeValue={form.getValues("long").split(",")[1]}
-            isApe={isApe}
-            isValid={isValid}
-            fee={fee}
-            deposit={form.getValues("deposit")}
-          />
-          <MintFormSubmit.Errors>
-            {form.formState.errors.root?.message}
-          </MintFormSubmit.Errors>
-        </MintFormSubmit.Root>
+        <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
+          <MintFormSubmit.Root>
+            <Show when={isApe} fallback={<div className="py-3" />}>
+              <p className="pb-2 text-center text-sm text-gray-500 md:w-[450px]">{`With leveraging you risk losing up to 100% of your deposit, you can not lose more than your deposit`}</p>
+            </Show>
+            <MintFormSubmit.OpenTransactionModalButton
+              isValid={isValid}
+              onClick={() => {
+                setOpenTransactionModal(true);
+                onSubmit();
+              }}
+              submitType={submitType}
+            />
+            <MintFormSubmit.ConnectButton />
+            <MintFormSubmit.FeeInfo
+              feeValue={form.getValues("long").split(",")[1]}
+              isApe={isApe}
+              isValid={isValid}
+              fee={fee}
+              deposit={form.getValues("deposit")}
+            />
+            <MintFormSubmit.Errors>
+              {form.formState.errors.root?.message}
+            </MintFormSubmit.Errors>
+          </MintFormSubmit.Root>
+        </motion.div>
       </form>
     </Card>
   );

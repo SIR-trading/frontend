@@ -41,11 +41,10 @@ export default function NavItem({
   const path = usePathname();
   const active = url === path;
   return (
-    <li
-      data-active={active ? "true" : "false"}
-      data-main={main ? "true" : "false"}
-    >
+    <li>
       <Link
+        data-active={active ? "true" : "false"}
+        data-main={main ? "true" : "false"}
         className={cn(navItemVariants({ theme, className }))}
         onClick={onClick}
         href={url}

@@ -1,3 +1,4 @@
+import { transform } from "next/dist/build/swc";
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -28,12 +29,17 @@ const config = {
           to: { height: "0" },
         },
         fadeIn: {
-          "0%": { opacity: "0.6" },
+          "0%": { opacity: "0.7" },
+          "100%": { opacity: "1" },
+        },
+        fadeUp: {
+          "0%": { opacity: "0.7", transform: "translate(-10px,0)" },
           "100%": { opacity: "1" },
         },
       },
       animation: {
-        "fade-in": "fadeIn 0.3s ease-in forwards",
+        "fade-up": "fadeUp 0.3s ease-in-out ",
+        "fade-in": "fadeIn 0.3s ease-in-out forwards",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
@@ -52,7 +58,7 @@ const config = {
           700: "hsl(var(--gray-700), <alpha-value>)",
           800: "hsl(var(--gray-800), <alpha-value>)",
         },
-        purple: "#b18ce5",
+        purple: "hsl(var(--purple), <alpha-value>)",
         gold: "hsl(var(--gold), <alpha-value>)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

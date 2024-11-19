@@ -18,7 +18,7 @@ export default function VaultParamsInputSelects({
     <div className=" grid gap-x-4 md:grid-cols-3">
       <Select
         name="long"
-        title="Go long:"
+        title="Go long"
         form={form}
         items={long.map((e) => ({
           label: e.collateralSymbol,
@@ -28,7 +28,7 @@ export default function VaultParamsInputSelects({
       />
       <Select
         name="versus"
-        title="Versus:"
+        title="Versus"
         form={form}
         items={versus.map((e) => ({
           label: e.debtSymbol,
@@ -44,7 +44,7 @@ export default function VaultParamsInputSelects({
         }))}
         noSearch
         name="leverageTier"
-        title="Leverage Tier:"
+        title="Leverage Tier"
         form={form}
       />
     </div>

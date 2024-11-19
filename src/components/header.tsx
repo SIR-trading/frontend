@@ -7,7 +7,7 @@ import hat from "../../public/images/sir-logo.svg";
 import { CustomConnectButton } from "./customConnectButton";
 export function Header() {
   return (
-    <div className="flex items-center justify-between  px-[14px] py-[24px] text-white lg:mx-auto  xl:w-[1330px]">
+    <div className="flex items-center justify-between  px-[14px] py-[24px] text-white lg:mx-auto  xl:w-[1250px]">
       <div className="flex gap-x-6">
         <Link href={"/"} className="flex items-center gap-x-2">
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}

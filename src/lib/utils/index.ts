@@ -82,10 +82,7 @@ export function inputPatternMatch(s: string, decimals = 18) {
 /**
  * @returns string | Will round down to 10th decimal
  */
-export function formatNumber(
-  number: number | string,
-  decimals?: number,
-): string {
+export function formatNumber(number: number | string, decimals = 3): string {
   console.log(number, "NUMBER");
   if (typeof number === "string") {
     number = Number.parseFloat(number);
@@ -100,7 +97,9 @@ export function formatNumber(
   if (number >= 1 && number <= 999) {
     const parts = n.toString().split(".");
     console.log(`${parts[0]}.${parts[1]?.slice(0, 3)}`);
-    return Number.parseFloat(`${parts[0]}.${parts[1]?.slice(0, 3)}`).toString();
+    return Number.parseFloat(
+      `${parts[0]}.${parts[1]?.slice(0, decimals)}`,
+    ).toString();
   }
 
   if (n === 0) {
@@ -109,7 +108,7 @@ export function formatNumber(
   if (n < 1 && n >= 0.001) {
     console.log("ran here");
     const parts = n.toString().split(".");
-    return Number.parseFloat(`0.${parts[1]?.slice(0, 3)}`).toString();
+    return Number.parseFloat(`0.${parts[1]?.slice(0, decimals)}`).toString();
   }
   if (n < 0.001) {
     const factor = Math.pow(10, 10);

@@ -4,7 +4,6 @@ import type { TVaults } from "@/lib/types";
 import { VaultTableRow } from "./vaultTableRow";
 import { useSearchParams } from "next/navigation";
 import ToolTip from "@/components/ui/tooltip";
-
 export default function VaultTable({
   vaultQuery,
   isApe,
@@ -24,6 +23,7 @@ export default function VaultTable({
       <caption className="pb-2 font-lora text-[32px] font-bold">
         Popular Vaults
       </caption>
+
       <tbody className="space-y-2">
         <VaultTableRowHeaders />
         {vaultQuery?.vaults

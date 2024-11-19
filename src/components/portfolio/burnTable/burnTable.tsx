@@ -6,6 +6,7 @@ import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import { BurnTableRow } from "./burnTableRow";
 import useCheckUserHasPositions from "./hooks/useCheckUserHasPositions";
+import Show from "@/components/shared/show";
 
 export default function BurnTable({
   filter,
@@ -90,21 +91,18 @@ export default function BurnTable({
     );
   }
 
-  console.log(showTea, "showTea");
   return (
     <div className="relative">
       {selectedRowParamsApe && selectedRow && (
-        <>
-          <SelectedRow
-            isClaiming={selectedRow?.isClaiming}
-            isApe
-            params={selectedRowParamsApe}
-            apeAddress={selectedRowParamsApe?.APE}
-            close={() => {
-              setSelectedRow(undefined);
-            }}
-          />
-        </>
+        <SelectedRow
+          isClaiming={selectedRow?.isClaiming}
+          isApe
+          params={selectedRowParamsApe}
+          apeAddress={selectedRowParamsApe?.APE}
+          close={() => {
+            setSelectedRow(undefined);
+          }}
+        />
       )}
       {showTea}
 
@@ -114,48 +112,52 @@ export default function BurnTable({
           <tbody className="flex flex-col gap-y-4">
             <BurnTableHeaders />
             {/* PLEASE REFACTOR THIS!!! */}
-            {loading ? (
-              <div>Loading...</div>
-            ) : (
-              <>
-                {!hasPositions ? (
-                  <div className="flex justify-center py-6">
-                    <h1 className="text-gray-300">No Positions</h1>
-                  </div>
-                ) : (
-                  <>
-                    {(filter === "ape" || filter == "all") && apePosition}
-                    {(filter === "tea" || filter == "all") && (
+            <Show
+              when={!loading}
+              fallback={<IdleContainer>Loading...</IdleContainer>}
+            >
+              <Show
+                when={hasPositions}
+                fallback={<IdleContainer>No Positions.</IdleContainer>}
+              >
+                <Show when={filter === "ape" || filter === "all"}>
+                  {apePosition}
+                </Show>
+                <Show when={filter === "tea" || filter === "all"}>
+                  {tea.data?.userPositionTeas.map((r) => {
+                    return (
                       <>
-                        {tea.data?.userPositionTeas.map((r) => {
-                          return (
-                            <>
-                              <BurnTableRow
-                                row={{
-                                  ...r,
-                                }}
-                                key={r.id + "teaa"}
-                                isApe={false}
-                                setSelectedRow={(isClaiming: boolean) =>
-                                  setSelectedRow({
-                                    vaultId: r.vaultId,
-                                    isApe: false,
-                                    isClaiming,
-                                  })
-                                }
-                              />
-                            </>
-                          );
-                        })}
+                        <BurnTableRow
+                          row={{
+                            ...r,
+                          }}
+                          key={r.id + "tea"}
+                          isApe={false}
+                          setSelectedRow={(isClaiming: boolean) =>
+                            setSelectedRow({
+                              vaultId: r.vaultId,
+                              isApe: false,
+                              isClaiming,
+                            })
+                          }
+                        />
                       </>
-                    )}
-                  </>
-                )}
-              </>
-            )}
+                    );
+                  })}
+                </Show>
+              </Show>
+            </Show>
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function IdleContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex justify-center py-6">
+      <h1 className="text-gray-300">{children}</h1>
     </div>
   );
 }
