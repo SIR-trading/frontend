@@ -1,3 +1,5 @@
+import LeverageLiquiditySkeleton from "@/components/leverage-liquidity/leverageLiquiditySkeleton";
+
 export default function Loading() {
-  return <h1>Loading...</h1>;
+  return <LeverageLiquiditySkeleton></LeverageLiquiditySkeleton>;
 }

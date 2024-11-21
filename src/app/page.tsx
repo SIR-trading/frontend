@@ -6,7 +6,7 @@ export const revalidate = 0;
 export default async function Home() {
   const { vaultQuery } = await getVaultData(0);
   return (
-    <main className="flex  flex-col items-center justify-center text-white">
+    <main className="flex flex-col items-center justify-center text-white">
       <LeverageLiquidityPage title={"Take on Leverage"}>
         <LeverageLiquidityContent
           isApe

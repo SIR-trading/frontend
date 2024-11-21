@@ -115,11 +115,13 @@ export default function BurnTable({
             <BurnTableHeaders />
             {/* PLEASE REFACTOR THIS!!! */}
             {loading ? (
-              <div>Loading...</div>
+              <div className="flex justify-center py-3">
+                <h1 className="text-gray-300">Loading...</h1>
+              </div>
             ) : (
               <>
                 {!hasPositions ? (
-                  <div className="flex justify-center py-6">
+                  <div className="flex justify-center py-3">
                     <h1 className="text-gray-300">No Positions</h1>
                   </div>
                 ) : (
