@@ -84,10 +84,14 @@ const StakeForm = () => {
       utils.user.getUnstakedSirBalance
         .invalidate()
         .catch((e) => console.log(e));
+      utils.user.getUnclaimedContributorRewards.invalidate().catch((e) => {
+        console.error(e);
+      });
     }
   }, [
     isConfirmed,
     utils.user.getTotalSirBalance,
+    utils.user.getUnclaimedContributorRewards,
     utils.user.getUnstakedSirBalance,
   ]);
   useEffect(() => {

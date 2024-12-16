@@ -1,6 +1,4 @@
 import { Button } from "../ui/button";
-import { formatUnits } from "viem";
-import { formatNumber } from "@/lib/utils";
 import UnstakeFormProvider from "../providers/unstakeFormProvider";
 import { UnstakeModal } from "./unstakeModal";
 import { useState } from "react";
