@@ -1,5 +1,4 @@
 "use client";
-import { Container } from "@/components/ui/container";
 import { Card } from "../ui/card";
 import ClaimCard from "../shared/claimCard";
 import StakeCard from "./stakeCard";
