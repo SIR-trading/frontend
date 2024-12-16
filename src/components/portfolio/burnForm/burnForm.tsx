@@ -231,14 +231,14 @@ export default function BurnForm({
         </TransactionModal.InfoContainer>
         {/*----*/}
         <TransactionModal.StatSubmitContainer>
-          {!isClaimingRewards && !isConfirmed && (
-            <TransactionModal.StatContainer>
-              <TransactionModal.StatRow
-                title="Fee"
-                value={fee + "%"}
-              ></TransactionModal.StatRow>
-            </TransactionModal.StatContainer>
-          )}
+          {/* {!isClaimingRewards && !isConfirmed && ( */}
+          {/*   <TransactionModal.StatContainer> */}
+          {/*     <TransactionModal.StatRow */}
+          {/*       title="Fee" */}
+          {/*       value={fee + "%"} */}
+          {/*     ></TransactionModal.StatRow> */}
+          {/*   </TransactionModal.StatContainer> */}
+          {/* )} */}
           <TransactionModal.SubmitButton
             disabled={false}
             loading={isConfirming || isPending}
