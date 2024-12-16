@@ -40,6 +40,9 @@ export function calculateVaultHealth({
     (parseUnits((leverageRatio - 10000).toString(), 0) * ape) / 10000n;
   const healthyMinimum = (gentlemenMinimum * 125n) / 100n;
   console.log(gentlemen > healthyMinimum);
+  if ((apeCollateral === 0n || teaCollateral === 0n) && isApe) {
+    return { variant: "red" };
+  }
   if (gentlemen > healthyMinimum) {
     return isApe ? { variant: "green" } : { variant: "yellow" };
   }
