@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import TransactionModal from "../shared/transactionModal";
 import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
-import Image from "next/image";
 import {
   useAccount,
   useSimulateContract,
@@ -10,9 +9,7 @@ import {
 } from "wagmi";
 import { api } from "@/trpc/react";
 import { SirContract } from "@/contracts/sir";
-import { formatNumber } from "@/lib/utils";
 import { CircleCheck } from "lucide-react";
-import { formatUnits } from "viem";
 import { Button } from "../ui/button";
 import { TokenDisplay } from "../ui/token-display";
 // import sirIcon from "../../../public/images/sir-logo.svg";
@@ -46,14 +43,24 @@ export default function ContributorClaim() {
     }
   };
   const utils = api.useUtils();
+  // Invalidate queries after successful tx
   useEffect(() => {
     if (isConfirmed && !open) {
       utils.user.getUnclaimedContributorRewards
         .invalidate()
         .catch((e) => console.log(e));
+      utils.user.getUnstakedSirBalance
+        .invalidate()
+        .catch((e) => console.log(e));
       reset();
     }
-  }, [isConfirmed, reset, open, utils.user.getUnclaimedContributorRewards]);
+  }, [
+    isConfirmed,
+    reset,
+    open,
+    utils.user.getUnclaimedContributorRewards,
+    utils.user.getUnstakedSirBalance,
+  ]);
   const unclaimedRewards = unclaimedData ?? 0n;
   return (
     <div>
