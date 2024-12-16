@@ -2,7 +2,7 @@ import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { formatNumber, roundDown } from "@/lib/utils";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
-import boostIcon from "@/../public/boost_icon.svg";
+import boostIcon from "@/../public/images/sir-logo.svg";
 import { motion } from "motion/react";
 import unknownImg from "@/../public/IconUnknown.png";
 import type { VariantProps } from "class-variance-authority";
@@ -79,7 +79,7 @@ export function VaultTableRow({
       className="grid cursor-pointer grid-cols-4 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9"
     >
       <th className="">
-        <div className="flex items-center gap-x-1">
+        <div className="flex items-center gap-x-2">
           <span>{pool.vaultId}</span>
           {parsedTaxAmount > 0n && (
             <HoverCard openDelay={0} closeDelay={20}>
@@ -89,7 +89,7 @@ export function VaultTableRow({
                     src={boostIcon as StaticImageData}
                     height={24}
                     width={24}
-                    className="rounded-full border border-gold"
+                    className=" "
                     alt="Boost Icon"
                   />
                 </div>
