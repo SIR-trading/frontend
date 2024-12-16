@@ -14,7 +14,7 @@ export function useGetStakedSir() {
     { user: address },
     { enabled: isConnected },
   );
-
+  console.log({ totalBal, unstakedBal });
   const data = useMemo(() => {
     if (totalBal && unstakedBal) {
       return totalBal - unstakedBal;
