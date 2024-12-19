@@ -11,6 +11,8 @@ import { Inter, Bebas_Neue } from "next/font/google";
 import Bg from "../../public/background.png";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
+import { VaultProvider } from "@/components/providers/vaultProvider";
+import { api } from "@/trpc/server";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -28,13 +30,13 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const cookie = headers().get("cookie");
-
+  const vaults = await api.vault.getVaults();
   // const headerList = headers();
   // const country = headerList.get("x-country");
   return (
@@ -67,12 +69,14 @@ export default function RootLayout({
         <Toaster />
         <TRPCReactProvider>
           <EvmProvider cookie={cookie}>
-            <div className=" flex min-h-screen flex-col">
-              <Header />
-              <Warning />
-              {children}
-              <Footer />
-            </div>
+            <VaultProvider graphVaults={vaults?.vaults ?? []}>
+              <div className=" flex min-h-screen flex-col">
+                <Header />
+                <Warning />
+                {children}
+                <Footer />
+              </div>
+            </VaultProvider>
           </EvmProvider>
         </TRPCReactProvider>
       </body>

@@ -9,7 +9,7 @@ import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
 import type { TVault } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import {
@@ -23,6 +23,8 @@ import {
   getLeverageRatio,
 } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
+import { api } from "@/trpc/react";
+import useVaultFilterStore from "@/lib/store";
 
 export function VaultTableRow({
   pool,
@@ -45,17 +47,40 @@ export function VaultTableRow({
       return 0;
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
-
+  const [tick, setTick] = useState(0n);
+  // Add a query to retrieve collateral data
+  // Hydrate with server data
+  const { data: reservesData } = api.vault.getReserve.useQuery(
+    {
+      vaultId: Number.parseInt(pool.vaultId),
+    },
+    {
+      // Dont fetch data on component mount
+      // Data is from server and is fresh until invalidation
+      refetchOnMount: false,
+      initialData: [
+        {
+          reserveApes: pool.apeCollateral,
+          reserveLPers: pool.teaCollateral,
+          tickPriceX42: tick,
+        },
+      ],
+    },
+  );
   const { setValue } = useMintFormProviderApi();
-  const teaCollateral = parseFloat(formatUnits(pool.teaCollateral, 18));
-  const apeCollateral = parseFloat(formatUnits(pool.apeCollateral, 18));
+  const teaCollateral = parseFloat(
+    formatUnits(reservesData[0]?.reserveLPers ?? 0n, 18),
+  );
+  const apeCollateral = parseFloat(
+    formatUnits(reservesData[0]?.reserveApes ?? 0n, 18),
+  );
   const tvl = apeCollateral + teaCollateral;
   const tvlPercent = tvl / apeCollateral;
   const variant = useCalculateVaultHealth({
     isApe,
     leverageTier: pool.leverageTier,
-    apeCollateral: pool.apeCollateral,
-    teaCollateral: pool.teaCollateral,
+    apeCollateral: reservesData[0]?.reserveApes ?? 0n,
+    teaCollateral: reservesData[0]?.reserveLPers ?? 0n,
   });
 
   const showPercent = () => {
@@ -69,12 +94,19 @@ export function VaultTableRow({
     }
   };
   const parsedTaxAmount = parseUnits(pool.taxAmount, 0);
+  const setAll = useVaultFilterStore((state) => state.setAll);
   return (
     <tr
       onClick={() => {
         setValue("versus", pool.debtToken + "," + pool.debtSymbol);
         setValue("long", pool.collateralToken + "," + pool.collateralSymbol);
         setValue("leverageTier", pool.leverageTier.toString());
+        console.log("--===== SET ALL ======--");
+        setAll(
+          pool.leverageTier.toString(),
+          pool.debtToken + "," + pool.debtSymbol,
+          pool.collateralToken + "," + pool.collateralSymbol,
+        );
       }}
       className="grid cursor-pointer grid-cols-4 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9"
     >
@@ -138,7 +170,11 @@ export function VaultTableRow({
       <th className="pl-2">
         <HoverCard openDelay={0} closeDelay={20}>
           <HoverCardTrigger asChild>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+            >
               <Badge {...variant} className="text-nowrap text-[10px]">
                 {`${getLeverageRatio(pool.leverageTier)}x${showPercent() ? " (" + formatNumber(tvlPercent, 2) + "x)" : ""}`}
               </Badge>
@@ -175,7 +211,6 @@ function DisplayBadgeInfo({
   variant: VariantProps<typeof badgeVariants>;
   isApe: boolean;
 }) {
-  console.log(variant.variant, "VARIANT");
   if (variant.variant === "green") {
     return isApe ? (
       <span>Healthy, more than enough liquidity.</span>

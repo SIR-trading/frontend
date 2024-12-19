@@ -21,7 +21,7 @@ export function useCreateVault({
     address: enabled ? VaultContract.address : undefined,
   };
   // return undefined address to avoid simulation
-  const { data } = useSimulateContract({
+  const { data, error } = useSimulateContract({
     ...vault,
     functionName: "initialize",
     args: [
@@ -32,5 +32,10 @@ export function useCreateVault({
       },
     ],
   });
+
+  console.log(error, "init error", data);
+  if (error) {
+    console.log(error, "init error", data);
+  }
   return data;
 }
