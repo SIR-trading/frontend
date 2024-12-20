@@ -78,6 +78,12 @@ export function inputPatternMatch(s: string, decimals = 18) {
   if (pattern.test(s) && decimalPattern.test(s)) return true;
   return false;
 }
+function trimToSignificantDigits(number: number) {
+  if (number === 0) return 0;
+
+  const factor = Math.pow(10, 3 - Math.floor(Math.log10(Math.abs(number))) - 1);
+  return Math.round(number * factor) / factor;
+}
 /**
  * @returns string | Will round down to 10th decimal
  */
@@ -105,7 +111,16 @@ export function formatNumber(number: number | string, decimals = 3): string {
   }
   if (n < 1 && n >= 0.001) {
     const parts = n.toString().split(".");
-    return Number.parseFloat(`0.${parts[1]?.slice(0, decimals)}`).toString();
+    // return trimToSignificantDigits(n).toString();
+    let zeros = 0;
+    parts[1]?.split("").forEach((val) => {
+      if (val === "0") {
+        zeros++;
+      }
+    });
+    return Number.parseFloat(
+      `0.${parts[1]?.slice(0, decimals + zeros)}`,
+    ).toString();
   }
   if (n < 0.001) {
     const factor = Math.pow(10, 10);
