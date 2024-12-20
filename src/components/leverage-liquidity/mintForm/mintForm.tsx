@@ -7,7 +7,6 @@ import {
   useWriteContract,
 } from "wagmi";
 import { motion } from "motion/react";
-import { useSelectMemo } from "./hooks/useSelectMemo";
 import { formatUnits } from "viem";
 import { useFormContext } from "react-hook-form";
 import type { TMintFormFields, TVaults } from "@/lib/types";
@@ -32,6 +31,8 @@ import useFormFee from "./hooks/useFormFee";
 import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
 import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
+import { useFilterVaults } from "./hooks/useFilterVaults";
+import useVaultFilterStore from "@/lib/store";
 interface Props {
   vaultsQuery: TVaults;
   isApe: boolean;
@@ -80,7 +81,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     vaultsQuery,
     decimals,
   });
-  const { versus, leverageTiers, long } = useSelectMemo({
+  const { versus, leverageTiers, long } = useFilterVaults({
     formData,
     vaultsQuery,
   });
@@ -91,7 +92,6 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     isSuccess: isConfirmed,
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
-
   const selectedVault = useMemo(() => {
     return findVault(vaultsQuery, formData);
   }, [formData, vaultsQuery]);
@@ -107,12 +107,19 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     // Used to know which
     "approve" | "mint" | undefined
   >();
-  useFormSuccessReset({ isConfirming, isConfirmed, currentTxType, useEth });
+  useFormSuccessReset({
+    isConfirming,
+    isConfirmed,
+    currentTxType,
+    useEth,
+    txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
+  });
 
   const { maxCollateralIn, badHealth, isLoading } = useCalculateMaxApe({
     leverageTier: formData.leverageTier,
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
   });
+
   const { isValid, errorMessage, submitType } = useCheckSubmitValid({
     ethBalance: userEthBalance,
     decimals,
