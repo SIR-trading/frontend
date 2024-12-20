@@ -1,15 +1,12 @@
-import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
 import type { TBurnFields } from "../burnForm";
 import { useMemo } from "react";
 import useGetChainId from "@/components/shared/hooks/useGetChainId";
 import { env } from "@/env";
 
-export function useCheckValidityBurn(
+export function useBurnFormValidation(
   formData: TBurnFields,
   tokenBalance: bigint | undefined,
-  isClaimingRewards: boolean,
-  claimingRewardsRequest: SimulateContractReturnType["request"],
 ) {
   const chainId = useGetChainId();
   const { isValid, error } = useMemo(() => {
