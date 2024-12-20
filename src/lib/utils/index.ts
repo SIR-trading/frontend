@@ -78,12 +78,6 @@ export function inputPatternMatch(s: string, decimals = 18) {
   if (pattern.test(s) && decimalPattern.test(s)) return true;
   return false;
 }
-function trimToSignificantDigits(number: number) {
-  if (number === 0) return 0;
-
-  const factor = Math.pow(10, 3 - Math.floor(Math.log10(Math.abs(number))) - 1);
-  return Math.round(number * factor) / factor;
-}
 /**
  * @returns string | Will round down to 10th decimal
  */
