@@ -305,7 +305,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
               isValid={isValid}
               onClick={() => {
                 setOpenTransactionModal(true);
-                onSubmit();
+                // onSubmit();
               }}
               submitType={submitType}
             />
