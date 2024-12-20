@@ -39,6 +39,60 @@ export type Block_height = {
   number_gte?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type Dividends = {
+  id: Scalars['String']['output'];
+  ethAmount: Scalars['BigInt']['output'];
+  stakedAmount: Scalars['BigInt']['output'];
+};
+
+export type Dividends_filter = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  id_not?: InputMaybe<Scalars['String']['input']>;
+  id_gt?: InputMaybe<Scalars['String']['input']>;
+  id_lt?: InputMaybe<Scalars['String']['input']>;
+  id_gte?: InputMaybe<Scalars['String']['input']>;
+  id_lte?: InputMaybe<Scalars['String']['input']>;
+  id_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_contains?: InputMaybe<Scalars['String']['input']>;
+  id_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_starts_with?: InputMaybe<Scalars['String']['input']>;
+  id_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  id_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_ends_with?: InputMaybe<Scalars['String']['input']>;
+  id_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  id_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  ethAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  ethAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  stakedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  stakedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<Dividends_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<Dividends_filter>>>;
+};
+
+export type Dividends_orderBy =
+  | 'id'
+  | 'ethAmount'
+  | 'stakedAmount';
+
 /** Defines the order direction, either ascending or descending */
 export type OrderDirection =
   | 'asc'
@@ -53,6 +107,8 @@ export type Query = {
   userPositions: Array<UserPosition>;
   userPositionTea?: Maybe<UserPositionTea>;
   userPositionTeas: Array<UserPositionTea>;
+  dividends?: Maybe<Dividends>;
+  dividends_collection: Array<Dividends>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -130,6 +186,24 @@ export type QueryuserPositionTeasArgs = {
 };
 
 
+export type QuerydividendsArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type Querydividends_collectionArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Dividends_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Dividends_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
 export type Query_metaArgs = {
   block?: InputMaybe<Block_height>;
 };
@@ -143,6 +217,8 @@ export type Subscription = {
   userPositions: Array<UserPosition>;
   userPositionTea?: Maybe<UserPositionTea>;
   userPositionTeas: Array<UserPositionTea>;
+  dividends?: Maybe<Dividends>;
+  dividends_collection: Array<Dividends>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -215,6 +291,24 @@ export type SubscriptionuserPositionTeasArgs = {
   orderBy?: InputMaybe<UserPositionTea_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   where?: InputMaybe<UserPositionTea_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptiondividendsArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type Subscriptiondividends_collectionArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Dividends_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Dividends_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -952,6 +1046,10 @@ export type _SubgraphErrorPolicy_ =
   userPositionTea: InContextSdkMethod<Query['userPositionTea'], QueryuserPositionTeaArgs, MeshContext>,
   /** null **/
   userPositionTeas: InContextSdkMethod<Query['userPositionTeas'], QueryuserPositionTeasArgs, MeshContext>,
+  /** null **/
+  dividends: InContextSdkMethod<Query['dividends'], QuerydividendsArgs, MeshContext>,
+  /** null **/
+  dividends_collection: InContextSdkMethod<Query['dividends_collection'], Querydividends_collectionArgs, MeshContext>,
   /** Access to subgraph metadata **/
   _meta: InContextSdkMethod<Query['_meta'], Query_metaArgs, MeshContext>
   };
@@ -977,6 +1075,10 @@ export type _SubgraphErrorPolicy_ =
   userPositionTea: InContextSdkMethod<Subscription['userPositionTea'], SubscriptionuserPositionTeaArgs, MeshContext>,
   /** null **/
   userPositionTeas: InContextSdkMethod<Subscription['userPositionTeas'], SubscriptionuserPositionTeasArgs, MeshContext>,
+  /** null **/
+  dividends: InContextSdkMethod<Subscription['dividends'], SubscriptiondividendsArgs, MeshContext>,
+  /** null **/
+  dividends_collection: InContextSdkMethod<Subscription['dividends_collection'], Subscriptiondividends_collectionArgs, MeshContext>,
   /** Access to subgraph metadata **/
   _meta: InContextSdkMethod<Subscription['_meta'], Subscription_metaArgs, MeshContext>
   };

@@ -24,6 +24,5 @@ export function useCheckValidityCreactVault({
       return { isValid: false, error: "" };
     }
   }, [vaultData, vaultSimulation]);
-
   return isValid;
 }

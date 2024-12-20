@@ -2,10 +2,9 @@ import { Button } from "@/components/ui/button";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
-import { ESubmitType } from "./hooks/useCheckSubmitValid";
 import { ChevronDown } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
-import { isValid } from "zod";
+import { ESubmitType } from "./hooks/useMintFormValidation";
 
 const SubmitContext = React.createContext(undefined);
 

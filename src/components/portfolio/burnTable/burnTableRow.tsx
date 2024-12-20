@@ -47,6 +47,7 @@ export function BurnTableRow({
         </th>
         <th className="flex  items-center gap-x-1 font-normal text-gray-200">
           <ImageWithFallback
+            className="rounded-full bg-transparent"
             alt={row.collateralToken}
             src={getLogoAsset(row.collateralToken)}
             width={20}
@@ -56,6 +57,7 @@ export function BurnTableRow({
         </th>
         <th className="flex items-center gap-x-1 font-normal text-gray-200">
           <ImageWithFallback
+            className="rounded-full"
             alt={row.debtSymbol}
             src={getLogoAsset(row.debtToken)}
             width={20}

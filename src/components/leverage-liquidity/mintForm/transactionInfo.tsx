@@ -1,10 +1,10 @@
 import TransactionModal from "@/components/shared/transactionModal";
-import { ESubmitType } from "./hooks/useCheckSubmitValid";
 import { TransactionEstimates } from "./transactionEstimates";
 import { TransactionStatus } from "./transactionStatus";
 import { CircleCheck } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatUnits } from "viem";
+import { ESubmitType } from "./hooks/useMintFormValidation";
 
 interface Props {
   isConfirmed: boolean;

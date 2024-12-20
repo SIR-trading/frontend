@@ -9,7 +9,6 @@ import { api } from "@/trpc/react";
 import { useBurnApe } from "./hooks/useBurnApe";
 import type { SimulateContractReturnType } from "viem";
 import { formatUnits, parseUnits } from "viem";
-import { useCheckValidityBurn } from "./hooks/useCheckValidityBurn";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,8 @@ import { formatNumber } from "@/lib/utils";
 import ClaimAndStakeToggle from "./claimAndStakeToggle";
 import { DisplayCollateral } from "./displayCollateral";
 import { TokenInput } from "./tokenInput";
+import { subgraphSyncPoll } from "@/lib/utils/sync";
+import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 
 const BurnSchema = z.object({
   deposit: z.string().optional(),
@@ -100,7 +101,6 @@ export default function BurnForm({
           utils.user.getTeaRewards.invalidate().catch((e) => console.log(e));
           if (claimAndStake) {
             utils.user.getUnstakedSirBalance
-
               .invalidate()
               .catch((e) => console.log(e));
           }
@@ -113,6 +113,12 @@ export default function BurnForm({
           });
         }
       }
+
+      subgraphSyncPoll(Number.parseInt(receiptData.blockNumber.toString()))
+        .then(() => {
+          utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
+        })
+        .catch((e) => console.log(e));
     }
   }, [
     receiptData,
@@ -125,6 +131,7 @@ export default function BurnForm({
     utils.user.getTeaBalance,
     utils.user.getTeaRewards,
     isClaimingRewards,
+    utils.vault.getTableVaults,
   ]);
 
   const { data: burnData } = useBurnApe({
@@ -148,11 +155,11 @@ export default function BurnForm({
     }
   }, [form, isConfirmed]);
 
-  const { isValid, error } = useCheckValidityBurn(
+  const { isValid, error } = useBurnFormValidation(
     formData,
     balance,
-    isClaimingRewards,
-    claimRewardRequest as unknown as SimulateContractReturnType["request"],
+    // isClaimingRewards,
+    // claimRewardRequest as unknown as SimulateContractReturnType["request"],
   );
 
   const { tokenReceived } = useGetTxTokens({ logs: receiptData?.logs });

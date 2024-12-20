@@ -15,7 +15,10 @@ export function useQuoteMint({
       formData.versus !== "" &&
       formData.leverageTier !== "",
   );
-  const depositDebounce = useDebounce(formData.deposit, 500);
+  const { debouncedValue: depositDebounce } = useDebounce(
+    formData.deposit,
+    500,
+  );
   const { data: quoteData } = api.vault.quoteMint.useQuery(
     {
       amount: depositDebounce,
