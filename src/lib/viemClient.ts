@@ -26,3 +26,4 @@ const viemClient = createPublicClient({
 export const readContract = viemClient.readContract;
 export const multicall = viemClient.multicall;
 export const getBalance = viemClient.getBalance;
+export const getBlock = viemClient.getBlock;

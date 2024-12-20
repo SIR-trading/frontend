@@ -46,6 +46,7 @@ export interface VaultFieldFragment {
   totalValue: string;
   apeDecimals: number;
   apeAddress: TAddressString;
+  id: string;
 }
 export type TVault = VaultFieldFragment & {
   apeCollateral: bigint;

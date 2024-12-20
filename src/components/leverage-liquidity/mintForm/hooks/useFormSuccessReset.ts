@@ -1,4 +1,5 @@
 import type { TMintFormFields } from "@/lib/types";
+import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { api } from "@/trpc/react";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
@@ -7,12 +8,14 @@ interface Props {
   isConfirmed: boolean;
   currentTxType: "mint" | "approve" | undefined;
   useEth: boolean;
+  txBlock?: number;
 }
 export function useFormSuccessReset({
   isConfirmed,
   isConfirming,
   currentTxType,
   useEth,
+  txBlock,
 }: Props) {
   const form = useFormContext<TMintFormFields>();
 
@@ -26,11 +29,21 @@ export function useFormSuccessReset({
     ) {
       form.resetField("deposit");
       utils.user.getBalance.invalidate().catch((e) => console.log(e));
+      subgraphSyncPoll(txBlock)
+        .then(() => {
+          utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
+        })
+        .catch((e) => console.log(e));
     }
 
     if (isConfirmed && useEth && form.getValues("deposit")) {
       form.resetField("deposit");
       utils.user.getEthBalance.invalidate().catch((e) => console.log(e));
+      subgraphSyncPoll(txBlock)
+        .then(() => {
+          utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
+        })
+        .catch((e) => console.log(e));
     }
   }, [
     isConfirming,
@@ -40,5 +53,7 @@ export function useFormSuccessReset({
     currentTxType,
     useEth,
     form,
+    utils.vault.getTableVaults,
+    txBlock,
   ]);
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import Image, { StaticImageData } from "next/image";
+import { StaticImageData } from "next/image";
+import { LoaderCircle } from "lucide-react";
 import {
   FormControl,
   FormField,
@@ -16,15 +17,10 @@ import {
 
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "../ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../ui/command";
+import { Command, CommandEmpty, CommandItem, CommandList } from "../ui/command";
 import type { TMintForm } from "@/lib/types";
 import ImageWithFallback from "./ImageWithFallback";
+import Show from "./show";
 // TODO
 // rm default placeholders
 type TItem = {
@@ -38,20 +34,30 @@ export default function Select({
   placeholder,
   title,
   items,
+  setStore,
   noSearch,
+  onChangeInput,
+  searchItems,
+  value,
+  loading,
 }: {
   title: string;
+  loading?: boolean;
   clear?: boolean;
   noSearch?: boolean;
+  searchItems?: TItem[];
   items: TItem[];
   placeholder?: string;
   name: "leverageTier" | "long" | "versus" | "depositToken";
   form: TMintForm;
   colorScheme?: "light" | "dark" | null;
-
+  setStore: (s: string) => void;
+  onChangeInput?: (s: string) => void;
+  value?: string;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const showItems = searchItems ? searchItems : items;
   return (
     <FormField
       control={form.control}
@@ -88,6 +94,7 @@ export default function Select({
                       className="h-5 w-5"
                       onClick={(e) => {
                         e.preventDefault();
+                        setStore("");
                         form.setValue(name, "");
                       }}
                     ></X>
@@ -97,46 +104,63 @@ export default function Select({
             </PopoverTrigger>
             <PopoverContent className=" w-[180px] p-0">
               <Command>
-                {!field.value && !noSearch && (
-                  <CommandInput placeholder={placeholder ?? "Search..."} />
-                )}
-                <CommandEmpty>No tokens found.</CommandEmpty>
+                <Show when={!field.value && !noSearch}>
+                  <input
+                    className="m-2 border-0 bg-transparent p-2 focus-within:bg-none"
+                    placeholder={placeholder ?? "Search..."}
+                    value={value}
+                    onChange={(e) => onChangeInput?.(e.target.value)}
+                  />
+                </Show>
+                <Show when={showItems.length === 0 && !loading}>
+                  <CommandEmpty>No tokens found.</CommandEmpty>
+                </Show>
                 {/* <CommandGroup> */}
                 <CommandList>
-                  {items.map((item) => (
-                    <CommandItem
-                      key={item.value + item.label}
-                      value={item.value}
-                      onSelect={() => {
-                        setOpen(false);
-                        setTimeout(() => {
-                          form.setValue(name, item.value);
-                        }, 100);
-                      }}
-                      className="flex h-[40px] justify-between px-2"
-                    >
-                      <div className="flex items-center gap-x-2">
-                        {item.imageUrl && (
-                          <ImageWithFallback
-                            height={100}
-                            width={100}
-                            className="h-[28px] w-[28px] rounded-full"
-                            src={item.imageUrl}
-                            alt={item.label}
-                          />
-                        )}
-                        {item.label}
+                  <Show
+                    when={!loading}
+                    fallback={
+                      <div className="flex justify-center py-2">
+                        <LoaderCircle className="animate-spin" />
                       </div>
-                      <Check
-                        className={cn(
-                          "h-5 w-5 ",
-                          item.value === field.value
-                            ? "opacity-100"
-                            : "opacity-0",
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
+                    }
+                  >
+                    {showItems.map((item) => (
+                      <CommandItem
+                        key={item.value + item.label}
+                        value={item.value}
+                        onSelect={() => {
+                          setOpen(false);
+                          setTimeout(() => {
+                            form.setValue(name, item.value);
+                            setStore(item.value);
+                          }, 100);
+                        }}
+                        className="flex h-[40px] justify-between px-2"
+                      >
+                        <div className="flex items-center gap-x-2">
+                          {item.imageUrl && (
+                            <ImageWithFallback
+                              height={100}
+                              width={100}
+                              className="h-[28px] w-[28px] rounded-full"
+                              src={item.imageUrl}
+                              alt={item.label}
+                            />
+                          )}
+                          {item.label}
+                        </div>
+                        <Check
+                          className={cn(
+                            "h-5 w-5 ",
+                            item.value === field.value
+                              ? "opacity-100"
+                              : "opacity-0",
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </Show>
                 </CommandList>
                 {/* </CommandGroup> */}
               </Command>

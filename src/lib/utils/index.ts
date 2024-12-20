@@ -67,7 +67,6 @@ export function getApeAddress({
 export function roundDown(float: number, decimals: number) {
   const factor = Math.pow(10, decimals);
   const roundedDown = Math.floor(float * factor) / factor;
-  console.log(roundedDown, "down");
   return roundedDown;
 }
 export function inputPatternMatch(s: string, decimals = 18) {
@@ -83,7 +82,6 @@ export function inputPatternMatch(s: string, decimals = 18) {
  * @returns string | Will round down to 10th decimal
  */
 export function formatNumber(number: number | string, decimals = 3): string {
-  console.log(number, "NUMBER");
   if (typeof number === "string") {
     number = Number.parseFloat(number);
     if (!Number.isFinite(number)) {
@@ -106,9 +104,22 @@ export function formatNumber(number: number | string, decimals = 3): string {
     return "0";
   }
   if (n < 1 && n >= 0.001) {
-    console.log("ran here");
     const parts = n.toString().split(".");
-    return Number.parseFloat(`0.${parts[1]?.slice(0, decimals)}`).toString();
+    // return trimToSignificantDigits(n).toString();
+    let zeros = 0;
+    if (parts[1]?.split("")) {
+      for (const digit of parts[1]?.split("")) {
+        if (digit === "0") {
+          zeros++;
+        } else {
+          // break once you hit a number other then 0
+          break;
+        }
+      }
+    }
+    return Number.parseFloat(
+      `0.${parts[1]?.slice(0, decimals + zeros)}`,
+    ).toString();
   }
   if (n < 0.001) {
     const factor = Math.pow(10, 10);
@@ -120,7 +131,6 @@ export function formatNumber(number: number | string, decimals = 3): string {
     return num.format("0.00a").toUpperCase();
   }
   if (decimals) {
-    console.log("round down", decimals);
     n = roundDown(n, 10);
   }
 
