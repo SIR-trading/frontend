@@ -215,6 +215,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
           <TransactionModal.Close setOpen={setOpenTransactionModal} />
           <TransactionModal.InfoContainer>
             <TransactionInfo
+              vaultId={selectedVault.result?.vaultId ?? "0"}
               decimals={decimals}
               isConfirmed={isConfirmed}
               isConfirming={isConfirming}

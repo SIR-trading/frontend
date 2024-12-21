@@ -18,6 +18,7 @@ interface Props {
   isApe: boolean;
   useEth: boolean;
   quoteData: bigint | undefined;
+  vaultId: string;
 }
 
 export default function TransactionInfo({
@@ -32,6 +33,7 @@ export default function TransactionInfo({
   decimals,
   useEth,
   userBalanceFetching,
+  vaultId,
 }: Props) {
   if (!isConfirmed) {
     return (
@@ -46,6 +48,7 @@ export default function TransactionInfo({
             isApe={isApe}
             usingEth={useEth}
             collateralEstimate={quoteData}
+            vaultId={vaultId}
           />
         )}
         {submitType === ESubmitType.mint && (
