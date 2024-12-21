@@ -61,6 +61,60 @@ export type Block_height = {
   number_gte?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type Dividends = {
+  id: Scalars['String']['output'];
+  ethAmount: Scalars['BigInt']['output'];
+  stakedAmount: Scalars['BigInt']['output'];
+};
+
+export type Dividends_filter = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  id_not?: InputMaybe<Scalars['String']['input']>;
+  id_gt?: InputMaybe<Scalars['String']['input']>;
+  id_lt?: InputMaybe<Scalars['String']['input']>;
+  id_gte?: InputMaybe<Scalars['String']['input']>;
+  id_lte?: InputMaybe<Scalars['String']['input']>;
+  id_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_contains?: InputMaybe<Scalars['String']['input']>;
+  id_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_starts_with?: InputMaybe<Scalars['String']['input']>;
+  id_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  id_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_ends_with?: InputMaybe<Scalars['String']['input']>;
+  id_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  id_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  ethAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  ethAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  ethAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  stakedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  stakedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<Dividends_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<Dividends_filter>>>;
+};
+
+export type Dividends_orderBy =
+  | 'id'
+  | 'ethAmount'
+  | 'stakedAmount';
+
 /** Defines the order direction, either ascending or descending */
 export type OrderDirection =
   | 'asc'
@@ -75,6 +129,8 @@ export type Query = {
   userPositions: Array<UserPosition>;
   userPositionTea?: Maybe<UserPositionTea>;
   userPositionTeas: Array<UserPositionTea>;
+  dividends?: Maybe<Dividends>;
+  dividends_collection: Array<Dividends>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -152,6 +208,24 @@ export type QueryuserPositionTeasArgs = {
 };
 
 
+export type QuerydividendsArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type Querydividends_collectionArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Dividends_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Dividends_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
 export type Query_metaArgs = {
   block?: InputMaybe<Block_height>;
 };
@@ -165,6 +239,8 @@ export type Subscription = {
   userPositions: Array<UserPosition>;
   userPositionTea?: Maybe<UserPositionTea>;
   userPositionTeas: Array<UserPositionTea>;
+  dividends?: Maybe<Dividends>;
+  dividends_collection: Array<Dividends>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -237,6 +313,24 @@ export type SubscriptionuserPositionTeasArgs = {
   orderBy?: InputMaybe<UserPositionTea_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   where?: InputMaybe<UserPositionTea_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptiondividendsArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type Subscriptiondividends_collectionArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Dividends_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Dividends_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -1050,6 +1144,9 @@ export type ResolversTypes = ResolversObject<{
   Block_height: Block_height;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Bytes: ResolverTypeWrapper<Scalars['Bytes']['output']>;
+  Dividends: ResolverTypeWrapper<Dividends>;
+  Dividends_filter: Dividends_filter;
+  Dividends_orderBy: Dividends_orderBy;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -1084,6 +1181,8 @@ export type ResolversParentTypes = ResolversObject<{
   Block_height: Block_height;
   Boolean: Scalars['Boolean']['output'];
   Bytes: Scalars['Bytes']['output'];
+  Dividends: Dividends;
+  Dividends_filter: Dividends_filter;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -1132,6 +1231,13 @@ export interface BytesScalarConfig extends GraphQLScalarTypeConfig<ResolversType
   name: 'Bytes';
 }
 
+export type DividendsResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Dividends'] = ResolversParentTypes['Dividends']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ethAmount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  stakedAmount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export interface Int8ScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Int8'], any> {
   name: 'Int8';
 }
@@ -1145,6 +1251,8 @@ export type QueryResolvers<ContextType = MeshContext, ParentType extends Resolve
   userPositions?: Resolver<Array<ResolversTypes['UserPosition']>, ParentType, ContextType, RequireFields<QueryuserPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
   userPositionTea?: Resolver<Maybe<ResolversTypes['UserPositionTea']>, ParentType, ContextType, RequireFields<QueryuserPositionTeaArgs, 'id' | 'subgraphError'>>;
   userPositionTeas?: Resolver<Array<ResolversTypes['UserPositionTea']>, ParentType, ContextType, RequireFields<QueryuserPositionTeasArgs, 'skip' | 'first' | 'subgraphError'>>;
+  dividends?: Resolver<Maybe<ResolversTypes['Dividends']>, ParentType, ContextType, RequireFields<QuerydividendsArgs, 'id' | 'subgraphError'>>;
+  dividends_collection?: Resolver<Array<ResolversTypes['Dividends']>, ParentType, ContextType, RequireFields<Querydividends_collectionArgs, 'skip' | 'first' | 'subgraphError'>>;
   _meta?: Resolver<Maybe<ResolversTypes['_Meta_']>, ParentType, ContextType, Partial<Query_metaArgs>>;
 }>;
 
@@ -1157,6 +1265,8 @@ export type SubscriptionResolvers<ContextType = MeshContext, ParentType extends 
   userPositions?: SubscriptionResolver<Array<ResolversTypes['UserPosition']>, "userPositions", ParentType, ContextType, RequireFields<SubscriptionuserPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
   userPositionTea?: SubscriptionResolver<Maybe<ResolversTypes['UserPositionTea']>, "userPositionTea", ParentType, ContextType, RequireFields<SubscriptionuserPositionTeaArgs, 'id' | 'subgraphError'>>;
   userPositionTeas?: SubscriptionResolver<Array<ResolversTypes['UserPositionTea']>, "userPositionTeas", ParentType, ContextType, RequireFields<SubscriptionuserPositionTeasArgs, 'skip' | 'first' | 'subgraphError'>>;
+  dividends?: SubscriptionResolver<Maybe<ResolversTypes['Dividends']>, "dividends", ParentType, ContextType, RequireFields<SubscriptiondividendsArgs, 'id' | 'subgraphError'>>;
+  dividends_collection?: SubscriptionResolver<Array<ResolversTypes['Dividends']>, "dividends_collection", ParentType, ContextType, RequireFields<Subscriptiondividends_collectionArgs, 'skip' | 'first' | 'subgraphError'>>;
   _meta?: SubscriptionResolver<Maybe<ResolversTypes['_Meta_']>, "_meta", ParentType, ContextType, Partial<Subscription_metaArgs>>;
 }>;
 
@@ -1237,6 +1347,7 @@ export type Resolvers<ContextType = MeshContext> = ResolversObject<{
   BigDecimal?: GraphQLScalarType;
   BigInt?: GraphQLScalarType;
   Bytes?: GraphQLScalarType;
+  Dividends?: DividendsResolvers<ContextType>;
   Int8?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
@@ -1319,8 +1430,8 @@ const merger = new(BareMerger as any)({
         store: rootStore.child('bareMerger')
       })
 const documentHashMap = {
-        "847baafaf71cab69f2034d36ea3d450625cbc642e815dc3cafcb2e15adaf2c98": GetUserApePositionsDocument,
-"b1cd4056197c70b9bed47c3ced285b58862db2b163c7cc4820c346c82ce30f3c": VaultQueryDocument,
+        "92e48b570ace24a0a339f0cece586f9ba41be2b83bfae712347b7a7f68cbb659": VaultQueryDocument,
+"847baafaf71cab69f2034d36ea3d450625cbc642e815dc3cafcb2e15adaf2c98": GetUserApePositionsDocument,
 "44d4baf9d98548b7b68d7c43e62f1e8815657ff7922d619657c772209344fb0b": GetUserTeaPositionsDocument
       }
 additionalEnvelopPlugins.push(usePersistedOperations({
@@ -1343,19 +1454,19 @@ additionalEnvelopPlugins.push(usePersistedOperations({
     get documents() {
       return [
       {
+        document: VaultQueryDocument,
+        get rawSDL() {
+          return printWithCache(VaultQueryDocument);
+        },
+        location: 'VaultQueryDocument.graphql',
+        sha256Hash: '92e48b570ace24a0a339f0cece586f9ba41be2b83bfae712347b7a7f68cbb659'
+      },{
         document: GetUserApePositionsDocument,
         get rawSDL() {
           return printWithCache(GetUserApePositionsDocument);
         },
         location: 'GetUserApePositionsDocument.graphql',
         sha256Hash: '847baafaf71cab69f2034d36ea3d450625cbc642e815dc3cafcb2e15adaf2c98'
-      },{
-        document: VaultQueryDocument,
-        get rawSDL() {
-          return printWithCache(VaultQueryDocument);
-        },
-        location: 'VaultQueryDocument.graphql',
-        sha256Hash: 'b1cd4056197c70b9bed47c3ced285b58862db2b163c7cc4820c346c82ce30f3c'
       },{
         document: GetUserTeaPositionsDocument,
         get rawSDL() {
@@ -1417,12 +1528,17 @@ export function getBuiltGraphSDK<TGlobalContext = any, TOperationContext = any>(
   const sdkRequester$ = getBuiltGraphClient().then(({ sdkRequesterFactory }) => sdkRequesterFactory(globalContext));
   return getSdk<TOperationContext, TGlobalContext>((...args) => sdkRequester$.then(sdkRequester => sdkRequester(...args)));
 }
-export type VaultFieldsFragment = Pick<Vault, 'debtToken' | 'debtSymbol' | 'collateralToken' | 'collateralSymbol' | 'vaultId' | 'leverageTier' | 'totalTea' | 'totalValue' | 'lockedLiquidity' | 'apeAddress' | 'apeCollateral' | 'teaCollateral'>;
+export type VaultFieldsFragment = Pick<Vault, 'debtToken' | 'apeDecimals' | 'debtSymbol' | 'collateralToken' | 'collateralSymbol' | 'vaultId' | 'leverageTier' | 'totalTea' | 'totalValue' | 'lockedLiquidity' | 'apeAddress' | 'taxAmount' | 'apeCollateral' | 'teaCollateral' | 'id'>;
 
-export type VaultQueryQueryVariables = Exact<{ [key: string]: never; }>;
+export type VaultQueryQueryVariables = Exact<{
+  collateralToken?: InputMaybe<Scalars['String']['input']>;
+  debtToken?: InputMaybe<Scalars['String']['input']>;
+  leverageTier?: InputMaybe<Scalars['Int']['input']>;
+  lastId?: InputMaybe<Scalars['String']['input']>;
+}>;
 
 
-export type VaultQueryQuery = { vaults: Array<Pick<Vault, 'debtToken' | 'debtSymbol' | 'collateralToken' | 'collateralSymbol' | 'vaultId' | 'leverageTier' | 'totalTea' | 'totalValue' | 'lockedLiquidity' | 'apeAddress' | 'apeCollateral' | 'teaCollateral'>> };
+export type VaultQueryQuery = { vaults: Array<Pick<Vault, 'debtToken' | 'apeDecimals' | 'debtSymbol' | 'collateralToken' | 'collateralSymbol' | 'vaultId' | 'leverageTier' | 'totalTea' | 'totalValue' | 'lockedLiquidity' | 'apeAddress' | 'taxAmount' | 'apeCollateral' | 'teaCollateral' | 'id'>> };
 
 export type getUserApePositionsQueryVariables = Exact<{
   user?: InputMaybe<Scalars['Bytes']['input']>;
@@ -1441,6 +1557,7 @@ export type getUserTeaPositionsQuery = { userPositionTeas: Array<Pick<UserPositi
 export const VaultFieldsFragmentDoc = gql`
     fragment VaultFields on Vault {
   debtToken
+  apeDecimals
   debtSymbol
   collateralToken
   collateralSymbol
@@ -1450,13 +1567,16 @@ export const VaultFieldsFragmentDoc = gql`
   totalValue
   lockedLiquidity
   apeAddress
+  taxAmount
+  apeDecimals
   apeCollateral
   teaCollateral
+  id
 }
     ` as unknown as DocumentNode<VaultFieldsFragment, unknown>;
 export const VaultQueryDocument = gql`
-    query VaultQuery {
-  vaults {
+    query VaultQuery($collateralToken: String, $debtToken: String, $leverageTier: Int, $lastId: String) {
+  vaults(orderDirection: desc, first: 10, orderBy: totalValue) {
     ...VaultFields
   }
 }

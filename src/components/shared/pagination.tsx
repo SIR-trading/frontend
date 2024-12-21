@@ -2,48 +2,49 @@
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useVaultProvider } from "../providers/vaultProvider";
 export default function Pagination({ max }: { max: number }) {
   if (max < 1) {
     max = 1;
   }
-  console.log(max, "MAX");
   const searchParams = useSearchParams();
   const pagination = searchParams.get("vault-page");
-  let page = pagination ? parseInt(pagination) : 1;
-  if (!isFinite(page)) {
-    // check if pagination is a page
-    page = 1;
-  }
+  // let page = pagination ? parseInt(pagination) : 1;
+  const { nextPage, vaultLength, prevPage, page } = useVaultProvider();
+  console.log(vaultLength, "VAULTLENGTH");
   return (
-    <div className="flex justify-end gap-x-3 items-center pt-4">
-      <div className="flex gap-x-3 items-center">
-        <Link href={"?vault-page=" + (page - 1)} scroll={false}>
+    <div className="flex items-center justify-end gap-x-3 pt-4">
+      <div className="flex items-center gap-x-3">
+        <div>
           <button
             disabled={page === 1}
             aria-label="Left"
-            className="rounded-full disabled:opacity-50 p-[5px] bg-primary"
+            onClick={prevPage}
+            className="rounded-full bg-primary p-[5px] disabled:opacity-50"
           >
             <ChevronLeft size={17} />
           </button>
-        </Link>
-        <div className="px-3 h-[25px] items-center flex rounded-lg text-[15px] bg-primary">
+        </div>
+        <div className="flex h-[25px] items-center rounded-lg bg-primary px-3 text-[15px]">
           {page}
         </div>
-        <span className="opacity-80">of</span>{" "}
-        <div className="px-3 h-[25px] items-center flex text-[15px] rounded-lg bg-primary">
-          {max}
-        </div>
-        <Link href={"?vault-page=" + (page + 1)} scroll={false}>
+        <div>
           <button
             role="link"
             aria-label="Scroll Vaults Right"
-            disabled={page >= max}
-            className="rounded-full disabled:opacity-50 p-[5px] bg-primary"
+            disabled={vaultLength !== 8}
+            className="rounded-full bg-primary p-[5px] disabled:opacity-50"
+            onClick={() => nextPage()}
           >
             <ChevronRight size={17} />
           </button>
-        </Link>
+        </div>
       </div>
     </div>
   );
 }
+
+// <span className="opacity-80">of</span>{" "}
+// <div className="flex h-[25px] items-center rounded-lg bg-primary px-3 text-[15px]">
+//   {max}
+// </div>

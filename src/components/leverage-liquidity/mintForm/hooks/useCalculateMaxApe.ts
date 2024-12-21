@@ -12,7 +12,7 @@ export function useCalculateMaxApe({
   vaultId: number;
   leverageTier: string;
 }) {
-  const { data, isLoading } = api.vault.getReserves.useQuery(
+  const { data, isLoading } = api.vault.getReserve.useQuery(
     { vaultId },
     { enabled: vaultId !== -1 && Number.isFinite(vaultId) },
   );

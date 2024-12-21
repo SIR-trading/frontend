@@ -1,22 +1,97 @@
 import { ApeContract } from "@/contracts/ape";
 import { AssistantContract } from "@/contracts/assistant";
+import { getVaultsForTable } from "@/lib/getVaults";
 import type { TAddressString } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
 import { parseUnits } from "viem";
 import { z } from "zod";
+const ZVaultFilters = z.object({
+  filterLeverage: z.string().optional(),
+  filterDebtToken: z.string().optional(),
+  filterCollateralToken: z.string().optional(),
+});
 export const vaultRouter = createTRPCRouter({
-  getVaults: publicProcedure.query(async ({}) => {
-    const vaults = await executeVaultsQuery();
-    return vaults;
-  }),
-  getReserves: publicProcedure
+  getVaults: publicProcedure
+    .input(
+      z
+        .object({
+          filterLeverage: z.string().optional(),
+          filterDebtToken: z.string().optional(),
+          filterCollateralToken: z.string().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      if (input) {
+        const { filterLeverage, filterDebtToken, filterCollateralToken } =
+          input;
+        const vaults = await executeVaultsQuery({
+          filterLeverage,
+          filterDebtToken,
+          filterCollateralToken,
+        });
+        return vaults;
+      } else {
+        const vaults = await executeVaultsQuery({});
+        return vaults;
+      }
+    }),
+  getSearchVaults: publicProcedure
+    .input(
+      z.object({
+        filters: ZVaultFilters.optional(),
+        search: z.string(),
+        type: z.union([z.literal("debt"), z.literal("collateral")]),
+      }),
+    )
+    .query(async ({ input }) => {
+      const result = await executeSearchVaultsQuery({
+        ...input.filters,
+        search: input.search,
+        type: input.type,
+      });
+      return result;
+    }),
+  getTableVaults: publicProcedure
+    .input(
+      z
+        .object({
+          offset: z.number().optional(),
+          filters: ZVaultFilters.extend({
+            skip: z.number().optional(),
+          }).optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      console.log(input?.filters, "FILTERS");
+      const result = await getVaultsForTable(
+        input?.offset ?? 0,
+        input?.filters,
+      );
+      return result;
+    }),
+  getReserve: publicProcedure
     .input(z.object({ vaultId: z.number() }))
     .query(async ({ input }) => {
       const result = await readContract({
         ...AssistantContract,
         args: [[input.vaultId]],
+        functionName: "getReserves",
+      });
+      return result;
+    }),
+  getReserves: publicProcedure
+    .input(z.object({ vaultIds: z.array(z.number()).optional() }))
+    .query(async ({ input }) => {
+      console.log("Ran getReserves");
+      if (!input.vaultIds) return [];
+      const result = await readContract({
+        ...AssistantContract,
+        args: [input.vaultIds],
         functionName: "getReserves",
       });
       return result;

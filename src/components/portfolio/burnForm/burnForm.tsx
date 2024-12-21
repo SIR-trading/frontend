@@ -25,6 +25,7 @@ import { formatNumber } from "@/lib/utils";
 import ClaimAndStakeToggle from "./claimAndStakeToggle";
 import { DisplayCollateral } from "./displayCollateral";
 import { TokenInput } from "./tokenInput";
+import { subgraphSyncPoll } from "@/lib/utils/sync";
 
 const BurnSchema = z.object({
   deposit: z.string().optional(),
@@ -100,7 +101,6 @@ export default function BurnForm({
           utils.user.getTeaRewards.invalidate().catch((e) => console.log(e));
           if (claimAndStake) {
             utils.user.getUnstakedSirBalance
-
               .invalidate()
               .catch((e) => console.log(e));
           }
@@ -113,6 +113,12 @@ export default function BurnForm({
           });
         }
       }
+
+      subgraphSyncPoll(Number.parseInt(receiptData.blockNumber.toString()))
+        .then(() => {
+          utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
+        })
+        .catch((e) => console.log(e));
     }
   }, [
     receiptData,
@@ -125,6 +131,7 @@ export default function BurnForm({
     utils.user.getTeaBalance,
     utils.user.getTeaRewards,
     isClaimingRewards,
+    utils.vault.getTableVaults,
   ]);
 
   const { data: burnData } = useBurnApe({

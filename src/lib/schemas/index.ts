@@ -23,7 +23,13 @@ export const assetSchema = z.object({
   type: z.enum(["ERC20", "ERC721", "ERC1155"]), // Assuming type could be one of these common Ethereum token standards
   website: z.string().url(),
 });
-
+export const blockNumberSchema = z.object({
+  _meta: z.object({
+    block: z.object({
+      number: z.number(),
+    }),
+  }),
+});
 export const tokenSchema = z.object({
   name: z.string(),
   website: z.string().url(),
