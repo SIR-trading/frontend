@@ -220,7 +220,7 @@ function DisplayBadgeInfo({
   }
   if (variant.variant === "yellow") {
     return isApe ? (
-      <span>Borderline, just enough liquidity.</span>
+      <span>Borderline liquidity. Do not mint.</span>
     ) : (
       <span>Moderately profitable</span>
     );
