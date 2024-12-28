@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { useMemo, useState } from "react";
 import type { z } from "zod";
@@ -25,6 +25,7 @@ import { api } from "@/trpc/react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useCheckValidityCreactVault } from "./hooks/useCheckValidityCreateVault";
 import { getLogoAsset } from "@/lib/assets";
+import Show from "../shared/show";
 const tokens = [
   {
     address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" as TAddressString,
@@ -59,7 +60,7 @@ export default function CreateVaultForm() {
   const formData = form.watch();
   const { longToken, versusToken, leverageTier } = formData;
   const data = useCreateVault({ longToken, versusToken, leverageTier });
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContract, isPending, data: hash, reset } = useWriteContract();
   const onSubmit = () => {
     if (data?.request) {
       writeContract(data?.request);
@@ -133,22 +134,38 @@ export default function CreateVaultForm() {
   });
   console.log(isValid, "");
   const [openModal, setOpenModal] = useState(false);
+  useEffect(() => {
+    if (isConfirmed && !openModal) {
+      form.reset();
+      reset();
+    }
+  }, [openModal, form.reset, isConfirmed, reset, form]);
   return (
     <FormProvider {...form}>
       <form className="space-y-4">
         <TransactionModal.Root setOpen={setOpenModal} open={openModal}>
           <TransactionModal.Close setOpen={setOpenModal} />
           <TransactionModal.InfoContainer>
-            <TransactionStatus
-              action="Create"
-              waitForSign={isPending}
-              showLoading={isConfirming}
-            />
-            <TransactionInfoCreateVault
-              leverageTier={formData.leverageTier}
-              longToken={formData.longToken}
-              versusToken={formData.versusToken}
-            />
+            <Show
+              fallback={
+                <div>
+                  <h1>Succesfully created Vault!</h1>
+                </div>
+              }
+              when={!isConfirmed}
+            >
+              <TransactionStatus
+                action="Create"
+                waitForSign={isPending}
+                showLoading={isConfirming}
+              />
+
+              <TransactionInfoCreateVault
+                leverageTier={formData.leverageTier}
+                longToken={formData.longToken}
+                versusToken={formData.versusToken}
+              />
+            </Show>
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
