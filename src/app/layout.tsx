@@ -13,6 +13,7 @@ import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
 import { api } from "@/trpc/server";
+import RewardsNotification from "@/components/ui/rewardsNotification";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -65,10 +66,10 @@ export default async function RootLayout({
           }}
           className="absolute left-0 top-0 z-[-1] h-full w-full opacity-100"
         ></div>
-
         <Toaster />
         <TRPCReactProvider>
           <EvmProvider cookie={cookie}>
+            <RewardsNotification />
             <VaultProvider graphVaults={vaults?.vaults ?? []}>
               <div className=" flex min-h-screen flex-col">
                 <Header />
