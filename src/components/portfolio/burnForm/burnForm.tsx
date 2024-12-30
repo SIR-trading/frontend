@@ -99,11 +99,9 @@ export default function BurnForm({
       } else {
         if (isClaimingRewards) {
           utils.user.getTeaRewards.invalidate().catch((e) => console.log(e));
-          if (claimAndStake) {
-            utils.user.getUnstakedSirBalance
-              .invalidate()
-              .catch((e) => console.log(e));
-          }
+          utils.user.getUnstakedSirBalance
+            .invalidate()
+            .catch((e) => console.log(e));
           utils.user.getTotalSirBalance.invalidate().catch((e) => {
             console.log(e);
           });
