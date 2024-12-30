@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/trpc/react";
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import ToolTip from "@/components/ui/tooltip";
 import { useGetStakedSir } from "@/components/shared/hooks/useGetStakedSir";
@@ -10,7 +11,7 @@ interface supplyProps {
   data?: bigint;
 }
 
-const StakeData = () => {
+const StakeData = ({ children }: { children: ReactNode }) => {
   const { data: unstakedSupply }: supplyProps =
     api.user.getSirSupply.useQuery();
   const { data: totalSupply }: supplyProps =
@@ -44,7 +45,6 @@ const StakeData = () => {
       <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
           <div className="px-2 text-sm text-gray-300">Your Staked SIR</div>
-          {/* <ToolTip>Tool tip info.</ToolTip> */}
         </div>
         <div className=" text-2xl ">
           <TokenDisplay

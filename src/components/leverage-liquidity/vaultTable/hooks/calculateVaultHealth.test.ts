@@ -16,12 +16,22 @@ test("Testing calculating vault health.", () => {
       apeCollateral,
       isApe: true,
     }).variant,
-  ).toBe("yellow");
+  ).toBe("green");
   expect(
     calculateVaultHealth({
       leverageTier: -1,
       teaCollateral: 49304565809899447n,
       apeCollateral: 73381955552671381n,
+      isApe: true,
+    }).variant,
+  ).toBe("green");
+});
+test("Testing Zero values", () => {
+  expect(
+    calculateVaultHealth({
+      leverageTier: -1,
+      teaCollateral: 0n,
+      apeCollateral: 0n,
       isApe: true,
     }).variant,
   ).toBe("red");

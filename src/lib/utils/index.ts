@@ -4,6 +4,8 @@ import { formatUnits } from "viem";
 import type { TAddressString, TMintFormFields, TVaults } from "../types";
 import { z } from "zod";
 import numeral from "numeral";
+import { BASE_FEE, L_FEE } from "@/data/constants";
+import { getLeverageRatio } from "./calculations";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -128,4 +130,39 @@ export function formatBigInt(b: bigint | undefined, fixed: number) {
     Math.floor(parseFloat(formatUnits(b ?? 0n, 18)) * 10 ** fixed) /
     10 ** fixed;
   return parseFloat(parsed.toFixed(fixed));
+}
+
+export function calculateStakingAPR(
+  stakedSir: bigint,
+  amountEth: bigint,
+  rounding: bigint,
+) {
+  const totalValue = 500n / 3n;
+  const sirPrice = totalValue / 20000000n;
+  const ethPrice = 2000n;
+  // need rounding because bigint doesn't go below 0, too keep decimals places
+  const result =
+    (12n * 100n * amountEth * ethPrice * rounding) / (sirPrice * stakedSir);
+  return result / rounding;
+}
+
+/**
+ *
+ * @param k - Leverage Tier should be values -4 to 2
+ * @returns number
+ */
+export function calculateApeVaultFee(k: number) {
+  const l = getLeverageRatio(k);
+  const a = 1 / (1 + (l - 1) * BASE_FEE);
+  return (1 * 10 - a * 10) / 10;
+}
+
+/**
+ *
+ * @param k - Leverage Tier should be values -4 to 2
+ * @returns number
+ */
+export function calculateTeaVaultFee() {
+  const a = 1 / (1 + L_FEE);
+  return (1 * 10 - a * 10) / 10;
 }
