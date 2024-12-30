@@ -27,12 +27,14 @@ export function TransactionEstimates({
         <span className="text-sm text-gray-300">{collateralAssetName}</span>
       </h3>
       <span className="text-gray-500">{"->"}</span>
-      <h3 className="space-x-1">
+      <h3 className=" space-x-1">
         <span>
           {formatNumber(formatUnits(collateralEstimate ?? 0n, 18), 6)}
         </span>
         <span className="text-sm text-gray-300">
-          {isApe ? "APE" : "TEA"} - {vaultId}
+          <span>{isApe ? "APE" : "TEA"} </span>
+          <span className="font-bold text-gray-700">-</span>{" "}
+          <span>{vaultId}</span>
         </span>
       </h3>
     </div>
