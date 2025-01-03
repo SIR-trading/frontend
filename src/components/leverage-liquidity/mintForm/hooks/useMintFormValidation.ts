@@ -2,7 +2,7 @@ import useGetChainId from "@/components/shared/hooks/useGetChainId";
 import { env } from "@/env";
 import { useMemo } from "react";
 import type { SimulateContractReturnType } from "viem";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 
 interface Props {
   deposit: string | undefined;
@@ -26,13 +26,14 @@ export enum ESubmitType {
 }
 
 /**
- * Checks if user can submit form.
+ * Checks if user can submit transaction.
+ * Also checks if user needs ERC20 approval
  * @returns
  * isValid -
  * errorMessage -
  * submitType - 'approve' | 'mint'
  */
-export const useCheckSubmitValid = ({
+export const useMintFormValidation = ({
   deposit,
   tokenAllowance,
   mintFetching,
