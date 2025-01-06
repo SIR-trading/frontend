@@ -39,7 +39,7 @@ export default function VaultParamsInputSelects({
             form.reset();
             resetStore();
           }}
-          className="absolute -bottom-4 right-0 rounded-md bg-red  p-[4px] leading-none"
+          className="absolute -bottom-3 right-0 rounded-md bg-red p-[4px]  text-sm leading-none"
         >
           clear
         </button>
