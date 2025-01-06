@@ -32,7 +32,6 @@ import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
 import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
 import { useFilterVaults } from "./hooks/useFilterVaults";
-import useVaultFilterStore from "@/lib/store";
 interface Props {
   vaultsQuery: TVaults;
   isApe: boolean;
