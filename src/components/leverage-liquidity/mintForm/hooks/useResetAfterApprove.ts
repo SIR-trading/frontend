@@ -1,6 +1,6 @@
+import { ESubmitType } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
-import { ESubmitType } from "./useMintFormValidation";
 interface Props {
   isConfirmed: boolean;
   reset: () => void;

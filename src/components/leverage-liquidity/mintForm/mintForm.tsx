@@ -9,7 +9,7 @@ import {
 import { motion } from "motion/react";
 import { formatUnits } from "viem";
 import { useFormContext } from "react-hook-form";
-import type { TMintFormFields, TVaults } from "@/lib/types";
+import { ESubmitType, type TMintFormFields, type TVaults } from "@/lib/types";
 import DepositInputs from "./deposit-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
 import { useQuoteMint } from "./hooks/useQuoteMint";
@@ -31,10 +31,7 @@ import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
 import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
 import { useFilterVaults } from "./hooks/useFilterVaults";
-import {
-  ESubmitType,
-  useMintFormValidation,
-} from "./hooks/useMintFormValidation";
+import { useMintFormValidation } from "./hooks/useMintFormValidation";
 interface Props {
   vaultsQuery: TVaults;
   isApe: boolean;

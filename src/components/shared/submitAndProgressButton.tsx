@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { ESubmitType } from "@/lib/types";
 import { useMemo } from "react";
-import { ESubmitType } from "../leverage-liquidity/mintForm/hooks/useCheckSubmitValid";
 interface Props {
   waitForSign: boolean;
   isTxPending: boolean;

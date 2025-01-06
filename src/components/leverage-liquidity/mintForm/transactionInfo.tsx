@@ -4,7 +4,7 @@ import { TransactionStatus } from "./transactionStatus";
 import { CircleCheck } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatUnits } from "viem";
-import { ESubmitType } from "./hooks/useMintFormValidation";
+import { ESubmitType } from "@/lib/types";
 
 interface Props {
   isConfirmed: boolean;

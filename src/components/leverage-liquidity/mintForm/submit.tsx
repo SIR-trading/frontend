@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useAccount } from "wagmi";
 import { ChevronDown } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
-import { ESubmitType } from "./hooks/useMintFormValidation";
+import { ESubmitType } from "@/lib/types";
 
 const SubmitContext = React.createContext(undefined);
 
