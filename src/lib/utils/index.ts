@@ -140,7 +140,7 @@ export function formatNumber(number: number | string, decimals = 3): string {
       return "0";
     }
     // show only three most sign digits
-    let sig = 3 - parts[0].length ?? 0;
+    const sig = 3 - parts[0].length ?? 0;
 
     return (
       Number.parseFloat(`${parts[0]}.${parts[1]?.slice(0, sig)}`).toString() +
