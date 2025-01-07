@@ -9,10 +9,9 @@ import {
 import { motion } from "motion/react";
 import { formatUnits } from "viem";
 import { useFormContext } from "react-hook-form";
-import type { TMintFormFields, TVaults } from "@/lib/types";
+import { ESubmitType, type TMintFormFields, type TVaults } from "@/lib/types";
 import DepositInputs from "./deposit-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
-import { ESubmitType, useCheckSubmitValid } from "./hooks/useCheckSubmitValid";
 import { useQuoteMint } from "./hooks/useQuoteMint";
 import useSetRootError from "./hooks/useSetRootError";
 import { Card } from "@/components/ui/card";
@@ -32,7 +31,7 @@ import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
 import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
 import { useFilterVaults } from "./hooks/useFilterVaults";
-import useVaultFilterStore from "@/lib/store";
+import { useMintFormValidation } from "./hooks/useMintFormValidation";
 interface Props {
   vaultsQuery: TVaults;
   isApe: boolean;
@@ -120,7 +119,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
   });
 
-  const { isValid, errorMessage, submitType } = useCheckSubmitValid({
+  const { isValid, errorMessage, submitType } = useMintFormValidation({
     ethBalance: userEthBalance,
     decimals,
     useEth,
@@ -316,7 +315,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
               isValid={isValid}
               onClick={() => {
                 setOpenTransactionModal(true);
-                onSubmit();
+                // onSubmit();
               }}
               submitType={submitType}
             />

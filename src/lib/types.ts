@@ -9,6 +9,11 @@ export enum EPage {
   "AUCTIONS",
   "CREATE_VAULT",
 }
+
+export enum ESubmitType {
+  "mint",
+  "approve",
+}
 export type TCollateral = readonly {
   reserveApes: bigint;
   reserveLPers: bigint;

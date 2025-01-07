@@ -1,7 +1,8 @@
 import MintFormProvider from "@/components/providers/mintFormProvider";
 import Pagination from "@/components/shared/pagination";
 import { Card } from "@/components/ui/card";
-import { EPage, type TVaults } from "@/lib/types";
+import type { TVaults } from "@/lib/types";
+import { EPage } from "@/lib/types";
 import { Container } from "@/components/ui/container";
 import VaultTable from "./vaultTable/vaultTable";
 import MintForm from "./mintForm/mintForm";

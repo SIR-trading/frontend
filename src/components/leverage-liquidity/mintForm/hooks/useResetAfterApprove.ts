@@ -1,11 +1,12 @@
+import { ESubmitType } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
-import { ESubmitType } from "./useCheckSubmitValid";
 interface Props {
   isConfirmed: boolean;
   reset: () => void;
   submitType: ESubmitType;
 }
+
 export function useResetAfterApprove({
   isConfirmed,
   reset,

@@ -1,5 +1,6 @@
 import useGetChainId from "@/components/shared/hooks/useGetChainId";
 import { env } from "@/env";
+import { ESubmitType } from "@/lib/types";
 import { useMemo } from "react";
 import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
@@ -18,10 +19,6 @@ interface Props {
   approveFetching?: boolean;
   useEth?: boolean;
   decimals: number;
-}
-export enum ESubmitType {
-  "mint",
-  "approve",
 }
 
 /**
