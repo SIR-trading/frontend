@@ -24,9 +24,6 @@ export default function PortfolioPage() {
               <div className="flex justify-between">
                 <div>
                   <h1 className="text-xl">SIR Staking</h1>
-                  <h2 className="text-[14px] text-gray-400">
-                    Staking sir results in...
-                  </h2>
                 </div>
                 <ContributorClaim />
               </div>

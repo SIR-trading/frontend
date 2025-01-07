@@ -7,7 +7,9 @@ import { BASE_FEE, L_FEE } from "@/data/constants";
  */
 export function calculateApeVaultFee(k: number) {
   const l = getLeverageRatio(k);
-  const a = 1 / (1 + (l - 1) * BASE_FEE);
+  const b = (1 + (l - 1) * BASE_FEE) ** 2;
+  const a = 1 / b;
+  console.log({ a, b, BASE_FEE, l });
   return (1 * 10 - a * 10) / 10;
 }
 

@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import ToolTip from "@/components/ui/tooltip";
 import { useGetStakedSir } from "@/components/shared/hooks/useGetStakedSir";
 import { TokenDisplay } from "@/components/ui/token-display";
+import { Card } from "@/components/ui/card";
 
 interface supplyProps {
   data?: bigint;
@@ -25,7 +26,7 @@ const StakeData = () => {
 
   return (
     <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
-      <div className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
+      <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="text-sm font-normal text-gray-300">
           Total Staked SIR
         </div>
@@ -39,9 +40,9 @@ const StakeData = () => {
             unitLabel="SIR"
           />
         </div>
-      </div>
+      </Card>
 
-      <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
+      <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
           <div className="px-2 text-sm text-gray-300">Your Staked SIR</div>
           {/* <ToolTip>Tool tip info.</ToolTip> */}
@@ -54,15 +55,15 @@ const StakeData = () => {
           />
           {/* {formatUnits(userStakedSir, 12)} */}
         </div>
-      </div>
-      <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
+      </Card>
+      <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
           <div className="px-2 text-sm text-gray-300">Staking APR</div>
           <ToolTip>Tool tip info.</ToolTip>
           {/* <AprInfo></AprInfo> */}
         </div>
         <div className=" text-2xl ">N/A</div>
-      </div>
+      </Card>
     </div>
   );
 };

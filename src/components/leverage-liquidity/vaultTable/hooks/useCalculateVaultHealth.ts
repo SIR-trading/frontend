@@ -39,14 +39,11 @@ export function calculateVaultHealth({
   const gentlemenMinimum =
     (parseUnits((leverageRatio - 10000).toString(), 0) * ape) / 10000n;
   const healthyMinimum = (gentlemenMinimum * 125n) / 100n;
-  if (gentlemen > healthyMinimum) {
-    return isApe ? { variant: "green" } : { variant: "yellow" };
-  }
-  if (gentlemen >= gentlemenMinimum) {
-    return isApe ? { variant: "yellow" } : { variant: "yellow" };
-  }
-  if (gentlemenMinimum > gentlemen) {
+  if (gentlemenMinimum >= gentlemen) {
     return isApe ? { variant: "red" } : { variant: "green" };
   }
-  return { variant: "green" };
+  if (healthyMinimum >= gentlemen) {
+    return isApe ? { variant: "yellow" } : { variant: "green" };
+  }
+  return isApe ? { variant: "green" } : { variant: "yellow" };
 }
