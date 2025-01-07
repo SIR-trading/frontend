@@ -29,7 +29,7 @@ export default function VaultParamsInputSelects({
       return false;
     }
   }, [e.leverageTier, e.long, e.versus]);
-  const resetStore = useVaultFilterStore((store) => store.resetStore);
+  // const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
     <div className="relative grid gap-x-4 pb-2 md:grid-cols-3">
       <Show when={allSelected}>
@@ -37,7 +37,7 @@ export default function VaultParamsInputSelects({
           type="button"
           onClick={() => {
             form.reset();
-            resetStore();
+            // resetStore();
           }}
           className="absolute -bottom-3 right-0 rounded-md bg-red p-[4px]  text-sm leading-none"
         >
