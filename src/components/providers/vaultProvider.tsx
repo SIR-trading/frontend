@@ -20,15 +20,6 @@ interface VaultProviderType {
 }
 
 const VaultContext = createContext<VaultProviderType | undefined>(undefined);
-// Utils function to create an Hashmap for every TVault Index
-// Ex. {'1':0, '2':0, ...}
-const createNumberObject = (length: number): Record<string, number> => {
-  const result: Record<string, number> = {};
-  for (let i = 1; i <= length; i++) {
-    result[i.toString()] = 0;
-  }
-  return result;
-};
 interface Props {
   children: React.ReactNode;
   graphVaults: VaultFieldFragment[];
@@ -46,7 +37,7 @@ export const VaultProvider = ({ children }: Props) => {
   const filterLeverage = useVaultFilterStore((state) => state.leverageTier);
 
   useEffect(() => {
-    setPage(1);
+    // setPage(1);
   }, [filterLeverage, filterDebtToken, filterCollateralToken]);
   const { data, isFetching } = api.vault.getTableVaults.useQuery(
     {
