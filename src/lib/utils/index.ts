@@ -94,9 +94,14 @@ export function formatNumber(number: number | string, decimals = 3): string {
 
   if (number >= 1 && number <= 999) {
     const parts = n.toString().split(".");
-    console.log(`${parts[0]}.${parts[1]?.slice(0, 3)}`);
+    if (!parts[0]) {
+      return "0";
+    }
+    console.log({ length: parts[0].length });
+    // show only three most sign digits
+    const sig = 3 - parts[0].length ?? 0;
     return Number.parseFloat(
-      `${parts[0]}.${parts[1]?.slice(0, decimals)}`,
+      `${parts[0]}.${parts[1]?.slice(0, sig)}`,
     ).toString();
   }
 
@@ -105,7 +110,21 @@ export function formatNumber(number: number | string, decimals = 3): string {
   }
   if (n < 1 && n >= 0.001) {
     const parts = n.toString().split(".");
-    return Number.parseFloat(`0.${parts[1]?.slice(0, decimals)}`).toString();
+    // return trimToSignificantDigits(n).toString();
+    let zeros = 0;
+    if (parts[1]?.split("")) {
+      for (const digit of parts[1]?.split("")) {
+        if (digit === "0") {
+          zeros++;
+        } else {
+          // break once you hit a number other then 0
+          break;
+        }
+      }
+    }
+    return Number.parseFloat(
+      `0.${parts[1]?.slice(0, decimals + zeros)}`,
+    ).toString();
   }
   if (n < 0.001) {
     const factor = Math.pow(10, 10);
@@ -114,7 +133,19 @@ export function formatNumber(number: number | string, decimals = 3): string {
   }
   if (n > 999) {
     const num = numeral(n);
-    return num.format("0.00a").toUpperCase();
+    const f = num.format("0.000a").toUpperCase();
+    const parts = f.split(".");
+
+    if (!parts[0]) {
+      return "0";
+    }
+    // show only three most sign digits
+    const sig = 3 - parts[0].length ?? 0;
+
+    return (
+      Number.parseFloat(`${parts[0]}.${parts[1]?.slice(0, sig)}`).toString() +
+      `${f[f.length - 1]}`
+    );
   }
   if (decimals) {
     n = roundDown(n, 10);
