@@ -23,7 +23,7 @@ export default function VaultParamsInputSelects({
   const setLeverage = useVaultFilterStore((store) => store.setLeverageTier);
   const e = form.watch();
   const allSelected = useMemo(() => {
-    if (e.long && e.versus && e.leverageTier) {
+    if (e.long || e.versus || e.leverageTier) {
       return true;
     } else {
       return false;
