@@ -215,6 +215,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
           <TransactionModal.Close setOpen={setOpenTransactionModal} />
           <TransactionModal.InfoContainer>
             <TransactionInfo
+              vaultId={selectedVault.result?.vaultId ?? "0"}
               decimals={decimals}
               isConfirmed={isConfirmed}
               isConfirming={isConfirming}
@@ -241,6 +242,16 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
                     parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100),
                   )} ${form.getValues("long").split(",")[1]}`}
                 />
+
+                <div className="flex w-full justify-start   text-[14px] text-gray-400">
+                  <div className="flex w-[300px]">
+                    <p>
+                      {isApe
+                        ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
+                        : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
+                    </p>
+                  </div>
+                </div>
               </TransactionModal.StatContainer>
             </Show>
 
@@ -314,7 +325,10 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
               feeValue={form.getValues("long").split(",")[1]}
               isApe={isApe}
               isValid={isValid}
-              fee={fee}
+              feeAmount={`${formatNumber(
+                parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100),
+              )} ${form.getValues("long").split(",")[1]}`}
+              feePercent={fee}
               deposit={form.getValues("deposit")}
             />
             <MintFormSubmit.Errors>

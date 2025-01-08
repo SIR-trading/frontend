@@ -112,7 +112,7 @@ export function VaultTableRow({
     >
       <th className="">
         <div className="flex items-center gap-x-2">
-          <span>{pool.vaultId}</span>
+          <span className="w-2">{pool.vaultId}</span>
           {parsedTaxAmount > 0n && (
             <HoverCard openDelay={0} closeDelay={20}>
               <HoverCardTrigger asChild>
@@ -213,21 +213,21 @@ function DisplayBadgeInfo({
 }) {
   if (variant.variant === "green") {
     return isApe ? (
-      <span>Healthy, more than enough liquidity.</span>
+      <span>Healthy, more than enough liquidity</span>
     ) : (
-      <span>Highly profitable</span>
+      <span>Great for LPing</span>
     );
   }
   if (variant.variant === "yellow") {
     return isApe ? (
-      <span>Borderline, just enough liquidity.</span>
+      <span>Not enough liquidity for new minters</span>
     ) : (
-      <span>Moderately profitable</span>
+      <span>Good for LPing</span>
     );
   }
   if (variant.variant === "red") {
     return isApe ? (
-      <span>Degraded, insufficient liquidity for constant leverage.</span>
+      <span>Insufficient liquidity for constant leverage</span>
     ) : (
       <span>Minimally profitable</span>
     );

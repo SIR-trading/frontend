@@ -106,7 +106,7 @@ export default function BurnTable({
       )}
       {showTea}
 
-      {!selectedRow && (
+      {
         <table className="w-full animate-fade-in">
           <caption className="hidden">Burn Tokens</caption>
           <tbody className="flex flex-col gap-y-4">
@@ -149,7 +149,7 @@ export default function BurnTable({
             </Show>
           </tbody>
         </table>
-      )}
+      }
     </div>
   );
 }

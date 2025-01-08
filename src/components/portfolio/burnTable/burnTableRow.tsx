@@ -10,6 +10,7 @@ import { useAccount } from "wagmi";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
+import Show from "@/components/shared/show";
 interface Props {
   row: TUserPosition;
   isApe: boolean;
@@ -75,7 +76,7 @@ export function BurnTableRow({
               <span className="pl-1 text-[12px] text-gray-400"></span>
             </span>
             <div className="space-x-1">
-              {!isApe && (
+              <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                 <Button
                   onClick={() => {
                     setSelectedRow(true);
@@ -92,7 +93,7 @@ export function BurnTableRow({
                     </span>
                   </div>
                 </Button>
-              )}
+              </Show>
               <Button
                 onClick={() => {
                   setSelectedRow(false);
@@ -160,7 +161,7 @@ export function BurnTableRowMobile({
       </MobileTh>
       <th>
         <div className="space-x-1">
-          {!isApe && (
+          <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
             <Button
               onClick={() => setSelectedRow(true)}
               type="button"
@@ -175,7 +176,7 @@ export function BurnTableRowMobile({
                 </span>
               </div>
             </Button>
-          )}
+          </Show>
           <Button
             onClick={() => setSelectedRow(false)}
             disabled={
@@ -189,15 +190,6 @@ export function BurnTableRowMobile({
             {"Burn"}
           </Button>
         </div>
-        {/**/}
-        {/* <Button */}
-        {/*   onClick={() => setSelectedRow(false)} */}
-        {/*   type="button" */}
-        {/*   disabled={teaBalance === 0n} */}
-        {/*   className="h-8 rounded-full px-5 py-2 text-[14px] " */}
-        {/* > */}
-        {/*   Burn */}
-        {/* </Button> */}
       </th>
     </tr>
   );

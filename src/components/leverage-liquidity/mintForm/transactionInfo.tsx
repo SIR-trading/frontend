@@ -18,6 +18,7 @@ interface Props {
   isApe: boolean;
   useEth: boolean;
   quoteData: bigint | undefined;
+  vaultId: string;
 }
 
 export default function TransactionInfo({
@@ -32,6 +33,7 @@ export default function TransactionInfo({
   decimals,
   useEth,
   userBalanceFetching,
+  vaultId,
 }: Props) {
   if (!isConfirmed) {
     return (
@@ -46,6 +48,7 @@ export default function TransactionInfo({
             isApe={isApe}
             usingEth={useEth}
             collateralEstimate={quoteData}
+            vaultId={vaultId}
           />
         )}
         {submitType === ESubmitType.mint && (
@@ -78,8 +81,10 @@ export default function TransactionInfo({
         {Boolean(tokenReceived) && (
           <h3 className="flex items-center justify-center gap-x-1 ">
             <span className="text-xl font-bold ">
-              {isApe ? "APE" : "TEA"}{" "}
-              {formatNumber(formatUnits(tokenReceived ?? 0n, decimals), 4)}
+              {formatNumber(formatUnits(tokenReceived ?? 0n, decimals), 4)}{" "}
+              {isApe ? "APE" : "TEA"}
+              <span className="text-gray-400">{"-"}</span>
+              {vaultId}{" "}
             </span>
           </h3>
         )}
