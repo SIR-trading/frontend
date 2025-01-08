@@ -36,9 +36,6 @@ export const VaultProvider = ({ children }: Props) => {
   )[0];
   const filterLeverage = useVaultFilterStore((state) => state.leverageTier);
 
-  useEffect(() => {
-    // setPage(1);
-  }, [filterLeverage, filterDebtToken, filterCollateralToken]);
   const { data, isFetching } = api.vault.getTableVaults.useQuery(
     {
       filters: {
