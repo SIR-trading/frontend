@@ -22,10 +22,18 @@ export default function SelectWithSearch({ form, name, title, items }: Props) {
   const type = name === "long" ? "collateral" : "debt";
   const [input, setInput] = useState("");
   const { debouncedValue, debouncing } = useDebounce(input, 300);
+  const versus = useVaultFilterStore((store) => store.versus);
+  const long = useVaultFilterStore((store) => store.long);
+  const leverageTier = useVaultFilterStore((store) => store.leverageTier);
   const { data, isFetching } = api.vault.getSearchVaults.useQuery(
     {
       search: debouncedValue.toUpperCase(),
       type,
+      filters: {
+        filterLeverage: leverageTier,
+        filterDebtToken: versus,
+        filterCollateralToken: long,
+      },
     },
     {
       enabled: Boolean(debouncedValue),
