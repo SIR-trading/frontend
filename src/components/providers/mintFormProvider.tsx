@@ -34,6 +34,7 @@ export default function MintFormProvider({
   // Need to ensure store is blank when MintFormProvider first renders (again)
   const resetStore = useVaultFilterStore((state) => state.resetStore);
   useEffect(() => {
+    console.log("here");
     resetStore();
   }, [resetStore]);
   return (

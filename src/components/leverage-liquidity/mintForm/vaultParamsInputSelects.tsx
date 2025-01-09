@@ -4,6 +4,8 @@ import useVaultFilterStore from "@/lib/store";
 import type { TMintForm, VaultFieldFragment } from "@/lib/types";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import SelectWithSearch from "./selectWithSearch";
+import { useMemo } from "react";
+import Show from "@/components/shared/show";
 interface Props {
   form: TMintForm;
   long: VaultFieldFragment[];
@@ -16,11 +18,33 @@ export default function VaultParamsInputSelects({
   versus,
   leverageTiers,
 }: Props) {
-  const setVersus = useVaultFilterStore((store) => store.setVersus);
-  const setLong = useVaultFilterStore((store) => store.setLong);
+  // const setVersus = useVaultFilterStore((store) => store.setVersus);
+  // const setLong = useVaultFilterStore((store) => store.setLong);
   const setLeverage = useVaultFilterStore((store) => store.setLeverageTier);
+  const e = form.watch();
+  const allSelected = useMemo(() => {
+    if (e.long || e.versus || e.leverageTier) {
+      return true;
+    } else {
+      return false;
+    }
+  }, [e.leverageTier, e.long, e.versus]);
+  const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
-    <div className=" grid gap-x-4 md:grid-cols-3">
+    <div className="relative grid gap-x-4 pb-2 md:grid-cols-3">
+      <Show when={allSelected}>
+        <button
+          type="button"
+          onClick={() => {
+            form.reset();
+            resetStore();
+          }}
+          className="absolute -bottom-3 right-0 rounded-md bg-red p-[4px]  text-sm leading-none"
+        >
+          clear
+        </button>
+      </Show>
+
       <SelectWithSearch
         name="long"
         title="Go long"
