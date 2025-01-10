@@ -1,7 +1,7 @@
 import { useApproveErc20 } from "@/components/shared/hooks/useApproveErc20";
 import { useMintApeOrTea } from "@/components/shared/hooks/useMintApeOrTea";
 import { VaultContract } from "@/contracts/vault";
-import type { TMintFormFields, TVaults } from "@/lib/types";
+import type { TAddressString, TMintFormFields, TVaults } from "@/lib/types";
 import { formatDataInput, findVault } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useFormContext } from "react-hook-form";
@@ -9,6 +9,8 @@ import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { z } from "zod";
+import { useMemo } from "react";
+import { USDT_ADDRESS } from "@/data/constants";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 export function useTransactions({
@@ -16,11 +18,13 @@ export function useTransactions({
   vaultsQuery,
   decimals,
   useEth,
+  depositToken,
 }: {
   isApe: boolean;
   vaultsQuery: TVaults;
   decimals: number;
   useEth: boolean;
+  depositToken: TAddressString;
 }) {
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
@@ -46,10 +50,19 @@ export function useTransactions({
     amount: safeParseUnits(formData.deposit ?? "0", decimals),
     tokenAllowance: userBalance?.tokenAllowance?.result,
   });
+  // for USDT approve edge case
+  const approveZero = useMemo(() => {
+    if (userBalance?.tokenAllowance?.result ?? 0n > 0n) {
+      if (depositToken.toLowerCase() === USDT_ADDRESS.toLowerCase())
+        return true;
+    }
+    return false;
+  }, [depositToken, userBalance?.tokenAllowance?.result]);
 
   const { approveSimulate } = useApproveErc20({
     tokenAddr: formatDataInput(formData.long),
     approveContract: VaultContract.address,
+    approveZero,
   });
 
   return {
