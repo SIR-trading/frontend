@@ -7,7 +7,7 @@ export const WETH_ADDRESS = (
     ? "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2".toLowerCase()
     : "0xfff9976782d46cc05630d1f6ebab18b2324d6b14".toLowerCase()
 ) as TAddressString;
-
+export const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 export const ASSET_REPO =
   "https://raw.githubusercontent.com/SIR-trading/assets/master";
 export const BASE_FEE = parseFloat(env.NEXT_PUBLIC_BASE_FEE);
