@@ -133,7 +133,6 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     approveFetching: isApproveFetching,
     maxCollateralIn: isApe ? maxCollateralIn : 0n,
   });
-
   const { quoteData } = useQuoteMint({ formData, isApe });
   useSetRootError({
     formData,
