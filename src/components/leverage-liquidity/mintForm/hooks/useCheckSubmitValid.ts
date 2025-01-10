@@ -2,7 +2,7 @@ import useGetChainId from "@/components/shared/hooks/useGetChainId";
 import { env } from "@/env";
 import { useMemo } from "react";
 import type { SimulateContractReturnType } from "viem";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 
 interface Props {
   deposit: string | undefined;
@@ -70,6 +70,8 @@ export const useCheckSubmitValid = ({
         };
       }
     }
+
+    // using eth as asset instead of erc20
     if (useEth) {
       if ((ethBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
         return {
@@ -104,13 +106,13 @@ export const useCheckSubmitValid = ({
       parseUnits(deposit ?? "0", decimals) > (tokenAllowance ?? 0n) &&
       requests.approveWriteRequest
     ) {
-      if (requests.approveWriteRequest)
+      if (requests.approveWriteRequest) {
         return {
           isValid: true,
           errorMessage: null,
           submitType: ESubmitType.approve,
         };
-      else {
+      } else {
         if (approveFetching) {
           return {
             isValid: false,
