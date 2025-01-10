@@ -4,14 +4,20 @@ import { useSimulateContract } from "wagmi";
 interface Props {
   tokenAddr: string;
   approveContract: TAddressString;
+  approveZero?: boolean;
 }
 
-export function useApproveErc20({ tokenAddr, approveContract }: Props) {
+export function useApproveErc20({
+  tokenAddr,
+  approveContract,
+  approveZero,
+}: Props) {
+  const approveAmt = approveZero ? 0n : maxInt256;
   const approveSimulate = useSimulateContract({
     address: tokenAddr as TAddressString,
     abi: getAbi(tokenAddr as TAddressString),
     functionName: "approve",
-    args: [approveContract, parseUnits(formatUnits(maxInt256, 18), 0)],
+    args: [approveContract, parseUnits(formatUnits(approveAmt, 18), 0)],
   });
   return { approveSimulate };
 }
