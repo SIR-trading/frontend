@@ -9,7 +9,7 @@ import {
 import { motion } from "motion/react";
 import { formatUnits } from "viem";
 import { useFormContext } from "react-hook-form";
-import type { TMintFormFields, TVaults } from "@/lib/types";
+import type { TAddressString, TMintFormFields, TVaults } from "@/lib/types";
 import DepositInputs from "./deposit-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
 import { ESubmitType, useCheckSubmitValid } from "./hooks/useCheckSubmitValid";
@@ -80,6 +80,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
     isApe,
     vaultsQuery,
     decimals,
+    depositToken: formData.depositToken as TAddressString,
   });
   const { versus, leverageTiers, long } = useFilterVaults({
     formData,
