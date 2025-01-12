@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { LoaderCircle } from "lucide-react";
 import {
   FormControl,

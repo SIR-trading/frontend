@@ -1,7 +1,8 @@
 import { getBlock } from "@/lib/viemClient";
 import { executeGetBlockNumber } from "@/server/queries/utils";
 import type { NextApiRequest } from "next";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 const sleep = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };

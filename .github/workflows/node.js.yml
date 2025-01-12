@@ -10,6 +10,8 @@ env:
   NEXT_PUBLIC_ASSISTANT_ADDRESS: "0x02d6db176f10C4FdceBDD1B44c1037c1B568bc2E"
   NEXT_PUBLIC_VAULT_ADDRESS: "0x76d05F58D14c0838EC630C8140eDC5aB7CD159Dc"
   NEXT_PUBLIC_CHAIN_ID: "1"
+  NEXT_PUBLIC_BASE_FEE: "1"
+  NEXT_PUBLIC_MINTING_FEE: "1"
 on:
   push:
     branches: ["main"]
@@ -49,6 +51,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Run lint
+        run: pnpm run lint
 
       - name: Run tests
         run: pnpm run test
