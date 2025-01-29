@@ -4,6 +4,7 @@ import { ESubmitType } from "@/lib/types";
 import { useMemo } from "react";
 import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
+import { useChainId } from "wagmi";
 
 interface Props {
   deposit: string | undefined;
@@ -42,8 +43,9 @@ export const useMintFormValidation = ({
   useEth,
   decimals,
 }: Props) => {
-  const chainId = useGetChainId();
+  const chainId = useChainId();
   const { isValid, errorMessage, submitType } = useMemo(() => {
+    console.log(chainId, "chainId");
     if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
       return {
         isValid: false,

@@ -204,6 +204,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
       setOpenTransactionModal(false);
     }
   }, [isPending, setOpenTransactionModal, isConfirming, isConfirmed]);
+  const { isConnected } = useAccount();
   return (
     <Card>
       <form onSubmit={form.handleSubmit(onSubmit)}>

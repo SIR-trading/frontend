@@ -15,6 +15,7 @@ import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { getLogoAsset } from "@/lib/assets";
 import Show from "@/components/shared/show";
 import { LoaderCircle } from "lucide-react";
+import { useMemo } from "react";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -48,6 +49,17 @@ function Inputs({
   maxCollateralIn,
   inputLoading,
 }: Props) {
+  const balanceGreaterThanZero = useMemo(() => {
+    if (!balance) {
+      return false;
+    } else {
+      if (balance === "0") {
+        return false;
+      }
+    }
+    return true;
+  }, [balance]);
+
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
@@ -121,7 +133,7 @@ function Inputs({
           Balance: {formatNumber(balance ?? "0")}
         </h2>
         <BalancePercent
-          disabled={disabled}
+          disabled={disabled || !balanceGreaterThanZero}
           balance={balance}
           setValue={(s: string) => {
             form.setValue("deposit", s);
