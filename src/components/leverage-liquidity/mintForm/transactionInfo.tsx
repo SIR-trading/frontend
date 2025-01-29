@@ -46,6 +46,7 @@ export default function TransactionInfo({
         {submitType === ESubmitType.mint && (
           <TransactionEstimates
             isApe={isApe}
+            decimals={decimals}
             usingEth={useEth}
             collateralEstimate={quoteData}
             vaultId={vaultId}

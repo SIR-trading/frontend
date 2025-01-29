@@ -5,7 +5,11 @@ export const AssistantContract = {
   abi: [
     {
       type: "constructor",
-      inputs: [{ name: "vault_", type: "address", internalType: "address" }],
+      inputs: [
+        { name: "vault", type: "address", internalType: "address" },
+        { name: "oracle", type: "address", internalType: "address" },
+        { name: "uniswapV3Factory", type: "address", internalType: "address" },
+      ],
       stateMutability: "nonpayable",
     },
     {
@@ -168,6 +172,36 @@ export const AssistantContract = {
       ],
       stateMutability: "view",
     },
-    { type: "error", name: "VaultCanBeCreated", inputs: [] },
+    {
+      type: "function",
+      name: "quoteMintWithDebtToken",
+      inputs: [
+        { name: "isAPE", type: "bool", internalType: "bool" },
+        {
+          name: "vaultParams",
+          type: "tuple",
+          internalType: "struct SirStructs.VaultParameters",
+          components: [
+            { name: "debtToken", type: "address", internalType: "address" },
+            {
+              name: "collateralToken",
+              type: "address",
+              internalType: "address",
+            },
+            { name: "leverageTier", type: "int8", internalType: "int8" },
+          ],
+        },
+        { name: "amountDebtToken", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [
+        { name: "amountTokens", type: "uint256", internalType: "uint256" },
+        { name: "amountCollateral", type: "uint256", internalType: "uint256" },
+      ],
+      stateMutability: "view",
+    },
+    { type: "error", name: "AmountTooLow", inputs: [] },
+    { type: "error", name: "TEAMaxSupplyExceeded", inputs: [] },
+    { type: "error", name: "TooMuchCollateral", inputs: [] },
+    { type: "error", name: "VaultDoesNotExist", inputs: [] },
   ] as const,
 };

@@ -30,7 +30,7 @@ export const userRouter = createTRPCRouter({
       });
       return rewards;
     }),
-  getBalance: publicProcedure
+  getBalanceAndAllowance: publicProcedure
     .input(
       z.object({
         userAddress: z.string().startsWith("0x").optional(),

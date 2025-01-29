@@ -16,28 +16,38 @@ export function useTransactions({
   vaultsQuery,
   decimals,
   useEth,
+  minCollateralOut,
 }: {
   isApe: boolean;
   vaultsQuery: TVaults;
   decimals: number;
   useEth: boolean;
+  minCollateralOut: bigint | undefined;
 }) {
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
-
   const { address } = useAccount();
-  const { data: userBalance, isFetching } = api.user.getBalance.useQuery(
-    {
-      userAddress: address,
-      tokenAddress: formatDataInput(formData.long),
-      spender: VaultContract.address,
-    },
-    { enabled: Boolean(address) && Boolean(formData.long) },
-  );
+  const { data: userBalance, isFetching } =
+    api.user.getBalanceAndAllowance.useQuery(
+      {
+        userAddress: address,
+        tokenAddress: formData.depositToken,
+        spender: VaultContract.address,
+      },
+      {
+        enabled:
+          Boolean(address) &&
+          Boolean(formData.long) &&
+          Boolean(formData.depositToken),
+      },
+    );
   const safeLeverageTier = z.coerce.number().safeParse(formData.leverageTier);
   const leverageTier = safeLeverageTier.success ? safeLeverageTier.data : -1;
   const { Mint, isFetching: mintFetching } = useMintApeOrTea({
     useEth,
+    minCollateralOut,
+    depositToken: formData.depositToken,
+    decimals,
     vaultId: findVault(vaultsQuery, formData).result?.vaultId.toString(),
     isApe,
     debtToken: formatDataInput(formData.versus), //value formatted : address,symbol
@@ -48,7 +58,7 @@ export function useTransactions({
   });
 
   const { approveSimulate } = useApproveErc20({
-    tokenAddr: formatDataInput(formData.long),
+    tokenAddr: formData.depositToken ?? "",
     approveContract: VaultContract.address,
   });
 

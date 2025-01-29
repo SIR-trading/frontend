@@ -11,13 +11,11 @@ export const erc20Router = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      console.log("hello");
       const decimals = await readContract({
         address: input.tokenAddress as TAddressString,
         abi: erc20Abi,
         functionName: "decimals",
       });
-      console.log(decimals, "DECIMALS");
       return decimals;
     }),
 });

@@ -213,6 +213,7 @@ export default function BurnForm({
               )}
               {!isClaimingRewards && (
                 <TransactionEstimates
+                  decimals={row.positionDecimals}
                   inAssetName={
                     isApe ? `APE-${row.vaultId}` : `TEA-${row.vaultId}`
                   }

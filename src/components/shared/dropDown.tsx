@@ -3,6 +3,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 import { type ReactNode } from "react";
 import {
@@ -12,9 +13,36 @@ import {
   FormControl,
   FormMessage,
 } from "../ui/form";
-import type { TMintForm } from "@/lib/types";
+import type { TAddressString, TMintForm } from "@/lib/types";
+import ImageWithFallback from "./ImageWithFallback";
+import { getLogoAsset } from "@/lib/assets";
 //retrive FormField props
-export default function Dropdown({
+function Item({
+  value,
+  tokenAddress,
+  children,
+}: {
+  tokenAddress: string;
+  value: string;
+  children: ReactNode;
+}) {
+  return (
+    <SelectItem value={value}>
+      <div className="flex items-center gap-x-2 text-sm">
+        <ImageWithFallback
+          src={getLogoAsset(tokenAddress as TAddressString)}
+          width={25}
+          height={25}
+          className="h-6 w-6"
+          alt="alt"
+        />
+        {children}
+      </div>
+    </SelectItem>
+  );
+}
+
+function Root({
   form,
   title,
   colorScheme,
@@ -34,12 +62,14 @@ export default function Dropdown({
   className?: string;
   disabled?: boolean;
 }) {
+  console.log(disabled, "DISABLED");
   return (
-    <div className={"flex  gap-x-2 " + className}>
+    <div className={"flex w-full gap-x-2  " + className}>
       <div className="flex-grow">
         <FormField
           disabled={disabled}
           control={form.control}
+          defaultValue="a"
           name={name}
           render={({ field }) => (
             <FormItem>
@@ -50,8 +80,11 @@ export default function Dropdown({
                 value={field.value}
               >
                 <FormControl>
-                  <SelectTrigger colorScheme={colorScheme}>
-                    <SelectValue placeholder={placeholder} />
+                  <SelectTrigger disabled={disabled} colorScheme={colorScheme}>
+                    <SelectValue
+                      aria-disabled={disabled}
+                      placeholder={placeholder}
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>{children}</SelectContent>
@@ -61,12 +94,12 @@ export default function Dropdown({
           )}
         />
       </div>
-      {/* 
-      {clear && (
-        <button type="reset" onClick={() => form.setValue(name, "")}>
-          x
-        </button>
-      )} */}
     </div>
   );
 }
+
+const Dropdown = {
+  Root,
+  Item,
+};
+export default Dropdown;

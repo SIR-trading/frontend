@@ -1,12 +1,7 @@
 import { beforeAll, expect, test } from "vitest";
 import { add, formatNumber } from "./index";
-import {
-  calculateApeVaultFee,
-  calculateMaxApe,
-  getLeverageRatio,
-} from "./calculations";
+import { calculateMaxApe, getLeverageRatio } from "./calculations";
 import dotenv from "dotenv";
-import exp from "constants";
 
 beforeAll(() => {
   dotenv.config();

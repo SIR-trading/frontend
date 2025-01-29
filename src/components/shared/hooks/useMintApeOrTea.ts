@@ -8,10 +8,13 @@ interface Props {
   debtToken: string;
   amount: bigint | undefined;
   tokenAllowance: bigint | undefined;
+  depositToken: string;
   leverageTier: number;
   vaultId: string | undefined;
   isApe: boolean;
   useEth: boolean;
+  decimals: number;
+  minCollateralOut: bigint | undefined;
 }
 export function useMintApeOrTea({
   collateralToken,
@@ -21,12 +24,15 @@ export function useMintApeOrTea({
   tokenAllowance,
   isApe,
   useEth,
+  depositToken,
+  minCollateralOut,
 }: Props) {
   const vault = {
     debtToken: debtToken as TAddressString,
     collateralToken: collateralToken as TAddressString,
     leverageTier,
   };
+  const debtTokenDeposit = depositToken === debtToken && debtToken !== "";
   const tokenAmount = useEth ? 0n : amount;
   const ethAmount = useEth ? amount : 0n;
   const {
@@ -40,8 +46,8 @@ export function useMintApeOrTea({
     args: [
       isApe,
       { ...vault },
-      // isApe ? apeAddress : zeroAddress,
       tokenAmount ?? 0n,
+      debtTokenDeposit ? minCollateralOut ?? 0n : 0n,
     ],
     value: ethAmount ?? 0n,
   });

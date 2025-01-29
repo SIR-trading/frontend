@@ -14,7 +14,7 @@ import { WETH_ADDRESS } from "@/data/constants";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { getLogoAsset } from "@/lib/assets";
 import Show from "@/components/shared/show";
-import { LoaderCircle } from "lucide-react";
+import type { ReactNode } from "react";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -36,6 +36,7 @@ interface Props {
   disabled: boolean;
   maxCollateralIn?: string | undefined;
   inputLoading: boolean;
+  children: ReactNode;
 }
 function Inputs({
   form,
@@ -47,6 +48,7 @@ function Inputs({
   disabled,
   maxCollateralIn,
   inputLoading,
+  children,
 }: Props) {
   return (
     <div
@@ -110,12 +112,13 @@ function Inputs({
       </div>
 
       <div className="flex flex-col items-end">
-        <h2 className="pb-2 text-sm">Deposit Asset:</h2>
+        <h2 className="pb-2 text-sm">Deposit Asset</h2>
         <div
-          className={`flex w-[104px] items-center justify-center gap-x-2 rounded-md bg-secondary py-1 ${!depositAsset ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-secondary ${!depositAsset ? "opacity-70" : ""}`}
         >
-          {!depositAsset && <div className="h-[25px] w-[25px]" />}
-          <AssetInfo depositAsset={depositAsset} useEth={useEth} />
+          {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
+          {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
+          {children}
         </div>
         <h2 className="pt-1 text-right text-sm text-[#B6B6C9]">
           Balance: {formatNumber(balance ?? "0")}

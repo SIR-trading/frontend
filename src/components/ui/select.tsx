@@ -21,9 +21,14 @@ const selectTriggerVariants = cva(
         light: "bg-primary",
         dark: "bg-secondary",
       },
+      orderDirection: {
+        row: "flex-row",
+        rowReversed: "flex-row-reverse",
+      },
     },
     defaultVariants: {
       colorScheme: "light",
+      orderDirection: "row",
     },
   },
 );
@@ -33,10 +38,12 @@ export interface SelectTriggerProps
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   SelectTriggerProps
->(({ className, colorScheme, children, ...props }, ref) => (
+>(({ className, colorScheme, orderDirection, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
-    className={cn(selectTriggerVariants({ colorScheme, className }))}
+    className={cn(
+      selectTriggerVariants({ orderDirection, colorScheme, className }),
+    )}
     {...props}
   >
     {children}
@@ -54,7 +61,7 @@ const SelectScrollUpButton = React.forwardRef<
   <SelectPrimitive.ScrollUpButton
     ref={ref}
     className={cn(
-      "flex cursor-default items-center justify-center py-1",
+      "flex cursor-default items-center justify-center  py-1",
       className,
     )}
     {...props}
@@ -90,7 +97,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 bg-black max-h-96 min-w-[8rem] overflow-hidden rounded-md border-2 border-gray  text-white shadow-md" +
+        "border-gray relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border-2 bg-secondary  text-white shadow-md" +
           " data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" +
           " data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2" +
           " data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",

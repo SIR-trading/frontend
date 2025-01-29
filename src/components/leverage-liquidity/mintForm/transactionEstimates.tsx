@@ -8,12 +8,14 @@ interface EstimateProps {
   usingEth: boolean;
   isApe: boolean;
   vaultId: string;
+  decimals: number;
 }
 export function TransactionEstimates({
   isApe,
   collateralEstimate,
   usingEth,
   vaultId,
+  decimals,
 }: EstimateProps) {
   const form = useFormContext<TMintFormFields>();
   const collateralAssetName = usingEth
@@ -29,7 +31,7 @@ export function TransactionEstimates({
       <span className="text-gray-500">{"->"}</span>
       <h3 className=" space-x-1">
         <span>
-          {formatNumber(formatUnits(collateralEstimate ?? 0n, 18), 6)}
+          {formatNumber(formatUnits(collateralEstimate ?? 0n, decimals), 6)}
         </span>
         <span className="text-sm text-gray-300">
           <span>

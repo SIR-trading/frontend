@@ -6,6 +6,7 @@ import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
+import { Assistant } from "next/font/google";
 import { parseUnits } from "viem";
 import { z } from "zod";
 const ZVaultFilters = z.object({
@@ -180,6 +181,7 @@ export const vaultRouter = createTRPCRouter({
       z.object({
         debtToken: z.string().startsWith("0x").optional(),
         collateralToken: z.string().startsWith("0x").optional(),
+        usingDebtToken: z.boolean(),
         leverageTier: z.number().optional(),
         amount: z.string().optional(),
         isApe: z.boolean(),
@@ -196,7 +198,23 @@ export const vaultRouter = createTRPCRouter({
         return;
       }
 
-      try {
+      if (input.usingDebtToken) {
+        const quote = await readContract({
+          abi: AssistantContract.abi,
+          address: AssistantContract.address,
+          functionName: "quoteMintWithDebtToken",
+          args: [
+            input.isApe,
+            {
+              debtToken: input.debtToken as TAddressString,
+              collateralToken: input.collateralToken as TAddressString,
+              leverageTier: input.leverageTier,
+            },
+            parseUnits(input.amount, 18),
+          ],
+        });
+        return quote;
+      } else {
         const quote = await readContract({
           abi: AssistantContract.abi,
           address: AssistantContract.address,
@@ -211,13 +229,7 @@ export const vaultRouter = createTRPCRouter({
             parseUnits(input.amount, 18),
           ],
         });
-        console.log(quote, "QUOTE");
-        if (!quote) throw new Error("Quote mint failed.");
-        return quote;
-      } catch (e) {
-        console.log(e);
-        // console.log(e);
-        return;
+        return [quote, 0n];
       }
     }),
 });

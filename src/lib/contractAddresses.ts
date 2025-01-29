@@ -5,12 +5,15 @@ export enum EContracts {
   "SIR",
   "ASSISTANT",
   "VAULT",
+  "ORACLE",
 }
 export function getAddress(contract: EContracts): TAddressString {
   if (contract === EContracts.SIR) {
     return env.NEXT_PUBLIC_SIR_ADDRESS as TAddressString;
   }
-
+  if (contract === EContracts.ORACLE) {
+    return env.NEXT_PUBLIC_ORACLE_ADDRESS as TAddressString;
+  }
   if (contract === EContracts.ASSISTANT) {
     return env.NEXT_PUBLIC_ASSISTANT_ADDRESS as TAddressString;
   }

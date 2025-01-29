@@ -24,6 +24,14 @@ const viemClient = createPublicClient({
   transport: http(env.RPC_URL ?? "https://rpc.ankr.com/eth"),
 });
 export const readContract = viemClient.readContract;
+export const simulateContract = viemClient.simulateContract;
 export const multicall = viemClient.multicall;
 export const getBalance = viemClient.getBalance;
 export const getBlock = viemClient.getBlock;
+export const rpcViemClient = {
+  simulateContract: viemClient.simulateContract,
+  readContract: viemClient.readContract,
+  multicall: viemClient.multicall,
+  getBalance: viemClient.getBalance,
+  getBlock: viemClient.getBlock,
+};
