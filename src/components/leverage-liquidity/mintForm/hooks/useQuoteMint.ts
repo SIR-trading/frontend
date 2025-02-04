@@ -37,7 +37,7 @@ export function useQuoteMint({
       debtToken: formData.versus.split(",")[0],
       leverageTier: parseInt(formData.leverageTier),
     },
-    { enabled: allSelected },
+    { enabled: allSelected && parseFloat(depositDebounce ?? "0") > 0 },
   );
   return { amountTokens: quoteData?.[0], minCollateralOut: quoteData?.[1] };
 }

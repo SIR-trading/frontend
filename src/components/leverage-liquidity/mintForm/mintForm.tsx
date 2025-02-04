@@ -322,7 +322,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
             setUseEth={(b: boolean) => {
               setUseEth(b);
             }}
-            maxTokenIn={maxTokenIn}
+            maxTokenIn={isApe ? maxTokenIn : undefined}
             balance={formatUnits(balance ?? 0n, depositDecimals ?? 18)}
             form={form}
             depositAsset={formData.depositToken}
