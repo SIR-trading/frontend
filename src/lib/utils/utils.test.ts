@@ -1,7 +1,12 @@
 import { beforeAll, expect, test } from "vitest";
 import { add, formatNumber } from "./index";
-import { calculateMaxApe, getLeverageRatio } from "./calculations";
+import {
+  calculateApr,
+  calculateMaxApe,
+  getLeverageRatio,
+} from "./calculations";
 import dotenv from "dotenv";
+import { parseUnits } from "viem";
 
 beforeAll(() => {
   dotenv.config();
@@ -24,6 +29,17 @@ test("Test calculate leverage tier ratio.", () => {
 //     }),
 //   ).toBe("0x067Dd26fecdf6659879D0a1a4C4DFa735413339D".toLowerCase()); // FOR SOME REASON VITE DOESN"T WORK WITH getAddress
 // });
+
+test("Apr Calculation", () => {
+  expect(
+    calculateApr({
+      amountOfStakedSir: parseUnits("100", 12),
+      ethDividends: parseUnits("1", 18),
+      sirUsdPrice: "1",
+      ethUsdPrice: "200",
+    }),
+  ).toBe(200n * 12n);
+});
 test("Calculate Maximum Ape", () => {
   expect(
     calculateMaxApe({
