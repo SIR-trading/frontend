@@ -1,18 +1,18 @@
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useDebounce } from "@/components/shared/hooks/useDebounce";
-import type { TMintFormFields } from "@/lib/types";
 import { formatDataInput } from "@/lib/utils";
 import { api } from "@/trpc/react";
+import { useFormContext } from "react-hook-form";
 
 export function useQuoteMint({
-  formData,
   isApe,
   decimals,
 }: {
   isApe: boolean;
-  formData: TMintFormFields;
-
   decimals: number;
 }) {
+  const form = useFormContext<TMintFormFields>();
+  const formData = form.watch();
   const allSelected = Boolean(
     formData.deposit &&
       formData.long !== "" &&

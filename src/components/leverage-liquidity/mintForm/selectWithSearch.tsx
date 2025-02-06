@@ -2,7 +2,6 @@ import Select from "@/components/shared/Select";
 import { useDebounce } from "@/components/shared/hooks/useDebounce";
 import { getLogoAsset } from "@/lib/assets";
 import useVaultFilterStore from "@/lib/store";
-import type { TMintForm } from "@/lib/types";
 import { api } from "@/trpc/react";
 import type { StaticImageData } from "next/image";
 import React, { useState } from "react";
@@ -14,11 +13,10 @@ type TItem = {
 };
 interface Props {
   items: TItem[];
-  form: TMintForm;
   name: "leverageTier" | "long" | "versus" | "depositToken";
   title: string;
 }
-export default function SelectWithSearch({ form, name, title, items }: Props) {
+export default function SelectWithSearch({ name, title, items }: Props) {
   const type = name === "long" ? "collateral" : "debt";
   const [input, setInput] = useState("");
   const { debouncedValue, debouncing } = useDebounce(input, 300);
@@ -70,7 +68,6 @@ export default function SelectWithSearch({ form, name, title, items }: Props) {
       }}
       items={items}
       name={name}
-      form={form}
       value={input}
     />
   );

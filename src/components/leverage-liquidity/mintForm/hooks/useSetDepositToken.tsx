@@ -1,4 +1,7 @@
-import type { TMintFormFields, TMintForm } from "@/lib/types";
+import type {
+  TMintForm,
+  TMintFormFields,
+} from "@/components/providers/mintFormProvider";
 import { useEffect, useState } from "react";
 /**
  * useSetDepositToken

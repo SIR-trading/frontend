@@ -9,7 +9,6 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { formatEther, formatUnits } from "viem";
 import { useClaim } from "../stake/hooks/useClaim";
 import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
@@ -58,11 +57,7 @@ export default function ClaimCard() {
           {!isConfirmed && (
             <div>
               <h2>Claim</h2>
-              <TokenDisplay
-                disableRounding
-                amount={dividends}
-                unitLabel="ETH"
-              />
+              <TokenDisplay disableRounding amount={0n} unitLabel="ETH" />
               {/* <span>{formatUnits(dividends ?? 0n, 18)} Eth</span> */}
             </div>
           )}
@@ -92,7 +87,7 @@ export default function ClaimCard() {
           <span>Dividends</span>
         </h2>
         <div className="flex items-center justify-between">
-          <TokenDisplay amount={dividends} unitLabel={"ETH"} />
+          <TokenDisplay amount={0n} unitLabel={"ETH"} />
           <Button
             onClick={() => {
               if (isValid.isValid) setOpenModal(true);

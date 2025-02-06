@@ -190,7 +190,7 @@ export const userRouter = createTRPCRouter({
       const result = await readContract({
         abi: SirContract.abi,
         address: SirContract.address,
-        functionName: "dividends",
+        functionName: "unclaimedDividends",
         args: [input.user as TAddressString],
       });
       return result;

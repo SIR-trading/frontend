@@ -13,9 +13,11 @@ import {
   FormControl,
   FormMessage,
 } from "../ui/form";
-import type { TAddressString, TMintForm } from "@/lib/types";
+import type { TAddressString } from "@/lib/types";
 import ImageWithFallback from "./ImageWithFallback";
 import { getLogoAsset } from "@/lib/assets";
+import type { TMintFormFields } from "../providers/mintFormProvider";
+import { useFormContext } from "react-hook-form";
 //retrive FormField props
 function Item({
   value,
@@ -43,7 +45,6 @@ function Item({
 }
 
 function Root({
-  form,
   title,
   colorScheme,
   name,
@@ -56,19 +57,18 @@ function Root({
   clear?: boolean;
   placeholder?: string;
   name: "leverageTier" | "long" | "versus" | "depositToken";
-  form: TMintForm;
   colorScheme?: "light" | "dark" | null;
   children: ReactNode;
   className?: string;
   disabled?: boolean;
 }) {
-  console.log(disabled, "DISABLED");
+  const { control } = useFormContext<TMintFormFields>();
   return (
     <div className={"flex w-full gap-x-2  " + className}>
       <div className="flex-grow">
         <FormField
           disabled={disabled}
-          control={form.control}
+          control={control}
           defaultValue="a"
           name={name}
           render={({ field }) => (

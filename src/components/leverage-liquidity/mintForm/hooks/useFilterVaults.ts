@@ -1,17 +1,19 @@
-import { useDebounce } from "@/components/shared/hooks/useDebounce";
-import type { TMintFormFields, TVaults, VaultFieldFragment } from "@/lib/types";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
+import type { TVaults, VaultFieldFragment } from "@/lib/types";
 import { api } from "@/trpc/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 interface Props {
-  formData: TMintFormFields;
   vaultsQuery: TVaults;
 }
 /**
  * Narrows down dropdown items(vaults) when other dropdowns are selected.
  */
-export function useFilterVaults({ formData, vaultsQuery }: Props) {
-  const { data, isLoading, isFetching } = api.vault.getVaults.useQuery({
+export function useFilterVaults({ vaultsQuery }: Props) {
+  const form = useFormContext<TMintFormFields>();
+  const formData = form.watch();
+  const { data, isFetching } = api.vault.getVaults.useQuery({
     filterDebtToken: formData.versus.split(",")[0],
     filterCollateralToken: formData.long.split(",")[0],
     filterLeverage: formData.leverageTier,

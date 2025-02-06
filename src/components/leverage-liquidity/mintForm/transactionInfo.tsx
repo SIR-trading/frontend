@@ -81,7 +81,7 @@ export default function TransactionInfo({
         <h2 className="text-center text-gray-300">Transaction Successful!</h2>
         {Boolean(tokenReceived) && (
           <h3 className="flex items-center justify-center gap-x-1 ">
-            <span className="text-xl font-bold ">
+            <span className="text-xl font-semibold ">
               {formatNumber(formatUnits(tokenReceived ?? 0n, decimals), 4)}{" "}
               {isApe ? "APE" : "TEA"}
               <span className="text-gray-400">{"-"}</span>

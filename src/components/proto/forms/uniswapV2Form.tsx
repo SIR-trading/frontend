@@ -53,7 +53,7 @@ export function UniswapV2Form() {
   }
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className=" w-1/2 space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className=" w-1/2 space-y-6">
         <h1>Swap ETH for any token supported by uniswap.</h1>
         <div className="">
           <FormField

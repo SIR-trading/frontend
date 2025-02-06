@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import type { TMintFormFieldKeys } from "@/lib/types";
+import type { TMintFormFieldKeys } from "./mintFormProvider";
 interface state {
   setValue: (name: TMintFormFieldKeys, value: string) => void;
 }

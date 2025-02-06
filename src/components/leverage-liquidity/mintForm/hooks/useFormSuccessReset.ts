@@ -1,4 +1,4 @@
-import type { TMintFormFields } from "@/lib/types";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { api } from "@/trpc/react";
 import { useEffect } from "react";

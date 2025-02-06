@@ -13,7 +13,7 @@ export function useUniswap({ token, userAddress }: Props) {
     abi: UniswapV2Router.abi,
     functionName: "swapETHForExactTokens",
     args: [
-      parseUnits("10000", 1),
+      parseUnits("1000", 6),
       [WETH_ADDRESS, token],
       userAddress,
       BigInt(Math.floor(Date.now() / 1000) + 60 * 10000000),

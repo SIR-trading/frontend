@@ -2,12 +2,13 @@ import useGetChainId from "@/components/shared/hooks/useGetChainId";
 import { env } from "@/env";
 import { ESubmitType } from "@/lib/types";
 import { useMemo } from "react";
+import { useFormContext } from "react-hook-form";
 import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";
+import { usingDebtToken } from "../utils";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 
 interface Props {
-  deposit: string | undefined;
-  depositToken: string;
   requests: {
     mintRequest?: SimulateContractReturnType["request"] | undefined;
     approveWriteRequest?: SimulateContractReturnType["request"] | undefined;
@@ -31,7 +32,6 @@ interface Props {
  * submitType - 'approve' | 'mint'
  */
 export const useMintFormValidation = ({
-  deposit,
   tokenAllowance,
   mintFetching,
   requests,
@@ -43,7 +43,21 @@ export const useMintFormValidation = ({
   decimals,
 }: Props) => {
   const chainId = useGetChainId();
+  const form = useFormContext<TMintFormFields>();
+  const formData = form.watch();
+  const { deposit, slippage, depositToken, versus } = formData;
+
   const { isValid, errorMessage, submitType } = useMemo(() => {
+    if (usingDebtToken(versus, depositToken)) {
+      const num = Number.parseFloat(slippage ?? "0");
+      if (num < 0 || num > 99) {
+        return {
+          isValid: false,
+          errorMessage: "Slippage must be between 0% and 99%.",
+          submitType: ESubmitType.mint,
+        };
+      }
+    }
     if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
       return {
         isValid: false,
