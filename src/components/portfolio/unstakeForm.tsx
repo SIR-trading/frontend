@@ -77,7 +77,7 @@ const UnstakeForm = ({
     requests: {
       mintRequest: Unstake?.request as SimulateReq,
     },
-    tokenBalance: balance,
+    tokenBalance: balance.unlockedStake,
     mintFetching: unstakeFetching,
     decimals: 12,
   });
@@ -175,7 +175,7 @@ const UnstakeForm = ({
             <StakeInput
               isStaking={false}
               form={form}
-              balance={formatUnits(balance ?? 0n, 12)}
+              balance={formatUnits(balance.unlockedStake ?? 0n, 12)}
             ></StakeInput>
             <ClaimFeesCheckbox
               value={unstakeAndClaimFees}

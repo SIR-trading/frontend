@@ -3,6 +3,14 @@ import { EContracts, getAddress } from "@/lib/contractAddresses";
 export const SirContract = {
   address: getAddress(EContracts.SIR),
   abi: [
+    {
+      type: "constructor",
+      inputs: [
+        { name: "weth", type: "address", internalType: "address" },
+        { name: "systemControl", type: "address", internalType: "address" },
+      ],
+      stateMutability: "nonpayable",
+    },
     { type: "receive", stateMutability: "payable" },
     {
       type: "function",
@@ -24,6 +32,15 @@ export const SirContract = {
       inputs: [],
       outputs: [{ name: "", type: "uint72", internalType: "uint72" }],
       stateMutability: "pure",
+    },
+    {
+      type: "function",
+      name: "allowMinting",
+      inputs: [
+        { name: "mintingOfSIRHalted_", type: "bool", internalType: "bool" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
     },
     {
       type: "function",
@@ -121,10 +138,13 @@ export const SirContract = {
     },
     {
       type: "function",
-      name: "dividends",
-      inputs: [{ name: "staker", type: "address", internalType: "address" }],
-      outputs: [{ name: "", type: "uint96", internalType: "uint96" }],
-      stateMutability: "view",
+      name: "getAuctionLot",
+      inputs: [
+        { name: "token", type: "address", internalType: "address" },
+        { name: "beneficiary", type: "address", internalType: "address" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
     },
     {
       type: "function",
@@ -170,13 +190,6 @@ export const SirContract = {
     },
     {
       type: "function",
-      name: "payAuctionWinner",
-      inputs: [{ name: "token", type: "address", internalType: "address" }],
-      outputs: [],
-      stateMutability: "nonpayable",
-    },
-    {
-      type: "function",
       name: "permit",
       inputs: [
         { name: "owner", type: "address", internalType: "address" },
@@ -199,22 +212,11 @@ export const SirContract = {
     },
     {
       type: "function",
-      name: "stakersParams",
+      name: "stakeOf",
       inputs: [{ name: "staker", type: "address", internalType: "address" }],
       outputs: [
-        {
-          name: "",
-          type: "tuple",
-          internalType: "struct SirStructs.StakingParams",
-          components: [
-            { name: "stake", type: "uint80", internalType: "uint80" },
-            {
-              name: "cumulativeETHPerSIRx80",
-              type: "uint176",
-              internalType: "uint176",
-            },
-          ],
-        },
+        { name: "unlockedStake", type: "uint80", internalType: "uint80" },
+        { name: "lockedStake", type: "uint80", internalType: "uint80" },
       ],
       stateMutability: "view",
     },
@@ -266,6 +268,13 @@ export const SirContract = {
       ],
       outputs: [{ name: "", type: "bool", internalType: "bool" }],
       stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "unclaimedDividends",
+      inputs: [{ name: "staker", type: "address", internalType: "address" }],
+      outputs: [{ name: "", type: "uint96", internalType: "uint96" }],
+      stateMutability: "view",
     },
     {
       type: "function",
@@ -331,6 +340,12 @@ export const SirContract = {
       inputs: [
         {
           name: "winner",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        {
+          name: "beneficiary",
           type: "address",
           indexed: true,
           internalType: "address",
@@ -406,9 +421,15 @@ export const SirContract = {
       inputs: [
         {
           name: "amountETH",
-          type: "uint256",
+          type: "uint96",
           indexed: false,
-          internalType: "uint256",
+          internalType: "uint96",
+        },
+        {
+          name: "amountStakedSIR",
+          type: "uint80",
+          indexed: false,
+          internalType: "uint80",
         },
       ],
       anonymous: false,
@@ -496,13 +517,31 @@ export const SirContract = {
       ],
       anonymous: false,
     },
+    {
+      inputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+      name: "contributorMintAndStake",
+      outputs: [{ internalType: "uint80", name: "rewards", type: "uint80" }],
+    },
     { type: "error", name: "AuctionIsNotOver", inputs: [] },
     { type: "error", name: "BidTooLow", inputs: [] },
+    { type: "error", name: "InsufficientUnlockedStake", inputs: [] },
     { type: "error", name: "InvalidSigner", inputs: [] },
     { type: "error", name: "NewAuctionCannotStartYet", inputs: [] },
     { type: "error", name: "NoAuction", inputs: [] },
     { type: "error", name: "NoAuctionLot", inputs: [] },
     { type: "error", name: "NoFeesCollected", inputs: [] },
+    { type: "error", name: "NotTheAuctionWinner", inputs: [] },
+    {
+      type: "error",
+      name: "PRBMath_MulDiv_Overflow",
+      inputs: [
+        { name: "x", type: "uint256", internalType: "uint256" },
+        { name: "y", type: "uint256", internalType: "uint256" },
+        { name: "denominator", type: "uint256", internalType: "uint256" },
+      ],
+    },
     { type: "error", name: "PermitDeadlineExpired", inputs: [] },
   ] as const,
 };

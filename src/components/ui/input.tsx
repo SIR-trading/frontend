@@ -12,10 +12,10 @@ const InputVariants = classVarianceAuthority.cva(
       background: {
         transparent:
           "bg-transparent placeholder:text-muted-foreground  w-full p-1 rounded-none ",
-        primary: "bg-primary  py-1",
+        primary: "bg-primary py-1",
       },
       textSize: { sm: "text-[14px]", md: "text-[18px]", xl: "text-[22px]" },
-      height: { sm: "h-6", md: "h-8", lg: "h-10" },
+      height: { sm: "h-5", md: "h-8", lg: "h-10" },
     },
     defaultVariants: { background: "transparent", height: "lg" },
   },
@@ -23,11 +23,13 @@ const InputVariants = classVarianceAuthority.cva(
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
   classVarianceAuthority.VariantProps<typeof InputVariants>;
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, background, textSize, ...props }, ref) => {
+  ({ className, type, height, background, textSize, ...props }, ref) => {
     return (
       <input
         type={type}
-        className={cn(InputVariants({ background, textSize, className }))}
+        className={cn(
+          InputVariants({ height, background, textSize, className }),
+        )}
         ref={ref}
         {...props}
       />

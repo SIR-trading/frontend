@@ -21,13 +21,21 @@ export default function PortfolioPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <div className="flex h-full flex-col justify-between">
-              <div className="flex justify-between">
-                <div>
-                  <h1 className="text-xl">SIR Staking</h1>
+              <div>
+                <div className="flex justify-between">
+                  <div>
+                    <h1 className="text-xl">SIR Staking</h1>
+                  </div>
+                  <ContributorClaim />
                 </div>
-                <ContributorClaim />
-              </div>
 
+                <div className="pt-2 text-sm text-gray-500">
+                  <p>
+                    Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+                    Adipisci, sint. Iste vel animi quaerat soluta ex, qui
+                  </p>
+                </div>
+              </div>
               <SirCard />
             </div>
 

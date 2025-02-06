@@ -49,9 +49,14 @@ const StakeData = () => {
         </div>
         <div className=" text-2xl ">
           <TokenDisplay
-            amount={userStakedSir}
+            amount={userStakedSir.unlockedStake}
             decimals={12}
-            unitLabel={"SIR"}
+            unitLabel={"SIR Unlocked"}
+          />
+          <TokenDisplay
+            amount={userStakedSir.lockedStake}
+            decimals={12}
+            unitLabel={"SIR Locked"}
           />
           {/* {formatUnits(userStakedSir, 12)} */}
         </div>

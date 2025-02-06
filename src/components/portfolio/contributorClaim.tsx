@@ -12,6 +12,8 @@ import { SirContract } from "@/contracts/sir";
 import { CircleCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { TokenDisplay } from "../ui/token-display";
+import { Checkbox } from "../ui/checkbox";
+import Show from "../shared/show";
 // import sirIcon from "../../../public/images/sir-logo.svg";
 // import type { StaticImageData } from "next/image";
 
@@ -22,10 +24,11 @@ export default function ContributorClaim() {
       { user: address },
       { enabled: isConnected },
     );
+  const [checked, setChecked] = useState(false);
   const [open, setOpen] = useState(false);
   const { data } = useSimulateContract({
     ...SirContract,
-    functionName: "contributorMint",
+    functionName: !checked ? "contributorMint" : "contributorMintAndStake",
   });
   const { writeContract, reset, isPending, data: hash } = useWriteContract();
   console.log(hash, "HASH");
@@ -52,6 +55,11 @@ export default function ContributorClaim() {
       utils.user.getUnstakedSirBalance
         .invalidate()
         .catch((e) => console.log(e));
+      if (checked) {
+        utils.user.getStakedSirPosition
+          .invalidate()
+          .catch((e) => console.log(e));
+      }
       reset();
     }
   }, [
@@ -60,6 +68,9 @@ export default function ContributorClaim() {
     open,
     utils.user.getUnclaimedContributorRewards,
     utils.user.getUnstakedSirBalance,
+    utils.user.getTotalSirBalance,
+    checked,
+    utils.user.getStakedSirPosition,
   ]);
   const unclaimedRewards = unclaimedData ?? 0n;
   return (
@@ -74,7 +85,7 @@ export default function ContributorClaim() {
             isConfirmed={isConfirmed}
           />
           {!isConfirmed && (
-            <div className="space-x-0.5 py-2">
+            <div className="space-x-0.5 pt-2">
               <TokenDisplay
                 disableRounding
                 amount={unclaimedData}
@@ -94,6 +105,20 @@ export default function ContributorClaim() {
         </TransactionModal.InfoContainer>
 
         <TransactionModal.StatSubmitContainer>
+          <Show when={!isConfirmed}>
+            <div className="flex w-full items-center justify-end gap-x-2 py-2 ">
+              <label htmlFor="stake" className="text-sm text-gray-200">
+                Mint and Stake
+              </label>
+              <Checkbox
+                id="stake"
+                checked={checked}
+                onCheckedChange={(value) => {
+                  setChecked(Boolean(value)); // Call onChange to update the state in UnstakeForm
+                }}
+              ></Checkbox>
+            </div>
+          </Show>
           <TransactionModal.SubmitButton
             isConfirmed={isConfirmed}
             loading={isPending || isConfirming}

@@ -3,6 +3,7 @@ import { VaultContract } from "@/contracts/vault";
 import type { TAddressString } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { decodeEventLog, type Log } from "viem";
+import { useAccount } from "wagmi";
 interface Props {
   logs: Log<bigint, number, false>[] | undefined;
   apeAddress: TAddressString;
@@ -14,6 +15,7 @@ interface Props {
  */
 export function useGetReceivedTokens({ logs, apeAddress, isApe }: Props) {
   const [tokenReceived, setTokenReceived] = useState<bigint | undefined>();
+  const { address } = useAccount();
   useEffect(() => {
     if (logs) {
       if (isApe) {
@@ -38,6 +40,7 @@ export function useGetReceivedTokens({ logs, apeAddress, isApe }: Props) {
           (l) =>
             l.address.toLowerCase() === VaultContract.address.toLowerCase(),
         );
+        console.log(foundLogs, "FOUND LOGS");
         if (!foundLogs) return;
         foundLogs.forEach((log) => {
           const parse = decodeEventLog({
@@ -45,15 +48,16 @@ export function useGetReceivedTokens({ logs, apeAddress, isApe }: Props) {
             data: log.data,
             topics: log.topics,
           });
-          console.log(parse);
+          console.log(parse, "PARSED");
           if (parse.eventName === "TransferSingle") {
-            console.log(parse.args);
-            setTokenReceived(parse.args.amount);
-            return;
+            if (parse.args.to === address) {
+              setTokenReceived(parse.args.amount);
+              return;
+            }
           }
         });
       }
     }
-  }, [apeAddress, isApe, logs]);
+  }, [address, apeAddress, isApe, logs]);
   return { tokenReceived };
 }
