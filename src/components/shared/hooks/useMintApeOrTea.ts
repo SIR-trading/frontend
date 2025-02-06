@@ -3,6 +3,9 @@ import { useSimulateContract } from "wagmi";
 import type { TAddressString } from "@/lib/types";
 import { VaultContract } from "@/contracts/vault";
 import { useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+import { parseUnits } from "viem";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 interface Props {
   collateralToken: string;
   debtToken: string;
@@ -35,6 +38,17 @@ export function useMintApeOrTea({
   const debtTokenDeposit = depositToken === debtToken && debtToken !== "";
   const tokenAmount = useEth ? 0n : amount;
   const ethAmount = useEth ? amount : 0n;
+  const form = useFormContext<TMintFormFields>();
+  const formData = form.watch();
+  let minCollateralOutWithSlippage = 0n;
+
+  if (minCollateralOut !== undefined) {
+    if (minCollateralOut > 0n) {
+      const slippage = parseUnits(formData.slippage ?? "0", 0);
+      const minus = ((minCollateralOut ?? 0n) * BigInt(slippage)) / 100n;
+      minCollateralOutWithSlippage = minCollateralOut - minus;
+    }
+  }
   const {
     data: Mint,
     refetch,
@@ -47,7 +61,7 @@ export function useMintApeOrTea({
       isApe,
       { ...vault },
       tokenAmount ?? 0n,
-      debtTokenDeposit ? minCollateralOut ?? 0n : 0n,
+      debtTokenDeposit ? minCollateralOutWithSlippage ?? 0n : 0n,
     ],
     value: ethAmount ?? 0n,
   });

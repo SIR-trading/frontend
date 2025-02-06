@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
 import { LoaderCircle } from "lucide-react";
 import {
   FormControl,
@@ -18,18 +18,16 @@ import {
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Command, CommandEmpty, CommandItem, CommandList } from "../ui/command";
-import type { TMintForm } from "@/lib/types";
 import ImageWithFallback from "./ImageWithFallback";
 import Show from "./show";
-// TODO
-// rm default placeholders
+import type { TMintFormFields } from "../providers/mintFormProvider";
+import { useFormContext } from "react-hook-form";
 type TItem = {
   value: string;
   label: string;
   imageUrl?: string | StaticImageData;
 };
 export default function Select({
-  form,
   name,
   placeholder,
   title,
@@ -49,7 +47,6 @@ export default function Select({
   items: TItem[];
   placeholder?: string;
   name: "leverageTier" | "long" | "versus" | "depositToken";
-  form: TMintForm;
   colorScheme?: "light" | "dark" | null;
   setStore: (s: string) => void;
   onChangeInput?: (s: string) => void;
@@ -58,9 +55,10 @@ export default function Select({
 }) {
   const [open, setOpen] = useState(false);
   const showItems = searchItems ? searchItems : items;
+  const { control, setValue } = useFormContext<TMintFormFields>();
   return (
     <FormField
-      control={form.control}
+      control={control}
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
@@ -95,7 +93,7 @@ export default function Select({
                       onClick={(e) => {
                         e.preventDefault();
                         setStore("");
-                        form.setValue(name, "");
+                        setValue(name, "");
                       }}
                     ></X>
                   )}
@@ -132,7 +130,7 @@ export default function Select({
                         onSelect={() => {
                           setOpen(false);
                           setTimeout(() => {
-                            form.setValue(name, item.value);
+                            setValue(name, item.value);
                             setStore(item.value);
                           }, 100);
                         }}

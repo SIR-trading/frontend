@@ -6,7 +6,9 @@ interface Props {
   reset: () => void;
   submitType: ESubmitType;
 }
-
+/**
+ * Invalidates user balance query.
+ */
 export function useResetAfterApprove({
   isConfirmed,
   reset,

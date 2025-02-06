@@ -1,7 +1,7 @@
-import type { TMintFormFields } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
 import { formatUnits } from "viem";
+import type { TMintFormFields } from "../providers/mintFormProvider";
 
 interface EstimateProps {
   collateralEstimate: bigint | undefined;

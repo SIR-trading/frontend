@@ -1,3 +1,4 @@
+"use client";
 import {
   FormControl,
   FormField,
@@ -5,13 +6,15 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { TMintForm } from "@/lib/types";
+import { parseAddress } from "@/lib/utils";
 import { BalancePercent } from "@/components/shared/balancePercent";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { WETH_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
 import type { ReactNode } from "react";
+import { useFormContext } from "react-hook-form";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -24,8 +27,6 @@ function Root({ children }: { children: React.ReactNode }) {
 }
 
 interface Props {
-  form: TMintForm;
-  depositAsset: string | undefined;
   balance?: string;
   useEth: boolean;
   setUseEth: (b: boolean) => void;
@@ -36,9 +37,7 @@ interface Props {
   children: ReactNode;
 }
 function Inputs({
-  form,
   decimals,
-  depositAsset,
   balance,
   useEth,
   setUseEth,
@@ -47,6 +46,8 @@ function Inputs({
   inputLoading,
   children,
 }: Props) {
+  const form = useFormContext<TMintFormFields>();
+  const formData = form.watch();
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
@@ -90,9 +91,8 @@ function Inputs({
             )}
           />
         </Show>
-
-        <div className="">
-          {depositAsset?.split(",")[0] === WETH_ADDRESS && (
+        <div className="space-y-2">
+          {formData.depositToken === WETH_ADDRESS && (
             <div className="flex items-center gap-x-2 pt-1">
               <h3 className="text-[12px]">Use ETH</h3>
               <Switch
@@ -104,14 +104,52 @@ function Inputs({
               />
             </div>
           )}
+          <Show
+            when={
+              !inputLoading &&
+              parseAddress(formData.versus) === formData.depositToken
+            }
+          >
+            <div className="flex items-center gap-x-2">
+              <h3 className="text-[12px]">Slippage</h3>
+              <div className="flex w-[50px] items-center rounded-md bg-secondary pr-1">
+                <FormField
+                  control={form.control}
+                  name="slippage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          height="sm"
+                          className="w-full bg-transparent  px-1 text-[12px]"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          pattern="^[0-9]*[.,]?[0-9]*$"
+                          background="primary"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => {
+                            if (inputPatternMatch(e.target.value, decimals)) {
+                              return field.onChange(e.target.value);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <span className="text-[12px]">%</span>
+              </div>
+            </div>
+          </Show>
         </div>
-        {/* <h2 className="pt-1 text-sm text-[#B6B6C9]">$22.55</h2> */}
       </div>
 
       <div className="flex flex-col items-end">
         <h2 className="pb-2 text-sm">Deposit Asset</h2>
         <div
-          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-secondary ${!depositAsset ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-secondary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}

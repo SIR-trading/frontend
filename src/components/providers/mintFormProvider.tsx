@@ -1,5 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import MintFormProviderApi from "./mintFormProviderApi";
@@ -11,9 +12,13 @@ const MintSchema = z.object({
   versus: z.string(),
   leverageTier: z.string(),
   depositToken: z.string(),
+  slippage: z.string().optional(),
   deposit: z.string().optional(),
 });
 
+export type TMintFormFields = z.infer<typeof MintSchema>;
+export type TMintForm = UseFormReturn<TMintFormFields, undefined>;
+export type TMintFormFieldKeys = keyof TMintFormFields;
 export default function MintFormProvider({
   children,
 }: {
@@ -24,6 +29,7 @@ export default function MintFormProvider({
     mode: "onChange",
     defaultValues: {
       deposit: "",
+      slippage: "",
       leverageTier: "",
       long: "",
       versus: "",

@@ -1,34 +1,33 @@
 import Select from "@/components/shared/Select";
 import { getLogoAsset } from "@/lib/assets";
 import useVaultFilterStore from "@/lib/store";
-import type { TMintForm, VaultFieldFragment } from "@/lib/types";
+import type { VaultFieldFragment } from "@/lib/types";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import SelectWithSearch from "./selectWithSearch";
 import { useMemo } from "react";
 import Show from "@/components/shared/show";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
+import { useFormContext } from "react-hook-form";
 interface Props {
-  form: TMintForm;
   long: VaultFieldFragment[];
   versus: VaultFieldFragment[];
   leverageTiers: number[];
 }
 export default function VaultParamsInputSelects({
-  form,
   long,
   versus,
   leverageTiers,
 }: Props) {
-  // const setVersus = useVaultFilterStore((store) => store.setVersus);
-  // const setLong = useVaultFilterStore((store) => store.setLong);
   const setLeverage = useVaultFilterStore((store) => store.setLeverageTier);
-  const e = form.watch();
+  const { watch, reset } = useFormContext<TMintFormFields>();
+  const formData = watch();
   const allSelected = useMemo(() => {
-    if (e.long || e.versus || e.leverageTier) {
+    if (formData.long || formData.versus || formData.leverageTier) {
       return true;
     } else {
       return false;
     }
-  }, [e.leverageTier, e.long, e.versus]);
+  }, [formData.leverageTier, formData.long, formData.versus]);
   const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
     <div className="relative grid gap-x-4 pb-2 md:grid-cols-3">
@@ -36,7 +35,7 @@ export default function VaultParamsInputSelects({
         <button
           type="button"
           onClick={() => {
-            form.reset();
+            reset();
             resetStore();
           }}
           className="absolute -bottom-3 right-0 rounded-md bg-red p-[4px]  text-sm leading-none"
@@ -48,7 +47,6 @@ export default function VaultParamsInputSelects({
       <SelectWithSearch
         name="long"
         title="Go long"
-        form={form}
         items={long.map((e) => ({
           label: e.collateralSymbol,
           value: e.collateralToken + "," + e.collateralSymbol,
@@ -58,7 +56,6 @@ export default function VaultParamsInputSelects({
       <SelectWithSearch
         name="versus"
         title="Versus"
-        form={form}
         items={versus.map((e) => ({
           label: e.debtSymbol,
           value: e.debtToken + "," + e.debtSymbol,
@@ -75,7 +72,6 @@ export default function VaultParamsInputSelects({
         noSearch
         name="leverageTier"
         title="Leverage Tier"
-        form={form}
       />
     </div>
   );
