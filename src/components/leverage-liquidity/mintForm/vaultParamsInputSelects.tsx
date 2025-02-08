@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import Select from "@/components/shared/Select";
 import { getLogoAsset } from "@/lib/assets";
 import useVaultFilterStore from "@/lib/store";
@@ -31,7 +34,7 @@ export default function VaultParamsInputSelects({
   }, [e.leverageTier, e.long, e.versus]);
   const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
-    <div className="relative grid gap-x-4 pb-2 md:grid-cols-3">
+    <div className="relative grid gap-x-4 pb-5 md:grid-cols-3">
       <Show when={allSelected}>
         <button
           type="button"
@@ -39,7 +42,7 @@ export default function VaultParamsInputSelects({
             form.reset();
             resetStore();
           }}
-          className="absolute -bottom-3 right-0 rounded-md bg-red p-[4px]  text-sm leading-none"
+          className="absolute -bottom-0 right-0 z-10 rounded-md bg-red p-[4px]  text-sm leading-none"
         >
           clear
         </button>

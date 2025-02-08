@@ -11,6 +11,7 @@ import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { WETH_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 
 function Root({ children }: { children: React.ReactNode }) {
@@ -47,6 +48,17 @@ function Inputs({
   inputLoading,
   children,
 }: Props) {
+  const balanceGreaterThanZero = useMemo(() => {
+    if (!balance) {
+      return false;
+    } else {
+      if (balance === "0") {
+        return false;
+      }
+    }
+    return true;
+  }, [balance]);
+
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
@@ -121,7 +133,7 @@ function Inputs({
           Balance: {formatNumber(balance ?? "0")}
         </h2>
         <BalancePercent
-          disabled={disabled}
+          disabled={disabled || !balanceGreaterThanZero}
           balance={balance}
           setValue={(s: string) => {
             form.setValue("deposit", s);

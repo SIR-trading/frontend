@@ -10,6 +10,7 @@ export function useBurnFormValidation(
 ) {
   const chainId = useGetChainId();
   const { isValid, error } = useMemo(() => {
+    console.log(chainId, "chainId");
     if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
       return { isValid: false, error: "Wrong network!" };
     }
