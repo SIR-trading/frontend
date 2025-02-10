@@ -1,5 +1,3 @@
-import { formatUnits } from "viem";
-import { formatNumber } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import StakeCard from "./stakeCard";
@@ -32,7 +30,7 @@ export function SirCard() {
             </div>
           </div>
         </div>
-        <StakeCard />
+        <StakeCard bal={totalBalance} />
       </div>
     </div>
   );

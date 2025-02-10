@@ -19,13 +19,26 @@ export function UnstakeCard() {
         </h2>
         <div className="flex items-center justify-between">
           <div className="text-3xl   ">
-            <TokenDisplay amount={stakedSir} decimals={12} unitLabel={"SIR"} />
+            <TokenDisplay
+              amount={stakedSir.unlockedStake}
+              decimals={12}
+              unitLabel={"SIR Unlocked"}
+            />
+            <TokenDisplay
+              amount={stakedSir.lockedStake}
+              decimals={12}
+              unitLabel={"SIR Locked"}
+            />
             {/* <h4> */}
             {/*   <span>{formatNumber(formatUnits(stakedSir ?? 0n, 12))}</span> */}
             {/*   <span className="text-sm text-gray-500"> SIR</span> */}
             {/* </h4> */}
           </div>
-          <Button onClick={() => setOpenModal(true)} className="py-2">
+          <Button
+            onClick={() => setOpenModal(true)}
+            disabled={stakedSir.unlockedStake === 0n}
+            className="py-2"
+          >
             Unstake
           </Button>
         </div>

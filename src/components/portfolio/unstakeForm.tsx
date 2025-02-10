@@ -77,7 +77,7 @@ const UnstakeForm = ({
     requests: {
       mintRequest: Unstake?.request as SimulateReq,
     },
-    tokenBalance: balance,
+    tokenBalance: balance.unlockedStake,
     mintFetching: unstakeFetching,
     decimals: 12,
   });
@@ -175,11 +175,13 @@ const UnstakeForm = ({
             <StakeInput
               isStaking={false}
               form={form}
-              balance={formatUnits(balance ?? 0n, 12)}
+              balance={formatUnits(balance.unlockedStake ?? 0n, 12)}
             ></StakeInput>
             <ClaimFeesCheckbox
               value={unstakeAndClaimFees}
-              dividends={Boolean(dividends) ? formatUnits(0n ?? 0n, 18) : ""}
+              dividends={
+                Boolean(dividends) ? formatUnits(dividends ?? 0n, 18) : ""
+              }
               onChange={setUnstakeAndClaimFees}
             ></ClaimFeesCheckbox>
 

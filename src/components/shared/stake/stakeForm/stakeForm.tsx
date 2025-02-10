@@ -80,8 +80,8 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const utils = api.useUtils();
   useEffect(() => {
     if (isConfirmed) {
-      console.log("ran here");
       utils.user.getTotalSirBalance.invalidate().catch((e) => console.log(e));
+      utils.user.getStakedSirPosition.invalidate().catch((e) => console.log(e));
       utils.user.getUnstakedSirBalance
         .invalidate()
         .catch((e) => console.log(e));
@@ -93,6 +93,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   }, [
     isConfirmed,
     utils.user.getSirSupply,
+    utils.user.getStakedSirPosition,
     utils.user.getTotalSirBalance,
     utils.user.getUnclaimedContributorRewards,
     utils.user.getUnstakedSirBalance,

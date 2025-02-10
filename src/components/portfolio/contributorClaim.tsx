@@ -56,7 +56,9 @@ export default function ContributorClaim() {
         .invalidate()
         .catch((e) => console.log(e));
       if (checked) {
-        utils.user.getTotalSirBalance.invalidate().catch((e) => console.log(e));
+        utils.user.getStakedSirPosition
+          .invalidate()
+          .catch((e) => console.log(e));
       }
       reset();
     }
@@ -68,6 +70,7 @@ export default function ContributorClaim() {
     utils.user.getUnstakedSirBalance,
     utils.user.getTotalSirBalance,
     checked,
+    utils.user.getStakedSirPosition,
   ]);
   const unclaimedRewards = unclaimedData ?? 0n;
   return (

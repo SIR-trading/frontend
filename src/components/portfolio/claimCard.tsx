@@ -7,7 +7,6 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { formatEther, formatUnits } from "viem";
 import { useClaim } from "../stake/hooks/useClaim";
 import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
@@ -95,6 +94,7 @@ export default function ClaimCard() {
         <div className="flex items-center justify-between">
           <TokenDisplay amount={dividends ?? 0n} unitLabel="ETH" />
           <Button
+            disabled={dividends === 0n}
             onClick={() => {
               if (isValid.isValid) setOpenModal(true);
             }}

@@ -195,6 +195,18 @@ export const userRouter = createTRPCRouter({
       });
       return result;
     }),
+  getStakedSirPosition: publicProcedure
+    .input(z.object({ user: z.string() }))
+    .query(async ({ input }) => {
+      const result = await readContract({
+        abi: SirContract.abi,
+        address: SirContract.address,
+        functionName: "stakeOf",
+        args: [input.user as TAddressString],
+      });
+      const [unlockedStake, lockedStake] = result;
+      return { unlockedStake, lockedStake };
+    }),
   getTotalSirBalance: publicProcedure
     .input(
       z.object({
