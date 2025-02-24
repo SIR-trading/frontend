@@ -30,6 +30,7 @@ export function useTransactions({
   const formData = form.watch();
   const safeLeverageTier = z.coerce.number().safeParse(formData.leverageTier);
   const leverageTier = safeLeverageTier.success ? safeLeverageTier.data : -1;
+  const depositAmount = safeParseUnits(formData.deposit ?? "0", decimals);
   const { Mint, isFetching: mintFetching } = useMintApeOrTea({
     useEth,
     minCollateralOut,
@@ -40,13 +41,14 @@ export function useTransactions({
     debtToken: formatDataInput(formData.versus), //value formatted : address,symbol
     collateralToken: formatDataInput(formData.long), //value formatted : address,symbol
     leverageTier: leverageTier,
-    amount: safeParseUnits(formData.deposit ?? "0", decimals),
+    amount: depositAmount,
     tokenAllowance,
   });
 
   const { approveSimulate } = useApproveErc20({
     tokenAddr: formData.depositToken ?? "",
     approveContract: VaultContract.address,
+    amount: depositAmount,
   });
 
   return {
