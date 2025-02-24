@@ -87,7 +87,7 @@ export function BurnTableRow({
                 >
                   <div>
                     <span>Claim</span>
-                    <span className="pl-1 text-[12px] text-gray-300">
+                    <span className="pl-1 text-[12px] text-black opacity-75">
                       <span>{formatNumber(rewards, 2)}</span>
                       <span className="pl-[2px] ">SIR</span>
                     </span>
@@ -170,7 +170,7 @@ export function BurnTableRowMobile({
             >
               <div>
                 <span>Claim</span>
-                <span className="pl-1 text-[12px] text-gray-300">
+                <span className="pl-1 text-[12px] text-black/80">
                   <span>{formatNumber(rewards, 2)}</span>
                   <span className="pl-[2px] ">SIR</span>
                 </span>

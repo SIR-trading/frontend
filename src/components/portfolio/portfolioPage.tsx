@@ -19,21 +19,21 @@ export default function PortfolioPage() {
       <Container className="space-y-4">
         <Explainer page={EPage.PORTFOLIO} />
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+          <Card className="relative">
             <div className="flex h-full flex-col justify-between">
               <div>
                 <div className="flex justify-between">
                   <div>
                     <h1 className="text-xl">SIR Staking</h1>
                   </div>
-                  <ContributorClaim />
                 </div>
 
-                <div className="pt-2 text-sm text-gray-500">
-                  <p>
-                    Stake your SIR to earn ETH dividends.
-                  </p>
+                <div className=" text-sm text-gray-500">
+                  <p>Stake your SIR to earn ETH dividends.</p>
                 </div>
+              </div>
+              <div className="flex py-2">
+                <ContributorClaim />
               </div>
               <SirCard />
             </div>

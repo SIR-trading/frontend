@@ -9,25 +9,27 @@ export interface CardProps
     VariantProps<typeof cardVariants> {
   children: ReactNode;
 }
+// rounded-md border-2 border-secondary-600/50 bg-secondary-600/40 p-2 text-2xl
 const cardVariants = cva("rounded-[6px] p-[12px] md:p-[20px]", {
   variants: {
-    background: {
+    variant: {
       default: "bg-secondary nav-shadow",
+      secondary: "bg-secondary-600/40 md:p-3 text-2xl",
       transparent: "",
     },
   },
   defaultVariants: {
-    background: "default",
+    variant: "default",
   },
 });
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, background, children, ...props }, ref) => {
+  ({ className, variant, children, ...props }, ref) => {
     return (
       <div
         className={cn(
           cardVariants({
-            background,
+            variant,
             className,
           }),
         )}

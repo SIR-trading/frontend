@@ -66,12 +66,14 @@ export function RadioItem({
     <FormControl>
       <div
         data-active={value === fieldValue ? "true" : ""}
-        className="flex w-full cursor-pointer justify-between gap-x-2 rounded-md border-2 border-secondary-100 px-2 py-1 data-[active=true]:border-gold"
+        className={`flex w-full cursor-pointer justify-between gap-x-2
+                    rounded-md border-2 border-secondary-500 bg-secondary-500  px-2
+                    py-1 hover:border-secondary-200 data-[active=true]:border-gold`}
         onClick={handleCardClicked}
       >
         <div className="flex select-none flex-col  gap-y-1">
           <span className="text-[14px]">{mapLeverage(value)}x</span>
-          <span className="flex   gap-x-1 text-[12px] text-gray-500">
+          <span className="flex   gap-x-1 text-[11px] text-gray-500">
             {/* <ToolTip>{leverageOptions[index]}</ToolTip> */}
             {leverageDescriptions[index]}
           </span>

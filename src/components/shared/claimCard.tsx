@@ -13,6 +13,7 @@ import { useClaim } from "../stake/hooks/useClaim";
 import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
 import { TokenDisplay } from "../ui/token-display";
+import { Card } from "../ui/card";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -85,7 +86,7 @@ export default function ClaimCard() {
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      <div className="rounded-md bg-secondary-600/40 px-2 py-2 text-2xl">
+      <Card variant="secondary">
         <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
           <span>Dividends</span>
         </h2>
@@ -100,7 +101,7 @@ export default function ClaimCard() {
             Claim
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

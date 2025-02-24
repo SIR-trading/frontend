@@ -73,7 +73,7 @@ export default function ContributorClaim() {
   ]);
   const unclaimedRewards = unclaimedData ?? 0n;
   return (
-    <div>
+    <div className="">
       <TransactionModal.Root setOpen={setOpen} open={open}>
         <TransactionModal.Close setOpen={setOpen} />
         <TransactionModal.InfoContainer>
@@ -110,7 +110,6 @@ export default function ContributorClaim() {
                 Mint and Stake
               </label>
               <Checkbox
-                className="border border-white/70 bg-secondary-600"
                 id="stake"
                 checked={checked}
                 onCheckedChange={(value) => {
@@ -135,7 +134,7 @@ export default function ContributorClaim() {
           <div className="">
             <Button
               onClick={() => setOpen(true)}
-              className="w-full space-x-1 bg-gold px-4 py-2 font-bold text-black hover:bg-gold/90"
+              className="w-full space-x-1 bg-gold px-4 py-2 font-bold text-black/90 hover:bg-gold/90"
             >
               <span>Claim Contributor Rewards</span>
               {

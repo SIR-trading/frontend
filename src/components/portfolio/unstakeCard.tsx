@@ -4,6 +4,7 @@ import { UnstakeModal } from "./unstakeModal";
 import { useState } from "react";
 import { useGetStakedSir } from "../shared/hooks/useGetStakedSir";
 import { TokenDisplay } from "../ui/token-display";
+import { Card } from "../ui/card";
 
 export function UnstakeCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -13,7 +14,7 @@ export function UnstakeCard() {
       <UnstakeFormProvider>
         <UnstakeModal open={openModal} setOpen={setOpenModal} />
       </UnstakeFormProvider>
-      <div className="rounded-md bg-secondary-600 bg-opacity-40 px-2 py-2 text-2xl">
+      <Card variant="secondary">
         <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
           <span>Your Staked SIR</span>
         </h2>
@@ -42,7 +43,7 @@ export function UnstakeCard() {
             Unstake
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -13,7 +13,6 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useFormContext } from "react-hook-form";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { inputPatternMatch } from "@/lib/utils";
-import ToolTip from "@/components/ui/tooltip";
 export default function MintFormSettings() {
   const isDebt = useIsDebtToken();
   const form = useFormContext<TMintFormFields>();
@@ -25,58 +24,83 @@ export default function MintFormSettings() {
           <Settings className="h-4 w-4 " />
         </DialogTrigger>
         <DialogContent>
-          <div className="relative w-[400px] rounded-xl border border-secondary-1000 bg-secondary-900 p-4 py-6 text-white">
+          <div className="relative  rounded-xl border border-secondary-1000 bg-secondary-900 p-4 py-6 text-white">
             <DialogClose />
-            <DialogTitle className=" font-normal text-gray-200">
+            <DialogTitle className="border-b-2 border-secondary-400 pb-2 text-xl font-bold text-gray-200">
               Settings
             </DialogTitle>
-            <div className="pt-6"></div>
-            <div className="flex w-full items-center justify-between rounded-sm border border-secondary-600 bg-secondary-600 p-3 text-gray-300">
+            <div className=" pt-2"></div>
+            <div className=" w-full items-center justify-between rounded-sm text-gray-300">
               {" "}
               <div className="flex items-center gap-x-1">
-                <label htmlFor="slippage" className="text-sm ">
+                <label htmlFor="slippage" className="text-md ">
                   Slippage
                 </label>
-                <ToolTip>Slippage info</ToolTip>
               </div>
-              <div className="flex gap-x-[2px] rounded-md bg-secondary-900 px-2 py-2 text-[14px] focus-within:ring-2 focus-within:ring-white">
-                <FormField
-                  control={form.control}
-                  name="slippage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          height="sm"
-                          className="w-[50px] rounded-md bg-transparent px-0  "
-                          inputMode="decimal"
-                          autoComplete="off"
-                          pattern="^[0-9]*[.,]?[0-9]*$"
-                          background="primary"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => {
-                            if (e.target.value === '') {
-                              return field.onChange(e.target.value);
-                            }
-                            const value = parseFloat(e.target.value);
-                            if (value <= 10 && inputPatternMatch(e.target.value, 1)) {
-                              return field.onChange(e.target.value);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <span>%</span>
+              <div className="flex justify-between gap-x-3 pt-2">
+                <SlippageBtn title="0.1" value={0.1} active={false} />
+                <SlippageBtn title="0.5" value={0.5} active={false} />
+                <SlippageBtn title="1.0" value={1} active={false} />
+                <div className="flex w-[120px] justify-between gap-x-[2px] rounded-md bg-secondary-400 px-2 py-2 text-[16px] focus-within:ring-2 focus-within:ring-white">
+                  <FormField
+                    control={form.control}
+                    name="slippage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            height="sm"
+                            className="text-md w-[50px] rounded-md bg-transparent px-0  "
+                            inputMode="decimal"
+                            autoComplete="off"
+                            pattern="^[0-9]*[.,]?[0-9]*$"
+                            background="primary"
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) => {
+                              if (e.target.value === "") {
+                                return field.onChange(e.target.value);
+                              }
+                              const value = parseFloat(e.target.value);
+                              if (
+                                value <= 10 &&
+                                inputPatternMatch(e.target.value, 1)
+                              ) {
+                                return field.onChange(e.target.value);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <span>%</span>
+                </div>
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+function SlippageBtn({
+  value,
+  active,
+  title,
+}: {
+  title: string;
+  value: number;
+  active: boolean;
+}) {
+  return (
+    <button
+      data-state={active ? "active" : "inactive"}
+      className="rounded-md bg-secondary-400 p-2 data-[state=active]:bg-gold data-[state=active]:text-black/90"
+    >
+      {title}%
+    </button>
   );
 }
 
