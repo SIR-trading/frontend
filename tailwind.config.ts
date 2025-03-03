@@ -58,7 +58,7 @@ const config = {
           800: "hsl(var(--gray-800), <alpha-value>)",
         },
         purple: "hsl(var(--purple), <alpha-value>)",
-        gold: "hsla(var(--gold), <alpha-value>)",
+        gold: "rgba(240, 199, 117, <alpha-value>)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background), <alpha-value>)",
