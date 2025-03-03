@@ -1,5 +1,5 @@
 import { SIR_USD_PRICE } from "@/data/constants";
-import { getEthUsdPriceOnDate } from "@/lib/coingecko";
+import { getCoinUsdPriceOnDate } from "@/lib/coingecko";
 import {
   insertOrUpdateCurrentApr,
   insertPayout,
@@ -76,17 +76,25 @@ async function syncPayouts({ timestamp }: { timestamp: number }) {
     timestamp,
   });
   for (const e of dividendPaidEvents) {
-    const ethPrice = await getEthUsdPriceOnDate({
+    const ethPrice = await getCoinUsdPriceOnDate({
       timestamp: parseInt(e.timestamp),
+      id: "ethereum",
+    });
+    const sirPrice = await getCoinUsdPriceOnDate({
+      timestamp: parseInt(e.timestamp),
+      id: "sir",
     });
     if (!ethPrice) {
       throw new Error("Could not get eth price!");
+    }
+    if (!sirPrice) {
+      throw new Error("Could not get sir price!");
     }
     console.log(e.ethAmount, e.stakedAmount, "ETH");
     if (!e.ethAmount || !e.stakedAmount) return;
     const ethParsed = parseUnits(e.ethAmount, 0);
     const sirParsed = parseUnits(e.stakedAmount, 0);
-    const sirUsdPriceBig = parseUnits(SIR_USD_PRICE, 12);
+    const sirUsdPriceBig = parseUnits(sirPrice.toString(), 12);
     const ethUsdPriceBig = parseUnits(ethPrice.toString(), 18);
 
     const ethDecimals = 10n ** 18n;
@@ -120,7 +128,7 @@ async function getAndCalculateLastMonthApr() {
     if (payout.sirInUSD && payout.ethInUSD) {
       const sirInUsd = parseUnits(payout.sirInUSD, 0);
       const ethInUsd = parseUnits(payout.ethInUSD, 0);
-      result += divide(100n *12n * ethInUsd, sirInUsd);
+      result += divide(100n * 12n * ethInUsd, sirInUsd);
     }
   });
   return result;
