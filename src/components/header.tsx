@@ -46,6 +46,7 @@ export function Header() {
               <ul className="flex" aria-label="Secondary Navigation">
                 <NavItem url={"/stake"}>Stake</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
+                <NavItem url={"/leverage-calculator"}>Calculator</NavItem>
                 {/* <NavItem url={"/get-tokens"}>Get Tokens</NavItem> */}
               </ul>
             </div>

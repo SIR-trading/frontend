@@ -33,6 +33,9 @@ import { useFormContext } from "react-hook-form";
 import { useFindVault } from "./hooks/useFindVault";
 import useIsDebtToken from "./hooks/useIsDebtToken";
 import useGetFormTokensInfo from "./hooks/useGetUserBals";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 interface Props {
   vaultsQuery: TVaults;
   isApe: boolean;
@@ -323,6 +326,15 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
             </Dropdown.Root>
           </DepositInputs.Inputs>
         </DepositInputs.Root>
+        {/* Calculator link */}
+        <div
+          className="flex justify-end w-full my-2">
+          <Link href={"/leverage-calculator"}>
+            <Button variant="accent">
+              Calculator
+            </Button>
+          </Link>
+        </div>
         {/* opacity-0 */}
         <div
           className={`py-3 ${Boolean(disabledInputs && !isLoading) === true ? "" : "opacity-0"}`}
