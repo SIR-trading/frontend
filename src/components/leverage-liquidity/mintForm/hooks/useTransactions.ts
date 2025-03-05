@@ -44,9 +44,10 @@ export function useTransactions({
     tokenAllowance,
   });
 
-  const { approveSimulate } = useApproveErc20({
+  const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
     tokenAddr: formData.depositToken ?? "",
     approveContract: VaultContract.address,
+    amount: parseUnits(formData.deposit ?? "0", decimals),
   });
 
   return {
@@ -56,6 +57,8 @@ export function useTransactions({
     },
     isApproveFetching: approveSimulate.isFetching,
     isMintFetching: mintFetching,
+    needs0Approval,
+    needsApproval,
   };
 }
 

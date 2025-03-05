@@ -68,28 +68,13 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
 
   const selectedVault = useFindVault(vaultsQuery);
 
-  const needsApproval = useMemo(() => {
-    if (userBalanceFetching) {
-      return false;
-    }
-    const tokenAllowance = userBalance?.tokenAllowance?.result;
-    const decimals = depositDecimals ?? 18;
-    if (useEth) {
-      return false;
-    }
-    if (parseUnits(deposit ?? "0", decimals) > (tokenAllowance ?? 0n)) {
-      return true;
-    } else {
-      return false;
-    }
-  }, [
-    deposit,
-    depositDecimals,
-    useEth,
-    userBalance?.tokenAllowance?.result,
-    userBalanceFetching,
-  ]);
-  const { requests, isApproveFetching, isMintFetching } = useTransactions({
+  const {
+    requests,
+    isApproveFetching,
+    isMintFetching,
+    needsApproval,
+    needs0Approval,
+  } = useTransactions({
     useEth,
     tokenAllowance: userBalance?.tokenAllowance?.result,
     vaultId: selectedVault.result?.vaultId,
@@ -222,6 +207,7 @@ export default function MintForm({ vaultsQuery, isApe }: Props) {
           <TransactionModal.Close setOpen={setOpenTransactionModal} />
           <TransactionModal.InfoContainer>
             <TransactionInfo
+              needs0Approval={needs0Approval}
               needsApproval={needsApproval}
               vaultId={selectedVault.result?.vaultId ?? "0"}
               decimals={collateralDecimals ?? 18}
