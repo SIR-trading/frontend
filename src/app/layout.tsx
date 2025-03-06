@@ -12,6 +12,7 @@ import Bg from "../../public/background.png";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
+import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -66,16 +67,18 @@ export default async function RootLayout({
 
         <Toaster />
         <TRPCReactProvider>
-          <EvmProvider cookie={cookie}>
-            <VaultProvider>
-              <div className=" flex min-h-screen flex-col">
-                <Header />
-                <Warning />
-                {children}
-                <Footer />
-              </div>
-            </VaultProvider>
-          </EvmProvider>
+          <TokenlistContextProvider>
+            <EvmProvider cookie={cookie}>
+              <VaultProvider>
+                <div className=" flex min-h-screen flex-col">
+                  <Header />
+                  <Warning />
+                  {children}
+                  <Footer />
+                </div>
+              </VaultProvider>
+            </EvmProvider>
+          </TokenlistContextProvider>
         </TRPCReactProvider>
       </body>
     </html>
