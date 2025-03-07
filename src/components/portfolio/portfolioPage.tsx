@@ -4,12 +4,13 @@ import BurnTable from "./burnTable/burnTable";
 import { Card } from "../ui/card";
 import { Container } from "../ui/container";
 import { UnstakeCard } from "./unstakeCard";
-import ClaimCard from "./claimCard";
+
 import { SirCard } from "./sirCard";
 import ContributorClaim from "./contributorClaim";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
+import ClaimCard from "../shared/claimCard";
 export default function PortfolioPage() {
   const [value, setValue] = useState<"ape" | "tea" | "all">("all");
   return (
@@ -30,9 +31,7 @@ export default function PortfolioPage() {
                 </div>
 
                 <div className="pt-2 text-sm text-gray-500">
-                  <p>
-                    Stake your SIR to earn ETH dividends.
-                  </p>
+                  <p>Stake your SIR to earn ETH dividends.</p>
                 </div>
               </div>
               <SirCard />

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import React, { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { api } from "@/trpc/react";
@@ -44,12 +42,17 @@ export default function ClaimCard() {
       writeContract(claimData?.request);
     }
   };
+  const utils = api.useUtils();
   useEffect(() => {
     if (isConfirmed && !openModal) {
       reset();
     }
-  }, [isConfirmed, reset, openModal]);
+  }, [isConfirmed, reset, openModal, utils.user.getUserSirDividends]);
 
+  useEffect(() => {
+    if (isConfirmed)
+      utils.user.getUserSirDividends.invalidate().catch((e) => console.log(e));
+  }, [isConfirmed, utils.user.getUserSirDividends]);
   return (
     <div className=" border-secondary-300">
       <TransactionModal.Root setOpen={setOpenModal} open={openModal}>
@@ -92,6 +95,7 @@ export default function ClaimCard() {
         <div className="flex items-center justify-between">
           <TokenDisplay amount={dividends ?? 0n} unitLabel={"ETH"} />
           <Button
+            disabled={!dividends || !isValid.isValid}
             onClick={() => {
               if (isValid.isValid) setOpenModal(true);
             }}
