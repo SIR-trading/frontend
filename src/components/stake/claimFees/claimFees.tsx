@@ -57,8 +57,11 @@ const ClaimFees = ({
   return (
     <>
       <Card className="">
-        <TransactionModal.Root setOpen={setOpen} open={open}>
-          <TransactionModal.InfoContainer>
+        <TransactionModal.Root title="Claim Fees" setOpen={setOpen} open={open}>
+          <TransactionModal.InfoContainer
+            isConfirming={isConfirming}
+            hash={hash}
+          >
             <TransactionStatus
               waitForSign={isPending}
               showLoading={isConfirming}
@@ -68,6 +71,7 @@ const ClaimFees = ({
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
+              isPending={isPending}
               isConfirmed={isConfirmed}
               disabled={Boolean(claimSimulate) && Boolean(claimResult)}
               onClick={() => onSubmit()}

@@ -74,9 +74,13 @@ export default function ContributorClaim() {
   const unclaimedRewards = unclaimedData ?? 0n;
   return (
     <div>
-      <TransactionModal.Root setOpen={setOpen} open={open}>
+      <TransactionModal.Root
+        title="Claim Rewards"
+        setOpen={setOpen}
+        open={open}
+      >
         <TransactionModal.Close setOpen={setOpen} />
-        <TransactionModal.InfoContainer>
+        <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           <TransactionStatus
             action="Claim"
             waitForSign={isPending}
@@ -121,7 +125,8 @@ export default function ContributorClaim() {
           </Show>
           <TransactionModal.SubmitButton
             isConfirmed={isConfirmed}
-            loading={isPending || isConfirming}
+            loading={isConfirming}
+            isPending={isPending}
             disabled={isPending || isConfirming}
             onClick={() => onSubmit()}
           >

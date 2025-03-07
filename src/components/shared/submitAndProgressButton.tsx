@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ESubmitType } from "@/lib/types";
 import { useMemo } from "react";
+import Spinner from "./spinner";
 interface Props {
   waitForSign: boolean;
   isTxPending: boolean;
@@ -20,7 +21,14 @@ export default function SubmitAndProgressButton({
       return { message: "Success!", success: true };
     }
     if (waitForSign) {
-      return { message: "Please Sign Transaction." };
+      return {
+        message: (
+          <div className="flex items-center gap-x-1">
+            <Spinner />
+            <span>Please Sign Transaction.</span>
+          </div>
+        ),
+      };
     }
     if (isTxPending) {
       return { message: "Pending..." };

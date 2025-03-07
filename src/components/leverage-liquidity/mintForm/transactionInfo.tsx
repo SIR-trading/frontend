@@ -1,10 +1,12 @@
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionEstimates } from "./transactionEstimates";
 import { TransactionStatus } from "./transactionStatus";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, ExternalLink } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatUnits } from "viem";
-
+import Link from "next/link";
+import { motion } from "motion/react";
+import ExplorerLink from "@/components/shared/explorerLink";
 interface Props {
   isConfirmed: boolean;
   decimals: number;
@@ -18,6 +20,7 @@ interface Props {
   useEth: boolean;
   quoteData: bigint | undefined;
   vaultId: string;
+  transactionHash: string | undefined;
 }
 
 export default function TransactionInfo({
@@ -33,6 +36,7 @@ export default function TransactionInfo({
   useEth,
   userBalanceFetching,
   vaultId,
+  transactionHash,
 }: Props) {
   if (!isConfirmed) {
     return (
@@ -73,7 +77,12 @@ export default function TransactionInfo({
   }
   if (isConfirmed && !isApproving) {
     return (
-      <div className="space-y-2">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        className="animate-fade-in space-y-2  duration-500"
+      >
         <div className="flex animate-fade-in justify-center">
           <CircleCheck size={40} color="#F0C775" />
         </div>
@@ -88,7 +97,8 @@ export default function TransactionInfo({
             </span>
           </h3>
         )}
-      </div>
+        <ExplorerLink transactionHash={transactionHash} />
+      </motion.div>
     );
   }
 }
