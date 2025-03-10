@@ -202,12 +202,17 @@ export default function MintForm({ isApe }: Props) {
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
+          title="Mint"
           setOpen={setOpenTransactionModal}
           open={openTransactionModal}
         >
           <TransactionModal.Close setOpen={setOpenTransactionModal} />
-          <TransactionModal.InfoContainer>
+          <TransactionModal.InfoContainer
+            isConfirming={isConfirming}
+            hash={hash}
+          >
             <TransactionInfo
+              transactionHash={hash}
               needsApproval={needsApproval}
               vaultId={selectedVault.result?.vaultId ?? "0"}
               decimals={collateralDecimals ?? 18}
@@ -256,7 +261,8 @@ export default function MintForm({ isApe }: Props) {
                 isConfirming ||
                 (isConfirmed && needsApproval)
               }
-              loading={isPending || isConfirming}
+              isPending={isPending}
+              loading={isConfirming}
               isConfirmed={isConfirmed && !needsApproval}
             >
               <Show

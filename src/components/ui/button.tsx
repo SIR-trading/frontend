@@ -26,7 +26,8 @@ const buttonVariants = cva(
       },
       state: {
         default: "",
-        loading: "disabled:opacity-100 bg-white text-black hover:bg-white",
+        loading:
+          "disabled:opacity-100 bg-neutral-300 text-black hover:bg-white",
       },
     },
     defaultVariants: {
