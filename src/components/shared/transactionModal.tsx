@@ -3,17 +3,20 @@ import ToolTip from "@/components/ui/tooltip";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
-import DisplayFormattedNumber from "./displayFormattedNumber";
+import ExplorerLink from "./explorerLink";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+
 interface Props {
   setOpen: (b: boolean) => void;
   open: boolean;
+  title: string;
   children: React.ReactNode;
 }
-function Root({ open, setOpen, children }: Props) {
+function Root({ open, title, setOpen, children }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        title="Mint Modal"
+        title={title}
         // align="center"
         // animate="none"
         // closeColor={"black"}
@@ -41,17 +44,30 @@ function StatSubmitContainer({ children }: { children: ReactNode }) {
   );
 }
 
-function InfoContainer({ children }: { children: ReactNode }) {
+function InfoContainer({
+  children,
+  hash,
+  isConfirming,
+}: {
+  children: ReactNode;
+  hash: string | undefined;
+  isConfirming: boolean;
+}) {
   return (
-    <div className="rounded-tl-xl rounded-tr-xl bg-secondary-700 px-6 pb-6 pt-5">
+    <div className="space-y-2 rounded-tl-xl rounded-tr-xl bg-secondary-700 px-6 pb-6 pt-5">
       {children}
+      {isConfirming && (
+        <div className="">
+          <ExplorerLink align="left" transactionHash={hash} />
+        </div>
+      )}
     </div>
   );
 }
 
 function Disclaimer({ children }: { children: ReactNode }) {
   return (
-    <div className="w-[300px] items-center pt-2 text-[12px] italic text-gray-400">
+    <div className="w-[300px] items-center  text-[12px] italic text-gray-400">
       <span>{children}</span>
     </div>
   );
@@ -97,24 +113,31 @@ function SubmitButton({
   disabled,
   children,
   loading,
+  isPending,
   isConfirmed,
 }: {
   onClick: () => void;
   disabled: boolean;
   children: ReactNode;
   loading: boolean;
+  isPending: boolean;
   isConfirmed: boolean;
 }) {
+  const isLoading = isPending || loading;
   return (
     <Button
       className="text-[16px]"
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       variant="modal"
-      state={loading ? "loading" : "default"}
+      state={isLoading ? "loading" : "default"}
       type="submit"
     >
-      <Pending isConfirmed={isConfirmed} isLoading={loading}>
+      <Pending
+        isPending={isPending}
+        isConfirmed={isConfirmed}
+        isLoading={isLoading}
+      >
         {children}
       </Pending>
     </Button>
@@ -124,13 +147,18 @@ function Pending({
   children,
   isLoading,
   isConfirmed,
+  isPending,
 }: {
   children: ReactNode;
+  isPending: boolean;
   isLoading: boolean;
   isConfirmed: boolean;
 }) {
+  if (isPending) {
+    return "Signing Transaction";
+  }
   if (isLoading) {
-    return "Pending...";
+    return "Waiting for Confirmation";
   } else if (isConfirmed) {
     return "Close";
   } else {

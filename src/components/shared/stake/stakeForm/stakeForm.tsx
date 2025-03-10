@@ -107,9 +107,12 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root setOpen={setOpen} open={open}>
+        <TransactionModal.Root title="Stake" setOpen={setOpen} open={open}>
           <TransactionModal.Close setOpen={setOpen} />
-          <TransactionModal.InfoContainer>
+          <TransactionModal.InfoContainer
+            hash={hash}
+            isConfirming={isConfirming}
+          >
             {!isConfirmed && (
               <>
                 <TransactionStatus
@@ -118,7 +121,6 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                   showLoading={isConfirming}
                 />
                 <div className="flex items-center justify-between py-2">
-                  <h2 className="text-sm text-gray-400">Amount</h2>
                   <h3 className="text-xl">
                     {form.getValues("amount")}
                     <span className="pl-[2px] text-[12px] text-gray-400">
@@ -130,9 +132,11 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
             )}
             {isConfirmed && (
               <TransactionSuccess
+                hash={hash}
                 decimals={12}
                 amountReceived={tokenReceived}
                 assetReceived="SIR"
+                assetAddress={SirContract.address}
               />
             )}
           </TransactionModal.InfoContainer>
@@ -148,7 +152,8 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                   onSubmit();
                 }
               }}
-              loading={isPending || isConfirming}
+              isPending={isPending}
+              loading={isConfirming}
               disabled={!isValid && !isConfirmed}
             >
               Confirm stake
