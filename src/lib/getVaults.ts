@@ -3,7 +3,7 @@ import { AssistantContract } from "@/contracts/assistant";
 import type { TCollateral, TVaults, VaultFieldFragment } from "./types";
 import { executeVaultsQuery } from "@/server/queries/vaults";
 
-const getVaults = async ({
+export const getVaults = async ({
   filterLeverage,
   filterCollateralToken,
   filterDebtToken,
