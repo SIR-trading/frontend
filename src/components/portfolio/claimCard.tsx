@@ -51,8 +51,12 @@ export default function ClaimCard() {
 
   return (
     <div className=" border-secondary-300">
-      <TransactionModal.Root setOpen={setOpenModal} open={openModal}>
-        <TransactionModal.InfoContainer>
+      <TransactionModal.Root
+        title="Claim"
+        setOpen={setOpenModal}
+        open={openModal}
+      >
+        <TransactionModal.InfoContainer hash={hash} isConfirming={isConfirming}>
           <TransactionStatus
             waitForSign={isPending}
             action="Claim"
@@ -66,14 +70,15 @@ export default function ClaimCard() {
               </h3>
             </div>
           )}
-          {isConfirmed && <TransactionSuccess />}
+          {isConfirmed && <TransactionSuccess hash={hash} />}
         </TransactionModal.InfoContainer>
         <TransactionModal.Close setOpen={setOpenModal} />
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
+            isPending={isPending}
             isConfirmed={isConfirmed}
             disabled={isPending || isConfirming}
-            loading={isPending || isConfirming}
+            loading={isConfirming}
             onClick={() => {
               if (isConfirmed) {
                 setOpenModal(false);

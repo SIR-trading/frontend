@@ -7,7 +7,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { api } from "@/trpc/react";
 import { useBurnApe } from "./hooks/useBurnApe";
-import { formatUnits, parseUnits } from "viem";
+import { Address, formatUnits, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { TokenInput } from "./tokenInput";
 import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import ExplorerLink from "@/components/shared/explorerLink";
 
 const BurnSchema = z.object({
   deposit: z.string().optional(),
@@ -71,18 +72,13 @@ export default function BurnForm({
     },
   );
 
-  const {
-    writeContract,
-    reset,
-    data: writeData,
-    isPending,
-  } = useWriteContract();
+  const { writeContract, reset, data: hash, isPending } = useWriteContract();
   const {
     data: receiptData,
     isLoading: isConfirming,
     isSuccess: isConfirmed,
   } = useWaitForTransactionReceipt({
-    hash: writeData,
+    hash,
   });
   const utils = api.useUtils();
 
@@ -191,9 +187,9 @@ export default function BurnForm({
 
   return (
     <FormProvider {...form}>
-      <TransactionModal.Root open={open} setOpen={setOpen}>
+      <TransactionModal.Root title="Burn" open={open} setOpen={setOpen}>
         <TransactionModal.Close setOpen={setOpen} />
-        <TransactionModal.InfoContainer>
+        <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
             <>
               <TransactionStatus
@@ -232,10 +228,13 @@ export default function BurnForm({
                 <CircleCheck size={40} color="#F0C775" />
               </div>
               <h2 className="text-center">Transaction Successful!</h2>
+              <ExplorerLink transactionHash={hash} />
             </div>
           )}
           {isConfirmed && !isClaimingRewards && (
             <TransactionSuccess
+              hash={hash}
+              assetAddress={row.collateralToken}
               assetReceived={row.collateralSymbol}
               amountReceived={tokenReceived}
             />
@@ -252,8 +251,9 @@ export default function BurnForm({
           {/*   </TransactionModal.StatContainer> */}
           {/* )} */}
           <TransactionModal.SubmitButton
-            disabled={false}
-            loading={isConfirming || isPending}
+            disabled={isPending || isConfirming}
+            isPending={isPending}
+            loading={isConfirming}
             onClick={() => onSubmit()}
             isConfirmed={isConfirmed}
           >

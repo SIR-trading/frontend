@@ -21,6 +21,7 @@ import ClaimFeesCheckbox from "./claimFeesCheck";
 import { useGetReceivedSir } from "./hooks/useGetReceivedSir";
 import { TokenDisplay } from "../ui/token-display";
 import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
+import { SirCard } from "./sirCard";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -46,7 +47,6 @@ const UnstakeForm = ({
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
   const utils = api.useUtils();
@@ -114,9 +114,12 @@ const UnstakeForm = ({
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root setOpen={setOpen} open={open}>
+        <TransactionModal.Root title="Unstake" setOpen={setOpen} open={open}>
           <TransactionModal.Close setOpen={setOpen} />
-          <TransactionModal.InfoContainer>
+          <TransactionModal.InfoContainer
+            isConfirming={isConfirming}
+            hash={hash}
+          >
             {!isConfirmed && (
               <>
                 <TransactionStatus
@@ -125,7 +128,7 @@ const UnstakeForm = ({
                   showLoading={isConfirming}
                 />
                 <div className="flex items-center justify-between py-2">
-                  <h2 className="text-sm text-gray-400">Amount</h2>
+                  {/* <h2 className="text-sm text-gray-400">Amount</h2> */}
                   <h3 className="text-xl">
                     <TokenDisplay
                       amount={parseUnits(form.getValues("amount") ?? "0", 12)}
@@ -139,14 +142,17 @@ const UnstakeForm = ({
             )}
             {isConfirmed && (
               <TransactionSuccess
+                hash={hash}
                 amountReceived={tokenReceived}
                 assetReceived="SIR"
+                assetAddress={SirContract.address}
                 decimals={12}
               />
             )}
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
+              isPending={isPending}
               isConfirmed={isConfirmed}
               onClick={() => {
                 if (isConfirmed) {
@@ -156,7 +162,7 @@ const UnstakeForm = ({
                   onSubmit();
                 }
               }}
-              loading={isPending || isConfirming}
+              loading={isConfirming}
               disabled={!isValid && !isConfirmed}
             >
               Confirm Unstake
