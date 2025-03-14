@@ -73,16 +73,21 @@ export default function MintForm({ isApe }: Props) {
 
   const selectedVault = useFindVault();
 
-  const { requests, isApproveFetching, isMintFetching, needsApproval } =
-    useTransactions({
-      useEth,
-      tokenAllowance: userBalance?.tokenAllowance?.result,
-      vaultId: selectedVault.result?.vaultId,
-      minCollateralOut,
-      isApe,
-      vaultsQuery,
-      decimals: depositDecimals ?? 18,
-    });
+  const {
+    requests,
+    isApproveFetching,
+    isMintFetching,
+    needsApproval,
+    needs0Approval,
+  } = useTransactions({
+    useEth,
+    tokenAllowance: userBalance?.tokenAllowance?.result,
+    vaultId: selectedVault.result?.vaultId,
+    minCollateralOut,
+    isApe,
+    vaultsQuery,
+    decimals: depositDecimals ?? 18,
+  });
   const { versus, leverageTiers, long } = useFilterVaults({
     vaultsQuery,
   });
@@ -212,6 +217,7 @@ export default function MintForm({ isApe }: Props) {
             hash={hash}
           >
             <TransactionInfo
+              needs0Approval={needs0Approval ?? false}
               transactionHash={hash}
               needsApproval={needsApproval}
               vaultId={selectedVault.result?.vaultId ?? "0"}
@@ -315,17 +321,18 @@ export default function MintForm({ isApe }: Props) {
             </Dropdown.Root>
           </DepositInputs.Inputs>
         </DepositInputs.Root>
-        {/* Calculator link */
-          isApe &&
-          <div
-            className="flex justify-start w-full my-2">
-            <Link className="hover:underline" href={"/leverage-calculator"}>
-              <div className="flex flex-row items-center">
-                <IonCalculator className="w-5 h-5 mr-1" />
-                Profit Calculator
-              </div>
-            </Link>
-          </div>
+        {
+          /* Calculator link */
+          isApe && (
+            <div className="my-2 flex w-full justify-start">
+              <Link className="hover:underline" href={"/leverage-calculator"}>
+                <div className="flex flex-row items-center">
+                  <IonCalculator className="mr-1 h-5 w-5" />
+                  Profit Calculator
+                </div>
+              </Link>
+            </div>
+          )
         }
         {/* opacity-0 */}
         <div
