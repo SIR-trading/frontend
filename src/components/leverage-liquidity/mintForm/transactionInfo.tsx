@@ -1,10 +1,9 @@
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionEstimates } from "./transactionEstimates";
 import { TransactionStatus } from "./transactionStatus";
-import { CircleCheck, ExternalLink } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { formatUnits } from "viem";
-import Link from "next/link";
 import { motion } from "motion/react";
 import ExplorerLink from "@/components/shared/explorerLink";
 interface Props {
@@ -15,6 +14,7 @@ interface Props {
   userBalanceFetching: boolean;
   isPending: boolean;
   needsApproval: boolean;
+  needs0Approval: boolean;
   tokenReceived: bigint | undefined;
   isApe: boolean;
   useEth: boolean;
@@ -31,6 +31,7 @@ export default function TransactionInfo({
   isPending,
   isApproving,
   needsApproval,
+  needs0Approval,
   tokenReceived,
   decimals,
   useEth,
@@ -44,7 +45,13 @@ export default function TransactionInfo({
         <TransactionStatus
           showLoading={isConfirming || userBalanceFetching}
           waitForSign={isPending}
-          action={!needsApproval ? "Mint" : "Approve"}
+          action={
+            !needsApproval
+              ? "Mint"
+              : needs0Approval
+                ? "Remove Approval"
+                : "Approve"
+          }
         />
         {!needsApproval && (
           <TransactionEstimates
@@ -60,9 +67,14 @@ export default function TransactionInfo({
             Output is estimated.
           </TransactionModal.Disclaimer>
         )}
-        {needsApproval && (
+        {needsApproval && !needs0Approval && (
           <TransactionModal.Disclaimer>
             Approve Funds to Mint.
+          </TransactionModal.Disclaimer>
+        )}
+        {needsApproval && needs0Approval && (
+          <TransactionModal.Disclaimer>
+            USDT requires users to remove approval before approving again!
           </TransactionModal.Disclaimer>
         )}
       </>
