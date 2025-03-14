@@ -273,7 +273,13 @@ export default function MintForm({ isApe }: Props) {
             >
               <Show
                 when={!needsApproval || isConfirmed}
-                fallback={isConfirmed ? "Confirm Mint" : "Confirm Approve"} // if approval confirmed there will be invalidation lag
+                fallback={
+                  isConfirmed
+                    ? "Confirm Mint"
+                    : needs0Approval
+                      ? "Confirm Remove Approval"
+                      : "Confirm Approve"
+                } // if approval confirmed there will be invalidation lag
               >
                 {"Confirm Mint"}
               </Show>
