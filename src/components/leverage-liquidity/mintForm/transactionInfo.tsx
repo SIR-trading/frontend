@@ -45,7 +45,13 @@ export default function TransactionInfo({
         <TransactionStatus
           showLoading={isConfirming || userBalanceFetching}
           waitForSign={isPending}
-          action={!needsApproval ? "Mint" : "Approve"}
+          action={
+            !needsApproval
+              ? "Mint"
+              : needs0Approval
+                ? "Remove Approval"
+                : "Approve"
+          }
         />
         {!needsApproval && (
           <TransactionEstimates
@@ -68,7 +74,7 @@ export default function TransactionInfo({
         )}
         {needsApproval && needs0Approval && (
           <TransactionModal.Disclaimer>
-            USDT requires a approve removal before approving again!
+            USDT requires users to remove approval before approving again!
           </TransactionModal.Disclaimer>
         )}
       </>
