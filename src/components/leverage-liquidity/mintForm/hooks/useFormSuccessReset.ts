@@ -31,6 +31,7 @@ export function useFormSuccessReset({
       utils.user.getBalanceAndAllowance
         .invalidate()
         .catch((e) => console.log(e));
+      utils.vault.getReserve.invalidate().catch((e) => console.log(e));
       subgraphSyncPoll(txBlock)
         .then(() => {
           utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
@@ -41,6 +42,7 @@ export function useFormSuccessReset({
     if (isConfirmed && useEth && form.getValues("deposit")) {
       form.resetField("deposit");
       utils.user.getEthBalance.invalidate().catch((e) => console.log(e));
+      utils.vault.getReserve.invalidate().catch((e) => console.log(e));
       subgraphSyncPoll(txBlock)
         .then(() => {
           utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
@@ -57,5 +59,6 @@ export function useFormSuccessReset({
     form,
     utils.vault.getTableVaults,
     txBlock,
+    utils.vault.getReserve,
   ]);
 }
