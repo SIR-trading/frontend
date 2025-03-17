@@ -14,7 +14,7 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = () => {
   return (
-    <DialogPrimitive.Close className="absolute right-3 top-3">
+    <DialogPrimitive.Close className="absolute right-3 top-3 z-10">
       <X className="cursor-pointer" size={20} />
     </DialogPrimitive.Close>
   );

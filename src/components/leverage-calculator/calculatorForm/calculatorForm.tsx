@@ -9,7 +9,6 @@ import PriceInputs from "./price-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
 import Dropdown from "@/components/shared/dropDown";
 import Show from "@/components/shared/show";
-import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
 import { useFilterVaults } from "./hooks/useFilterVaults";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
 import { useFindVault } from "./hooks/useFindVault";
@@ -18,6 +17,7 @@ import useGetFormTokensInfo from "./hooks/useGetUserBals";
 import Calculations from "@/components/leverage-calculator/calculatorForm/calculations";
 import { api } from "@/trpc/react";
 import type { TVaults } from "@/lib/types";
+import { useCalculateMaxApe } from "@/components/leverage-liquidity/mintForm/hooks/useCalculateMaxApe";
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed

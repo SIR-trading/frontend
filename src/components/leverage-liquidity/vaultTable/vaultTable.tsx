@@ -1,18 +1,12 @@
 "use client";
 import React from "react";
-import type { TVaults } from "@/lib/types";
 import { VaultTableRow } from "./vaultTableRow";
 import { useSearchParams } from "next/navigation";
 import ToolTip from "@/components/ui/tooltip";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
 import VaultRowSkeleton from "./vaultRowSkeleton";
 import Show from "@/components/shared/show";
-export default function VaultTable({
-  isApe,
-}: {
-  vaultQuery: TVaults;
-  isApe: boolean;
-}) {
+export default function VaultTable({ isApe }: { isApe: boolean }) {
   const params = useSearchParams();
   const vaultPage = params.get("vault-page");
   let pagination = 1;
@@ -23,7 +17,7 @@ export default function VaultTable({
   const { vaults, isFetching } = useVaultProvider();
   return (
     <table className="w-full">
-      <caption className="pb-2 font-lora text-[32px] font-bold leading-[32px]">
+      <caption className="pb-2 font-lora text-[24px] font-bold leading-[24px]">
         Popular Vaults
       </caption>
 
@@ -68,7 +62,7 @@ export default function VaultTable({
 
 function VaultTableRowHeaders() {
   return (
-    <tr className="grid grid-cols-4 px-1 text-left text-[14px] font-normal text-gray-400 md:grid-cols-9">
+    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-gray-400 md:grid-cols-9">
       <th className="font-medium">ID</th>
       <th className="font-medium md:col-span-3">Vault</th>
 

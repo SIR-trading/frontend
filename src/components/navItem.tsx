@@ -9,7 +9,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const navItemVariants = cva(
-  "cursor-pointer rounded-md text-gray-400 px-2 py-1 data-[main=true]:bg-primary data-[active=true]:text-white",
+  "cursor-pointer shadow-sm rounded-md text-gray-400 px-2 py-1 data-[main=true]:bg-primary data-[active=true]:text-white",
   {
     variants: {
       theme: {
@@ -42,6 +42,7 @@ export default function NavItem({
   return (
     <li>
       <Link
+        style={{ textShadow: "black 0px 4px" }}
         data-active={active ? "true" : "false"}
         data-main={main ? "true" : "false"}
         className={cn(navItemVariants({ theme, className }))}

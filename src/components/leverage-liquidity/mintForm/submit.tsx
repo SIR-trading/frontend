@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import React from "react";
 import { useAccount } from "wagmi";
+import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
+import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
 
 const SubmitContext = React.createContext(undefined);
 
@@ -42,22 +44,32 @@ const ConnectButton = () => {
 const OpenTransactionModalButton = ({
   onClick,
   isValid,
+  isApe,
   needsApproval,
 }: {
   needsApproval: boolean;
   onClick: () => void;
   isValid: boolean;
+  isApe: boolean;
 }) => {
   const { address } = useAccount();
   if (!address) return undefined;
   return (
     <Button
       disabled={!isValid}
-      variant="submit"
+      variant={!needsApproval && !isApe ? "greenSubmit" : "submit"}
       type="button"
       onClick={onClick}
     >
-      {!needsApproval ? "Mint" : "Approve"}
+      {!needsApproval ? (
+        <div className="flex items-center gap-x-1">
+          <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+          <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}
+          </span>
+        </div>
+      ) : (
+        "Approve"
+      )}
     </Button>
   );
 };

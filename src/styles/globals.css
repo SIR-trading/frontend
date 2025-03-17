@@ -29,7 +29,7 @@
 }
 html {
   scroll-behavior: smooth;
-  scrollbar-gutter: stable;
+  /*scrollbar-gutter: stable;*/
 }
 ::-webkit-scrollbar {
   width: 4px;

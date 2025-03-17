@@ -12,6 +12,7 @@ import Bg from "../../public/background.png";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
+import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -25,7 +26,7 @@ const lora = Bebas_Neue({
 // console.log(Inter, "INTER");
 export const metadata = {
   title: "SIR",
-  description: "Description",
+  description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -66,16 +67,18 @@ export default async function RootLayout({
 
         <Toaster />
         <TRPCReactProvider>
-          <EvmProvider cookie={cookie}>
-            <VaultProvider>
-              <div className=" flex min-h-screen flex-col">
-                <Header />
-                <Warning />
-                {children}
-                <Footer />
-              </div>
-            </VaultProvider>
-          </EvmProvider>
+          <TokenlistContextProvider>
+            <EvmProvider cookie={cookie}>
+              <VaultProvider>
+                <div className=" flex min-h-screen flex-col">
+                  <Header />
+                  <Warning />
+                  {children}
+                  <Footer />
+                </div>
+              </VaultProvider>
+            </EvmProvider>
+          </TokenlistContextProvider>
         </TRPCReactProvider>
       </body>
     </html>

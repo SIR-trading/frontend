@@ -7,7 +7,7 @@ import NavItem from "./navItem";
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   return (
-    <div className="flex items-center text-white lg:hidden">
+    <div className="flex items-center text-white md:hidden">
       <Sheet open={openModal} onOpenChange={setOpen}>
         <SheetTrigger>
           <Menu className="cursor-pointer" size={30} />

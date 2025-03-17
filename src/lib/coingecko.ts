@@ -8,13 +8,20 @@ function formatTimestamp(unixTimestamp: number) {
 
   return `${day}-${month}-${year}`;
 }
-export async function getEthUsdPriceOnDate({
+/**
+ * getCoinUsdPriceOnDate
+ * @param timestamp - unix timestamp
+ * @param id - this id is not an address, its coingecko slug id for coin/token
+ */
+export async function getCoinUsdPriceOnDate({
   timestamp,
+  id,
 }: {
   timestamp: number;
+  id: string;
 }) {
   const formattedDate = formatTimestamp(timestamp);
-  const url = `https://api.coingecko.com/api/v3/coins/ethereum/history?date=${formattedDate}&localization=false`;
+  const url = `https://api.coingecko.com/api/v3/coins/${id}/history?date=${formattedDate}&localization=false`;
 
   const options = {
     method: "GET",
@@ -33,6 +40,7 @@ export async function getEthUsdPriceOnDate({
     const data = parse.data;
     return data.market_data.current_price.usd;
   } else {
+    console.log(resp, "RESPONSE");
     console.error("Error parsing CyprtoSchema");
     console.log(parse.error);
   }
