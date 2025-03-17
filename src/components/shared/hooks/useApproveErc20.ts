@@ -22,6 +22,7 @@ export function useApproveErc20({
     if (allowance > 0n && tokenAddr === USDT_ADDRESS && allowance < amount) {
       return true;
     }
+    return false;
   }, [allowance, amount, tokenAddr]);
   const needsApproval = useMemo(() => {
     if ((allowance ?? 0n) < amount) {
