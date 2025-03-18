@@ -98,7 +98,6 @@ export function calculateMaxApe({
         (2n ** (2n - leverageTier) * gentlemenReserve - a);
       const dom = 2n ** (2n - leverageTier) * (12500n - baseFee);
       const result = nom / dom;
-      console.log({ result });
       return result;
     }
   } catch {
