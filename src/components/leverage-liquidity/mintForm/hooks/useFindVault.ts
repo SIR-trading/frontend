@@ -11,7 +11,6 @@ export function useFindVault() {
     collateralToken = formData.long.split(",")[0] ?? ""; //value formatted : address,symbol
   const safeLeverageTier = z.coerce.number().safeParse(formData.leverageTier);
   const leverageTier = safeLeverageTier.success ? safeLeverageTier.data : -1;
-  console.log({ vaultQuery, collateralToken, debtToken, leverageTier });
   const result = vaultQuery?.vaults.find((v) => {
     if (
       v.collateralToken === collateralToken &&

@@ -36,6 +36,9 @@ import useGetFormTokensInfo from "./hooks/useGetUserBals";
 import { IonCalculator } from "@/components/ui/icons/calculator-icon";
 import Link from "next/link";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
+import SubmitButton from "@/components/shared/submitButton";
+import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
+import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
 
 interface Props {
   vaultsQuery: TVaults;
@@ -204,7 +207,7 @@ export default function MintForm({ isApe }: Props) {
       : formatUnits(maxCollateralIn ?? 0n, collateralDecimals ?? 18);
   }
   return (
-    <Card>
+    <Card className="md:p-[18px] md:pb-[10px]">
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
           title="Mint"
@@ -358,17 +361,23 @@ export default function MintForm({ isApe }: Props) {
             <Show when={isApe} fallback={<div className="py-3" />}>
               <p className="pb-2 text-center text-sm text-gray-500 md:w-[450px]">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
             </Show>
-            <MintFormSubmit.OpenTransactionModalButton
-              isValid={isValid}
-              isApe={isApe}
+            <SubmitButton
+              disabled={!isValid}
               onClick={() => {
-                setOpenTransactionModal(true);
-                // onSubmit();
+                if (isValid) {
+                  setOpenTransactionModal(true);
+                }
               }}
-              needsApproval={needsApproval}
-            />
-            <MintFormSubmit.ConnectButton />
+            >
+              <Show when={!needsApproval} fallback={"Approve"}>
+                <div className="flex items-center gap-x-1">
+                  <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+                  <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
+                </div>
+              </Show>
+            </SubmitButton>
             <MintFormSubmit.FeeInfo
+              error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
               isValid={isValid}
               feeAmount={`${formatNumber(
@@ -377,9 +386,6 @@ export default function MintForm({ isApe }: Props) {
               feePercent={fee}
               deposit={deposit}
             />
-            <MintFormSubmit.Errors>
-              {formState.errors.root?.message}
-            </MintFormSubmit.Errors>
           </MintFormSubmit.Root>
         </motion.div>
       </form>

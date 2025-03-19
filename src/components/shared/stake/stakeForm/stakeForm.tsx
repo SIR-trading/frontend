@@ -23,6 +23,8 @@ import type { TUnstakeFormFields } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGetReceivedSir } from "@/components/portfolio/hooks/useGetReceivedSir";
 import { useCheckStakeValidity } from "./useCheckStakeValidity";
+import SubmitButton from "../../submitButton";
+import ErrorMessage from "@/components/ui/error-message";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -175,36 +177,18 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
             ></StakeInput>
 
             <div className=" mt-[20px] flex flex-col items-center justify-center">
-              {address && (
-                <Button
-                  variant={"submit"}
-                  onClick={() => {
-                    if (isValid) {
-                      setOpen(true);
-                    }
-                  }}
-                  type="button"
-                  disabled={!isValid}
-                >
-                  Stake
-                </Button>
-              )}
-              {!address && (
-                <Button
-                  onClick={() => openConnectModal?.()}
-                  variant="submit"
-                  type="button"
-                >
-                  Connect Wallet
-                </Button>
-              )}
-              {form.formState.errors.root?.message && (
-                <div className="flex w-[450px] items-center justify-center pt-[20px]">
-                  <p className="h-[20px] text-center text-sm text-red-400">
-                    {address && <>{form.formState.errors.root?.message}</>}
-                  </p>
-                </div>
-              )}
+              <SubmitButton
+                // error={form.formState.errors.root?.message}
+                disabled={!isValid}
+                onClick={() => {
+                  if (isValid) {
+                    setOpen(true);
+                  }
+                }}
+              >
+                Stake
+              </SubmitButton>
+              <ErrorMessage>{form.formState.errors.root?.message}</ErrorMessage>
             </div>
           </form>
         </Form>

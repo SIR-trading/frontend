@@ -21,7 +21,8 @@ import ClaimFeesCheckbox from "./claimFeesCheck";
 import { useGetReceivedSir } from "./hooks/useGetReceivedSir";
 import { TokenDisplay } from "../ui/token-display";
 import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
-import { SirCard } from "./sirCard";
+import SubmitButton from "../shared/submitButton";
+import ErrorMessage from "../ui/error-message";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -35,7 +36,6 @@ const UnstakeForm = ({
 
   const balance = useGetStakedSir();
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
 
   const [unstakeAndClaimFees, setUnstakeAndClaimFees] = useState(false);
   const { Unstake, isFetching: unstakeFetching } = useUnstake({
@@ -191,36 +191,17 @@ const UnstakeForm = ({
             ></ClaimFeesCheckbox>
 
             <div className=" mt-[20px] flex flex-col items-center justify-center">
-              {address && (
-                <Button
-                  variant={"submit"}
-                  onClick={() => {
-                    if (isValid) {
-                      setOpen(true);
-                    }
-                  }}
-                  type="button"
-                  disabled={!isValid}
-                >
-                  Unstake
-                </Button>
-              )}
-              {!address && (
-                <Button
-                  onClick={() => openConnectModal?.()}
-                  variant="submit"
-                  type="button"
-                >
-                  Connect Wallet
-                </Button>
-              )}
-              {form.formState.errors.root?.message && (
-                <div className="flex w-[450px] items-center justify-center pt-[20px]">
-                  <p className="h-[20px] text-center text-sm text-red-400">
-                    {address && <>{form.formState.errors.root?.message}</>}
-                  </p>
-                </div>
-              )}
+              <SubmitButton
+                onClick={() => {
+                  if (isValid) {
+                    setOpen(true);
+                  }
+                }}
+                disabled={!isValid}
+              >
+                Unstake
+              </SubmitButton>
+              <ErrorMessage>{form.formState.errors.root?.message}</ErrorMessage>
             </div>
           </form>
         </Form>

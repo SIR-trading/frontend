@@ -21,13 +21,11 @@ export default function useRetrieveToken({
         address: address ?? zeroAddress,
         abi: erc20Abi,
         functionName: "symbol",
-        chainId: 1,
       },
       {
         address: address ?? zeroAddress,
         abi: erc20Abi,
         functionName: "name",
-        chainId: 1,
       },
     ],
 
