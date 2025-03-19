@@ -47,6 +47,7 @@ export function Header() {
                 <NavItem url={"/stake"}>Stake</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
                 <NavItem url={"/leverage-calculator"}>Calculator</NavItem>
+                <NavItem url={"/auction"}>Auction</NavItem>
                 {/* <NavItem url={"/get-tokens"}>Get Tokens</NavItem> */}
               </ul>
             </div>
