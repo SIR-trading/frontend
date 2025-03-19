@@ -19,7 +19,6 @@ export function useApproveErc20({
   approveContract,
 }: Props) {
   console.log(tokenAddr === USDT_ADDRESS, tokenAddr, USDT_ADDRESS);
-  // needs to check for 0 approval for usdt edge case
   const needs0Approval = useMemo(() => {
     if (allowance === undefined) {
       return false;
@@ -41,18 +40,11 @@ export function useApproveErc20({
   const approveAmount = needs0Approval ? 0n : amount;
   const approveSimulate = useSimulateContract({
     address: tokenAddr as TAddressString,
-    abi: getAbi(tokenAddr as TAddressString),
+    abi: nonStandardAbi,
     functionName: "approve",
     args: [approveContract, approveAmount],
   });
   return { approveSimulate, needsApproval, needs0Approval };
-}
-function getAbi(tokenAddr: TAddressString) {
-  if (tokenAddr.toLowerCase() === USDT_ADDRESS.toLowerCase()) {
-    return nonStandardAbi;
-  } else {
-    return nonStandardAbi;
-  }
 }
 const nonStandardAbi = [
   {
