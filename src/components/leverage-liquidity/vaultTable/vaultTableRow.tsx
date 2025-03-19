@@ -46,25 +46,36 @@ export function VaultTableRow({
       return 0;
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
-  // Add a query to retrieve collateral data
-  // Hydrate with server data
-  const { data: reservesData } = api.vault.getReserve.useQuery(
-    {
-      vaultId: Number.parseInt(pool.vaultId),
-    },
-    {
-      // Dont fetch data on component mount
-      // Data is from server and is fresh until invalidation
-      refetchOnMount: false,
-      initialData: [
-        {
-          reserveApes: pool.apeCollateral,
-          reserveLPers: pool.teaCollateral,
-          tickPriceX42: 0n,
-        },
-      ],
-    },
-  );
+  // // Add a query to retrieve collateral data
+  // // Hydrate with server data
+  // const { data: reservesData } = api.vault.getReserve.useQuery(
+  //   {
+  //     vaultId: Number.parseInt(pool.vaultId),
+  //   },
+  //   {
+  //     // Dont fetch data on component mount
+  //     // Data is from server and is fresh until invalidation
+  //     refetchOnMount: false,
+  //     initialData: [
+  //       {
+  //         reserveApes: pool.apeCollateral,
+  //         reserveLPers: pool.teaCollateral,
+  //         tickPriceX42: 0n,
+  //       },
+  //     ],
+  //   },
+  // );
+
+  const reservesData = useMemo(() => {
+    const a = [
+      {
+        reserveApes: pool.apeCollateral,
+        reserveLPers: pool.teaCollateral,
+        tickPriceX42: 0n,
+      },
+    ];
+    return a;
+  }, [pool.apeCollateral, pool.teaCollateral]);
   const { setValue } = useMintFormProviderApi();
   const teaCollateral = parseFloat(
     formatUnits(reservesData[0]?.reserveLPers ?? 0n, 18),
@@ -208,22 +219,22 @@ export function VaultTableRow({
           <HoverCardContent side="top" alignOffset={4}>
             <div className="mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
               <div className="grid grid-cols-3 gap-x-2">
-                <div className="font-bold text-left">Apes:</div>
+                <div className="text-left font-bold">Apes:</div>
                 <TokenDisplay
                   amount={reservesData[0]?.reserveApes ?? 0n}
                   amountSize="small"
                   unitLabel=""
                   decimals={pool.apeDecimals}
                 />
-                <div>({(apeCollateral * 100 / (tvl ?? 1)).toFixed(2)}%)</div>
-                <div className="font-bold text-left">LPers:</div>
+                <div>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</div>
+                <div className="text-left font-bold">LPers:</div>
                 <TokenDisplay
                   amount={reservesData[0]?.reserveLPers ?? 0n}
                   amountSize="small"
                   unitLabel=""
                   decimals={pool.apeDecimals}
                 />
-                <div>({(teaCollateral * 100 / (tvl ?? 1)).toFixed(2)}%)</div>
+                <div>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</div>
               </div>
             </div>
           </HoverCardContent>

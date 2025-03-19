@@ -301,7 +301,7 @@ export default function MintForm({ isApe }: Props) {
             setUseEth={(b: boolean) => {
               setUseEth(b);
             }}
-            maxTokenIn={maxTokenIn}
+            maxTokenIn={badHealth ? undefined : maxTokenIn}
             balance={formatUnits(balance ?? 0n, depositDecimals ?? 18)}
           >
             <Dropdown.Root
