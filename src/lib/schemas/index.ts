@@ -51,22 +51,21 @@ export const tokenSchema = z.object({
     .optional(),
 });
 
-
 const PriceSchema = z.object({
   currency: z.string(),
   value: z.string(),
   lastUpdatedAt: z.string(),
 });
 
-const ZTokenPrice = z.object({
-  symbol: z.string(),
+const TokenPriceSchema = z.object({
+  network: z.string(),
+  address: z.string().length(42), // Ethereum addresses are 42 characters long
   prices: z.array(PriceSchema),
 });
 
-export const ZVaultPrices = z.object({
-  data: z.array(ZTokenPrice),
+export const ZTokenPrices = z.object({
+  data: z.array(TokenPriceSchema),
 });
-
 // {
 //     "name": "TrueUSD",
 //     "website": "https://www.trueusd.com/",
