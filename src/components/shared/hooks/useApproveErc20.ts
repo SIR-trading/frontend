@@ -1,12 +1,14 @@
 import { env } from "@/env";
 import type { TAddressString } from "@/lib/types";
 import { useMemo } from "react";
+import { maxUint256 } from "viem";
 import { useSimulateContract } from "wagmi";
 interface Props {
   tokenAddr: string;
   approveContract: TAddressString;
   amount: bigint;
   allowance: bigint;
+  useMaxApprove: boolean;
 }
 const USDT_ADDRESS =
   env.NEXT_PUBLIC_CHAIN_ID === "1"
@@ -17,6 +19,7 @@ export function useApproveErc20({
   allowance,
   tokenAddr,
   approveContract,
+  useMaxApprove,
 }: Props) {
   console.log(tokenAddr === USDT_ADDRESS, tokenAddr, USDT_ADDRESS);
   const needs0Approval = useMemo(() => {
@@ -38,7 +41,10 @@ export function useApproveErc20({
     }
     return false;
   }, [allowance, amount, tokenAddr]);
-  const approveAmount = needs0Approval ? 0n : amount;
+  let approveAmount = needs0Approval ? 0n : amount;
+  if (!needs0Approval && useMaxApprove) {
+    approveAmount = maxUint256;
+  }
   const approveSimulate = useSimulateContract({
     address: tokenAddr as TAddressString,
     abi: nonStandardAbi,
@@ -46,17 +52,6 @@ export function useApproveErc20({
     args: [approveContract, approveAmount],
   });
   return { approveSimulate, needsApproval, needs0Approval };
-}
-const USDT =
-  env.NEXT_PUBLIC_CHAIN_ID === "1"
-    ? "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-    : "0x89976b5214377a45643E6dD3c5C60b5098e7B9d7";
-function getAbi(tokenAddr: TAddressString) {
-  if (tokenAddr.toLowerCase() === USDT.toLowerCase()) {
-    return nonStandardAbi;
-  } else {
-    return nonStandardAbi;
-  }
 }
 const nonStandardAbi = [
   {
