@@ -8,19 +8,26 @@ interface Props {
   amount: bigint;
   allowance: bigint;
 }
-const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+const USDT_ADDRESS =
+  env.NEXT_PUBLIC_CHAIN_ID === "1"
+    ? "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    : "0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0";
 export function useApproveErc20({
   amount,
   allowance,
   tokenAddr,
   approveContract,
 }: Props) {
-  // needs to check for 0 approval for usdt edge case
+  console.log(tokenAddr === USDT_ADDRESS, tokenAddr, USDT_ADDRESS);
   const needs0Approval = useMemo(() => {
     if (allowance === undefined) {
       return false;
     }
-    if (allowance > 0n && tokenAddr === USDT_ADDRESS && allowance < amount) {
+    if (
+      allowance > 0n &&
+      tokenAddr.toLowerCase() === USDT_ADDRESS.toLowerCase() &&
+      allowance < amount
+    ) {
       return true;
     }
   }, [allowance, amount, tokenAddr]);
@@ -34,7 +41,7 @@ export function useApproveErc20({
   const approveAmount = needs0Approval ? 0n : amount;
   const approveSimulate = useSimulateContract({
     address: tokenAddr as TAddressString,
-    abi: getAbi(tokenAddr as TAddressString),
+    abi: nonStandardAbi,
     functionName: "approve",
     args: [approveContract, approveAmount],
   });
