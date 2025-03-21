@@ -37,13 +37,13 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   });
 
   // Fetch token prices using the vault's symbols.
-  const debtToken = selectedVault.result?.debtSymbol ?? "USDC";
-  const collateralToken = selectedVault.result?.collateralSymbol ?? "ETH";
+  const debtToken: string = selectedVault.result?.debtToken ?? "";
+  const collateralToken: string = selectedVault.result?.collateralToken ?? "";
   const { data: tokens } = api.price.getVaultPrices.useQuery(
-    { debtToken, collateralToken },
+    { debtToken, collateralToken, chain: "eth-mainnet" },
     { enabled: Boolean(selectedVault.result) },
   );
-
+  console.log("VAULT_PRICES__", tokens)
   // Calculate the prices for both conversion directions.
   const collateralPrice = tokens?.data[0]?.prices[0]?.value
     ? Number(tokens.data[0].prices[0].value)
