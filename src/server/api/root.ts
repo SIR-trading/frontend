@@ -4,6 +4,7 @@ import { vaultRouter } from "./routers/vault";
 import { erc20Router } from "./routers/erc20";
 import { quoteRouter } from "./routers/quote";
 import { dividendsRouter } from "./routers/dividends";
+import { auctionRouter } from "@/server/api/routers/auction";
 import { priceRouter } from "./routers/price";
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   vault: vaultRouter,
   erc20: erc20Router,
   quote: quoteRouter,
+  auction: auctionRouter,
   price: priceRouter,
 });
 
