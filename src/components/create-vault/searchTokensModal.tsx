@@ -34,11 +34,23 @@ export default function SearchTokensModal({
   const { debouncedValue: deSearch } = useDebounce(searchQuery, 400);
   const [enterManually, setEnterManually] = React.useState(false);
   const tokens = useMemo(() => {
-    return tokenlist?.filter(
-      (token) =>
-        token.name.toLowerCase().includes(deSearch.toLowerCase()) &&
-        !selectedTokens.includes(token.address as Address),
-    );
+    return tokenlist?.filter((token) => {
+      if (
+        token.address === selectedTokens[0] ||
+        token.address === selectedTokens[1]
+      ) {
+        return false;
+      }
+      const inclSymb = token.name
+        .toLowerCase()
+        .includes(deSearch.trim().toLowerCase());
+      const inclName = token.symbol.toLowerCase().includes(deSearch.trim());
+      const inclAddress = token.address.toLowerCase().includes(deSearch.trim());
+      if (inclName || inclSymb || inclAddress) {
+        return true;
+      }
+      return false;
+    });
   }, [deSearch, selectedTokens, tokenlist]);
   const [manualAddress, setManualAddress] = React.useState("");
   const { name, symbol, address, isLoading } = useRetrieveToken({
@@ -164,6 +176,7 @@ export default function SearchTokensModal({
                       <TokenItem
                         token={token}
                         selectToken={(token) => {
+                          setSearchQuery("");
                           setValue(
                             tokenSelection ?? "longToken",
                             token.address,

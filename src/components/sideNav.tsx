@@ -39,6 +39,9 @@ export default function SideNav() {
                 <NavItem onClick={() => setOpen(false)} url={"/create-vault"}>
                   Create Vault
                 </NavItem>
+                <NavItem onClick={() => setOpen(false)} url={"/auctions"}>
+                  Auctions
+                </NavItem>
               </ul>
             </nav>
           </div>

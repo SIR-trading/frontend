@@ -6,7 +6,7 @@ import Countdown from "react-countdown";
 import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 
 export enum AuctionCardTitle {
-  AUCTION_DETAILS = "Auction details",
+  AUCTION_DETAILS = "Token Address",
   YOUR_BID = "Your bid",
   HIGHEST_BID = "Highest bid",
   CLOSING_TIME = "Closing time",

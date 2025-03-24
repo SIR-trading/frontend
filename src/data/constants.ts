@@ -9,7 +9,7 @@ export const WETH_ADDRESS = (
 ) as TAddressString;
 export const SIR_USD_PRICE = "0.00016542597";
 export const ASSET_REPO =
-  "https://raw.githubusercontent.com/SIR-trading/assets/master";
+  "https://raw.githubusercontent.com/trustwallet/assets/master";
 export const BASE_FEE = parseFloat(env.NEXT_PUBLIC_BASE_FEE);
 export const L_FEE = parseFloat(env.NEXT_PUBLIC_MINTING_FEE);
 
