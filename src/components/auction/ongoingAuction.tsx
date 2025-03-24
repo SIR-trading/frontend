@@ -18,6 +18,8 @@ import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAu
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import Show from "@/components/shared/show";
+import type { Address} from "viem";
+import { hexToBigInt, zeroAddress } from "viem";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -303,6 +305,9 @@ const OngoingAuction = ({
                         title: AuctionCardTitle.LEADER,
                         content: compareAddress(highestBidder, address) ? (
                           "YOU ARE LEADING"
+                        ) : hexToBigInt(highestBidder as Address) ===
+                          BigInt(0) ? (
+                          "N/A"
                         ) : (
                           <AddressExplorerLink address={highestBidder} />
                         ),
