@@ -14,6 +14,11 @@ import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/tran
 import React from "react";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
+import { compareAddress } from "@/lib/utils";
+import { WETH_ADDRESS } from "@/data/constants";
+import Show from "@/components/shared/show";
+import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
+import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 
 type TNewAuctionData = {
   amount: bigint;
@@ -26,7 +31,7 @@ const NewAuction = ({
 }: {
   uniqueAuctionCollection: TUniqueAuctionCollection;
 }) => {
-  const { data: tokenWithFeesMap } =
+  const { data: tokenWithFeesMap, isLoading: isLoadingBal } =
     api.vault.getTotalCollateralFeesInVault.useQuery(
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
       {
@@ -34,12 +39,10 @@ const NewAuction = ({
         refetchInterval: 60 * 1000,
       },
     );
-  const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery(
-    undefined,
-    {
+  const { data: allExistingAuctions, isLoading } =
+    api.auction.getallAuctions.useQuery(undefined, {
       refetchInterval: 60 * 1000,
-    },
-  );
+    });
 
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
 
@@ -109,6 +112,8 @@ const NewAuction = ({
 
   const confirmTransaction = () => {
     if (!isConfirmed) {
+      console.log({ id, startAuctionRequest });
+
       if (id && startAuctionRequest) {
         writeContract(startAuctionRequest);
       }
@@ -139,8 +144,10 @@ const NewAuction = ({
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           <div className="grid gap-4">
             <h4 className="text-lg font-bold">
-              {isPending || isConfirming ? "Starting" : "Start"} Auction for{" "}
-              {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")}
+              {compareAddress(id, WETH_ADDRESS)
+                ? `${isPending || isConfirming ? "Collecting" : "Collect"} WETH Fees`
+                : `${isPending || isConfirming ? "Starting" : "Start"} Auction for
+              ${uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")} `}
             </h4>
             <TransactionStatus
               showLoading={isConfirming}
@@ -163,110 +170,141 @@ const NewAuction = ({
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      <AuctionContentWrapper header="Ready to Start">
-        {readyToStart.map((auction, index) => (
-          <AuctionCard
-            auctionType="new"
-            data={[
-              [
-                {
-                  title: AuctionCardTitle.AUCTION_DETAILS,
-                  content: uniqueAuctionCollection.collateralSymbolMap.get(
-                    auction.token,
-                  ),
-                  variant: "large",
-                },
-                {
-                  title: AuctionCardTitle.AMOUNT,
-                  content: (
-                    <TokenDisplay
-                      labelSize="small"
-                      amountSize="large"
-                      amount={auction.amount}
-                      decimals={
-                        uniqueAuctionCollection.collateralDecimalsMap.get(
-                          auction.token,
-                        ) ?? 18
-                      }
-                      unitLabel={
-                        uniqueAuctionCollection.collateralSymbolMap.get(
-                          auction.token,
-                        ) ?? ""
-                      }
-                      className={
-                        "font-lora text-[32px] font-normal leading-[32px]"
-                      }
-                    />
-                  ),
-                  variant: "large",
-                },
-              ],
-            ]}
-            action={{
-              title: "Start Auction",
-              onClick: () => {
-                handleAuctionStart(auction.token);
-              },
-            }}
-            disabled={isPending || isConfirming}
-            actionDelay={auction.timeToStart}
-            id={auction.token}
-            key={index}
-          />
-        ))}
-      </AuctionContentWrapper>
-      <div className="h-[64px]" />
-      <AuctionContentWrapper header="On Hold">
-        {onHold.map((auction, index) => (
-          <AuctionCard
-            auctionType="new"
-            data={[
-              [
-                {
-                  title: AuctionCardTitle.AUCTION_DETAILS,
-                  content: uniqueAuctionCollection.collateralSymbolMap.get(
-                    auction.token,
-                  ),
-                  variant: "large",
-                },
-                {
-                  title: AuctionCardTitle.AMOUNT,
-                  content: (
-                    <TokenDisplay
-                      labelSize="small"
-                      amountSize="large"
-                      amount={auction.amount}
-                      decimals={
-                        uniqueAuctionCollection.collateralDecimalsMap.get(
-                          auction.token,
-                        ) ?? 18
-                      }
-                      unitLabel={
-                        uniqueAuctionCollection.collateralSymbolMap.get(
-                          auction.token,
-                        ) ?? ""
-                      }
-                      className={
-                        "font-lora text-[32px] font-normal leading-[32px]"
-                      }
-                    />
-                  ),
-                  variant: "large",
-                },
-              ],
-            ]}
-            id={auction.token}
-            key={index}
-            action={{
-              title: "Start Auction",
-              onClick: () => {
-                handleAuctionStart(auction.token);
-              },
-            }}
-            actionDelay={auction.timeToStart}
-          />
-        ))}
-      </AuctionContentWrapper>
+      <Show
+        when={!isLoading && !isLoadingBal}
+        fallback={
+          <>
+            <AuctionContentSkeleton />
+            <div className="h-[64px]" />
+            <AuctionContentSkeleton />
+          </>
+        }
+      >
+        {readyToStart.length > 0 && (
+          <>
+            <AuctionContentWrapper header="Ready to Start">
+              {readyToStart.map((auction, index) => (
+                <AuctionCard
+                  auctionType="new"
+                  data={[
+                    [
+                      {
+                        title: AuctionCardTitle.AUCTION_DETAILS,
+                        content: (
+                          <AddressExplorerLink
+                            address={auction.token}
+                            fontSize={20}
+                            shortenLength={4}
+                          />
+                        ),
+                      },
+                      {
+                        title: AuctionCardTitle.AMOUNT,
+                        content: (
+                          <TokenDisplay
+                            labelSize="small"
+                            amountSize="large"
+                            amount={auction.amount}
+                            decimals={
+                              uniqueAuctionCollection.collateralDecimalsMap.get(
+                                auction.token,
+                              ) ?? 18
+                            }
+                            unitLabel={
+                              uniqueAuctionCollection.collateralSymbolMap.get(
+                                auction.token,
+                              ) ?? ""
+                            }
+                            className={
+                              "font-lora text-[32px] font-normal leading-[32px]"
+                            }
+                          />
+                        ),
+                        variant: "large",
+                      },
+                    ],
+                  ]}
+                  action={{
+                    title: compareAddress(auction.token, WETH_ADDRESS)
+                      ? "Collect Fees"
+                      : "Start Auction",
+                    onClick: () => {
+                      handleAuctionStart(auction.token);
+                    },
+                  }}
+                  disabled={isPending || isConfirming}
+                  actionDelay={auction.timeToStart}
+                  id={auction.token}
+                  key={index}
+                />
+              ))}
+            </AuctionContentWrapper>
+            <div className="h-[64px]" />
+          </>
+        )}
+        {onHold.length > 0 && (
+          <AuctionContentWrapper header="On Hold">
+            {onHold.map((auction, index) => (
+              <AuctionCard
+                auctionType="new"
+                data={[
+                  [
+                    {
+                      title: AuctionCardTitle.AUCTION_DETAILS,
+                      content: (
+                        <AddressExplorerLink
+                          address={auction.token}
+                          fontSize={20}
+                          shortenLength={4}
+                        />
+                      ),
+                    },
+                    {
+                      title: AuctionCardTitle.AMOUNT,
+                      content: (
+                        <TokenDisplay
+                          labelSize="small"
+                          amountSize="large"
+                          amount={auction.amount}
+                          decimals={
+                            uniqueAuctionCollection.collateralDecimalsMap.get(
+                              auction.token,
+                            ) ?? 18
+                          }
+                          unitLabel={
+                            uniqueAuctionCollection.collateralSymbolMap.get(
+                              auction.token,
+                            ) ?? ""
+                          }
+                          className={
+                            "font-lora text-[32px] font-normal leading-[32px]"
+                          }
+                        />
+                      ),
+                      variant: "large",
+                    },
+                  ],
+                ]}
+                id={auction.token}
+                key={index}
+                action={{
+                  title: "Start Auction",
+                  onClick: () => {
+                    handleAuctionStart(auction.token);
+                  },
+                }}
+                actionDelay={auction.timeToStart}
+              />
+            ))}
+          </AuctionContentWrapper>
+        )}
+
+        {readyToStart.length === 0 && onHold.length === 0 && (
+          <div className="flex h-[300px] items-center justify-center">
+            <p className="text-lg">No Auctions available</p>
+          </div>
+        )}
+      </Show>
     </div>
   );
 };

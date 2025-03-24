@@ -48,7 +48,6 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     amount: formData.bid,
   });
 
-  const [isApproved, setIsApproved] = React.useState(false);
 
   const balance = userBalance?.tokenBalance?.result;
 
@@ -65,16 +64,23 @@ export function AuctionBidModal({ open, setOpen }: Props) {
       return;
     }
 
-    if (bidRequest) {
+    if (bidRequest && !isConfirmed) {
       writeContract(bidRequest);
       return;
     }
-  }, [approveRequest, bidRequest, needsApproval, writeContract]);
+    setOpen({ open: false });
+  }, [
+    approveRequest,
+    bidRequest,
+    isConfirmed,
+    needsApproval,
+    setOpen,
+    writeContract,
+  ]);
 
   useResetAfterApprove({
     isConfirmed,
     reset: () => {
-      setIsApproved(true);
       reset();
       reSimulateBid()
         .then((r) => r)
@@ -84,22 +90,18 @@ export function AuctionBidModal({ open, setOpen }: Props) {
   });
 
   useResetAuctionsOnSuccess({
-    isConfirming: isConfirming,
-    isConfirmed: isConfirmed,
+    isConfirming: Boolean(isConfirming && bidRequest),
+    isConfirmed: Boolean(isConfirmed && bidRequest),
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
     auctionType: "ongoing",
-    halt: !isApproved,
     actions: () => {
-      if (!isApproved) {
-        return;
-      } else {
-        form.reset();
-        setIsApproved(false);
+      console.log("Taking Actions");
+
+      form.reset();
+      setTimeout(() => {
         setOpen({ open: false });
-        setTimeout(() => {
-          reset();
-        }, 2000);
-      }
+        reset();
+      }, 3000);
     },
   });
 
@@ -144,10 +146,11 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               onClick={onSubmit}
               disabled={
                 userBalanceFetching ||
-                Number(formData.bid) === 0 ||
-                !balance ||
-                parseEther(formData.bid) > balance ||
-                (!isTopUp &&
+                (Number(formData.bid) === 0 && !isConfirmed) ||
+                (!balance && !isConfirmed) ||
+                (parseEther(formData.bid) > balance! && !isConfirmed) ||
+                (!isConfirmed &&
+                  !isTopUp &&
                   formData.bid <= formatEther(currentBid ?? BigInt(0)))
               }
               isPending={isPending}
@@ -168,47 +171,6 @@ export function AuctionBidModal({ open, setOpen }: Props) {
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </div>
-
-        {/* {openTransactionModal && (
-          <div
-            className={`nav-shadow relative rounded-xl bg-secondary p-4  text-white transition-all duration-700 `}
-          >
-            
-              <div className="grid gap-4">
-                <h4 className="text-lg font-bold">
-                  {isPending || isConfirming ?  : "Place"} bid{" "}
-                  
-                  <TokenDisplay
-                    amount={parseEther(formData.bid)}
-                    labelSize="small"
-                    amountSize="large"
-                    decimals={18}
-                    unitLabel={"WETH"}
-                    className={
-                      "font-lora text-[28px] font-normal leading-[32px]"
-                    }
-                  />
-                </h4>
-              
-                {isConfirming && (
-        <div className="">
-         
-        </div>
-      )}
-              </div>
-            <TransactionModal.StatSubmitContainer>
-              <TransactionModal.SubmitButton
-                onClick={onSubmit}
-                disabled={isPending || isConfirming}
-                isPending={isPending}
-                loading={isConfirming}
-                isConfirmed={isConfirmed}
-              >
-                {isConfirming ? "Confirming" : "Confirm"}
-              </TransactionModal.SubmitButton>
-            </TransactionModal.StatSubmitContainer>
-          </div>
-        )} */}
       </DialogContent>
     </Dialog>
   );

@@ -3,7 +3,15 @@ import Link from "next/link";
 import React from "react";
 import type { Address } from "viem";
 
-const AddressExplorerLink = ({ address }: { address: string }) => {
+const AddressExplorerLink = ({
+  address,
+  fontSize = 16,
+  shortenLength = 6,
+}: {
+  address: string;
+  fontSize?: number;
+  shortenLength?: number;
+}) => {
   return (
     <Link
       href={`https://etherscan.io/address/${address}`}
@@ -20,9 +28,9 @@ const AddressExplorerLink = ({ address }: { address: string }) => {
             textColor: "#FFF",
             badgeBackground: "#0000",
             secondaryColor: "#FFF",
-            fontSize: 16,
+            fontSize,
           }}
-          shortenAddress={6}
+          shortenAddress={shortenLength}
           underline
         />
       </AddrethConfig>
