@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { MethContract } from "@/contracts/meth";
-import { TarpContract } from "@/contracts/tarp";
+import { TarpContract, USDTContract } from "@/contracts/tarp";
 import { Copy } from "lucide-react";
 import React from "react";
-import { useSimulateContract, useWriteContract } from "wagmi";
+import { useAccount, useSimulateContract, useWriteContract } from "wagmi";
 
 export default function Page() {
+  const { address } = useAccount();
   const { data: MethData } = useSimulateContract({
     ...MethContract,
     functionName: "mint",
@@ -16,6 +17,11 @@ export default function Page() {
   const { data: TarpData } = useSimulateContract({
     ...TarpContract,
     functionName: "mint",
+  });
+  const { data: D } = useSimulateContract({
+    ...USDTContract,
+    functionName: "mintFaucet",
+    args: [address ?? "0x", 10000000n],
   });
   const { writeContract } = useWriteContract();
   const onSubmitMeth = () => {
@@ -25,8 +31,8 @@ export default function Page() {
   };
 
   const onSubmitTarp = () => {
-    if (TarpData) {
-      writeContract(TarpData?.request);
+    if (D) {
+      writeContract(D?.request);
     }
   };
   return (

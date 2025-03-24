@@ -11,6 +11,7 @@ export enum AuctionCardTitle {
   HIGHEST_BID = "Highest bid",
   CLOSING_TIME = "Closing time",
   LEADER = "Leader",
+  Winner = "Winner",
   AMOUNT = "Amount",
 }
 

@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import type { TAddressString } from "@/lib/types";
 import { useMemo } from "react";
 import { useSimulateContract } from "wagmi";
@@ -24,11 +25,12 @@ export function useApproveErc20({
     }
   }, [allowance, amount, tokenAddr]);
   const needsApproval = useMemo(() => {
+    if (tokenAddr === "") return false;
     if ((allowance ?? 0n) < amount) {
       return true;
     }
     return false;
-  }, [allowance, amount]);
+  }, [allowance, amount, tokenAddr]);
   const approveAmount = needs0Approval ? 0n : amount;
   const approveSimulate = useSimulateContract({
     address: tokenAddr as TAddressString,
@@ -38,12 +40,12 @@ export function useApproveErc20({
   });
   return { approveSimulate, needsApproval, needs0Approval };
 }
-
+const USDT =
+  env.NEXT_PUBLIC_CHAIN_ID === "1"
+    ? "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    : "0x89976b5214377a45643E6dD3c5C60b5098e7B9d7";
 function getAbi(tokenAddr: TAddressString) {
-  if (
-    tokenAddr.toLowerCase() ===
-    "0xdAC17F958D2ee523a2206206994597C13D831ec7".toLowerCase()
-  ) {
+  if (tokenAddr.toLowerCase() === USDT.toLowerCase()) {
     return nonStandardAbi;
   } else {
     return nonStandardAbi;

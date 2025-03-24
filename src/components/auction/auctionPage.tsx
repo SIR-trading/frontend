@@ -15,8 +15,8 @@ export type TUniqueAuctionCollection = {
 };
 
 const tabsItems = [
-  ["ongoing", "Ongoing"],
   ["new", "Start new"],
+  ["ongoing", "Ongoing"],
   ["past", "Past"],
 ] as const;
 
@@ -56,7 +56,7 @@ const AuctionPage = () => {
     <div>
       <PageHeadingSpace />
       <Container className="w-svw max-w-[904px] lg:w-[904px]">
-        <Tabs defaultValue="ongoing">
+        <Tabs defaultValue="new">
           <TabsList className="mx-auto w-max">
             {tabsItems.map(([value, text]) => (
               <TabsTrigger
@@ -68,12 +68,11 @@ const AuctionPage = () => {
               </TabsTrigger>
             ))}
           </TabsList>
-
-          <TabsContent value="ongoing" className="mt-10">
-            <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} />
-          </TabsContent>
           <TabsContent value="new" className="mt-10">
             <NewAuction uniqueAuctionCollection={uniqueAuctionCollection} />
+          </TabsContent>
+          <TabsContent value="ongoing" className="mt-10">
+            <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>
           <TabsContent value="past" className="mt-10">
             <PastAuction uniqueAuctionCollection={uniqueAuctionCollection} />

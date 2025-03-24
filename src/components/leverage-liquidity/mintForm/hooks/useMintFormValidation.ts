@@ -73,7 +73,7 @@ export const useMintFormValidation = ({
       if (parseUnits(deposit ?? "0", decimals) > maxCollateralIn) {
         return {
           isValid: false,
-          errorMessage: "",
+          errorMessage: "Insufficient Collateral in Vault.",
         };
       }
     } else if (!maxCollateralIn && isApe) {
@@ -130,23 +130,29 @@ export const useMintFormValidation = ({
           };
         }
       }
-    }
-    if (requests.mintRequest)
-      return {
-        isValid: true,
-        errorMessage: null,
-      };
-    else {
-      if (mintFetching) {
+    } else {
+      if (requests.mintRequest)
         return {
-          isValid: false,
-          errorMessage: "",
+          isValid: true,
+          errorMessage: null,
         };
-      } else {
-        return {
-          isValid: false,
-          errorMessage: "Unexpected mint error.",
-        };
+      else {
+        if (mintFetching) {
+          return {
+            isValid: false,
+            errorMessage: "",
+          };
+        } else {
+          console.log(
+            parseUnits(deposit ?? "0", decimals),
+            tokenAllowance,
+            "))))",
+          );
+          return {
+            isValid: false,
+            errorMessage: "Unexpected Mint error.",
+          };
+        }
       }
     }
   }, [

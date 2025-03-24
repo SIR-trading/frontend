@@ -24,6 +24,7 @@ const auctions = (type: TAuctionType) => {
       highestBid
       highestBidder
       startTime
+      isClaimed
     }
 
     query AuctionQuery($user: Bytes) {

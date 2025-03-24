@@ -109,6 +109,7 @@ export type AuctionFieldFragment = {
   highestBid: string;
   highestBidder: string;
   startTime: string;
+  isClaimed: boolean;
   isParticipant: {
     bid: string;
   }[];

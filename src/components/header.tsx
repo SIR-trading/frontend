@@ -27,7 +27,7 @@ export function Header() {
         </Link>
         <div className="flex items-center">
           <nav className=" hidden items-center md:flex">
-            <div className=" flex flex-col lg:flex-row gap-x-[16px] rounded-md  px-[12px] py-[12px] font-semibold text-muted-foreground">
+            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px]  py-[12px] font-semibold text-muted-foreground lg:flex-row">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-[16px]   rounded-md"
@@ -42,12 +42,15 @@ export function Header() {
                   Portfolio
                 </NavItem>
               </ul>
-              <div className="items-center hidden lg:flex">|</div>
-              <ul className="flex justify-between" aria-label="Secondary Navigation">
+              <div className="hidden items-center lg:flex">|</div>
+              <ul
+                className="flex justify-between"
+                aria-label="Secondary Navigation"
+              >
                 <NavItem url={"/stake"}>Stake</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
                 <NavItem url={"/leverage-calculator"}>Calculator</NavItem>
-                <NavItem url={"/auction"}>Auction</NavItem>
+                <NavItem url={"/auctions"}>Auctions</NavItem>
                 {/* <NavItem url={"/get-tokens"}>Get Tokens</NavItem> */}
               </ul>
             </div>
