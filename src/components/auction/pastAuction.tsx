@@ -19,6 +19,8 @@ import Show from "@/components/shared/show";
 import VaultRowSkeleton from "@/components/leverage-liquidity/vaultTable/vaultRowSkeleton";
 import { Card } from "@/components/ui/card";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
+import type { Address} from "viem";
+import { hexToBigInt } from "viem";
 
 const PastAuction = ({
   uniqueAuctionCollection,
@@ -220,6 +222,9 @@ const PastAuction = ({
                         title: AuctionCardTitle.Winner,
                         content: compareAddress(highestBidder, address) ? (
                           "YOU WON"
+                        ) : hexToBigInt(highestBidder as Address) ===
+                          BigInt(0) ? (
+                          "N/A"
                         ) : (
                           <AddressExplorerLink address={highestBidder} />
                         ),
