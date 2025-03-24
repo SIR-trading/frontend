@@ -14,7 +14,7 @@ export default function SideNav() {
         </SheetTrigger>
         <SheetContent>
           <div className="flex justify-center">
-            <nav className="space-y-4 text-center text-muted-foreground">
+            <nav className="space-y-1 text-center text-muted-foreground">
               <ul
                 aria-label="Core Navigation"
                 className="space-y-2 rounded-md bg-primary/40 py-2 text-lg"
@@ -41,6 +41,9 @@ export default function SideNav() {
                 </NavItem>
                 <NavItem onClick={() => setOpen(false)} url={"/auctions"}>
                   Auctions
+                </NavItem>
+                <NavItem onClick={() => setOpen(false)} url={"/leverage-calculator"}>
+                  Calculator
                 </NavItem>
               </ul>
             </nav>
