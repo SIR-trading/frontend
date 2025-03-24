@@ -7,8 +7,11 @@ import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
+import type { Address } from "viem";
+import { erc20Abi } from "viem";
 import { parseUnits } from "viem";
 import { z } from "zod";
+import { VaultContract } from "@/contracts/vault";
 const ZVaultFilters = z.object({
   filterLeverage: z.string().optional(),
   filterDebtToken: z.string().optional(),
@@ -166,6 +169,40 @@ export const vaultRouter = createTRPCRouter({
         debtToken: result[1].result,
         collateralToken: result[2].result,
       };
+    }),
+  getTotalCollateralFeesInVault: publicProcedure
+    .input(z.array(z.string().startsWith("0x").length(42)))
+    .query(async ({ input }) => {
+      const totalReservesResult = await multicall({
+        contracts: input.map((address) => ({
+          ...VaultContract,
+          functionName: "totalReserves",
+          args: [address],
+        })),
+      });
+
+      const balanceResult = await multicall({
+        contracts: input.map((address) => ({
+          abi: erc20Abi,
+          address: address as Address,
+          functionName: "balanceOf",
+          args: [VaultContract.address],
+        })),
+      });
+
+      const tokenWithFeesMap = new Map<string, bigint>();
+      input.forEach((token, index) => {
+        const balance = BigInt(balanceResult[index]?.result ?? 0);
+        const reserve = BigInt(
+          (totalReservesResult[index]?.result as unknown as
+            | bigint
+            | undefined) ?? 0,
+        );
+        const fees = balance - reserve;
+        if (fees > BigInt(0)) tokenWithFeesMap.set(token, fees);
+      });
+
+      return tokenWithFeesMap;
     }),
 
   quoteBurn: publicProcedure

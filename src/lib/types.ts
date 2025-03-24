@@ -1,6 +1,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 import type { CreateVaultInputValues } from "./schemas";
+import type { Address } from "viem";
 export enum EPage {
   "LEVERAGE",
   "LIQUIDITY",
@@ -95,3 +96,29 @@ export interface TUnstakeFormFields {
   amount?: string;
   claimFees?: boolean;
 }
+export type TVaultsCollateralToken = {
+  collateralToken: string[];
+  collateralSymbol: string[];
+  apeDecimals: number[];
+};
+
+export type AuctionFieldFragment = {
+  id: string;
+  token: string;
+  amount: string;
+  highestBid: string;
+  highestBidder: string;
+  startTime: string;
+  isClaimed: boolean;
+  isParticipant: {
+    bid: string;
+  }[];
+};
+
+
+export type TAuctions = {
+  bidder: Address;
+  bid: bigint;
+  startTime: number;
+  tokenIndex: number;
+};
