@@ -84,6 +84,7 @@ const AuctionCard = ({
               <Countdown
                 date={actionDelay! * 1000}
                 onComplete={() => resetAuctionOnTrigger(auctionType)}
+                className="w-[120px] text-left"
               />
             </div>
           ) : (
