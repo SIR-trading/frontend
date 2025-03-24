@@ -23,7 +23,6 @@ import {
   getLeverageRatio,
 } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
-import { api } from "@/trpc/react";
 import useVaultFilterStore from "@/lib/store";
 
 export function VaultTableRow({
