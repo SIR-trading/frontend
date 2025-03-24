@@ -12,6 +12,8 @@ import { getLeverageRatio } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
 import Show from "@/components/shared/show";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { useTeaAndApePrice } from "./hooks/useTeaAndApePrice";
+
 interface Props {
   row: TUserPosition;
   isApe: boolean;
@@ -39,6 +41,7 @@ export function BurnTableRow({
   const teaBalance = formatUnits(teaBal ?? 0n, row.positionDecimals);
   const apeBalance = formatUnits(apeBal ?? 0n, row.positionDecimals);
   const rewards = formatUnits(teaRewards ?? 0n, 12);
+  const positionValue = useTeaAndApePrice({ isApe, amount: isApe ? apeBalance : teaBalance, row });
   return (
     <>
       <tr className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-white  md:grid">
@@ -76,6 +79,7 @@ export function BurnTableRow({
               <DisplayFormattedNumber
                 num={formatNumber(isApe ? apeBalance : teaBalance, 3)}
               />
+              <span className="ml-1 italic text-gray-500">(${formatNumber(positionValue)})</span>
               <span className="pl-1 text-[12px] text-gray-400"></span>
             </span>
             <div className="space-x-1">

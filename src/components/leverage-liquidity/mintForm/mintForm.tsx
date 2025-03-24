@@ -76,16 +76,21 @@ export default function MintForm({ isApe }: Props) {
 
   const selectedVault = useFindVault();
 
-  const { requests, isApproveFetching, isMintFetching, needsApproval } =
-    useTransactions({
-      useEth,
-      tokenAllowance: userBalance?.tokenAllowance?.result,
-      vaultId: selectedVault.result?.vaultId,
-      minCollateralOut,
-      isApe,
-      vaultsQuery,
-      decimals: depositDecimals ?? 18,
-    });
+  const {
+    requests,
+    isApproveFetching,
+    isMintFetching,
+    needsApproval,
+    needs0Approval,
+  } = useTransactions({
+    useEth,
+    tokenAllowance: userBalance?.tokenAllowance?.result,
+    vaultId: selectedVault.result?.vaultId,
+    minCollateralOut,
+    isApe,
+    vaultsQuery,
+    decimals: depositDecimals ?? 18,
+  });
   const { versus, leverageTiers, long } = useFilterVaults({
     vaultsQuery,
   });
@@ -215,6 +220,7 @@ export default function MintForm({ isApe }: Props) {
             hash={hash}
           >
             <TransactionInfo
+              needs0Approval={needs0Approval ?? false}
               transactionHash={hash}
               needsApproval={needsApproval}
               vaultId={selectedVault.result?.vaultId ?? "0"}
@@ -270,7 +276,13 @@ export default function MintForm({ isApe }: Props) {
             >
               <Show
                 when={!needsApproval || isConfirmed}
-                fallback={isConfirmed ? "Confirm Mint" : "Confirm Approve"} // if approval confirmed there will be invalidation lag
+                fallback={
+                  isConfirmed
+                    ? "Confirm Mint"
+                    : needs0Approval
+                      ? "Confirm Remove Approval"
+                      : "Confirm Approve"
+                } // if approval confirmed there will be invalidation lag
               >
                 {"Confirm Mint"}
               </Show>
