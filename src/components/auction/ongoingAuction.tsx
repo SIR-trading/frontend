@@ -225,84 +225,105 @@ const OngoingAuction = ({
 
         {otherAuction.length > 0 && (
           <AuctionContentWrapper header={"Ongoing auctions"}>
-            {otherAuction.map(({ startTime, highestBid, token, amount }) => (
-              <AuctionCard
-                auctionType="ongoing"
-                data={[
-                  [
-                    {
-                      title: AuctionCardTitle.AUCTION_DETAILS,
-                      content: (
-                        <AddressExplorerLink
-                          address={token}
-                          fontSize={20}
-                          shortenLength={4}
-                        />
-                      ),
+            {otherAuction.map(
+              ({ startTime, highestBid, token, amount, highestBidder }) => (
+                <AuctionCard
+                  auctionType="ongoing"
+                  data={[
+                    [
+                      {
+                        title: AuctionCardTitle.AUCTION_DETAILS,
+                        content: (
+                          <AddressExplorerLink
+                            address={token}
+                            fontSize={20}
+                            shortenLength={4}
+                          />
+                        ),
+                      },
+                      {
+                        title: AuctionCardTitle.AMOUNT,
+                        variant: "large",
+                        content: (
+                          <TokenDisplay
+                            amount={
+                              (auctionLots?.get(token) ?? 0n) > 0n
+                                ? auctionLots?.get(token)
+                                : BigInt(amount)
+                            }
+                            labelSize="small"
+                            amountSize="large"
+                            decimals={
+                              uniqueAuctionCollection.collateralDecimalsMap.get(
+                                token,
+                              ) ?? 18
+                            }
+                            unitLabel={
+                              uniqueAuctionCollection.collateralSymbolMap.get(
+                                token,
+                              ) ?? ""
+                            }
+                            className={
+                              "font-lora text-[28px] font-normal leading-[32px]"
+                            }
+                          />
+                        ),
+                      },
+                    ],
+                    [
+                      {
+                        title: AuctionCardTitle.YOUR_BID,
+                        content: "N/A",
+                      },
+                      {
+                        title: AuctionCardTitle.HIGHEST_BID,
+                        content: (
+                          <TokenDisplay
+                            amount={BigInt(highestBid)}
+                            labelSize="small"
+                            amountSize="large"
+                            decimals={18}
+                            unitLabel={"ETH"}
+                            className={"text-lg"}
+                          />
+                        ),
+                      },
+                    ],
+                    [
+                      {
+                        title: AuctionCardTitle.CLOSING_TIME,
+                        content: (
+                          <Countdown
+                            date={(+startTime + AUCTION_DURATION) * 1000}
+                            onComplete={handleTrigger}
+                          />
+                        ),
+                      },
+                      {
+                        title: AuctionCardTitle.LEADER,
+                        content: compareAddress(highestBidder, address) ? (
+                          "YOU ARE LEADING"
+                        ) : (
+                          <AddressExplorerLink address={highestBidder} />
+                        ),
+                      },
+                    ],
+                  ]}
+                  key={token}
+                  id={token}
+                  action={{
+                    title: "Bid",
+                    onClick: (id) => {
+                      setOpenModal({
+                        open: true,
+                        id,
+                        bid: BigInt(highestBid),
+                      });
                     },
-                    {
-                      title: AuctionCardTitle.AMOUNT,
-                      content: (
-                        <TokenDisplay
-                          amount={BigInt(auctionLots?.get(token) ?? amount)}
-                          labelSize="small"
-                          amountSize="large"
-                          decimals={
-                            uniqueAuctionCollection.collateralDecimalsMap.get(
-                              token,
-                            ) ?? 18
-                          }
-                          unitLabel={
-                            uniqueAuctionCollection.collateralSymbolMap.get(
-                              token,
-                            ) ?? ""
-                          }
-                          className={
-                            "font-lora text-[28px] font-normal leading-[32px]"
-                          }
-                        />
-                      ),
-                      variant: "large",
-                    },
-                  ],
-                  [
-                    {
-                      title: AuctionCardTitle.HIGHEST_BID,
-                      content: (
-                        <TokenDisplay
-                          amount={BigInt(highestBid)}
-                          labelSize="small"
-                          amountSize="large"
-                          decimals={18}
-                          unitLabel={"ETH"}
-                          className={"text-lg"}
-                        />
-                      ),
-                    },
-                    {
-                      title: AuctionCardTitle.CLOSING_TIME,
-                      content: (
-                        <Countdown
-                          date={(+startTime + AUCTION_DURATION) * 1000}
-                        />
-                      ),
-                    },
-                  ],
-                ]}
-                key={token}
-                id={token}
-                action={{
-                  title: "Bid",
-                  onClick: (id) => {
-                    setOpenModal({
-                      open: true,
-                      id,
-                      bid: BigInt(highestBid),
-                    });
-                  },
-                }}
-              />
-            ))}
+                  }}
+                />
+              ),
+            )}
           </AuctionContentWrapper>
         )}
         {userAuction.length === 0 && otherAuction.length === 0 && (
