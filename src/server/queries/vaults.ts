@@ -41,7 +41,7 @@ const vaults = (
   query VaultQuery($collateralToken: String, $skip: Int, $debtToken: String, $leverageTier: Int ) {
     vaults(
      
-      first: 8
+      first: 10
       skip: $skip
       orderBy: sortKey 
       orderDirection: desc
