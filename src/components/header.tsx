@@ -30,7 +30,7 @@ export function Header() {
             <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px]  py-[12px] font-semibold text-muted-foreground lg:flex-row">
               <ul
                 aria-label="Core Navigation"
-                className="flex gap-x-[16px]   rounded-md"
+                className="flex gap-x-[16px] rounded-md"
               >
                 <NavItem theme="light" url={"/"}>
                   Leverage
@@ -44,7 +44,7 @@ export function Header() {
               </ul>
               <div className="hidden items-center lg:flex">|</div>
               <ul
-                className="flex justify-between"
+                className="flex gap-x-[16px]"
                 aria-label="Secondary Navigation"
               >
                 <NavItem url={"/stake"}>Stake</NavItem>
