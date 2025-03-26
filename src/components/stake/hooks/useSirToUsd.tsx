@@ -1,4 +1,4 @@
-import { formatUnits, parseEther } from "viem";
+import { formatUnits, formatEther, parseEther, parseUnits } from "viem";
 import { api } from "@/trpc/react";
 import { EContracts, getAddress } from "@/lib/contractAddresses";
 import { TokenDisplay } from "@/components/ui/token-display";
@@ -16,19 +16,20 @@ export function useSirToUsd({
       chain: "eth-mainnet"
     },
     {
+      staleTime: 3000,
       enabled: Boolean(contractAddress)
     }
   )
   // Calculate the prices for both conversion directions.
   const collateralPrice = tokens?.data[0]?.prices[0]?.value
-    ? Number(tokens.data[0].prices[0].value)
+    ? parseEther(tokens.data[0].prices[0].value)
     : 1;
   /*
    const debtPrice = tokens?.data[1]?.prices[0]?.value
     ? Number(tokens.data[1].prices[0].value)
     : 0;
   */
-  console.log("SIR_PRICE", "#".repeat(100), collateralPrice, tokens)
+  console.log("SIR_PRICE", "#".repeat(100), tokens, amount)
   if (!amount || amount < 1n) {
     return (<div>
       0
@@ -36,12 +37,14 @@ export function useSirToUsd({
     </div>)
   }
   else
+
     return (
       <div>
-        {contractAddress}
-
+        <div><h2>price:</h2></div>
+        <div>{collateralPrice}</div>
+        <div>{formatUnits(amount, 12)}</div>
         <TokenDisplay
-          amount={(amount ? amount / parseEther(collateralPrice.toString()) : 0n)}
+          amount={amount}
           decimals={12}
           unitLabel={"$"}
         />

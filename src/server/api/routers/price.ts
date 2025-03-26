@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
-import { ZTokenPrices } from "@/lib/schemas";
+import { ZTokenPricesSchema } from "@/lib/schemas";
 
 export const priceRouter = createTRPCRouter({
   // Returns the latest price for vault tokens by symbol
@@ -26,7 +26,7 @@ export const priceRouter = createTRPCRouter({
         options
       );
       // Parse and validate the fetched JSON using ZVaultPrices
-      return ZTokenPrices.parse(await response.json());
+      return ZTokenPricesSchema.parse(await response.json());
     }),
 
   // Get token price by address
@@ -51,7 +51,27 @@ export const priceRouter = createTRPCRouter({
         options
       );
       // Parse and validate the fetched JSON using ZVaultPrices
-      return ZTokenPrices.parse(await response.json());
-    })
+      return ZTokenPricesSchema.parse(await response.json());
+    }),
 
+  // Get token price by address
+  getTokenListPrices: publicProcedure
+    .input(z.object({ chain: z.string(), contractAddressList: z.array(z.string()) }))
+    .query(async ({ input }) => {
+      const { chain, contractAddressList } = input;
+      console.log("-_".repeat(100), "fetching price for", contractAddressList);
+      const addresses = contractAddressList.map(address => { return { network: chain, address } });
+      const options = {
+        method: 'POST',
+        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        body: JSON.stringify({ addresses })
+      };
+
+      const response = await fetch(
+        `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+        options
+      );
+      // Parse and validate the fetched JSON using ZVaultPrices
+      return ZTokenPricesSchema.parse(await response.json());
+    })
 });

@@ -57,13 +57,13 @@ const PriceSchema = z.object({
   lastUpdatedAt: z.string(),
 });
 
-const TokenPriceSchema = z.object({
+export const TokenPriceSchema = z.object({
   network: z.string(),
   address: z.string().length(42), // Ethereum addresses are 42 characters long
   prices: z.array(PriceSchema),
 });
 
-export const ZTokenPrices = z.object({
+export const ZTokenPricesSchema = z.object({
   data: z.array(TokenPriceSchema),
 });
 // {

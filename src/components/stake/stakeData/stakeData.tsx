@@ -14,7 +14,7 @@ import {
 import boostIcon from "@/../public/images/white-logo.svg";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
-import { useSirToUsd } from "../hooks/useSirToUsd";
+import { SirToUsd } from "./SirToUsd";
 import { formatUnits } from "viem";
 interface supplyProps {
   data?: bigint;
@@ -56,7 +56,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={10}>
             <div className="mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
-              {useSirToUsd({ amount: totalValueLocked })}
+              <SirToUsd amount={totalValueLocked} />
             </div>
           </HoverCardContent>
         </HoverCard>
