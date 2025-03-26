@@ -217,3 +217,7 @@ export function calculateTeaVaultFee() {
   const a = 1 / (1 + L_FEE);
   return (1 * 10 - a * 10) / 10;
 }
+
+export function compareAddress(a?: string, b?: string) {
+  return a?.toLowerCase() === b?.toLowerCase();
+}
