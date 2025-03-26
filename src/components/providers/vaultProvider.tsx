@@ -37,18 +37,19 @@ export const VaultProvider = ({ children }: Props) => {
         filterLeverage,
         filterDebtToken,
         filterCollateralToken,
-        skip: (page - 1) * 8,
+        skip: (page - 1) * 10,
       },
     },
     {
       staleTime: 1000 * 60,
     },
   );
+  console.log({ data });
   const nextPage = () => {
     const length = data?.vaultQuery?.vaults.length;
     const vaults = data?.vaultQuery?.vaults;
 
-    if (length === 8 && vaults) {
+    if (length === 10 && vaults) {
       if (vaults?.[length - 1]?.id) {
         setPage((page) => page + 1);
       }

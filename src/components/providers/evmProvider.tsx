@@ -1,13 +1,18 @@
 "use client";
 import "@rainbow-me/rainbowkit/styles.css";
-import { mainnet } from "wagmi/chains";
 import {
   darkTheme,
   getDefaultConfig,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
+import {
+  cookieStorage,
+  cookieToInitialState,
+  createStorage,
+  WagmiProvider,
+} from "wagmi";
+import { mainnet, sepolia } from "wagmi/chains";
 import { env } from "@/env";
-import { WagmiProvider } from "wagmi";
 const getChainId = () => {
   const result = env.NEXT_PUBLIC_CHAIN_ID;
   return parseInt(result);
@@ -15,7 +20,7 @@ const getChainId = () => {
 const chainId = getChainId();
 
 const chain = {
-  ...mainnet,
+  ...(chainId == mainnet.id ? mainnet : sepolia),
   // NOTE MAYBE REMOVE THIS.
   // All rpc calls are done through trpc
   rpcUrls: { default: { http: ["/api/rpc"] } },
