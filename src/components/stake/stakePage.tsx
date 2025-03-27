@@ -9,7 +9,7 @@ import { PriceProvider } from "../providers/priceProvider";
 
 import { EContracts, getAddress } from "@/lib/contractAddresses";
 const stakePage = () => {
-  const sirTokenAddress = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+  const sirTokenAddress = getAddress(EContracts.SIR);
   console.log("sirTokenAddress ".repeat(100), sirTokenAddress);
   return (
     <div className="">

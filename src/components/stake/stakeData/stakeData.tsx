@@ -16,6 +16,8 @@ import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import { SirToUsd } from "./SirToUsd";
 import { formatUnits } from "viem";
+import { usePriceProvider } from "@/components/providers/priceProvider";
+
 interface supplyProps {
   data?: bigint;
 }
@@ -33,7 +35,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
   }, [unstakedSupply, totalSupply]);
   const userStakedSir = useGetStakedSir();
 
-
+  const { prices, isFetching } = usePriceProvider();
 
   return (
     <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
@@ -56,7 +58,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={10}>
             <div className="mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
-              <SirToUsd amount={totalValueLocked} />
+              <SirToUsd amount={totalValueLocked} price={prices} />
             </div>
           </HoverCardContent>
         </HoverCard>

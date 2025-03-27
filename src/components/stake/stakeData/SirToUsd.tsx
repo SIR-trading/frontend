@@ -2,31 +2,13 @@ import { formatUnits, parseEther } from "viem";
 import { api } from "@/trpc/react";
 import { EContracts, getAddress } from "@/lib/contractAddresses";
 import { TokenDisplay } from "@/components/ui/token-display";
-
+import type { TPriceList } from "@/components/providers/priceProvider";
 interface SirToUsdProps {
   amount: bigint | undefined;
+  sirPrice: bigint | undefined;
 }
 
-export function SirToUsd({ amount }: SirToUsdProps) {
-  const contractAddress = getAddress(EContracts.SIR);
-  const { data: tokens } = api.price.getTokenPrice.useQuery(
-    {
-      contractAddress,
-      chain: "eth-mainnet"
-    },
-    {
-      staleTime: 3000,
-      enabled: Boolean(contractAddress)
-    }
-  );
-
-  // Calculate the prices for both conversion directions.
-  const collateralPrice = tokens?.data[0]?.prices[0]?.value
-    ? parseEther(tokens.data[0].prices[0].value)
-    : 1n;
-
-  console.log("SIR_PRICE", "#".repeat(100), tokens, amount);
-
+export function SirToUsd({ amount, sirPrice }: SirToUsdProps) {
   if (!amount || amount < 1n) {
     return (
       <div>
@@ -35,14 +17,12 @@ export function SirToUsd({ amount }: SirToUsdProps) {
       </div>
     );
   }
-
+  const valueInUSD = sirPrice && sirPrice > 0n ? sirPrice * amount : 0n;
   return (
     <div>
-      <div><h2>price:</h2></div>
-      <div>{collateralPrice.toString()}</div>
-      <div>{formatUnits(amount, 12)}</div>
+      <div>{formatUnits(valueInUSD, 12)}</div>
       <TokenDisplay
-        amount={amount}
+        amount={valueInUSD}
         decimals={12}
         unitLabel={"$"}
       />

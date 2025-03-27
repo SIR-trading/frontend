@@ -4,9 +4,9 @@ import type { TAddressString } from "@/lib/types";
 import { api } from "@/trpc/react";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { z } from "zod";
-type TPriceList = Record<string, string>[]
+export type TPriceList = Record<string, string>[]
 
-interface PriceProviderType {
+export interface PriceProviderType {
   prices: TPriceList | undefined;
   isFetching: boolean;
 }
