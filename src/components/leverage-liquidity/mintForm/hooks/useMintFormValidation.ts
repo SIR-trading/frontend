@@ -143,11 +143,6 @@ export const useMintFormValidation = ({
             errorMessage: "",
           };
         } else {
-          console.log(
-            parseUnits(deposit ?? "0", decimals),
-            tokenAllowance,
-            "))))",
-          );
           return {
             isValid: false,
             errorMessage: "Unexpected Mint error.",

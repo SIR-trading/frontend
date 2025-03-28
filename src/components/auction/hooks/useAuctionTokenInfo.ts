@@ -44,6 +44,7 @@ export default function useAuctionTokenInfo({
     approveContract: SirContract.address,
     amount: parseUnits(amount ?? "0", tokenDecimals ?? 18),
     allowance: userBalance?.tokenAllowance?.result ?? 0n,
+    useMaxApprove: false,
   });
 
   return {

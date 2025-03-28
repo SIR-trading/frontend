@@ -24,7 +24,8 @@ Liquidity providers in eligible vaults can claim SIR tokens and stake them to ea
   },
   [EPage.STAKE]: {
     title: "Stake Your SIR",
-    description: `By staking your SIR, you have a pro-rata claim on future protocol fees, paid out in ETH. Your yield will fluctuate depending on the volume and the amount of SIR staked.`
+    description: `Stake SIR to earn a share of protocol fees (paid in ETH). Your rewards depend on trading volume and total SIR staked.
+Your staked SIR unlocks gradually—half of your locked amount becomes available every 30 days.`
       .trim(),
   },
   [EPage.AUCTIONS]: {

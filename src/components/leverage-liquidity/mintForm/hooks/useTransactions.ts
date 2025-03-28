@@ -17,8 +17,10 @@ export function useTransactions({
   useEth,
   minCollateralOut,
   tokenAllowance,
+  maxApprove,
 }: {
   isApe: boolean;
+  maxApprove: boolean;
   vaultsQuery: TVaults;
   decimals: number;
   useEth: boolean;
@@ -45,6 +47,7 @@ export function useTransactions({
   });
 
   const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
+    useMaxApprove: maxApprove,
     tokenAddr: formData.depositToken ?? "",
     approveContract: VaultContract.address,
     amount: parseUnits(formData.deposit ?? "0", decimals),

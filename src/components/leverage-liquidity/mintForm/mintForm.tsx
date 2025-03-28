@@ -39,6 +39,8 @@ import { useVaultProvider } from "@/components/providers/vaultProvider";
 import SubmitButton from "@/components/shared/submitButton";
 import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
 import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
+import { Checkbox } from "@/components/ui/checkbox";
+import ToolTip from "@/components/ui/tooltip";
 
 interface Props {
   vaultsQuery: TVaults;
@@ -75,7 +77,7 @@ export default function MintForm({ isApe }: Props) {
   });
 
   const selectedVault = useFindVault();
-
+  const [maxApprove, setMaxApprove] = useState(false);
   const {
     requests,
     isApproveFetching,
@@ -84,6 +86,7 @@ export default function MintForm({ isApe }: Props) {
     needs0Approval,
   } = useTransactions({
     useEth,
+    maxApprove,
     tokenAllowance: userBalance?.tokenAllowance?.result,
     vaultId: selectedVault.result?.vaultId,
     minCollateralOut,
@@ -261,7 +264,26 @@ export default function MintForm({ isApe }: Props) {
                 </div>
               </TransactionModal.StatContainer>
             </Show>
-            {isMintFetching && <h2>Mint is Fetching</h2>}
+            <Show when={needsApproval && !needs0Approval && !isConfirmed}>
+              <div className="flex w-full justify-between gap-x-1">
+                <div className="flex items-center gap-x-1">
+                  <span className="text-sm text-neutral-300">
+                    Approve for maximum amount
+                  </span>
+                  <ToolTip>
+                    Max approval avoids repeat approvals but grants full fund
+                    access. Only use with trusted contracts.
+                  </ToolTip>
+                </div>{" "}
+                <Checkbox
+                  checked={maxApprove}
+                  onCheckedChange={(e) => {
+                    setMaxApprove(Boolean(e));
+                  }}
+                  className="border border-white bg-secondary-600"
+                ></Checkbox>
+              </div>
+            </Show>
             <TransactionModal.SubmitButton
               onClick={modalSubmit}
               disabled={
