@@ -27,7 +27,7 @@ export default function Pagination({ max }: { max: number }) {
           <button
             role="link"
             aria-label="Scroll Vaults Right"
-            disabled={vaultLength !== 8}
+            disabled={vaultLength !== 10}
             className="rounded-full bg-primary p-[5px] disabled:opacity-50"
             onClick={() => nextPage()}
           >

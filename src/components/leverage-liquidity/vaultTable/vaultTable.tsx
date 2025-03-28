@@ -40,7 +40,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
           }
         >
           {vaults?.vaults
-            .slice(pagination * 8 - 8, pagination * 8)
+            .slice(pagination * 10 - 10, pagination * 10)
             .map((pool, ind) => {
               return (
                 <VaultTableRow

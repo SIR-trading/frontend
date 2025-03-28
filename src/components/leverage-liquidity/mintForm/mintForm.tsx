@@ -264,7 +264,7 @@ export default function MintForm({ isApe }: Props) {
                 </div>
               </TransactionModal.StatContainer>
             </Show>
-            <Show when={needsApproval && !isConfirmed}>
+            <Show when={needsApproval && !needs0Approval && !isConfirmed}>
               <div className="flex w-full justify-between gap-x-1">
                 <div className="flex items-center gap-x-1">
                   <span className="text-sm text-neutral-300">
