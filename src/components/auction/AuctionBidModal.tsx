@@ -1,7 +1,9 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import TransactionModal from "@/components/shared/transactionModal";
+import { useState } from "react";
 import AuctionBidInputs from "./bid-inputs";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
+import { Checkbox } from "../ui/checkbox";
 import { getLogoAsset } from "@/lib/assets";
 import { formatEther, parseEther } from "viem";
 import useAuctionTokenInfo from "@/components/auction/hooks/useAuctionTokenInfo";
@@ -10,12 +12,14 @@ import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFor
 import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { WETH_ADDRESS } from "@/data/constants";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
+import ToolTip from "../ui/tooltip";
+import Show from "../shared/show";
 
 export type TAuctionBidModalState = {
   open: boolean;
@@ -35,19 +39,19 @@ export function AuctionBidModal({ open, setOpen }: Props) {
   const form = useFormContext<TAuctionBidFormFields>();
 
   const formData = form.watch();
-
+  const [useMaxApprove, setUseMaxApprove] = useState(false);
   const { userBalance, userBalanceFetching, needsApproval, approveRequest } =
     useAuctionTokenInfo({
       tokenAddress: WETH_ADDRESS,
       amount: formData.bid,
       isOpen: open.open,
+      useMaxApprove,
     });
 
   const { request: bidRequest, refetch: reSimulateBid } = useBid({
     token: tokenAddress,
     amount: formData.bid,
   });
-
 
   const balance = userBalance?.tokenBalance?.result;
 
@@ -142,6 +146,26 @@ export function AuctionBidModal({ open, setOpen }: Props) {
           </AuctionBidInputs.Root>
 
           <TransactionModal.StatSubmitContainer>
+            <Show when={needsApproval && !isConfirmed}>
+              <div className="flex w-full justify-between gap-x-1">
+                <div className="flex items-center gap-x-1">
+                  <span className="text-sm text-neutral-300">
+                    Approve for maximum amount
+                  </span>
+                  <ToolTip>
+                    Max approval avoids repeat approvals but grants full fund
+                    access. Only use with trusted contracts.
+                  </ToolTip>
+                </div>{" "}
+                <Checkbox
+                  checked={useMaxApprove}
+                  onCheckedChange={(e) => {
+                    setUseMaxApprove(Boolean(e));
+                  }}
+                  className="border border-white bg-secondary-600"
+                ></Checkbox>
+              </div>
+            </Show>
             <TransactionModal.SubmitButton
               onClick={onSubmit}
               disabled={
