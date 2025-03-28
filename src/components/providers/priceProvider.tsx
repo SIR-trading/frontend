@@ -1,10 +1,13 @@
 "use client";
 import type { ZTokenPricesSchema } from "@/lib/schemas";
-import type { TAddressString } from "@/lib/types";
 import { api } from "@/trpc/react";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { z } from "zod";
-export type TPriceList = Record<string, string>[]
+export type TPrice = {
+  address: string,
+  price: string
+}
+export type TPriceList = TPrice[]
 
 export interface PriceProviderType {
   prices: TPriceList | undefined;
@@ -31,7 +34,7 @@ export const PriceProvider = ({ children, tokens }: Props) => {
 
   const formattedPrices = data ? formatPrices(data) : undefined;
 
-  console.log({ data });
+  console.log(formattedPrices);
   return (
     <PriceContext.Provider
       value={{
@@ -56,6 +59,6 @@ export const usePriceProvider = () => {
 function formatPrices(response: z.infer<typeof ZTokenPricesSchema>): TPriceList {
   return response.data.map(token => {
     const price = token.prices[0]?.value ?? '0';
-    return { [token.address]: price };
+    return { address: token.address, price };
   });
 }

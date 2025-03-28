@@ -11,12 +11,10 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import boostIcon from "@/../public/images/white-logo.svg";
-import type { StaticImageData } from "next/image";
-import Image from "next/image";
 import { SirToUsd } from "./SirToUsd";
-import { formatUnits } from "viem";
 import { usePriceProvider } from "@/components/providers/priceProvider";
+import { getAddress, EContracts } from "@/lib/contractAddresses";
+import { formatUnits, parseUnits } from "viem";
 
 interface supplyProps {
   data?: bigint;
@@ -35,8 +33,11 @@ const StakeData = ({ children }: { children: ReactNode }) => {
   }, [unstakedSupply, totalSupply]);
   const userStakedSir = useGetStakedSir();
 
-  const { prices, isFetching } = usePriceProvider();
-
+  const { prices } = usePriceProvider();
+  console.log("PRICES===", prices);
+  const priceStr = prices?.find(p => p.address = getAddress(EContracts.SIR))?.price ?? "0";
+  const sirPrice = parseUnits(priceStr, 18);
+  console.log("SIR_PRICE", sirPrice)
   return (
     <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
       <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
@@ -58,7 +59,12 @@ const StakeData = ({ children }: { children: ReactNode }) => {
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={10}>
             <div className="mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
-              <SirToUsd amount={totalValueLocked} price={prices} />
+              <SirToUsd amount={totalValueLocked} sirPrice={sirPrice} />
+              <TokenDisplay
+                amount={sirPrice}
+                decimals={18}
+                unitLabel="USD"
+              />
             </div>
           </HoverCardContent>
         </HoverCard>

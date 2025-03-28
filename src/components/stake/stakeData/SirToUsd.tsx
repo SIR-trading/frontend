@@ -1,8 +1,8 @@
-import { formatUnits, parseEther } from "viem";
+"usr client"
+import { formatUnits, parseEther, parseUnits } from "viem";
 import { api } from "@/trpc/react";
 import { EContracts, getAddress } from "@/lib/contractAddresses";
 import { TokenDisplay } from "@/components/ui/token-display";
-import type { TPriceList } from "@/components/providers/priceProvider";
 interface SirToUsdProps {
   amount: bigint | undefined;
   sirPrice: bigint | undefined;
@@ -17,13 +17,15 @@ export function SirToUsd({ amount, sirPrice }: SirToUsdProps) {
       </div>
     );
   }
+  console.log("inside__the__sirToUsd", sirPrice);
   const valueInUSD = sirPrice && sirPrice > 0n ? sirPrice * amount : 0n;
   return (
     <div>
-      <div>{formatUnits(valueInUSD, 12)}</div>
+      {/*TODO: revert decimals to 12*/}
+      <div>{valueInUSD}</div>
       <TokenDisplay
         amount={valueInUSD}
-        decimals={12}
+        decimals={122}
         unitLabel={"$"}
       />
     </div>

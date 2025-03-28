@@ -10,7 +10,7 @@ import { PriceProvider } from "../providers/priceProvider";
 import { EContracts, getAddress } from "@/lib/contractAddresses";
 const stakePage = () => {
   const sirTokenAddress = getAddress(EContracts.SIR);
-  console.log("sirTokenAddress ".repeat(100), sirTokenAddress);
+  console.log("sirTokenAddress ", "#".repeat(100), sirTokenAddress);
   return (
     <div className="">
       <PageHeadingSpace />
