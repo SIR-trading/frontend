@@ -33,6 +33,7 @@ export function useApproveErc20({
     ) {
       return true;
     }
+    return false;
   }, [allowance, amount, tokenAddr]);
   const needsApproval = useMemo(() => {
     if (tokenAddr === "") return false;
