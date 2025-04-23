@@ -1,5 +1,6 @@
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import type { TVaults, VaultFieldFragment } from "@/lib/types";
+import { parseAddress } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -14,10 +15,12 @@ export function useFilterVaults({ vaultsQuery }: Props) {
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
   const { data, isFetching } = api.vault.getVaults.useQuery({
-    filterDebtToken: formData.versus.split(",")[0],
-    filterCollateralToken: formData.long.split(",")[0],
+    filterDebtToken: parseAddress(formData.versus),
+    filterCollateralToken: parseAddress(formData.long),
     filterLeverage: formData.leverageTier,
+    first: 40,
   });
+  console.log(data, "DATA VAULTS");
   const [filters, setFilters] = useState<{
     versus: VaultFieldFragment[];
     long: VaultFieldFragment[];
