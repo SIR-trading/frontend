@@ -25,17 +25,24 @@ export const vaultRouter = createTRPCRouter({
           filterLeverage: z.string().optional(),
           filterDebtToken: z.string().optional(),
           filterCollateralToken: z.string().optional(),
+          first: z.number().optional(),
         })
         .optional(),
     )
     .query(async ({ input }) => {
+      console.log(input, "INPUT");
       if (input) {
-        const { filterLeverage, filterDebtToken, filterCollateralToken } =
-          input;
+        const {
+          filterLeverage,
+          filterDebtToken,
+          first,
+          filterCollateralToken,
+        } = input;
         const vaults = await executeVaultsQuery({
           filterLeverage,
           filterDebtToken,
           filterCollateralToken,
+          first,
         });
         return vaults;
       } else {
