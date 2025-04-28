@@ -13,6 +13,7 @@ import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
 import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
+import MintFormProvider from "@/components/providers/mintFormProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -26,7 +27,8 @@ const lora = Bebas_Neue({
 // console.log(Inter, "INTER");
 export const metadata = {
   title: "SIR",
-  description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
+  description:
+    "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -48,13 +50,6 @@ export default async function RootLayout({
         }}
         className={`relative  ${lora.variable} ${inter.className} `}
       >
-        {/* <Image */}
-        {/*   className="absolute object-fill   z-0 top-0 left-0  w-screen h-full" */}
-        {/*   src={Bg} */}
-        {/*   loading="eager" */}
-        {/*   height={1920} */}
-        {/*   alt={""} */}
-        {/* /> */}
         <div
           style={{
             background:
@@ -70,12 +65,14 @@ export default async function RootLayout({
           <TokenlistContextProvider>
             <EvmProvider cookie={cookie}>
               <VaultProvider>
-                <div className=" flex min-h-screen flex-col">
-                  <Header />
-                  <Warning />
-                  {children}
-                  <Footer />
-                </div>
+                <MintFormProvider>
+                  <div className=" flex min-h-screen flex-col">
+                    <Header />
+                    <Warning />
+                    {children}
+                    <Footer />
+                  </div>
+                </MintFormProvider>
               </VaultProvider>
             </EvmProvider>
           </TokenlistContextProvider>
