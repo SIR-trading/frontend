@@ -55,7 +55,6 @@ export const VaultProvider = ({ children }: Props) => {
     },
   );
   const queryClient = useQueryClient();
-  console.log({ data });
   // grab vault from current vaults when all filters are selected
   // and set query data
   useEffect(() => {
@@ -82,11 +81,12 @@ export const VaultProvider = ({ children }: Props) => {
               filterLeverage,
               filterDebtToken,
               filterCollateralToken,
-              skip: (page - 1) * 10,
+              skip: 0, // always is 0 bc setting filter sets 0
             },
           },
           "query",
         );
+        console.log({ queryKey });
         queryClient.setQueryData(queryKey, { vaultQuery: { vaults: [found] } });
       }
     }
