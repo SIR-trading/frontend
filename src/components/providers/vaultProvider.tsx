@@ -56,6 +56,8 @@ export const VaultProvider = ({ children }: Props) => {
   );
   const queryClient = useQueryClient();
   console.log({ data });
+  // grab vault from current vaults when all filters are selected
+  // and set query data
   useEffect(() => {
     if (
       filterCollateralToken &&
@@ -66,26 +68,27 @@ export const VaultProvider = ({ children }: Props) => {
       const found = data?.vaultQuery?.vaults.find((vault) => {
         if (
           vault.leverageTier === parseInt(filterLeverage) &&
-          vault.debtToken === filterDebtToken
+          vault.debtToken === filterDebtToken &&
+          vault.collateralToken === filterCollateralToken
         ) {
           return true;
         }
       });
-      if (!found) return;
-      console.log({ found });
-      const queryKey = getQueryKey(
-        api.vault.getTableVaults,
-        {
-          filters: {
-            filterLeverage,
-            filterDebtToken,
-            filterCollateralToken,
-            skip: (page - 1) * 10,
+      if (found) {
+        const queryKey = getQueryKey(
+          api.vault.getTableVaults,
+          {
+            filters: {
+              filterLeverage,
+              filterDebtToken,
+              filterCollateralToken,
+              skip: (page - 1) * 10,
+            },
           },
-        },
-        "query",
-      );
-      queryClient.setQueryData(queryKey, { vaultQuery: { vaults: [found] } });
+          "query",
+        );
+        queryClient.setQueryData(queryKey, { vaultQuery: { vaults: [found] } });
+      }
     }
 
     setFilters({ filterCollateralToken, filterDebtToken, filterLeverage });
