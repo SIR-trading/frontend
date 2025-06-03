@@ -6,8 +6,7 @@ interface Props {
 }
 
 /**
- * Get tokens received from transaction logs.
- * Todo Rename
+ * Get tokens(APE or TEA) received from burning in transaction logs.
  */
 export function useGetTxTokens({ logs }: Props) {
   const [tokenReceived, setTokenReceived] = useState<bigint | undefined>();
@@ -23,8 +22,8 @@ export function useGetTxTokens({ logs }: Props) {
           data: log.data,
           topics: log.topics,
         });
-        if (parsed.eventName === "Burn") {
-          setTokenReceived(parsed.args.collateralWithdrawn);
+        if (parsed.eventName === "ReservesChanged") {
+          setTokenReceived(parsed.args.reserveApes);
           return;
         }
       });

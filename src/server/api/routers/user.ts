@@ -137,6 +137,7 @@ export const userRouter = createTRPCRouter({
       z.object({ address: z.string().startsWith("0x").length(42).optional() }),
     )
     .query(async ({ input }) => {
+      console.log({ input });
       if (!input.address) {
         return;
       }
@@ -204,21 +205,22 @@ export const userRouter = createTRPCRouter({
       const [unlockedStake, lockedStake] = result;
       return { unlockedStake, lockedStake };
     }),
-  getTotalSirBalance: publicProcedure
-    .input(
-      z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const result = await readContract({
-        abi: SirContract.abi,
-        address: SirContract.address,
-        functionName: "totalBalanceOf",
-        args: [input.user as TAddressString],
-      });
-      return result;
-    }),
+  // DEPRECATED
+  // getTotalSirBalance: publicProcedure
+  //   .input(
+  //     z.object({
+  //       user: z.string().startsWith("0x").length(42).optional(),
+  //     }),
+  //   )
+  //   .query(async ({ input }) => {
+  //     const result = await readContract({
+  //       abi: SirContract.abi,
+  //       address: SirContract.address,
+  //       functionName: "stakeOf",
+  //       args: [input.user as TAddressString],
+  //     });
+  //     return result;
+  //   }),
   getSirSupply: publicProcedure.query(async () => {
     const result = await readContract({
       abi: SirContract.abi,

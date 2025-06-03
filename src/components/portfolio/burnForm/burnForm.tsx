@@ -98,9 +98,9 @@ export default function BurnForm({
           utils.user.getUnstakedSirBalance
             .invalidate()
             .catch((e) => console.log(e));
-          utils.user.getTotalSirBalance.invalidate().catch((e) => {
-            console.log(e);
-          });
+          // utils.user.getTotalSirBalance.invalidate().catch((e) => {
+          //   console.log(e);
+          // });
         } else {
           utils.user.getTeaBalance.invalidate().catch((e) => {
             console.log(e);
@@ -117,7 +117,7 @@ export default function BurnForm({
   }, [
     receiptData,
     utils.user.getApeBalance,
-    utils.user.getTotalSirBalance,
+    // utils.user.getTotalSirBalance,
     utils.user.getSirTotalSupply,
     utils.user.getUnstakedSirBalance,
     claimAndStake,

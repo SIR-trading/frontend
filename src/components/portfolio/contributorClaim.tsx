@@ -68,7 +68,7 @@ export default function ContributorClaim() {
     open,
     utils.user.getUnclaimedContributorRewards,
     utils.user.getUnstakedSirBalance,
-    utils.user.getTotalSirBalance,
+    // utils.user.getTotalSirBalance,
     checked,
     utils.user.getStakedSirPosition,
   ]);

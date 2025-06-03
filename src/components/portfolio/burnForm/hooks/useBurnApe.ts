@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useSimulateContract } from "wagmi";
 import { VaultContract } from "@/contracts/vault";
+import { useIntervalTimestamp } from "@/components/shared/hooks/useIntervalTimestamp";
 export function useBurnApe({
   data,
   isApe,
@@ -15,6 +18,7 @@ export function useBurnApe({
       }
     | undefined;
 }) {
+  const deadline = useIntervalTimestamp();
   const { data: burnData, isFetching } = useSimulateContract({
     ...VaultContract,
     functionName: "burn",
@@ -26,6 +30,7 @@ export function useBurnApe({
         collateralToken: data?.collateralToken ?? "0x",
       },
       amount,
+      deadline + 30, // deadline
     ],
   });
 

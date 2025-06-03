@@ -1,10 +1,8 @@
 "use client";
 
 import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { useFormContext } from "react-hook-form";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useEffect, useState } from "react";
 
@@ -33,7 +31,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const formData = form.watch();
 
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  // const { openConnectModal } = useConnectModal();
 
   const { data: balance } = api.user.getUnstakedSirBalance.useQuery(
     { user: address },
@@ -82,7 +80,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const utils = api.useUtils();
   useEffect(() => {
     if (isConfirmed) {
-      utils.user.getTotalSirBalance.invalidate().catch((e) => console.log(e));
+      // utils.user.getTotalSirBalance.invalidate().catch((e) => console.log(e));
       utils.user.getStakedSirPosition.invalidate().catch((e) => console.log(e));
       utils.user.getUnstakedSirBalance
         .invalidate()
@@ -96,7 +94,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     isConfirmed,
     utils.user.getSirSupply,
     utils.user.getStakedSirPosition,
-    utils.user.getTotalSirBalance,
+    // utils.user.getTotalSirBalance,
     utils.user.getUnclaimedContributorRewards,
     utils.user.getUnstakedSirBalance,
   ]);

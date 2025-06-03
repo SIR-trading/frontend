@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client";
 import { useAccount, useSimulateContract } from "wagmi";
 import type { TAddressString } from "@/lib/types";
@@ -7,6 +10,7 @@ import { parseUnits } from "viem";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { Logger } from "@/lib/logs";
 import { useEffect, useMemo, useState } from "react";
+import { useIntervalTimestamp } from "./useIntervalTimestamp";
 interface Props {
   collateralToken: string;
   debtToken: string;
@@ -59,6 +63,7 @@ export function useMintApeOrTea({
     ? true
     : (tokenAllowance ?? 0n) >= (tokenAmount ?? 0n);
   const tokenCheck = useEth ? (ethAmount ?? 0n) > 0n : (tokenAmount ?? 0n) > 0n;
+  const deadline = useIntervalTimestamp();
   const {
     data: Mint,
     isFetching,
@@ -71,6 +76,7 @@ export function useMintApeOrTea({
       { ...vault },
       tokenAmount ?? 0n,
       debtTokenDeposit ? minCollateralOutWithSlippage ?? 0n : 0n,
+      deadline + 30, // deadline
     ],
     value: ethAmount ?? 0n,
     query: {

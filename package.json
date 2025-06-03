@@ -18,7 +18,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint_d --fix"
+      "eslint --fix"
     ]
   },
   "dependencies": {
@@ -75,7 +75,7 @@
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.9.16",
     "vite-tsconfig-paths": "^4.3.2",
-    "wagmi": "^2.5.19",
+    "wagmi": "2.15.4",
     "zod": "^3.22.4",
     "zustand": "^5.0.2"
   },
@@ -94,7 +94,6 @@
     "drizzle-kit": "^0.30.4",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.1",
-    "eslint_d": "^14.3.0",
     "husky": "^9.1.7",
     "jsdom": "^24.0.0",
     "postcss": "^8.4.38",
