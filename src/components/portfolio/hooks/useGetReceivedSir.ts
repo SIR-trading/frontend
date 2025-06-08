@@ -24,12 +24,7 @@ export function useGetReceivedSir({ logs, staking }: Props) {
           topics: log.topics,
         });
         if (staking) {
-          if (parsed.eventName === "Staked") {
-            setTokenReceived(parsed.args.amount);
-            return;
-          }
-        } else {
-          if (parsed.eventName === "Unstaked") {
+          if (parsed.eventName === "Transfer") {
             setTokenReceived(parsed.args.amount);
             return;
           }
