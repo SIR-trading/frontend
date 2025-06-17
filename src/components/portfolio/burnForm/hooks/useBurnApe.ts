@@ -1,5 +1,6 @@
 import { useSimulateContract } from "wagmi";
 import { VaultContract } from "@/contracts/vault";
+import { getCurrentTime } from "@/lib/utils";
 export function useBurnApe({
   data,
   isApe,
@@ -26,6 +27,7 @@ export function useBurnApe({
         collateralToken: data?.collateralToken ?? "0x",
       },
       amount,
+      getCurrentTime() + 10 * 60, // 10 minutes from now
     ],
   });
 

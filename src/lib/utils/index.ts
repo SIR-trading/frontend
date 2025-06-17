@@ -221,3 +221,7 @@ export function calculateTeaVaultFee() {
 export function compareAddress(a?: string, b?: string) {
   return a?.toLowerCase() === b?.toLowerCase();
 }
+
+export function getCurrentTime() {
+  return Math.floor(Date.now() / 1000);
+}
