@@ -88,24 +88,16 @@ export default function BurnForm({
   const isClaimingRewards = isClaiming;
   useEffect(() => {
     if (receiptData) {
-      if (isApe) {
-        utils.user.getApeBalance.invalidate().catch((e) => {
+      utils.user.getUserBalancesInVaults.invalidate().catch((e) => {
+        console.log(e);
+      });
+      if (!isApe && isClaimingRewards) {
+        utils.user.getUnstakedSirBalance
+          .invalidate()
+          .catch((e) => console.log(e));
+        utils.user.getTotalSirBalance.invalidate().catch((e) => {
           console.log(e);
         });
-      } else {
-        if (isClaimingRewards) {
-          utils.user.getTeaRewards.invalidate().catch((e) => console.log(e));
-          utils.user.getUnstakedSirBalance
-            .invalidate()
-            .catch((e) => console.log(e));
-          utils.user.getTotalSirBalance.invalidate().catch((e) => {
-            console.log(e);
-          });
-        } else {
-          utils.user.getTeaBalance.invalidate().catch((e) => {
-            console.log(e);
-          });
-        }
       }
 
       subgraphSyncPoll(Number.parseInt(receiptData.blockNumber.toString()))
@@ -116,14 +108,12 @@ export default function BurnForm({
     }
   }, [
     receiptData,
-    utils.user.getApeBalance,
     utils.user.getTotalSirBalance,
     utils.user.getSirTotalSupply,
     utils.user.getUnstakedSirBalance,
     claimAndStake,
     isApe,
-    utils.user.getTeaBalance,
-    utils.user.getTeaRewards,
+    utils.user.getUserBalancesInVaults,
     isClaimingRewards,
     utils.vault.getTableVaults,
   ]);

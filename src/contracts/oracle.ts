@@ -104,6 +104,16 @@ export const OracleContract = {
     },
     {
       type: "function",
+      name: "uniswapFeeTierAddressOf",
+      inputs: [
+        { name: "tokenA", type: "address", internalType: "address" },
+        { name: "tokenB", type: "address", internalType: "address" },
+      ],
+      outputs: [{ name: "", type: "address", internalType: "address" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
       name: "uniswapFeeTierOf",
       inputs: [
         { name: "tokenA", type: "address", internalType: "address" },
@@ -230,12 +240,6 @@ export const OracleContract = {
       inputs: [
         { name: "fee", type: "uint24", indexed: false, internalType: "uint24" },
         {
-          name: "aggPriceTick",
-          type: "int56",
-          indexed: false,
-          internalType: "int56",
-        },
-        {
           name: "avLiquidity",
           type: "uint136",
           indexed: false,
@@ -257,7 +261,6 @@ export const OracleContract = {
       anonymous: false,
     },
     { type: "error", name: "NoUniswapPool", inputs: [] },
-    { type: "error", name: "OracleAlreadyInitialized", inputs: [] },
     { type: "error", name: "OracleNotInitialized", inputs: [] },
     { type: "error", name: "UniswapFeeTierIndexOutOfBounds", inputs: [] },
   ] as const,

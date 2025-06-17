@@ -3,10 +3,7 @@ import type { TAddressString } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { formatUnits } from "viem";
-import { useTeaAndApeBals } from "./hooks/useTeaAndApeBals";
 import type { ReactNode } from "react";
-import { api } from "@/trpc/react";
-import { useAccount } from "wagmi";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
@@ -25,23 +22,35 @@ export function BurnTableRow({
   row,
   isApe,
   apeAddress,
-}: Props) {
-  const { apeBal, teaBal } = useTeaAndApeBals({
-    apeAddress,
-    vaultId: row.vaultId,
-    isApe,
-  });
-  const { address } = useAccount();
-  const { data: teaRewards } = api.user.getTeaRewards.useQuery(
-    { userAddress: address ?? "0x", vaultId: row.vaultId },
-    { enabled: Boolean(address) && !isApe },
-  );
+  teaBal,
+  apeBal,
+  teaRewards,
+}: Props & {
+  teaBal: bigint | undefined;
+  apeBal: bigint | undefined;
+  teaRewards: bigint | undefined;
+}) {
+  // const { apeBal, teaBal } = useTeaAndApeBals({
+  //   apeAddress,
+  //   vaultId: row.vaultId,
+  //   isApe,
+  // });
+  // const { address } = useAccount();
+  // const { data: teaRewards } = api.user.getTeaRewards.useQuery(
+  //   { userAddress: address ?? "0x", vaultId: row.vaultId },
+  //   { enabled: Boolean(address) && !isApe },
+  // );
+
   // const rewards = teaRewards ?? 0n;
   // const hasUnclaimedSir = isApe ? false : rewards > 0n;
   const teaBalance = formatUnits(teaBal ?? 0n, row.positionDecimals);
   const apeBalance = formatUnits(apeBal ?? 0n, row.positionDecimals);
   const rewards = formatUnits(teaRewards ?? 0n, 12);
-  const positionValue = useTeaAndApePrice({ isApe, amount: isApe ? apeBalance : teaBalance, row });
+  const positionValue = useTeaAndApePrice({
+    isApe,
+    amount: isApe ? apeBalance : teaBalance,
+    row,
+  });
   return (
     <>
       <tr className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-white  md:grid">
@@ -79,7 +88,9 @@ export function BurnTableRow({
               <DisplayFormattedNumber
                 num={formatNumber(isApe ? apeBalance : teaBalance, 3)}
               />
-              <span className="ml-1 italic text-gray-500">(${formatNumber(positionValue)})</span>
+              <span className="ml-1 italic text-gray-500">
+                (${formatNumber(positionValue)})
+              </span>
               <span className="pl-1 text-[12px] text-gray-400"></span>
             </span>
             <div className="space-x-1">

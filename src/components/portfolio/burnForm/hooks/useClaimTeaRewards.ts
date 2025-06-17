@@ -10,7 +10,7 @@ export function useClaimTeaRewards({
 }) {
   const { data: teaRewardData } = useSimulateContract({
     ...SirContract,
-    functionName: claimAndStake ? "lPerMintAndStake" : "lPerMint",
+    functionName: claimAndStake ? "lperMintAndStake" : "lperMint",
     args: [vaultId],
   });
   return { claimRewardRequest: teaRewardData?.request };

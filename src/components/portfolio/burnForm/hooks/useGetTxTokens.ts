@@ -23,8 +23,8 @@ export function useGetTxTokens({ logs }: Props) {
           data: log.data,
           topics: log.topics,
         });
-        if (parsed.eventName === "Burn") {
-          setTokenReceived(parsed.args.collateralWithdrawn);
+        if (parsed.eventName === "ReservesChanged" && !parsed.args.isMint) {
+          setTokenReceived(parsed.args.reserveApes);
           return;
         }
       });

@@ -1,36 +1,38 @@
 import type { TAddressString } from "@/lib/types";
 import BurnForm from "../burnForm/burnForm";
 import type { TUserPosition } from "@/server/queries/vaults";
-import { useTeaAndApeBals } from "./hooks/useTeaAndApeBals";
-import { api } from "@/trpc/react";
-import { useAccount } from "wagmi";
 import { useEffect } from "react";
 import { BurnFormModal } from "./burnFormModal";
 
 export default function SelectedRow({
   params,
   close,
-  apeAddress,
   isApe,
   isClaiming,
+  teaBal,
+  apeBal,
+  teaRewards,
 }: {
   params: TUserPosition;
   apeAddress?: TAddressString;
   isApe: boolean;
   isClaiming: boolean;
   close: () => void;
+  teaBal: bigint | undefined;
+  apeBal: bigint | undefined;
+  teaRewards: bigint | undefined;
 }) {
-  const { apeBal, teaBal } = useTeaAndApeBals({
-    vaultId: params.vaultId,
-    apeAddress,
-    isApe,
-  });
-
-  const { address } = useAccount();
-  const { data: teaRewards } = api.user.getTeaRewards.useQuery(
-    { userAddress: address ?? "0x", vaultId: params.vaultId },
-    { enabled: Boolean(address) && !isApe },
-  );
+  // const { apeBal, teaBal } = useTeaAndApeBals({
+  //   vaultId: params.vaultId,
+  //   apeAddress,
+  //   isApe,
+  // });
+  //
+  // const { address } = useAccount();
+  // const { data: teaRewards } = api.user.getTeaRewards.useQuery(
+  //   { userAddress: address ?? "0x", vaultId: params.vaultId },
+  //   { enabled: Boolean(address) && !isApe },
+  // );
   const atBal = isApe ? apeBal : teaBal;
   if (!params) {
     <div>
