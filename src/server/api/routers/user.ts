@@ -214,10 +214,10 @@ export const userRouter = createTRPCRouter({
       const result = await readContract({
         abi: SirContract.abi,
         address: SirContract.address,
-        functionName: "totalBalanceOf",
+        functionName: "stakeOf",
         args: [input.user as TAddressString],
       });
-      return result;
+      return result.reduce((acc, val) => acc + BigInt(val), BigInt(0));
     }),
   getSirSupply: publicProcedure.query(async () => {
     const result = await readContract({
