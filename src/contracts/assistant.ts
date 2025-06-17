@@ -48,6 +48,25 @@ export const AssistantContract = {
     },
     {
       type: "function",
+      name: "getUserBalances",
+      inputs: [
+        { name: "user", type: "address", internalType: "address" },
+        { name: "offset", type: "uint256", internalType: "uint256" },
+        { name: "numVaults", type: "uint256", internalType: "uint256" },
+      ],
+      outputs: [
+        { name: "apeBalances", type: "uint256[]", internalType: "uint256[]" },
+        { name: "teaBalances", type: "uint256[]", internalType: "uint256[]" },
+        {
+          name: "unclaimedSirRewards",
+          type: "uint80[]",
+          internalType: "uint80[]",
+        },
+      ],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
       name: "getVaultStatus",
       inputs: [
         {

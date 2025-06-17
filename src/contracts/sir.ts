@@ -6,7 +6,16 @@ export const SirContract = {
     {
       type: "constructor",
       inputs: [
-        { name: "weth", type: "address", internalType: "address" },
+        {
+          name: "contributors",
+          type: "address",
+          internalType: "address",
+        },
+        {
+          name: "weth",
+          type: "address",
+          internalType: "address",
+        },
         { name: "systemControl", type: "address", internalType: "address" },
       ],
       stateMutability: "nonpayable",
@@ -32,6 +41,20 @@ export const SirContract = {
       inputs: [],
       outputs: [{ name: "", type: "uint72", internalType: "uint72" }],
       stateMutability: "pure",
+    },
+    {
+      type: "function",
+      name: "STAKING_VAULT",
+      inputs: [],
+      outputs: [{ name: "", type: "address", internalType: "address" }],
+      stateMutability: "view",
+    },
+    {
+      type: "function",
+      name: "SYSTEM_CONTROL",
+      inputs: [],
+      outputs: [{ name: "", type: "address", internalType: "address" }],
+      stateMutability: "view",
     },
     {
       type: "function",
@@ -122,6 +145,13 @@ export const SirContract = {
     },
     {
       type: "function",
+      name: "contributorMintAndStake",
+      inputs: [],
+      outputs: [{ name: "rewards", type: "uint80", internalType: "uint80" }],
+      stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
       name: "contributorUnclaimedSIR",
       inputs: [
         { name: "contributor", type: "address", internalType: "address" },
@@ -155,14 +185,14 @@ export const SirContract = {
     },
     {
       type: "function",
-      name: "lPerMint",
+      name: "lperMint",
       inputs: [{ name: "vaultId", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "rewards", type: "uint80", internalType: "uint80" }],
       stateMutability: "nonpayable",
     },
     {
       type: "function",
-      name: "lPerMintAndStake",
+      name: "lperMintAndStake",
       inputs: [{ name: "vaultId", type: "uint256", internalType: "uint256" }],
       outputs: [{ name: "rewards", type: "uint80", internalType: "uint80" }],
       stateMutability: "nonpayable",
@@ -236,13 +266,6 @@ export const SirContract = {
     },
     {
       type: "function",
-      name: "totalBalanceOf",
-      inputs: [{ name: "account", type: "address", internalType: "address" }],
-      outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-      stateMutability: "view",
-    },
-    {
-      type: "function",
       name: "totalSupply",
       inputs: [],
       outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -289,6 +312,13 @@ export const SirContract = {
       inputs: [{ name: "amount", type: "uint80", internalType: "uint80" }],
       outputs: [{ name: "dividends_", type: "uint96", internalType: "uint96" }],
       stateMutability: "nonpayable",
+    },
+    {
+      type: "function",
+      name: "vault",
+      inputs: [],
+      outputs: [{ name: "", type: "address", internalType: "contract Vault" }],
+      stateMutability: "view",
     },
     {
       type: "event",
@@ -471,9 +501,9 @@ export const SirContract = {
         },
         {
           name: "amount",
-          type: "uint256",
+          type: "uint80",
           indexed: false,
-          internalType: "uint256",
+          internalType: "uint80",
         },
       ],
       anonymous: false,
@@ -510,19 +540,12 @@ export const SirContract = {
         },
         {
           name: "amount",
-          type: "uint256",
+          type: "uint80",
           indexed: false,
-          internalType: "uint256",
+          internalType: "uint80",
         },
       ],
       anonymous: false,
-    },
-    {
-      inputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-      name: "contributorMintAndStake",
-      outputs: [{ internalType: "uint80", name: "rewards", type: "uint80" }],
     },
     { type: "error", name: "AuctionIsNotOver", inputs: [] },
     { type: "error", name: "BidTooLow", inputs: [] },
@@ -531,6 +554,7 @@ export const SirContract = {
     { type: "error", name: "NewAuctionCannotStartYet", inputs: [] },
     { type: "error", name: "NoAuction", inputs: [] },
     { type: "error", name: "NoAuctionLot", inputs: [] },
+    { type: "error", name: "NoDividends", inputs: [] },
     { type: "error", name: "NoFeesCollected", inputs: [] },
     { type: "error", name: "NotTheAuctionWinner", inputs: [] },
     {
@@ -543,5 +567,7 @@ export const SirContract = {
       ],
     },
     { type: "error", name: "PermitDeadlineExpired", inputs: [] },
+    { type: "error", name: "TransferToStakingVaultNotPermitted", inputs: [] },
+    { type: "error", name: "TransferToZeroAddress", inputs: [] },
   ] as const,
 };
