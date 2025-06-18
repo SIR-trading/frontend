@@ -138,14 +138,14 @@ export const userRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       if (!input.address) {
-        return;
+        return { apeBalances: [], teaBalances: [], unclaimedSirRewards: [] };
       }
       const totalVaults = await readContract({
         ...VaultContract,
         functionName: "numberOfVaults",
       });
       if (!totalVaults) {
-        return;
+        return { apeBalances: [], teaBalances: [], unclaimedSirRewards: [] };
       }
       const [apeBalances, teaBalances, unclaimedSirRewards] =
         await readContract({
