@@ -14,7 +14,7 @@ const buttonVariants = cva(
         default: "bg-accent/60 hover:bg-accent text-accent-foreground",
         accent: "bg-accent hover:bg-accent/60 text-[#FBDED0] py-2 px-4",
         brown: "bg-brown-700 text-brown-100 hover:bg-brown-800 py-2 px-4",
-        card: "bg-primary  text-white",
+        card: "bg-tertiary text-white border-2 border-tertiary-border",
         outline:
           "bg-transparent text-muted-foreground border-2 rounded-md px-4 py-2 text-[14px] font-semibold hover:bg-primary",
         submit:

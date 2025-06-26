@@ -30,12 +30,7 @@ interface Props {
   inputLoading: boolean;
   children: ReactNode;
 }
-function Inputs({
-  decimals,
-  disabled,
-  inputLoading,
-  children,
-}: Props) {
+function Inputs({ decimals, disabled, inputLoading, children }: Props) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
 
@@ -87,7 +82,7 @@ function Inputs({
       <div className="flex flex-col items-end">
         <h2 className="pb-2 text-sm">Deposit Asset</h2>
         <div
-          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-secondary ${!formData.depositToken ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
