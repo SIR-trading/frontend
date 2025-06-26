@@ -17,36 +17,28 @@ export function Header() {
               width={36}
               src={hat as StaticImageData}
               alt="Sir Icon"
+              className="rounded-full"
             />
             <div className="flex items-center">
-              <h1 className="sir-shadow h-[34px] font-lora text-[34px] font-normal leading-[34px] text-white drop-shadow-md">
-                SIR.TRADING
+              <h1 className="sir-shadow ml-1 font-geist text-[20px] font-normal leading-[20px] text-white drop-shadow-md">
+                Sir trading
               </h1>
             </div>
           </div>
         </Link>
         <div className="flex items-center">
           <nav className=" hidden items-center md:flex">
-            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px]  py-[12px] font-semibold text-muted-foreground lg:flex-row">
+            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] py-[12px] text-sm text-muted-foreground lg:flex-row">
               <ul
                 aria-label="Core Navigation"
-                className="flex gap-x-[16px] rounded-md"
+                className="flex gap-x-3 rounded-md"
               >
-                <NavItem theme="light" url={"/"}>
-                  Leverage
-                </NavItem>
-                <NavItem theme="light" url={"/liquidity"}>
-                  Liquidity
-                </NavItem>
-                <NavItem theme="light" url={"/portfolio"}>
-                  Portfolio
-                </NavItem>
+                <NavItem url={"/"}>Leverage</NavItem>
+                <NavItem url={"/liquidity"}>Liquidity</NavItem>
+                <NavItem url={"/portfolio"}>Portfolio</NavItem>
               </ul>
               <div className="hidden items-center lg:flex">|</div>
-              <ul
-                className="flex gap-x-[16px]"
-                aria-label="Secondary Navigation"
-              >
+              <ul className="flex gap-x-3" aria-label="Secondary Navigation">
                 <NavItem url={"/stake"}>Stake</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
                 <NavItem url={"/leverage-calculator"}>Calculator</NavItem>

@@ -9,7 +9,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const navItemVariants = cva(
-  "whitespace-nowrap cursor-pointer shadow-sm rounded-md text-gray-400 px-2 py-1 data-[main=true]:bg-primary data-[active=true]:text-white",
+  "whitespace-nowrap cursor-pointer shadow-sm rounded-md px-2 py-1 dark:data-[active=true]:text-white  data-[active=true]:text-gray-50 text-gray-50/50",
   {
     variants: {
       theme: {

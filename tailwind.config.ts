@@ -43,11 +43,12 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        lora: ["var(--font-lora)"],
+        geist: ["var(--font-geist-sans)"],
       },
       colors: {
         border: "hsl(var(--border))",
         gray: {
+          50: "hsl(var(--gray-50), <alpha-value>)",
           100: "hsl(var(--gray-100), <alpha-value>)",
           200: "hsl(var(--gray-200), <alpha-value>)",
           300: "hsl(var(--gray-300), <alpha-value>)",
@@ -84,6 +85,7 @@ const config = {
         tertiary: {
           DEFAULT: "hsl(var(--tertiary), <alpha-value>)",
           foreground: "hsl(var(--tertiary-foreground), <alpha-value>)",
+          border: "hsl(var(--tertiary-border), <alpha-value>)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
