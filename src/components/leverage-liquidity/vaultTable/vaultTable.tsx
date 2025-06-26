@@ -17,7 +17,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   const { vaults, isFetching } = useVaultProvider();
   return (
     <table className="w-full">
-      <caption className="pb-2 font-lora text-[24px] font-bold leading-[24px]">
+      <caption className="pb-2 font-geist text-[24px] font-bold leading-[24px]">
         Popular Vaults
       </caption>
 

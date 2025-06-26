@@ -152,9 +152,9 @@ export default function CreateVaultForm() {
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
-        {/* <h1 className="text-center font-lora text-4xl">Create Vault</h1> */}
+        {/* <h1 className="text-center font-geist text-4xl">Create Vault</h1> */}
         <div>
-          <h2 className="font-lora text-3xl font-semibold tracking-wide">
+          <h2 className="font-geist text-3xl font-semibold tracking-wide">
             Initialize a Vault
           </h2>
           <h4 className="text-sm text-neutral-400">

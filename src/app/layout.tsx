@@ -1,13 +1,15 @@
 import "../styles/globals.css";
 import "@radix-ui/themes/styles.css";
 import { TRPCReactProvider } from "@/trpc/react";
+import { GeistSans } from "geist/font/sans";
+
 // import Image from "next/image";
 
 import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
 import { headers } from "next/headers";
 import { Header } from "@/components/header";
-import { Inter, Bebas_Neue } from "next/font/google";
+import { Inter } from "next/font/google";
 import Bg from "../../public/background.png";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
@@ -17,11 +19,6 @@ import MintFormProvider from "@/components/providers/mintFormProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-});
-const lora = Bebas_Neue({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-lora",
 });
 
 // console.log(Inter, "INTER");
@@ -48,7 +45,7 @@ export default async function RootLayout({
           backgroundImage: `url(${Bg.src})`,
           backgroundRepeat: "repeat",
         }}
-        className={`relative  ${lora.variable} ${inter.className} `}
+        className={`relative  ${GeistSans.variable} ${inter.className} `}
       >
         <div
           style={{

@@ -14,7 +14,7 @@ export function StakeModal({ open, setOpen }: Props) {
           className={`relative rounded-xl bg-secondary-800 text-white  transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
-          <h1 className="pt-4 text-center font-lora text-2xl">Stake</h1>
+          <h1 className="pt-4 text-center font-geist text-2xl">Stake</h1>
           <StakeForm closeStakeModal={() => setOpen(false)}></StakeForm>
         </div>
       </DialogContent>

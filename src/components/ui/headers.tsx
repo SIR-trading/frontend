@@ -9,7 +9,7 @@ const HeadOne = React.forwardRef<HTMLHeadingElement, HeadeOneProps>(
   ({ className, children, ...props }, ref) => {
     return (
       <h1
-        className={cn("font-lora text-[32px] font-bold", className)}
+        className={cn("font-geist text-[32px] font-bold", className)}
         ref={ref}
         {...props}
       >

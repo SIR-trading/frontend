@@ -81,7 +81,7 @@ const ClaimFees = ({
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
-        <h2 className="pb-6 text-center font-lora text-2xl ">Claim</h2>
+        <h2 className="pb-6 text-center font-geist text-2xl ">Claim</h2>
         <div className=" rounded-md bg-secondary-300 px-3 py-2">
           <div className="py-1 text-sm font-medium leading-none">
             Amount to claim{" "}

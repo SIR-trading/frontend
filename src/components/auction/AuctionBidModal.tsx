@@ -116,7 +116,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
           className={`nav-shadow relative rounded-xl bg-secondary p-4  text-white transition-all duration-700 `}
         >
           <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
-          <h1 className="text-center font-lora text-2xl">
+          <h1 className="text-center font-geist text-2xl">
             {isTopUp ? "Top up bid" : "Place bid"}{" "}
           </h1>
           <AuctionBidInputs.Root>
