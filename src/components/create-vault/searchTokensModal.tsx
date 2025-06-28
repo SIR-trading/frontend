@@ -142,7 +142,7 @@ export default function SearchTokensModal({
           </Show>
           <Show when={!enterManually}>
             <div className="space-y-2 px-6">
-              <DialogTitle className="text-center font-lora text-[28px]">
+              <DialogTitle className="text-center font-geist text-[28px]">
                 Select a token
               </DialogTitle>
               {/* <h1 className="font-geistMono">Select a token</h1> */}

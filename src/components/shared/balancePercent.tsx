@@ -13,7 +13,7 @@ export function BalancePercent({
   settings?: React.ReactNode;
 }) {
   return (
-    <h2 className="flex justify-end gap-x-2 pt-1 text-right text-sm text-[#26DEC8]">
+    <h2 className="flex justify-end gap-x-2 pt-1 text-right text-sm text-foreground/80">
       {settings}
       <button
         onClick={() =>
@@ -24,6 +24,7 @@ export function BalancePercent({
         aria-label="25% Balance"
         type="button"
         disabled={disabled}
+        className="hover:text-foreground hover:underline"
       >
         25%
       </button>{" "}
@@ -36,6 +37,7 @@ export function BalancePercent({
         }
         aria-label="50% Balance"
         type="button"
+        className="hover:text-foreground hover:underline"
       >
         50%
       </button>{" "}
@@ -57,6 +59,7 @@ export function BalancePercent({
           setValue(overrideMaxValue);
         }}
         aria-label="Max Balance"
+        className="hover:text-foreground hover:underline"
       >
         Max
       </button>

@@ -17,7 +17,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   const { vaults, isFetching } = useVaultProvider();
   return (
     <table className="w-full">
-      <caption className="pb-2 font-lora text-[24px] font-bold leading-[24px]">
+      <caption className="pb-6 text-left text-[20px] font-semibold leading-[24px]">
         Popular Vaults
       </caption>
 
@@ -62,26 +62,26 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
 
 function VaultTableRowHeaders() {
   return (
-    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-gray-400 md:grid-cols-9">
-      <th className="font-medium">ID</th>
+    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-[#9D9D9D] md:grid-cols-9">
+      <th className="font-medium">Id</th>
       <th className="font-medium md:col-span-3">Vault</th>
 
       <th className="hidden items-center gap-x-1 font-medium md:flex">
-        <span>POL</span>
-        <ToolTip iconSize={15}>
+        <span>Pol</span>
+        <ToolTip iconSize={12}>
           Protocol Owned Liquidity is liquidity that will never be withdrawn.
         </ToolTip>
       </th>
-      <th className="gap hidden items-center gap-x-[2px] font-medium md:flex">
+      <th className="gap hidden items-center gap-x-1 font-medium md:flex">
         Fees
-        <ToolTip iconSize={15}>
+        <ToolTip iconSize={12}>
           One-time APE minting fee. Half distributed to LPers at mint, and half
           at burn.
         </ToolTip>
       </th>
-      <th className="relative z-10  flex items-center gap-x-[2px] font-medium">
+      <th className="relative z-10  flex items-center gap-x-1 font-medium">
         Leverage
-        <ToolTip iconSize={15}>
+        <ToolTip iconSize={12}>
           <div>
             SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
           </div>

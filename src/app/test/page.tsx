@@ -5,8 +5,8 @@ import React, { useMemo } from "react";
 export default function Page() {
   return (
     <div className="flex justify-center">
-      <div className="flex flex-col gap-4 rounded-md bg-black p-4 text-white">
-        <span className="text-md text-white">
+      <div className="flex flex-col gap-4 rounded-md bg-black p-4 ">
+        <span className="text-md ">
           <DisplaySmallNumber num={formatSmallNumber(0.00031)} />
         </span>
         <span>

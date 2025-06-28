@@ -12,7 +12,7 @@ export default function VaultRowSkeleton() {
       <th className="hidden items-center md:flex">
         <Skeleton width="28px" />
       </th>
-      <th className="hidden items-center gap-x-1 text-[13px] font-normal text-red-400 md:flex">
+      <th className="text-red hidden items-center gap-x-1 text-[13px] font-normal md:flex">
         <Skeleton width="45px" />
       </th>
       <th className="pl-2">
@@ -30,7 +30,7 @@ function Skeleton({ width }: { width: string }) {
   return (
     <div
       style={{ width }}
-      className="my-1 h-4  animate-pulse rounded-full bg-gray-700/70 "
+      className="bg-gray-700/70 my-1  h-4 animate-pulse rounded-full "
     ></div>
   );
 }

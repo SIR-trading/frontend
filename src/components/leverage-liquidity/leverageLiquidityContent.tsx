@@ -20,7 +20,7 @@ export default function LeverageLiquidityContent({
       <Explainer page={isApe ? EPage.LEVERAGE : EPage.LIQUIDITY} />
       <div className="grid w-full gap-x-[16px] gap-y-4 xl:grid-cols-2">
         <MintForm vaultsQuery={vaultsQuery} isApe={isApe} />
-        <Card>
+        <Card className={"md:px-5"}>
           <div className="flex h-full flex-col justify-between">
             <VaultTable isApe={isApe} />
             <Pagination

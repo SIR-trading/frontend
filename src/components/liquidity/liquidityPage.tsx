@@ -5,7 +5,7 @@ import PageHeadingSpace from "../shared/pageHeadingSpace";
 export default function LiquidityPage({ children }: { children: ReactNode }) {
   return (
     <div className="w-full">
-      <h1 className="text-center font-lora text-[32px] font-bold">
+      <h1 className="text-center font-geist text-[32px] font-bold">
         Provide Liquidity
       </h1>
       <PageHeadingSpace />

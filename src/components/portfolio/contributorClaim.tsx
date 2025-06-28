@@ -142,7 +142,7 @@ export default function ContributorClaim() {
           <div className="">
             <Button
               onClick={() => setOpen(true)}
-              className="w-full space-x-1 bg-gold px-4 py-2 font-bold text-black hover:bg-gold/90"
+              className="w-full space-x-1 bg-gold px-4 py-2 font-bold text-white hover:bg-gold/90"
             >
               <span>Claim Contributor Rewards</span>
               {

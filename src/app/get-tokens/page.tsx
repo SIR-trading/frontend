@@ -37,7 +37,7 @@ export default function Page() {
   };
   return (
     <Container className="pt-[44px]">
-      <Card className="flex  flex-col items-center justify-center bg-secondary-700 p-4 text-white">
+      <Card className="bg-secondary-700  flex flex-col items-center justify-center p-4 ">
         <h1 className="mb-6 text-2xl  ">Sepolia Utilities</h1>
 
         <div className="flex gap-x-3 text-accent-100">
@@ -64,8 +64,8 @@ export default function Page() {
           </a>
         </div>
 
-        <div className="mt-8 rounded-lg bg-secondary-400 bg-opacity-40 p-6 shadow-md ">
-          <h2 className="mb-4 text-lg text-gray-200">Mock Tokens</h2>
+        <div className="bg-secondary-400 mt-8 rounded-lg bg-opacity-40 p-6 shadow-md ">
+          <h2 className="text-gray-200 mb-4 text-lg">Mock Tokens</h2>
           <div className="flex justify-between ">
             <div className="">
               <Button
@@ -92,12 +92,12 @@ export default function Page() {
             </div>
           </div>
           <div>
-            <h3 className="py-2 text-center text-lg text-gray-200">
+            <h3 className="text-gray-200 py-2 text-center text-lg">
               Token Info
             </h3>
             <div className=" ">
               <div>
-                <h3 className="pb-2 text-lg text-gray-200">METH</h3>
+                <h3 className="text-gray-200 pb-2 text-lg">METH</h3>
                 <div className="">
                   <Row title="Symbol" value="METH" />
                   <Row
@@ -109,7 +109,7 @@ export default function Page() {
               </div>
 
               <div>
-                <h3 className="pb-2 text-lg  text-gray-200">TARP</h3>
+                <h3 className="text-gray-200 pb-2  text-lg">TARP</h3>
                 <div className="">
                   <Row title="Symbol" value="TARP" />
                   <Row
@@ -126,7 +126,7 @@ export default function Page() {
         <a
           href="https://interface-jet.vercel.app/#/swap?chain=sepolia"
           target="_blank"
-          className="mt-8 rounded bg-gold px-4 py-2 text-black  hover:bg-gold/95"
+          className="mt-8 rounded bg-gold px-4 py-2 text-white  hover:bg-gold/95"
         >
           Trade on Sepolia Uniswap
         </a>

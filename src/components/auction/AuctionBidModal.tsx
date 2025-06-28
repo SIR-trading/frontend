@@ -113,10 +113,10 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
-          className={`nav-shadow relative rounded-xl bg-secondary p-4  text-white transition-all duration-700 `}
+          className={`nav-shadow relative rounded-xl bg-secondary p-4   transition-all duration-700 `}
         >
           <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
-          <h1 className="text-center font-lora text-2xl">
+          <h1 className="text-center font-geist text-2xl">
             {isTopUp ? "Top up bid" : "Place bid"}{" "}
           </h1>
           <AuctionBidInputs.Root>

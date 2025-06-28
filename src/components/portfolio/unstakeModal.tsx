@@ -19,7 +19,7 @@ export function UnstakeModal({ open, setOpen }: Props) {
           className={`relative rounded-xl border border-secondary-700 bg-secondary-800 text-white  transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
-          <h1 className="pt-4 text-center font-lora text-2xl">Unstake</h1>
+          <h1 className="pt-4 text-center font-geist text-2xl">Unstake</h1>
           <UnstakeForm closeUnstakeModal={() => setOpen(false)}></UnstakeForm>
         </div>
       </DialogContent>

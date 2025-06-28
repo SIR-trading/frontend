@@ -6,6 +6,6 @@ export default function PageHeader({
   children: React.ReactNode;
 }) {
   return (
-    <h1 className="text-center font-lora text-[32px] font-bold">{children}</h1>
+    <h1 className="text-center font-geist text-[32px] font-bold">{children}</h1>
   );
 }

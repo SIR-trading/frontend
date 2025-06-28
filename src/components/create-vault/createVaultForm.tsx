@@ -152,12 +152,12 @@ export default function CreateVaultForm() {
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
-        {/* <h1 className="text-center font-lora text-4xl">Create Vault</h1> */}
+        {/* <h1 className="text-center font-geist text-4xl">Create Vault</h1> */}
         <div>
-          <h2 className="font-lora text-3xl font-semibold tracking-wide">
+          <h2 className="font-geist text-3xl font-semibold tracking-wide">
             Initialize a Vault
           </h2>
-          <h4 className="text-sm text-neutral-400">
+          <h4 className="text-neutral-400 text-sm">
             Enter any two tokens with a uniswap pool ...
           </h4>
         </div>
@@ -218,7 +218,7 @@ export default function CreateVaultForm() {
           />
 
           {
-            <p className="text-sm text-red-400">
+            <p className="text-red text-sm">
               {form.formState.errors.leverageTier?.message}
             </p>
           }
@@ -273,7 +273,7 @@ function SelectTokenDialogTrigger({
       <button
         onClick={onClick}
         type="button"
-        className="flex w-full justify-between gap-x-2 rounded-md bg-secondary-400 px-3 py-2"
+        className="bg-secondary-400 flex w-full justify-between gap-x-2 rounded-md px-3 py-2"
       >
         <div className="flex items-center gap-x-1">
           {!tokenAddress && <span className="text-[14px]">Select Token</span>}

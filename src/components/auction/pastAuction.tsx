@@ -5,7 +5,7 @@ import AuctionCard, {
 import { TokenDisplay } from "@/components/ui/token-display";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useGetAuctionLot } from "@/components/auction/hooks/auctionSimulationHooks";
-import { CSSProperties, useState } from "react";
+import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { api } from "@/trpc/react";
@@ -16,10 +16,8 @@ import { useResetTransactionModal } from "@/components/leverage-liquidity/mintFo
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import Show from "@/components/shared/show";
-import VaultRowSkeleton from "@/components/leverage-liquidity/vaultTable/vaultRowSkeleton";
-import { Card } from "@/components/ui/card";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
-import type { Address} from "viem";
+import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 
 const PastAuction = ({
@@ -103,7 +101,7 @@ const PastAuction = ({
                   uniqueAuctionCollection.collateralSymbolMap.get(id ?? "") ??
                   ""
                 }
-                className={"font-lora text-[28px] font-normal leading-[32px]"}
+                className={"font-geist text-[28px] font-normal leading-[32px]"}
               />
             </h4>
             <TransactionStatus
@@ -178,7 +176,7 @@ const PastAuction = ({
                               ) ?? ""
                             }
                             className={
-                              "font-lora text-[28px] font-normal leading-[32px]"
+                              "font-geist text-[28px] font-normal leading-[32px]"
                             }
                           />
                         ),
@@ -257,6 +255,5 @@ const PastAuction = ({
     </div>
   );
 };
-
 
 export default PastAuction;

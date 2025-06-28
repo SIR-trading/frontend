@@ -256,12 +256,12 @@ export default function BurnForm({
         <div className="w-[320px] space-y-2  p-2 md:w-full">
           <div className="flex justify-between">
             {isClaimingRewards && (
-              <h2 className="w-full pl-[24px] text-center font-lora text-[24px]">
+              <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
                 Claim
               </h2>
             )}
             {!isClaimingRewards && (
-              <h2 className="w-full pl-[24px] text-center font-lora text-[24px]">
+              <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
                 Burn
               </h2>
             )}

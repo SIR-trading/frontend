@@ -18,8 +18,8 @@ import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAu
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import Show from "@/components/shared/show";
-import type { Address} from "viem";
-import { hexToBigInt, zeroAddress } from "viem";
+import type { Address } from "viem";
+import { hexToBigInt } from "viem";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -148,7 +148,7 @@ const OngoingAuction = ({
                                 ) ?? ""
                               }
                               className={
-                                "font-lora text-[28px] font-normal leading-[32px]"
+                                "font-geist text-[28px] font-normal leading-[32px]"
                               }
                             />
                           ),
@@ -266,7 +266,7 @@ const OngoingAuction = ({
                               ) ?? ""
                             }
                             className={
-                              "font-lora text-[28px] font-normal leading-[32px]"
+                              "font-geist text-[28px] font-normal leading-[32px]"
                             }
                           />
                         ),
