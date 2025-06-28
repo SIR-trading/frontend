@@ -7,7 +7,7 @@ export const revalidate = 0;
 export default async function Home() {
   const { vaultQuery } = await getVaultsForTable(0);
   return (
-    <main className="flex  flex-col items-center justify-center text-white">
+    <main className="flex  flex-col items-center justify-center ">
       <LeverageLiquidityPage title="Provide Liquidity">
         <LeverageLiquidityContent
           isApe={false}

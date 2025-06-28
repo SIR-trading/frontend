@@ -4,13 +4,24 @@ import { Fa6BrandsDiscord } from "../ui/icons/discord-icon";
 import { Fa6BrandsGithub } from "../ui/icons/github-icon";
 export default function Footer() {
   return (
-    <div className="flex flex-grow items-end px-[16px] py-[32px]">
-      <div className="flex w-full flex-col md:flex-row items-center gap-2 md:gap-0 md:items-end justify-between">
+    <div className="flex w-full max-w-[1280px] px-[16px] py-[32px] lg:mx-auto">
+      <div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row md:items-end md:gap-0">
         <nav className="flex gap-x-4 text-[14px] text-muted-foreground ">
-          <a className="hover:text-white" href="https://sir.trading">Homepage</a>
-          <a className="hover:text-white" href="https://docs.sir.trading">Docs</a>
-          <a className="hover:text-white" href="https://www.sir.trading/audit">Audit</a>
-          <a className="hover:text-white" href="https://docs.sir.trading/protocol-overview/contract-addresses">Contract addresses</a>
+          <a className="hover:text-white" href="https://sir.trading">
+            Homepage
+          </a>
+          <a className="hover:text-white" href="https://docs.sir.trading">
+            Docs
+          </a>
+          <a className="hover:text-white" href="https://www.sir.trading/audit">
+            Audit
+          </a>
+          <a
+            className="hover:text-white"
+            href="https://docs.sir.trading/protocol-overview/contract-addresses"
+          >
+            Contract addresses
+          </a>
         </nav>
         <nav className="flex items-center gap-x-4 text-[14px] text-muted-foreground ">
           <a className="hover:text-white" href="https://x.com/leveragesir">

@@ -25,20 +25,17 @@ interface Props {
   disabled: boolean;
 }
 
-
-
 function EntryPrice({ disabled }: Props) {
   const form = useFormContext<TCalculatorFormFields>();
 
-
-    return (
+  return (
     <div className="space-y-2">
       <div>
         <FormLabel htmlFor="entryPrice">Entry price</FormLabel>
       </div>
       <div
         data-state={disabled ? "disabled" : "active"}
-        className="flex flex-col gap-4 rounded-md bg-primary p-3 data-[state=disabled]:opacity-60"
+        className="flex flex-col gap-4 rounded-md bg-primary/5 p-4 data-[state=disabled]:opacity-60 dark:bg-primary"
       >
         {/* Entry Price Input */}
         <FormField
@@ -84,7 +81,7 @@ function ExitPrice({ disabled }: Props) {
       </div>
       <div
         data-state={disabled ? "disabled" : "active"}
-        className="flex flex-col gap-4 rounded-md bg-primary p-3 data-[state=disabled]:opacity-60"
+        className="flex flex-col gap-4 rounded-md bg-primary/5 p-4 data-[state=disabled]:opacity-60 dark:bg-primary"
       >
         {/* Entry Price Input */}
         <FormField

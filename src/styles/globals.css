@@ -22,10 +22,13 @@
   }
 }
 .sir-shadow {
-  text-shadow: 0px 4px 5px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 4px 5px rgba(0, 0, 0, 0.5);
 }
 .nav-shadow {
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5);
+}
+.card-shadow {
+  box-shadow: 0 4px 4px 0 hsla(0, 0%, 0%, 0.2);
 }
 html {
   scroll-behavior: smooth;
@@ -42,71 +45,93 @@ html {
 }
 @layer base {
   :root {
-    --background: 240, 5%, 6%;
-    --foreground: 240, 15%, 13%, 1;
-    /* 240°, 15%, 30% */
-    --primary: 236, 37%, 15%;
-    --primary-foreground: 360, 100%, 100%;
-    --secondary: 236, 37%, 10%;
-    --secondary-100: 240, 15%, 38%;
-    --secondary-200: 240, 15%, 36%;
-    --secondary-300: 240, 15%, 32%;
-    --secondary-400: 240, 15%, 30%;
-    --secondary-500: 240, 15%, 28%;
-    --secondary-600: 240, 15%, 26%;
-    --secondary-700: 240, 20%, 20%;
-    --secondary-800: 240, 22%, 16%;
-    --secondary-900: 240, 20%, 14%;
-    --secondary-1000: 240, 20%, 10%;
-    --secondary-foreground: 0, 0%, 100%;
+    --radius: 0.5rem;
 
-    --tertiary: 236, 37%, 8%;
-    --tertiary-foreground: 0, 0%, 100%;
-    --tertiary-border: 238, 35%, 13%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 240, 22%, 80%, 1;
-
+    /*To review*/
+    --gold: 265, 100%, 58%;
+    --purple: 265, 63%, 72%;
+    --ring: 360, 100%, 100%;
     --accent: 173, 73%, 31%;
     --accent-100: 173, 73%, 50%;
     --accent-200: 173, 73%, 11%;
     --accent-600: 173, 73%, 26%;
     --accent-foreground: 360, 100%, 100%;
-    --purple: 265, 63%, 72%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --gold: 40, 80%, 70%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 360, 100%, 100%, 1;
-    --light-blue: 173, 74%, 51%;
-    --orange-100: 19, 84%, 52%;
-    --orange-200: 19, 84%, 42%;
     --red: 0, 73%, 50%;
-    --red-200: 0, 73%, 50%;
-    --brown-700: 19, 84%, 22%;
-    --brown-800: 19, 84%, 20%;
-    --brown-100: 20, 84%, 90%;
-    --yellow-100: 33, 91%, 59%;
-    --yellow-200: 33, 91%, 46%;
+    --red-200: 0, 73%, 40%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 240, 15%, 70%, 1;
 
-    --gray-50: 0, 0%, 98%;
-    --gray-100: 0, 0%, 95%;
-    --gray-200: 0, 0%, 92%;
-    --gray-300: 0, 0%, 82%;
-    --gray-400: 0, 0%, 72%;
-    --gray-500: 0, 0%, 62%;
-    --gray-600: 0, 0%, 52%;
-    --gray-700: 0, 0%, 38%;
-    --gray-800: 0, 0%, 22%;
-
-    --radius: 0.5rem;
+    --background: 0, 0%, 100%;
+    --foreground: 240, 15%, 13%;
+    --border: 0, 0%, 100%;
+    --primary: 265, 100%, 58%;
+    --secondary: 0, 0%, 100%;
+    --gray: 0, 0%, 98%;
+    --tertiary-border: 238, 35%, 13%, 0;
+    --on-bg-subdued: 236, 36%, 15%, 0.61;
   }
+  [data-theme="dark"] {
+    --muted: 240, 15%, 20%;
+    --muted-foreground: 240, 15%, 60%;
+
+    --background: 236, 37%, 8%;
+    --foreground: 0, 0%, 100%;
+    --border: 237, 36%, 13%;
+    --primary: 236, 37%, 15%;
+    --tertiary: 236, 37%, 8%;
+    --secondary: 236, 37%, 10%;
+    --tertiary-border: 238, 35%, 13%;
+    --on-bg-subdued: 244, 58%, 74%, 1;
+  }
+  /*:root {*/
+  /*  --background: 236, 37%, 8%;*/
+  /*  --foreground: 240, 15%, 13%, 1;*/
+  /*  !* 240°, 15%, 30% *!*/
+  /*  --primary: 236, 37%, 15%;*/
+  /*  --primary-foreground: 360, 100%, 100%;*/
+  /*  --secondary: 236, 37%, 10%;*/
+  /*  --secondary-100: 240, 15%, 38%;*/
+  /*  --secondary-200: 240, 15%, 36%;*/
+  /*  --secondary-300: 240, 15%, 32%;*/
+  /*  --secondary-400: 240, 15%, 30%;*/
+  /*  --secondary-500: 240, 15%, 28%;*/
+  /*  --secondary-600: 240, 15%, 26%;*/
+  /*  --secondary-700: 240, 20%, 20%;*/
+  /*  --secondary-800: 240, 22%, 16%;*/
+  /*  --secondary-900: 240, 20%, 14%;*/
+  /*  --secondary-1000: 240, 20%, 10%;*/
+  /*  --secondary-foreground: 0, 0%, 100%;*/
+
+  /*  */
+
+  /*  --gold: 40, 80%, 70%;*/
+  /*  --border: 237, 36%, 13%;*/
+  /*  --input: 214.3 31.8% 91.4%;*/
+  /*  --ring: 360, 100%, 100%, 1;*/
+  /*  --light-blue: 173, 74%, 51%;*/
+  /*  --red: 0, 73%, 50%;*/
+  /*  --red-200: 0, 73%, 50%;*/
+  /*  --brown-700: 19, 84%, 22%;*/
+  /*  --brown-800: 19, 84%, 20%;*/
+  /*  --brown-100: 20, 84%, 90%;*/
+  /*  --gray-50: 0, 0%, 98%;*/
+  /*  --gray-100: 0, 0%, 95%;*/
+  /*  --gray-200: 0, 0%, 92%;*/
+  /*  --gray-300: 0, 0%, 82%;*/
+  /*  --gray-400: 0, 0%, 72%;*/
+  /*  --gray-500: 0, 0%, 62%;*/
+  /*  --gray-600: 0, 0%, 52%;*/
+  /*  --gray-700: 0, 0%, 38%;*/
+  /*  --gray-800: 0, 0%, 22%;*/
+
+  /*}*/
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-white;
   }
   body {
     @apply bg-background text-foreground;
@@ -124,4 +149,26 @@ html {
 
 .scale-up {
   animation: scaleUp 0.2s ease-in-out;
+}
+
+@layer utilities {
+  .gradient-bg {
+    background: radial-gradient(
+      110.84% 110.84% at 50% 50%,
+      rgba(132, 42, 255, 0.012) 0%,
+      rgba(132, 42, 255, 0.02) 36.14%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+
+  [data-theme="dark"] {
+    .gradient-bg {
+      background: radial-gradient(
+        53.42% 53.42% at 50% 50%,
+        rgba(132, 42, 255, 0.2) 0%,
+        rgba(70, 26, 136, 0.2) 36.14%,
+        rgba(10, 11, 22, 0.2) 100%
+      );
+    }
+  }
 }

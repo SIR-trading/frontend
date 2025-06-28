@@ -11,7 +11,7 @@ export default async function Home({ params }: { params: { slug: string } }) {
   const { vaultQuery } = await getVaultsForTable(offset);
 
   return (
-    <main className="flex  flex-col items-center justify-center text-white">
+    <main className="flex  flex-col items-center justify-center ">
       <LeverageLiquidityPage title={"Take on Leverage"}>
         <LeverageLiquidityContent
           isApe

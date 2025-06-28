@@ -38,24 +38,10 @@ export default async function RootLayout({
   // const headerList = headers();
   // const country = headerList.get("x-country");
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <title>SIR App</title>
-      <body
-        style={{
-          backgroundImage: `url(${Bg.src})`,
-          backgroundRepeat: "repeat",
-        }}
-        className={`relative  ${GeistSans.variable} ${inter.className} `}
-      >
-        <div
-          style={{
-            background:
-              "radial-gradient(55.25% 55.16% at 48.63% 44.84%, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%)",
-            backgroundBlendMode: "lighten",
-            boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.5)",
-          }}
-          className="absolute left-0 top-0 z-[-1] h-full w-full opacity-100"
-        ></div>
+      <body className={`relative  ${GeistSans.variable} ${inter.className}`}>
+        <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
 
         <Toaster />
         <TRPCReactProvider>
@@ -66,7 +52,13 @@ export default async function RootLayout({
                   <div className=" flex min-h-screen flex-col">
                     <Header />
                     <Warning />
-                    {children}
+                    <div
+                      className={
+                        "mx-auto mt-8 w-full max-w-[1280px] rounded-[8px] p-6 dark:border dark:border-border"
+                      }
+                    >
+                      {children}
+                    </div>
                     <Footer />
                   </div>
                 </MintFormProvider>

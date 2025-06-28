@@ -82,13 +82,13 @@ const ClaimFees = ({
           </TransactionModal.StatSubmitContainer>
         </TransactionModal.Root>
         <h2 className="pb-6 text-center font-geist text-2xl ">Claim</h2>
-        <div className=" rounded-md bg-secondary-300 px-3 py-2">
+        <div className=" bg-secondary-300 rounded-md px-3 py-2">
           <div className="py-1 text-sm font-medium leading-none">
             Amount to claim{" "}
           </div>
           <div className="flex justify-between">
             <div className="flex flex-col justify-between">
-              <div className="h-10 w-40 rounded-md bg-card text-[28px] ring-offset-background">
+              <div className="bg-card h-10 w-40 rounded-md text-[28px] ring-offset-background">
                 <DisplayFormattedNumber
                   num={formatNumber(claimAmount ?? "0", 3)}
                 />
@@ -108,7 +108,7 @@ const ClaimFees = ({
                   />
                   <span className="font-medium">ETH</span>
                 </div>
-                <h2 className="pt-1 text-right text-sm text-[#B6B6C9]">
+                <h2 className="text-on-bg-subdued pt-1 text-right text-sm">
                   Balance:{" "}
                   <DisplayFormattedNumber
                     num={formatNumber(ethBalance ?? "0", 6)}

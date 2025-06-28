@@ -135,7 +135,7 @@ export function VaultTableRow({
                 </div>
               </HoverCardTrigger>
               <HoverCardContent side="top" alignOffset={10}>
-                <div className="mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+                <div className="text-gray-800 mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium">
                   <span>
                     {`LPers of this vault are rewarded with
                     ${formatNumber(formatUnits(parsedTaxAmount * 24n * 60n * 60n, 12), 10)}
@@ -170,9 +170,9 @@ export function VaultTableRow({
         </span>
       </td>
       <td className="hidden items-center md:flex">
-        <h4 className="font-normal text-gray-200">{formatNumber(POL, 1)}%</h4>
+        <h4 className="text-gray-200 font-normal">{formatNumber(POL, 1)}%</h4>
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red-400 md:flex">
+      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
         {roundDown(fee, 2)}%{" "}
       </td>
       <td className="relative flex items-center">
@@ -189,7 +189,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+            <div className="text-gray-800 mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium">
               <DisplayBadgeInfo
                 variant={variant}
                 isApe={isApe}
@@ -217,7 +217,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+            <div className="text-gray-800 mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium">
               <div className="grid grid-cols-3 gap-x-2">
                 <div className="text-left font-bold">Apes:</div>
                 <TokenDisplay

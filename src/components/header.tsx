@@ -7,7 +7,7 @@ import hat from "../../public/images/sir-logo.svg";
 import { CustomConnectButton } from "./customConnectButton";
 export function Header() {
   return (
-    <div className="flex items-center justify-between  px-[14px] py-[24px] text-white lg:mx-auto  xl:w-[1250px]">
+    <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
       <div className="flex gap-x-6">
         <Link href={"/"} className="flex items-center gap-x-2">
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
@@ -20,7 +20,7 @@ export function Header() {
               className="rounded-full"
             />
             <div className="flex items-center">
-              <h1 className="sir-shadow ml-1 font-geist text-[20px] font-normal leading-[20px] text-white drop-shadow-md">
+              <h1 className="ml-1 font-geist text-[20px] font-semibold leading-[20px]">
                 Sir trading
               </h1>
             </div>
@@ -28,7 +28,7 @@ export function Header() {
         </Link>
         <div className="flex items-center">
           <nav className=" hidden items-center md:flex">
-            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] py-[12px] text-sm text-muted-foreground lg:flex-row">
+            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] py-[12px] text-sm lg:flex-row">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-3 rounded-md"
