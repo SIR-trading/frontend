@@ -78,7 +78,7 @@ html {
 
     --background: 236, 37%, 8%;
     --foreground: 0, 0%, 100%;
-    --border: 237, 36%, 13%;
+    --border: 237, 36%, 18%;
     --primary: 236, 37%, 15%;
     --tertiary: 236, 37%, 8%;
     --secondary: 236, 37%, 10%;
@@ -165,8 +165,8 @@ html {
     .gradient-bg {
       background: radial-gradient(
         53.42% 53.42% at 50% 50%,
-        rgba(132, 42, 255, 0.2) 0%,
-        rgba(70, 26, 136, 0.2) 36.14%,
+        rgba(132, 42, 255, 0.4) 0%,
+        rgba(70, 26, 136, 0.3) 60%,
         rgba(10, 11, 22, 0.2) 100%
       );
     }
