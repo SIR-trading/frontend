@@ -16,6 +16,7 @@ const DarkModeToggle = () => {
           document.documentElement.classList.toggle("dark", !isDark);
           setIsDark((prev) => !prev);
         }}
+        className="bg-gold/50 dark:bg-gold"
       />
     </div>
   );
