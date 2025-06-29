@@ -10,12 +10,12 @@ import EvmProvider from "@/components/providers/evmProvider";
 import { headers } from "next/headers";
 import { Header } from "@/components/header";
 import { Inter } from "next/font/google";
-import Bg from "../../public/background.png";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
 import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 import MintFormProvider from "@/components/providers/mintFormProvider";
+import Script from "next/script";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -38,8 +38,9 @@ export default async function RootLayout({
   // const headerList = headers();
   // const country = headerList.get("x-country");
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" className="">
       <title>SIR App</title>
+
       <body className={`relative  ${GeistSans.variable} ${inter.className}`}>
         <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
 
@@ -66,6 +67,7 @@ export default async function RootLayout({
             </EvmProvider>
           </TokenlistContextProvider>
         </TRPCReactProvider>
+        <Script strategy="lazyOnload" id="theme-toggle" src="/theme.js" />
       </body>
     </html>
   );

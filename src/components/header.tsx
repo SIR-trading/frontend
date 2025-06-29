@@ -5,6 +5,7 @@ import Image from "next/image";
 import SideNav from "./sideNav";
 import hat from "../../public/images/sir-logo.svg";
 import { CustomConnectButton } from "./customConnectButton";
+import DarkModeToggle from "./darkModeToggle";
 export function Header() {
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
@@ -50,6 +51,7 @@ export function Header() {
         </div>
       </div>
       <div className="flex items-center justify-end gap-x-2">
+        <DarkModeToggle />
         <CustomConnectButton />
         <SideNav />
       </div>

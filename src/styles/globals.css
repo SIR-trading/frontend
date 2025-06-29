@@ -72,7 +72,7 @@ html {
     --tertiary-border: 238, 35%, 13%, 0;
     --on-bg-subdued: 236, 36%, 15%, 0.61;
   }
-  [data-theme="dark"] {
+  html.dark {
     --muted: 240, 15%, 20%;
     --muted-foreground: 240, 15%, 60%;
 
@@ -161,7 +161,7 @@ html {
     );
   }
 
-  [data-theme="dark"] {
+  html.dark {
     .gradient-bg {
       background: radial-gradient(
         53.42% 53.42% at 50% 50%,
