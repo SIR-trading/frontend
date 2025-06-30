@@ -79,9 +79,9 @@ html {
     --background: 236, 37%, 8%;
     --foreground: 0, 0%, 100%;
     --border: 237, 36%, 18%;
-    --primary: 236, 37%, 15%;
+    --primary: 236, 37%, 20%;
     --tertiary: 236, 37%, 8%;
-    --secondary: 236, 37%, 10%;
+    --secondary: 236, 37%, 12%;
     --tertiary-border: 238, 35%, 13%;
     --on-bg-subdued: 244, 58%, 74%, 1;
   }
