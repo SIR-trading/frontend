@@ -14,11 +14,18 @@ export function Header() {
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
           <div className="flex gap-x-1">
             <Image
-              height={36}
-              width={36}
-              src={hat as StaticImageData}
+              height={32}
+              width={32}
+              src="/SIR_no_bg.svg"
               alt="Sir Icon"
-              className="rounded-full"
+              className="hidden rounded-full dark:block"
+            />
+            <Image
+              height={32}
+              width={32}
+              src="/SIR_outline2.svg"
+              alt="Sir Icon"
+              className="rounded-full dark:hidden"
             />
             <div className="flex items-center">
               <h1 className="ml-1 font-geist text-[20px] font-semibold leading-[20px]">
