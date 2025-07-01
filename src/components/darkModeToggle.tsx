@@ -5,7 +5,8 @@ import useLocalStorage from "use-local-storage";
 const DarkModeToggle = () => {
   const [isDark, setIsDark] = useLocalStorage<boolean>(
     "isDark",
-    window.matchMedia("(prefers-color-scheme: dark)").matches,
+    typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
 
   return (
