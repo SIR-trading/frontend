@@ -63,7 +63,7 @@ html {
     --muted: 210 40% 96.1%;
     --muted-foreground: 240, 15%, 70%, 1;
 
-    --background: 0, 0%, 100%;
+    --background: 240, 100%, 100%;
     --foreground: 240, 15%, 13%;
     --border: 0, 0%, 100%;
     --primary: 265, 100%, 58%;
@@ -76,7 +76,7 @@ html {
     --muted: 240, 15%, 20%;
     --muted-foreground: 240, 15%, 60%;
 
-    --background: 236, 37%, 8%;
+    --background: 236, 37%, 12%;
     --foreground: 0, 0%, 100%;
     --border: 237, 36%, 18%;
     --primary: 236, 37%, 20%;
