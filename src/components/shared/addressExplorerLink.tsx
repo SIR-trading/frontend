@@ -1,6 +1,7 @@
 import { Addreth, AddrethConfig } from "addreth";
 import Link from "next/link";
 import React from "react";
+import useLocalStorage from "use-local-storage";
 import type { Address } from "viem";
 
 const AddressExplorerLink = ({
@@ -12,6 +13,11 @@ const AddressExplorerLink = ({
   fontSize?: number;
   shortenLength?: number;
 }) => {
+  const [isDark] = useLocalStorage<boolean>(
+    "isDark",
+    typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
   return (
     <Link
       href={`https://etherscan.io/address/${address}`}
@@ -25,9 +31,8 @@ const AddressExplorerLink = ({
           icon={false}
           uppercase
           theme={{
-            textColor: "#FFF",
+            textColor: isDark ? "#FFF" : "#000",
             badgeBackground: "#0000",
-            secondaryColor: "#FFF",
             fontSize,
           }}
           shortenAddress={shortenLength}
