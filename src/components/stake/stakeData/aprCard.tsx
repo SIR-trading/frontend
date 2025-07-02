@@ -5,6 +5,7 @@ import AprDisplay from "./aprDisplay";
 import { syncDividends } from "@/lib/dividendsSync";
 
 import ToolTip from "@/components/ui/tooltip";
+import { Card } from "@/components/ui/card";
 
 export const revalidate = 60 * 15; // 15 minutes
 export default async function AprCard() {
@@ -18,11 +19,11 @@ export default async function AprCard() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
+    <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
       <div className="flex w-full flex-row items-center justify-center">
-        <div className="px-2 text-sm text-gray-300">Staking APR</div>
+        <div className="text-gray-300 px-2 text-sm">Staking APR</div>
         <ToolTip size="300">
-          <div className="rounded-sm bg-white text-[13px] font-medium text-gray-800">
+          <div className="text-gray-800 rounded-sm bg-white text-[13px] font-medium">
             <span>
               The APR is estimated using the past month&apos;s dividend data.
             </span>
@@ -32,6 +33,6 @@ export default async function AprCard() {
       <div className="text-2xl font-normal ">
         <AprDisplay currentApr={apr} />
       </div>
-    </div>
+    </Card>
   );
 }

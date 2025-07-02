@@ -76,7 +76,7 @@ function Slider({
 }) {
   return (
     <div>
-      <div className="flex select-none items-center gap-x-1  rounded-full border-2 border-secondary-400">
+      <div className="flex select-none items-center gap-x-1  rounded-full border-2 border-foreground/20">
         <Slide active={value === "all"} onClick={() => setValue("all")}>
           All
         </Slide>
@@ -104,7 +104,7 @@ function Slide({
     <div
       onClick={onClick}
       data-active={active ? "true" : ""}
-      className=" w-12 cursor-pointer rounded-full px-3 py-1 text-center text-sm data-[active=true]:bg-secondary-400"
+      className=" w-12 cursor-pointer rounded-full px-3 py-1 text-center text-sm data-[active=true]:bg-foreground/20"
     >
       {children}
     </div>
