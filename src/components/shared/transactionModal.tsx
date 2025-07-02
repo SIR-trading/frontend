@@ -38,7 +38,7 @@ const StatContainer = ({ children }: { children: ReactNode }) => (
 );
 function StatSubmitContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full flex-col items-center gap-y-4 rounded-b-xl bg-foreground/7  px-6 py-4">
+    <div className="flex w-full flex-col items-center gap-y-4 rounded-b-xl bg-foreground/7 px-6  py-4 dark:bg-foreground/4">
       {children}
     </div>
   );
