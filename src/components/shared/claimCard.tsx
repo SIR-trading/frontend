@@ -93,8 +93,8 @@ export default function ClaimCard() {
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      <div className="rounded-md bg-secondary-600/40 px-2 py-2 text-2xl">
-        <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
+      <div className="rounded-md bg-primary/5 px-2 py-2 text-2xl dark:bg-primary">
+        <h2 className="flex items-center gap-x-1 pb-1 text-sm text-foreground/80 ">
           <span>Dividends</span>
         </h2>
         <div className="flex items-center justify-between">

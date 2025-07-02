@@ -17,7 +17,7 @@ export default function ExplorerLink({
           className="flex gap-x-4 data-[align=center]:justify-center"
         >
           <Link
-            className="flex items-center gap-x-1 text-sm text-neutral-400"
+            className="flex items-center gap-x-1 text-sm text-gold"
             target="_blank"
             href={`https://etherscan.io/tx/${transactionHash}`}
           >

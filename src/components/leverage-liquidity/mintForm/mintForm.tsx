@@ -267,7 +267,7 @@ export default function MintForm({ isApe }: Props) {
             <Show when={needsApproval && !needs0Approval && !isConfirmed}>
               <div className="flex w-full justify-between gap-x-1">
                 <div className="flex items-center gap-x-1">
-                  <span className="text-neutral-300 text-sm">
+                  <span className="text-sm text-foreground/60">
                     Approve for maximum amount
                   </span>
                   <ToolTip>
@@ -280,7 +280,7 @@ export default function MintForm({ isApe }: Props) {
                   onCheckedChange={(e) => {
                     setMaxApprove(Boolean(e));
                   }}
-                  className="bg-secondary-600 border border-white"
+                  className="border border-foreground bg-foreground/5"
                 ></Checkbox>
               </div>
             </Show>
@@ -381,7 +381,7 @@ export default function MintForm({ isApe }: Props) {
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
             <Show when={isApe} fallback={<div className="py-3" />}>
-              <p className="pb-6 pt-4 text-left text-sm text-foreground md:w-[450px]">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
+              <p className="pb-6 pt-4 text-left text-sm text-foreground">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
             </Show>
             <SubmitButton
               disabled={!isValid}

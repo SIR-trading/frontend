@@ -42,7 +42,7 @@ const alertDialogCloseVariants = cva(
         center: "right-3",
       },
       closeColor: {
-        white: "text-white",
+        white: "text-foreground",
         black: "text-black",
       },
     },

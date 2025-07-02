@@ -53,13 +53,13 @@ export function BurnTableRow({
   });
   return (
     <>
-      <tr className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-white  md:grid">
+      <tr className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-foreground  md:grid">
         <td className="flex items-center gap-x-1 font-normal ">
           <span className="">{isApe ? "APE" : "TEA"}</span>
-          <span className="text-gray-500">-</span>
+          <span className="text-foreground/70">-</span>
           <span className="text-xl text-accent-100 ">{row.vaultId} </span>
         </td>
-        <td className="flex  items-center gap-x-1 font-normal text-gray-200">
+        <td className="flex  items-center gap-x-1 font-normal text-foreground/80">
           <ImageWithFallback
             className="rounded-full bg-transparent"
             alt={row.collateralToken}
@@ -69,7 +69,7 @@ export function BurnTableRow({
           />
           <span className="text-[14px]">{row.collateralSymbol}</span>
         </td>
-        <td className="flex items-center gap-x-1 font-normal text-gray-200">
+        <td className="flex items-center gap-x-1 font-normal text-foreground/80">
           <ImageWithFallback
             className="rounded-full"
             alt={row.debtSymbol}
@@ -79,7 +79,7 @@ export function BurnTableRow({
           />
           <span className="text-[14px]">{row.debtSymbol}</span>
         </td>
-        <td className="font-normal text-gray-200">
+        <td className="font-normal text-foreground/80">
           ^{getLeverageRatio(Number.parseInt(row.leverageTier))}
         </td>
         <td className="col-span-3 space-y-3 font-normal">
@@ -88,10 +88,10 @@ export function BurnTableRow({
               <DisplayFormattedNumber
                 num={formatNumber(isApe ? apeBalance : teaBalance, 3)}
               />
-              <span className="ml-1 italic text-gray-500">
+              <span className="ml-1 italic text-foreground/70">
                 (${formatNumber(positionValue)})
               </span>
-              <span className="pl-1 text-[12px] text-gray-400"></span>
+              <span className="text-gray-400 pl-1 text-[12px]"></span>
             </span>
             <div className="space-x-1">
               <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
@@ -105,7 +105,7 @@ export function BurnTableRow({
                 >
                   <div>
                     <span>Claim</span>
-                    <span className="pl-1 text-[12px] text-gray-300">
+                    <span className="text-gray-300 pl-1 text-[12px]">
                       <span>{formatNumber(rewards, 2)}</span>
                       <span className="pl-[2px] ">SIR</span>
                     </span>
@@ -165,7 +165,7 @@ export function BurnTableRowMobile({
       <td className=" justify-center pt-1 font-bold">
         <div className="flex justify-center text-lg">
           <span className="">{isApe ? "APE" : "TEA"}</span>
-          <span className="text-gray-500">-</span>
+          <span className="text-foreground/70">-</span>
           <span className="text-accent-100  ">{row.vaultId} </span>
         </div>
       </td>
@@ -188,7 +188,7 @@ export function BurnTableRowMobile({
             >
               <div>
                 <span>Claim</span>
-                <span className="pl-1 text-[12px] text-gray-300">
+                <span className="text-gray-300 pl-1 text-[12px]">
                   <span>
                     <DisplayFormattedNumber num={formatNumber(rewards, 2)} />
                   </span>
@@ -218,7 +218,7 @@ export function BurnTableRowMobile({
 function MobileTh({ title, children }: { title: string; children: ReactNode }) {
   return (
     <td className="flex justify-between gap-x-12">
-      <h2 className="font-light text-gray-500">{title}</h2>
+      <h2 className="font-light text-foreground/70">{title}</h2>
       {children}
     </td>
   );

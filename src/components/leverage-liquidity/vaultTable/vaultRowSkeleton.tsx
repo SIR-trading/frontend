@@ -2,7 +2,7 @@ import React from "react";
 
 export default function VaultRowSkeleton() {
   return (
-    <tr className="grid cursor-pointer grid-cols-4 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9">
+    <tr className="grid cursor-pointer grid-cols-4 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary">
       <th className="-ml-1">
         <Skeleton width="14px" />
       </th>
@@ -12,7 +12,7 @@ export default function VaultRowSkeleton() {
       <th className="hidden items-center md:flex">
         <Skeleton width="28px" />
       </th>
-      <th className="text-red hidden items-center gap-x-1 text-[13px] font-normal md:flex">
+      <th className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
         <Skeleton width="45px" />
       </th>
       <th className="pl-2">
@@ -30,7 +30,7 @@ function Skeleton({ width }: { width: string }) {
   return (
     <div
       style={{ width }}
-      className="bg-gray-700/70 my-1  h-4 animate-pulse rounded-full "
+      className="my-1 h-4  animate-pulse rounded-full bg-foreground/10"
     ></div>
   );
 }

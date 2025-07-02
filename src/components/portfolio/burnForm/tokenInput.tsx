@@ -7,21 +7,19 @@ import { formatNumber, inputPatternMatch } from "@/lib/utils";
 
 export function TokenInput({
   form,
-  bg,
   balance,
   vaultId,
   isApe,
   positionDecimals,
 }: {
   form: TBurnForm;
-  bg: string;
   balance: bigint | undefined;
   vaultId: string;
   isApe: boolean;
   positionDecimals: number;
 }) {
   return (
-    <div className={`w-full rounded-md ${bg} px-2 py-3`}>
+    <div className={`rounded-md bg-primary/5 px-3 py-2 dark:bg-primary`}>
       <div className="flex justify-between">
         <FormField
           control={form.control}
@@ -64,7 +62,7 @@ export function TokenInput({
           }}
         />
 
-        <span className="text-sm italic text-gray-300">
+        <span className="text-gray-300 text-sm italic">
           Balance{" "}
           {formatNumber(formatUnits(balance ?? 0n, positionDecimals), 8)}
         </span>

@@ -30,7 +30,7 @@ export default function PortfolioPage() {
                   <ContributorClaim />
                 </div>
 
-                <div className="pt-2 text-sm text-gray-500">
+                <div className="pt-2 text-sm text-foreground/70">
                   <p>Stake your SIR to earn ETH dividends.</p>
                 </div>
               </div>
@@ -51,9 +51,9 @@ export default function PortfolioPage() {
           </Card>
         </div>
         <Card className="py-4">
-          <div className="rounded-md bg-secondary-600 bg-opacity-40 px-4 py-2">
+          <div className="rounded-md bg-primary/5 px-4 py-2 dark:bg-primary">
             <div className="flex  items-center justify-between pb-4 lg:pb-8 ">
-              <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
+              <h2 className="flex items-center gap-x-1 pb-1 text-sm text-foreground/80 ">
                 <span>My Tokens</span>
               </h2>
               <Slider value={value} setValue={setValue} />

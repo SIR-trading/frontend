@@ -54,7 +54,7 @@ export default function Explainer({ page }: Props) {
   }
   return (
     <div className="pb-10">
-      <Card className="rounded-xl border border-white bg-gradient-to-r from-gold to-purple text-black">
+      <Card className="rounded-xl border border-foreground bg-gradient-to-r from-gold to-purple text-black">
         <h1 className="text-[20px] font-bold">Take on Leverage</h1>
         <p className="pt-2 text-[16px] font-medium leading-5">
           SIR provides constant leverage without typical downsides. Compound

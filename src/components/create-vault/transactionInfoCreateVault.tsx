@@ -44,12 +44,12 @@ export default function TransactionInfoCreateVault({
     <div className="py-3 ">
       <div className="flex flex-col gap-y-2">
         <div className=" flex  justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Long</span>
+          <span className="text-gray-300 text-[12px]">Long</span>
 
           {isFetchingLong && <TextSkele />}
           {!isFetchingLong && (
             <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-gray-200">
+              <span className="text-[14px] text-foreground/80">
                 {longTokenData?.success ? longTokenData.data.symbol : "Unknown"}
               </span>
 
@@ -63,11 +63,11 @@ export default function TransactionInfoCreateVault({
           )}
         </div>
         <div className=" flex  justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Versus</span>
+          <span className="text-gray-300 text-[12px]">Versus</span>
           {isFetching && <TextSkele />}
           {!isFetching && (
             <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-gray-200">
+              <span className="text-[14px] text-foreground/80">
                 {versusTokenData?.success
                   ? versusTokenData.data.symbol
                   : "unknown"}
@@ -85,7 +85,7 @@ export default function TransactionInfoCreateVault({
           )}
         </div>
         <div className="flex justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Leverage</span>
+          <span className="text-gray-300 text-[12px]">Leverage</span>
           <span className="leading-0 text-center text-[14px] ">
             {mapLeverage(leverageTier)}x
           </span>
@@ -97,7 +97,7 @@ export default function TransactionInfoCreateVault({
 
 function TextSkele() {
   return (
-    <div className="animate-pulse rounded-sm bg-gray-700 text-[14px] text-transparent">
+    <div className="bg-foreground/10text-[14px] animate-pulse rounded-sm text-transparent">
       USD Coin
     </div>
   );

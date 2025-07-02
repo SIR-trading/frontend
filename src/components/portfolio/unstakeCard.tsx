@@ -13,8 +13,8 @@ export function UnstakeCard() {
       <UnstakeFormProvider>
         <UnstakeModal open={openModal} setOpen={setOpenModal} />
       </UnstakeFormProvider>
-      <div className="rounded-md bg-secondary-600 bg-opacity-40 px-2 py-2 text-2xl">
-        <h2 className="flex items-center gap-x-1 pb-1 text-sm text-gray-200 ">
+      <div className="rounded-md bg-primary/5 px-2 py-2 text-2xl dark:bg-primary">
+        <h2 className="flex items-center gap-x-1 pb-1 text-sm ">
           <span>Your Staked SIR</span>
         </h2>
         <div className="flex items-center justify-between">
@@ -31,7 +31,7 @@ export function UnstakeCard() {
             />
             {/* <h4> */}
             {/*   <span>{formatNumber(formatUnits(stakedSir ?? 0n, 12))}</span> */}
-            {/*   <span className="text-sm text-gray-500"> SIR</span> */}
+            {/*   <span className="text-sm text-foreground/70"> SIR</span> */}
             {/* </h4> */}
           </div>
           <Button

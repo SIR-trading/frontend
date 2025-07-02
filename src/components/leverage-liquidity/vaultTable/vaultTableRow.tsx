@@ -116,7 +116,7 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="grid cursor-pointer grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9"
+      className="grid cursor-pointer grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary"
     >
       <td className="h-full">
         <div className="flex h-full items-center gap-x-1">
@@ -170,7 +170,9 @@ export function VaultTableRow({
         </span>
       </td>
       <td className="hidden items-center md:flex">
-        <h4 className="text-gray-200 font-normal">{formatNumber(POL, 1)}%</h4>
+        <h4 className="font-normal text-foreground/80">
+          {formatNumber(POL, 1)}%
+        </h4>
       </td>
       <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
         {roundDown(fee, 2)}%{" "}

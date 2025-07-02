@@ -112,11 +112,11 @@ export default function ContributorClaim() {
         <TransactionModal.StatSubmitContainer>
           <Show when={!isConfirmed}>
             <div className="flex w-full items-center justify-end gap-x-2 py-2 ">
-              <label htmlFor="stake" className="text-sm text-gray-200">
+              <label htmlFor="stake" className="text-sm text-foreground/80">
                 Mint and Stake
               </label>
               <Checkbox
-                className="border border-white/70 bg-secondary-600"
+                className="border border-foreground bg-foreground/5"
                 id="stake"
                 checked={checked}
                 onCheckedChange={(value) => {

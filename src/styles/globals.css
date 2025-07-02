@@ -67,6 +67,7 @@ html {
     --foreground: 240, 15%, 13%;
     --border: 0, 0%, 100%;
     --primary: 265, 100%, 58%;
+    --tertiary: 265, 100%, 96%;
     --secondary: 0, 0%, 100%;
     --gray: 0, 0%, 98%;
     --tertiary-border: 238, 35%, 13%, 0;
@@ -80,8 +81,8 @@ html {
     --foreground: 0, 0%, 100%;
     --border: 237, 36%, 18%;
     --primary: 236, 37%, 20%;
-    --tertiary: 236, 37%, 8%;
-    --secondary: 236, 37%, 10%;
+    --tertiary: 236, 37%, 1%;
+    --secondary: 236, 37%, 12%;
     --tertiary-border: 238, 35%, 13%;
     --on-bg-subdued: 244, 58%, 74%, 1;
   }

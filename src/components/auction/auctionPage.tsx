@@ -59,11 +59,7 @@ const AuctionPage = () => {
         <Tabs defaultValue="new">
           <TabsList className="mx-auto w-max">
             {tabsItems.map(([value, text]) => (
-              <TabsTrigger
-                value={value}
-                key={value}
-                className="data-[state=active]:border-white"
-              >
+              <TabsTrigger value={value} key={value}>
                 {text}
               </TabsTrigger>
             ))}
