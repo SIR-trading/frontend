@@ -62,7 +62,7 @@ export default async function RootLayout({
                       <div className="flex flex-col justify-center">
                         <div
                           className={
-                            "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6 dark:border dark:border-border"
+                            "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6"
                           }
                         >
                           {children}
