@@ -16,6 +16,7 @@ import { VaultProvider } from "@/components/providers/vaultProvider";
 import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 import MintFormProvider from "@/components/providers/mintFormProvider";
 import Script from "next/script";
+import { is } from "drizzle-orm";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -34,9 +35,20 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookie = headers().get("cookie");
-  // const headerList = headers();
-  // const country = headerList.get("x-country");
+  const headerList = headers();
+  const cookie = headerList.get("cookie");
+  const host = headerList.get("host");
+  const xUrl = headerList.get("x-url");
+  const country = headerList.get("x-country");
+
+  const isGeoBlocked = xUrl?.split(host ?? "")[1]?.startsWith("/blocked");
+
+  console.log(isGeoBlocked, "isGeoBlocked");
+  console.log(
+    `Cookie: ${cookie}, Host: ${host}, X-Url: ${xUrl}, Country: ${country}`,
+    "Headers Info",
+  );
+
   return (
     <html lang="en">
       <head>
@@ -49,33 +61,40 @@ export default async function RootLayout({
 
       <body className={`${GeistSans.variable} ${inter.className} relative`}>
         <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
-        <Toaster />
-        <TRPCReactProvider>
-          <TokenlistContextProvider>
-            <EvmProvider cookie={cookie}>
-              <VaultProvider>
-                <MintFormProvider>
-                  <div className=" flex min-h-screen flex-col">
-                    <Header />
-                    <Warning />
-                    <div className="">
-                      <div className="flex flex-col justify-center">
-                        <div
-                          className={
-                            "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6 dark:border dark:border-border"
-                          }
-                        >
-                          {children}
-                        </div>{" "}
+        {!isGeoBlocked ? (
+          <>
+            {" "}
+            <Toaster />
+            <TRPCReactProvider>
+              <TokenlistContextProvider>
+                <EvmProvider cookie={cookie}>
+                  <VaultProvider>
+                    <MintFormProvider>
+                      <div className=" flex min-h-screen flex-col">
+                        <Header />
+                        <Warning />
+                        <div className="">
+                          <div className="flex flex-col justify-center">
+                            <div
+                              className={
+                                "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6 dark:border dark:border-border"
+                              }
+                            >
+                              {children}
+                            </div>{" "}
+                          </div>
+                        </div>
+                        <Footer />
                       </div>
-                    </div>
-                    <Footer />
-                  </div>
-                </MintFormProvider>
-              </VaultProvider>
-            </EvmProvider>
-          </TokenlistContextProvider>
-        </TRPCReactProvider>
+                    </MintFormProvider>
+                  </VaultProvider>
+                </EvmProvider>
+              </TokenlistContextProvider>
+            </TRPCReactProvider>
+          </>
+        ) : (
+          <>{children}</>
+        )}
       </body>
     </html>
   );
