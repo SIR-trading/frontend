@@ -12,7 +12,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
 const tooltipVariants = cva(
-  "max-w-[200px] rounded-md bg-primary/5 dark:bg-primary  px-2 py-2 text-foreground text-center",
+  "max-w-[200px] rounded-md bg-primary/5 dark:bg-primary  backdrop-blur-xl px-2 py-2 text-foreground text-center",
   {
     variants: {
       size: { "200": "max-w-[200px]", "300": "max-w-[300px]" },
