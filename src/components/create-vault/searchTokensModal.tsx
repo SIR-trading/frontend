@@ -80,7 +80,7 @@ export default function SearchTokensModal({
                   type="text"
                   value={manualAddress}
                   onChange={(e) => setManualAddress(e.target.value)}
-                  className="rounded-md p-2 text-[14px] ring-white focus:ring-2"
+                  className="rounded-md p-2 text-[14px] ring-foreground/60 focus:ring-2"
                   inputMode="decimal"
                   autoComplete="off"
                   pattern="^[0-9]*[.,]?[0-9]*$"

@@ -5,6 +5,8 @@ import type { TAddressString } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { tokenSchema } from "@/lib/schemas";
 import { getLogoAsset, getLogoJson } from "@/lib/assets";
+import { useReadContracts } from "wagmi";
+import { erc20Abi } from "viem";
 
 export default function TransactionInfoCreateVault({
   leverageTier,
@@ -40,6 +42,21 @@ export default function TransactionInfoCreateVault({
     },
   });
 
+  const { data: symbols } = useReadContracts({
+    contracts: [
+      {
+        address: longToken as TAddressString,
+        abi: erc20Abi,
+        functionName: "symbol",
+      },
+      {
+        address: versusToken as TAddressString,
+        abi: erc20Abi,
+        functionName: "symbol",
+      },
+    ],
+  });
+
   return (
     <div className="py-3 ">
       <div className="flex flex-col gap-y-2">
@@ -50,7 +67,9 @@ export default function TransactionInfoCreateVault({
           {!isFetchingLong && (
             <div className="flex items-center gap-x-1">
               <span className="text-[14px] text-foreground/80">
-                {longTokenData?.success ? longTokenData.data.symbol : "Unknown"}
+                {longTokenData?.success
+                  ? longTokenData.data.symbol
+                  : symbols?.[0].result ?? "Unknown"}
               </span>
 
               <ImageWithFallback
@@ -70,7 +89,7 @@ export default function TransactionInfoCreateVault({
               <span className="text-[14px] text-foreground/80">
                 {versusTokenData?.success
                   ? versusTokenData.data.symbol
-                  : "unknown"}
+                  : symbols?.[1].result ?? "unknown"}
               </span>
 
               <ImageWithFallback
@@ -97,7 +116,7 @@ export default function TransactionInfoCreateVault({
 
 function TextSkele() {
   return (
-    <div className="bg-foreground/10text-[14px] animate-pulse rounded-sm text-transparent">
+    <div className="animate-pulse rounded-sm bg-foreground/10 text-[14px] text-transparent">
       USD Coin
     </div>
   );
