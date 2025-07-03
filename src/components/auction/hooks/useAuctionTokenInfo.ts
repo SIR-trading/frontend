@@ -8,6 +8,7 @@ type Props = {
   tokenAddress?: string;
   amount: string;
   isOpen: boolean;
+  maxApprove: boolean;
 };
 
 const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
@@ -15,6 +16,7 @@ export default function useAuctionTokenInfo({
   tokenAddress,
   amount,
   isOpen,
+  maxApprove,
 }: Props) {
   const { address: userAddress } = useAccount();
 
@@ -44,7 +46,7 @@ export default function useAuctionTokenInfo({
     approveContract: SirContract.address,
     amount: parseUnits(amount ?? "0", tokenDecimals ?? 18),
     allowance: userBalance?.tokenAllowance?.result ?? 0n,
-    useMaxApprove: false,
+    useMaxApprove: maxApprove,
   });
 
   return {

@@ -40,7 +40,7 @@ function Inputs({
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
-      className="flex justify-between rounded-md p-4 data-[state=disabled]:opacity-60"
+      className="mx-4 flex justify-between rounded-md bg-primary/5 p-4 data-[state=disabled]:opacity-60 dark:bg-primary"
     >
       <div>
         <Show

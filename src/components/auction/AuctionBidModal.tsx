@@ -10,12 +10,15 @@ import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFor
 import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { WETH_ADDRESS } from "@/data/constants";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
+import Show from "@/components/shared/show";
+import ToolTip from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type TAuctionBidModalState = {
   open: boolean;
@@ -30,6 +33,8 @@ interface Props {
 }
 
 export function AuctionBidModal({ open, setOpen }: Props) {
+  const [maxApprove, setMaxApprove] = useState(false);
+
   const { id: tokenAddress, bid: currentBid, isTopUp } = open;
 
   const form = useFormContext<TAuctionBidFormFields>();
@@ -41,6 +46,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
       tokenAddress: WETH_ADDRESS,
       amount: formData.bid,
       isOpen: open.open,
+      maxApprove,
     });
 
   const { request: bidRequest, refetch: reSimulateBid } = useBid({
@@ -113,7 +119,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
-          className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary p-4   transition-all duration-700 `}
+          className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary pt-4  transition-all duration-700 `}
         >
           <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
           <h1 className="text-center font-geist text-2xl">
@@ -146,6 +152,27 @@ export function AuctionBidModal({ open, setOpen }: Props) {
           </AuctionBidInputs.Root>
 
           <TransactionModal.StatSubmitContainer>
+            <Show when={!isConfirmed && needsApproval}>
+              {" "}
+              <div className="flex w-full justify-between gap-x-1">
+                <div className="flex items-center gap-x-1">
+                  <span className="text-sm text-foreground/60">
+                    Approve for maximum amount
+                  </span>
+                  <ToolTip>
+                    Max approval avoids repeat approvals but grants full fund
+                    access. Only use with trusted contracts.
+                  </ToolTip>
+                </div>{" "}
+                <Checkbox
+                  checked={maxApprove}
+                  onCheckedChange={(e) => {
+                    setMaxApprove(Boolean(e));
+                  }}
+                  className="border border-foreground bg-foreground/5"
+                ></Checkbox>
+              </div>
+            </Show>
             <TransactionModal.SubmitButton
               onClick={onSubmit}
               disabled={
