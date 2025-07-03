@@ -128,6 +128,11 @@ export default function SearchTokensModal({
                   </div>
                 </div>
               )}
+              {manualAddress && !address && (
+                <div className="flex items-center gap-x-2 pt-4">
+                  <span className="text-red">Not a valid Token Address!</span>
+                </div>
+              )}
               {address && !symbol && !isLoading && (
                 <div className="flex items-center gap-x-2 pt-4">
                   <span className="text-foreground/60">Token not found!</span>
