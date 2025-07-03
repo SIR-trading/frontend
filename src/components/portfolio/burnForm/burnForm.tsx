@@ -216,7 +216,7 @@ export default function BurnForm({
           {isConfirmed && isClaimingRewards && (
             <div className="space-y-2">
               <div className="flex justify-center">
-                <CircleCheck size={40} color="#F0C775" />
+                <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
               </div>
               <h2 className="text-center">Transaction Successful!</h2>
               <ExplorerLink transactionHash={hash} />
