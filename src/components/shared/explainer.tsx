@@ -81,7 +81,7 @@ export default function Explainer({ page }: Props) {
   //   }
   // }
   return (
-    <div className="pb-8">
+    <div className="w-full pb-8">
       <h1 className="text-[24px] font-semibold md:text-[32px] lg:text-[42px]">
         {Explainers[page].title}
       </h1>
