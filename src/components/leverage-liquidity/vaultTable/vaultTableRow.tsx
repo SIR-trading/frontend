@@ -135,7 +135,7 @@ export function VaultTableRow({
                 </div>
               </HoverCardTrigger>
               <HoverCardContent side="top" alignOffset={10}>
-                <div className="mb-2 max-w-[200px] rounded-sm bg-primary/5 px-2  py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
+                <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
                     {`LPers of this vault are rewarded with
                     ${formatNumber(formatUnits(parsedTaxAmount * 24n * 60n * 60n, 12), 10)}
@@ -191,7 +191,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="text-gray-800 mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium">
+            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
               <DisplayBadgeInfo
                 variant={variant}
                 isApe={isApe}
@@ -219,7 +219,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="text-gray-800 mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium">
+            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
               <div className="grid grid-cols-3 gap-x-2">
                 <div className="text-left font-bold">Apes:</div>
                 <TokenDisplay

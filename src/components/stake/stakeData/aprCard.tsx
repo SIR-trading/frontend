@@ -23,7 +23,7 @@ export default async function AprCard() {
       <div className="flex w-full flex-row items-center justify-center">
         <div className="text-gray-300 px-2 text-sm">Staking APR</div>
         <ToolTip size="300">
-          <div className="text-gray-800 rounded-sm bg-white text-[13px] font-medium">
+          <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
             <span>
               The APR is estimated using the past month&apos;s dividend data.
             </span>

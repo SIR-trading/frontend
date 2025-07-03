@@ -47,7 +47,8 @@ export default async function RootLayout({
         />
       </head>
 
-      <body className={`${GeistSans.variable} ${inter.className}`}>
+      <body className={`${GeistSans.variable} ${inter.className} relative`}>
+        <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
         <Toaster />
         <TRPCReactProvider>
           <TokenlistContextProvider>
@@ -57,14 +58,13 @@ export default async function RootLayout({
                   <div className=" flex min-h-screen flex-col">
                     <Header />
                     <Warning />
-                    <div className="relative">
-                      <div className="relative flex flex-col justify-center">
+                    <div className="">
+                      <div className="flex flex-col justify-center">
                         <div
                           className={
                             "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6 dark:border dark:border-border"
                           }
                         >
-                          <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
                           {children}
                         </div>{" "}
                       </div>

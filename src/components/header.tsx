@@ -40,7 +40,7 @@ export function Header() {
         </Link>
         <div className="flex items-center">
           <nav className=" hidden items-center md:flex">
-            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] py-[12px] text-sm lg:flex-row">
+            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] text-sm lg:flex-row">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-3 rounded-md"

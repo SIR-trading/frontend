@@ -9,7 +9,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const navItemVariants = cva(
-  "whitespace-nowrap cursor-pointer rounded-md px-2 py-1 hover:text-foreground text-foreground/50 data-[active=true]:text-foreground",
+  "whitespace-nowrap cursor-pointer rounded-md px-2 hover:text-foreground text-foreground/50 data-[active=true]:text-foreground",
   {
     variants: {
       theme: {
@@ -40,7 +40,7 @@ export default function NavItem({
   const path = usePathname();
   const active = url === path;
   return (
-    <li className="mb-1">
+    <li>
       <Link
         data-active={active ? "true" : "false"}
         data-main={main ? "true" : "false"}

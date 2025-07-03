@@ -80,7 +80,7 @@ html {
     --background: 236, 37%, 14%; /* When changing this, change the last color of `.gradient-bg` too */
     --foreground: 0, 0%, 100%;
     --border: 237, 36%, 18%;
-    --primary: 236, 37%, 20%;
+    --primary: 236, 37%, 17%;
     --tertiary: 236, 37%, 1%;
     --secondary: 236, 37%, 12%;
     --tertiary-border: 238, 35%, 13%;
@@ -154,21 +154,23 @@ html {
 
 @layer utilities {
   .gradient-bg {
-    background: radial-gradient(
+    /* background: radial-gradient(
       110.84% 110.84% at 50% 50%,
       rgba(132, 42, 255, 0.05) 0%,
       rgba(70, 26, 136, 0.1) 20.14%,  
       rgba(255, 255, 255, 0.1) 40%,
       hsl(240, 100%, 99.9%) 100%
-    );
+    ); */
+    background:radial-gradient(110.84% 110.84% at 50% 50%, rgba(132, 42, 255, 0.012) 0%, rgba(132, 42, 255, 0.02) 36.14%, rgba(255, 255, 255, 0.2) 100%);
+
   }
 
   html.dark {
     .gradient-bg {
       background: radial-gradient(
         53.42% 53.42% at 50% 50%,
-        rgba(132, 42, 255, 0.25) 0%,
-        rgba(70, 26, 136, 0.25) 40%,
+        rgba(132, 42, 255, 0.15) 0%,
+        rgba(70, 26, 136, 0.15) 40%,
         hsl(236, 37%, 14%) 80%
       );
     }

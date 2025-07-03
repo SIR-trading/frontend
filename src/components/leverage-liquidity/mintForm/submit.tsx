@@ -110,7 +110,7 @@ const FeeInfo = ({
     }
   }, [deposit, feeAmount, feeValue]);
   return (
-    <div className="h-[40px] text-foreground/80">
+    <div className="mb-2 h-[40px] text-foreground/80">
       <Show when={!!error}>
         <ErrorMessage>{error}</ErrorMessage>
       </Show>

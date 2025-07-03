@@ -381,23 +381,9 @@ export default function MintForm({ isApe }: Props) {
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
             <Show when={isApe} fallback={<div className="py-3" />}>
-              <p className="pb-6 pt-4 text-left text-sm text-foreground">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
+              <p className="py-2 text-left text-sm text-foreground">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
             </Show>
-            <SubmitButton
-              disabled={!isValid}
-              onClick={() => {
-                if (isValid) {
-                  setOpenTransactionModal(true);
-                }
-              }}
-            >
-              <Show when={!needsApproval} fallback={"Approve"}>
-                <div className="flex items-center gap-x-1">
-                  <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
-                  <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
-                </div>
-              </Show>
-            </SubmitButton>
+
             <MintFormSubmit.FeeInfo
               error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
@@ -409,6 +395,21 @@ export default function MintForm({ isApe }: Props) {
               deposit={deposit}
             />
           </MintFormSubmit.Root>
+          <SubmitButton
+            disabled={!isValid}
+            onClick={() => {
+              if (isValid) {
+                setOpenTransactionModal(true);
+              }
+            }}
+          >
+            <Show when={!needsApproval} fallback={"Approve"}>
+              <div className="flex items-center gap-x-1">
+                <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+                <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
+              </div>
+            </Show>
+          </SubmitButton>
         </motion.div>
       </form>
     </Card>
