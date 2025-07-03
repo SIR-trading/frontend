@@ -182,7 +182,7 @@ const NewAuction = ({
       >
         {readyToStart.length > 0 && (
           <>
-            <AuctionContentWrapper header="Ready to Start">
+            <AuctionContentWrapper>
               {readyToStart.map((auction, index) => (
                 <AuctionCard
                   auctionType="new"
@@ -243,7 +243,7 @@ const NewAuction = ({
           </>
         )}
         {onHold.length > 0 && (
-          <AuctionContentWrapper header="On Hold">
+          <AuctionContentWrapper>
             {onHold.map((auction, index) => (
               <AuctionCard
                 auctionType="new"
@@ -294,6 +294,7 @@ const NewAuction = ({
                   },
                 }}
                 actionDelay={auction.timeToStart}
+                className="dark:bg-white/2 bg-black/4 backdrop-blur-sm"
               />
             ))}
           </AuctionContentWrapper>
