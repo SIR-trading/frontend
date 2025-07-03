@@ -5,7 +5,11 @@ import Image from "next/image";
 import SideNav from "./sideNav";
 import hat from "../../public/images/sir-logo.svg";
 import { CustomConnectButton } from "./customConnectButton";
-import DarkModeToggle from "./darkModeToggle";
+import dynamic from "next/dynamic";
+
+const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
+  ssr: false,
+});
 export function Header() {
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
@@ -14,11 +18,18 @@ export function Header() {
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
           <div className="flex gap-x-1">
             <Image
-              height={36}
-              width={36}
-              src={hat as StaticImageData}
+              height={32}
+              width={32}
+              src="/SIR_no_bg.svg"
               alt="Sir Icon"
-              className="rounded-full"
+              className="hidden rounded-full dark:block"
+            />
+            <Image
+              height={32}
+              width={32}
+              src="/SIR_outline2.svg"
+              alt="Sir Icon"
+              className="rounded-full dark:hidden"
             />
             <div className="flex items-center">
               <h1 className="ml-1 font-geist text-[20px] font-semibold leading-[20px]">
@@ -29,7 +40,7 @@ export function Header() {
         </Link>
         <div className="flex items-center">
           <nav className=" hidden items-center md:flex">
-            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] py-[12px] text-sm lg:flex-row">
+            <div className=" flex flex-col gap-x-[16px] rounded-md px-[12px] text-sm lg:flex-row">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-3 rounded-md"

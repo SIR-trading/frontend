@@ -58,7 +58,7 @@ const AuctionCard = ({
               <div
                 className={cn(
                   subItem.variant
-                    ? "font-geist text-[28px] font-normal leading-[32px]"
+                    ? "font-geist text-[24px] font-normal leading-[32px]"
                     : "text-lg",
                 )}
               >

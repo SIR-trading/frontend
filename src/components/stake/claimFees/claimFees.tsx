@@ -93,7 +93,7 @@ const ClaimFees = ({
                   num={formatNumber(claimAmount ?? "0", 3)}
                 />
               </div>
-              {/* <div className="pt-2 text-sm italic text-gray-500">$66.88</div> */}
+              {/* <div className="pt-2 text-sm italic text-foreground/70">$66.88</div> */}
             </div>
             <div>
               <div className="flex flex-col justify-between gap-y-3">
@@ -108,7 +108,7 @@ const ClaimFees = ({
                   />
                   <span className="font-medium">ETH</span>
                 </div>
-                <h2 className="text-on-bg-subdued pt-1 text-right text-sm">
+                <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
                   Balance:{" "}
                   <DisplayFormattedNumber
                     num={formatNumber(ethBalance ?? "0", 6)}

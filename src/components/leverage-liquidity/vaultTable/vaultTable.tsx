@@ -62,7 +62,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
 
 function VaultTableRowHeaders() {
   return (
-    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-[#9D9D9D] md:grid-cols-9">
+    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
       <th className="font-medium">Id</th>
       <th className="font-medium md:col-span-3">Vault</th>
 

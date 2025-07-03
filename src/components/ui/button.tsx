@@ -14,9 +14,9 @@ const buttonVariants = cva(
         default: "bg-accent/60 hover:bg-accent text-accent-foreground",
         accent: "bg-accent hover:bg-accent/60 text-[#FBDED0] py-2 px-4",
         brown: "bg-brown-700 text-brown-100 hover:bg-brown-800 py-2 px-4",
-        card: "bg-primary/7 dark:bg-tertiary border border-tertiary-border",
+        card: "bg-tertiary border border-tertiary-border",
         outline:
-          "bg-transparent text-foreground border border-foreground rounded-md px-4 py-2 text-[14px] font-semibold hover:bg-primary",
+          "bg-transparent text-foreground border border-foreground rounded-md px-4 py-2 text-[14px] font-semibold  hover:bg-primary/50 dark:hover:bg-gold",
         submit:
           "w-full rounded-md bg-gold py-2 text-xl font-semibold hover:bg-gold/90 text-white",
         greenSubmit:
@@ -26,8 +26,7 @@ const buttonVariants = cva(
       },
       state: {
         default: "",
-        loading:
-          "disabled:opacity-100 bg-neutral-300 text-black hover:bg-white",
+        loading: "disabled:opacity-100 bg-opacity-50 text-black hover:bg-white",
       },
     },
     defaultVariants: {

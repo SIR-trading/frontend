@@ -59,7 +59,7 @@ function Inputs({
           when={!inputLoading}
           fallback={
             <div className="flex h-[40px] items-center">
-              <div className="bg-secondary-600 h-[24px] w-12 animate-pulse rounded-sm"></div>
+              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-foreground/30"></div>
             </div>
           }
         >
@@ -110,13 +110,13 @@ function Inputs({
 
       <div className="flex flex-col items-end gap-2">
         <div
-          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-primary/7 dark:bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
           {children}
         </div>
-        <h2 className="text-on-bg-subdued pt-1 text-right text-sm">
+        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
           Balance: <DisplayFormattedNumber num={formatNumber(balance ?? "0")} />
         </h2>
         <BalancePercent

@@ -196,7 +196,7 @@ export default function BurnForm({
                         num={formatNumber(formatUnits(reward, 12), 8)}
                       />
                     </span>
-                    <span className="text-[14px] text-gray-500">SIR</span>
+                    <span className="text-[14px] text-foreground/70">SIR</span>
                   </div>
                 </div>
               )}
@@ -216,7 +216,7 @@ export default function BurnForm({
           {isConfirmed && isClaimingRewards && (
             <div className="space-y-2">
               <div className="flex justify-center">
-                <CircleCheck size={40} color="#F0C775" />
+                <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
               </div>
               <h2 className="text-center">Transaction Successful!</h2>
               <ExplorerLink transactionHash={hash} />
@@ -269,7 +269,7 @@ export default function BurnForm({
             <button
               type="button"
               onClick={() => close()}
-              className="cursor-pointer text-white/80 transition-transform hover:scale-105 hover:text-white"
+              className="cursor-pointer text-foreground/80 transition-transform hover:scale-105 hover:text-foreground"
             >
               <X />
             </button>
@@ -279,7 +279,6 @@ export default function BurnForm({
             <TokenInput
               positionDecimals={row.positionDecimals}
               balance={balance}
-              bg="bg-secondary-600"
               form={form}
               vaultId={row.vaultId}
               isApe={isApe}
@@ -287,7 +286,7 @@ export default function BurnForm({
           )}
           <div
             data-state={isClaimingRewards ? "claiming" : ""}
-            className=" my-2 rounded-md px-4 py-2 data-[state=claiming]:bg-secondary-600"
+            className=" my-2 rounded-md px-4 py-2 data-[state=claiming]:bg-foreground/30"
           >
             <div className="pt-2"></div>
             <div>
@@ -320,7 +319,9 @@ export default function BurnForm({
 
             {isClaimingRewards && (
               <div className="flex items-center justify-end gap-x-2 py-2">
-                <h3 className="text-[14px] text-gray-200">Claim and Stake</h3>
+                <h3 className="text-[14px] text-foreground/80">
+                  Claim and Stake
+                </h3>
 
                 <ClaimAndStakeToggle
                   onChange={setClaimAndStake}

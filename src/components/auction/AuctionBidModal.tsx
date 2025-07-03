@@ -113,7 +113,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
-          className={`nav-shadow relative rounded-xl bg-secondary p-4   transition-all duration-700 `}
+          className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary p-4   transition-all duration-700 `}
         >
           <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
           <h1 className="text-center font-geist text-2xl">

@@ -23,7 +23,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
   const logo = sir_logo as StaticImageData;
 
   return (
-    <div className="bg-secondary-600 rounded-md px-3 py-2">
+    <div className="rounded-md bg-primary/5 px-3 py-2 dark:bg-primary">
       <FormLabel htmlFor="stake">Amount</FormLabel>
       <div className="flex justify-between  ">
         <FormField
@@ -53,7 +53,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
                   ></Input>
                 </FormControl>
               </FormItem>
-              {/* <h2 className="pt-2 text-sm italic text-gray-500">{"$20.55"}</h2> */}
+              {/* <h2 className="pt-2 text-sm italic text-foreground/70">{"$20.55"}</h2> */}
             </div>
           )}
         />
@@ -66,7 +66,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
               {isStaking ? "Unstaked SIR" : "Staked SIR"}
             </span>
           </div>
-          <h2 className="text-on-bg-subdued pt-1 text-right text-sm">
+          <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
             Balance{" "}
             <DisplayFormattedNumber num={formatNumber(balance ?? "0", 8)} />
           </h2>

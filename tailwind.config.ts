@@ -162,6 +162,8 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       opacity: {
+        2: "0.02",
+        3: "0.03",
         4: "0.04",
         7: "0.07",
       },

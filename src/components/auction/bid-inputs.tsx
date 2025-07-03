@@ -47,7 +47,7 @@ function Inputs({
           when={!inputLoading}
           fallback={
             <div className="flex h-[40px] items-center">
-              <div className="bg-secondary-600 h-[24px] w-12 animate-pulse rounded-sm"></div>
+              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-foreground/30"></div>
             </div>
           }
         >
@@ -88,7 +88,7 @@ function Inputs({
         >
           {children}
         </div>
-        <h2 className="text-on-bg-subdued pt-1 text-right text-sm">
+        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
           Balance: {formatNumber(balance ?? "0")}
         </h2>
         <BalancePercent

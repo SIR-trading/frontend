@@ -5,6 +5,8 @@ import type { TAddressString } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { tokenSchema } from "@/lib/schemas";
 import { getLogoAsset, getLogoJson } from "@/lib/assets";
+import { useReadContracts } from "wagmi";
+import { erc20Abi } from "viem";
 
 export default function TransactionInfoCreateVault({
   leverageTier,
@@ -40,17 +42,34 @@ export default function TransactionInfoCreateVault({
     },
   });
 
+  const { data: symbols } = useReadContracts({
+    contracts: [
+      {
+        address: longToken as TAddressString,
+        abi: erc20Abi,
+        functionName: "symbol",
+      },
+      {
+        address: versusToken as TAddressString,
+        abi: erc20Abi,
+        functionName: "symbol",
+      },
+    ],
+  });
+
   return (
     <div className="py-3 ">
       <div className="flex flex-col gap-y-2">
         <div className=" flex  justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Long</span>
+          <span className="text-gray-300 text-[12px]">Long</span>
 
           {isFetchingLong && <TextSkele />}
           {!isFetchingLong && (
             <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-gray-200">
-                {longTokenData?.success ? longTokenData.data.symbol : "Unknown"}
+              <span className="text-[14px] text-foreground/80">
+                {longTokenData?.success
+                  ? longTokenData.data.symbol
+                  : symbols?.[0].result ?? "Unknown"}
               </span>
 
               <ImageWithFallback
@@ -63,14 +82,14 @@ export default function TransactionInfoCreateVault({
           )}
         </div>
         <div className=" flex  justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Versus</span>
+          <span className="text-gray-300 text-[12px]">Versus</span>
           {isFetching && <TextSkele />}
           {!isFetching && (
             <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-gray-200">
+              <span className="text-[14px] text-foreground/80">
                 {versusTokenData?.success
                   ? versusTokenData.data.symbol
-                  : "unknown"}
+                  : symbols?.[1].result ?? "unknown"}
               </span>
 
               <ImageWithFallback
@@ -85,7 +104,7 @@ export default function TransactionInfoCreateVault({
           )}
         </div>
         <div className="flex justify-between gap-y-1">
-          <span className="text-[12px] text-gray-300">Leverage</span>
+          <span className="text-gray-300 text-[12px]">Leverage</span>
           <span className="leading-0 text-center text-[14px] ">
             {mapLeverage(leverageTier)}x
           </span>
@@ -97,7 +116,7 @@ export default function TransactionInfoCreateVault({
 
 function TextSkele() {
   return (
-    <div className="animate-pulse rounded-sm bg-gray-700 text-[14px] text-transparent">
+    <div className="animate-pulse rounded-sm bg-foreground/10 text-[14px] text-transparent">
       USD Coin
     </div>
   );

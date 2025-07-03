@@ -9,7 +9,7 @@ export function BurnFormModal({ reset, children }: Props) {
     <Dialog open={true} onOpenChange={() => reset()}>
       <DialogContent title="Mint Modal" className="bg-transparent">
         <div
-          className={`relative rounded-xl border border-secondary-700 bg-secondary-800 px-4 py-2 text-white  transition-all duration-700`}
+          className={`relative rounded-xl border border-foreground/10 bg-secondary  px-4 py-2 transition-all duration-700`}
         >
           {/* <TransactionModal.Close setOpen={setOpen} /> */}
           {children}

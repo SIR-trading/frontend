@@ -33,11 +33,11 @@ export function TransactionEstimates({
     <div className="flex animate-fade-in gap-x-2  duration-300">
       <h3 className="space-x-1">
         <span>{deposit}</span>
-        <span className="text-sm text-gray-300">
+        <span className="text-gray-300 text-sm">
           {usingDebt ? debtAssetName : collateralAssetName}
         </span>
       </h3>
-      <span className="text-gray-500">{"->"}</span>
+      <span className="text-foreground/70">{"->"}</span>
       <h3 className=" space-x-1">
         <span>
           <DisplayFormattedNumber
@@ -47,7 +47,7 @@ export function TransactionEstimates({
             )}
           />
         </span>
-        <span className="text-sm text-gray-300">
+        <span className="text-gray-300 text-sm">
           <span>
             {isApe ? "APE" : "TEA"}-{vaultId}
           </span>

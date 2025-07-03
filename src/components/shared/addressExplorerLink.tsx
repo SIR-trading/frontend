@@ -1,7 +1,12 @@
+"use client";
 import { Addreth, AddrethConfig } from "addreth";
 import Link from "next/link";
 import React from "react";
+import useLocalStorage from "use-local-storage";
 import type { Address } from "viem";
+import { env } from "@/env";
+
+const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
 const AddressExplorerLink = ({
   address,
@@ -12,11 +17,16 @@ const AddressExplorerLink = ({
   fontSize?: number;
   shortenLength?: number;
 }) => {
+  const [isDark] = useLocalStorage<boolean>(
+    "isDark",
+    typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
   return (
     <Link
-      href={`https://etherscan.io/address/${address}`}
+      href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/address/${address}`}
       target="_blank"
-      className="-ml-2 flex items-center gap-x-1 "
+      className="-ml-2 flex h-[32px] items-center gap-x-1"
     >
       <AddrethConfig>
         <Addreth
@@ -25,9 +35,8 @@ const AddressExplorerLink = ({
           icon={false}
           uppercase
           theme={{
-            textColor: "#FFF",
+            textColor: isDark ? "#FFF" : "#000",
             badgeBackground: "#0000",
-            secondaryColor: "#FFF",
             fontSize,
           }}
           shortenAddress={shortenLength}
