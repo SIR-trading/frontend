@@ -140,15 +140,16 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               />
               <p>WETH</p>
             </AuctionBidInputs.Inputs>
-            <div className="h-6"></div>
 
-            <TransactionStatus
-              showLoading={isConfirming}
-              waitForSign={isPending}
-              action={""}
-            />
+            <div className="flex flex-col items-center justify-center gap-2 p-4">
+              <TransactionStatus
+                showLoading={isConfirming}
+                waitForSign={isPending}
+                action={""}
+              />
 
-            <ExplorerLink align="left" transactionHash={hash} />
+              <ExplorerLink align="left" transactionHash={hash} />
+            </div>
           </AuctionBidInputs.Root>
 
           <TransactionModal.StatSubmitContainer>
