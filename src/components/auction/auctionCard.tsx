@@ -38,6 +38,7 @@ const AuctionCard = ({
   actionDelay,
   disabled,
   auctionType,
+  className,
 }: {
   data: TAuctionData[];
   action?: TAuctionAction;
@@ -45,11 +46,14 @@ const AuctionCard = ({
   actionDelay?: number;
   disabled?: boolean;
   auctionType: "new" | "ongoing" | "past";
+  className?: string;
 }) => {
   const shouldDelay = Boolean(actionDelay && actionDelay > Date.now() / 1000);
   const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
   return (
-    <Card className="flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto">
+    <Card
+      className={`flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto ${className ?? ""}`}
+    >
       {data.map((item, index) => (
         <div key={index} className="grid grid-cols-2 gap-6">
           {item.map((subItem, subIndex) => (
