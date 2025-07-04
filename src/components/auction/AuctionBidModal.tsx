@@ -19,6 +19,7 @@ import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctio
 import Show from "@/components/shared/show";
 import ToolTip from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatNumber } from "@/lib/utils";
 
 export type TAuctionBidModalState = {
   open: boolean;
@@ -115,6 +116,45 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     },
   });
 
+  console.log({
+    nextBid: formatEther(nextBid),
+    currentBid: formatEther(currentBid ?? BigInt(0)),
+    isTopUp,
+    bid: formData.bid,
+  });
+
+  const errorMessage = useMemo(() => {
+    if (!isConfirmed) {
+      if (!userBalanceFetching) {
+        if (!balance)
+          return `You don't have enough WETH to ${isTopUp ? "top up" : "place"} this bid.`;
+        if (parseEther(formData.bid) > balance) {
+          return "Bid exceeds your WETH balance.";
+        }
+        if (Number(formData.bid) > 0) {
+          if (!isTopUp && Number(formData.bid) <= +formatEther(nextBid)) {
+            return `Bid must be 1% higher than the current bid`;
+          }
+          if (
+            isTopUp &&
+            Number(formData.bid) <=
+              +formatEther(nextBid - (currentBid ?? BigInt(0)))
+          ) {
+            return `Top up must be 1% higher than the current bid.`;
+          }
+        }
+      }
+    }
+  }, [
+    balance,
+    currentBid,
+    formData.bid,
+    isConfirmed,
+    isTopUp,
+    nextBid,
+    userBalanceFetching,
+  ]);
+
   return (
     <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
@@ -153,7 +193,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
           </AuctionBidInputs.Root>
 
           <TransactionModal.StatSubmitContainer>
-            <Show when={!isConfirmed && needsApproval}>
+            <Show when={!isConfirmed && needsApproval && !errorMessage}>
               {" "}
               <div className="flex w-full justify-between gap-x-1">
                 <div className="flex items-center gap-x-1">
@@ -173,6 +213,9 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                   className="border border-foreground bg-foreground/5"
                 ></Checkbox>
               </div>
+            </Show>
+            <Show when={errorMessage}>
+              <div className="text-sm text-red">{errorMessage}</div>
             </Show>
             <TransactionModal.SubmitButton
               onClick={onSubmit}
