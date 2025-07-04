@@ -214,7 +214,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 ></Checkbox>
               </div>
             </Show>
-            <Show when={errorMessage}>
+            <Show when={!!errorMessage}>
               <div className="text-sm text-red">{errorMessage}</div>
             </Show>
             <TransactionModal.SubmitButton
