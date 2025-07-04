@@ -171,6 +171,9 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               disabled={false}
               inputLoading={false}
               balance={formatEther(balance ?? BigInt(0))}
+              currentBid={formatEther(currentBid ?? BigInt(0))}
+              nextBid={formatEther(nextBid)}
+              isTopUp={isTopUp}
             >
               <ImageWithFallback
                 src={getLogoAsset(WETH_ADDRESS)}
