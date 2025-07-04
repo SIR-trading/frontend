@@ -10,7 +10,7 @@ export default function StakeCard({ bal }: { bal: bigint | undefined }) {
     <div className="flex items-end">
       <div>
         <Button
-          disabled={bal === 0n || !bal}
+          disabled={!Number(bal)}
           onClick={() => setStakeModal(true)}
           type="button"
           className="p-2"
