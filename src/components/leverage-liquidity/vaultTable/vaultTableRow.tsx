@@ -116,7 +116,7 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="grid cursor-pointer grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary md:grid-cols-9"
+      className="grid cursor-pointer grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary"
     >
       <td className="h-full">
         <div className="flex h-full items-center gap-x-1">
@@ -135,7 +135,7 @@ export function VaultTableRow({
                 </div>
               </HoverCardTrigger>
               <HoverCardContent side="top" alignOffset={10}>
-                <div className="mb-2 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+                <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
                     {`LPers of this vault are rewarded with
                     ${formatNumber(formatUnits(parsedTaxAmount * 24n * 60n * 60n, 12), 10)}
@@ -170,9 +170,11 @@ export function VaultTableRow({
         </span>
       </td>
       <td className="hidden items-center md:flex">
-        <h4 className="font-normal text-gray-200">{formatNumber(POL, 1)}%</h4>
+        <h4 className="font-normal text-foreground/80">
+          {formatNumber(POL, 1)}%
+        </h4>
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red-400 md:flex">
+      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
         {roundDown(fee, 2)}%{" "}
       </td>
       <td className="relative flex items-center">
@@ -189,7 +191,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
               <DisplayBadgeInfo
                 variant={variant}
                 isApe={isApe}
@@ -217,7 +219,7 @@ export function VaultTableRow({
             </motion.div>
           </HoverCardTrigger>
           <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-white px-2 py-2 text-[13px] font-medium text-gray-800">
+            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
               <div className="grid grid-cols-3 gap-x-2">
                 <div className="text-left font-bold">Apes:</div>
                 <TokenDisplay

@@ -11,7 +11,7 @@ export default async function LeverageCalculator({ params }: { params: { slug: s
   const { vaultQuery } = await getVaultsForTable(offset);
 
   return (
-    <main className="flex  flex-col items-center justify-center text-white">
+    <main className="flex  flex-col items-center justify-center ">
       <LeverageCalculatorPage title={"Leverage Calculator"}>
         <LeverageCalculatorContent
           isApe

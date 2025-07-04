@@ -96,9 +96,9 @@ export default function TransactionInfo({
         className="animate-fade-in space-y-2  duration-500"
       >
         <div className="flex animate-fade-in justify-center">
-          <CircleCheck size={40} color="#F0C775" />
+          <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
         </div>
-        <h2 className="text-center text-gray-300">Transaction Successful!</h2>
+        <h2 className="text-gray-300 text-center">Transaction Successful!</h2>
         {Boolean(tokenReceived) && (
           <h3 className="flex items-center justify-center gap-x-1 ">
             <span className="text-xl font-medium ">

@@ -22,6 +22,8 @@ export default function BurnTable({
     | undefined
   >();
   const { address } = useAccount();
+  const { data: userBalancesInVaults } =
+    api.user.getUserBalancesInVaults.useQuery({ address });
   const ape = api.user.getApePositions.useQuery({ address });
   const tea = api.user.getTeaPositions.useQuery({ address });
 
@@ -73,6 +75,11 @@ export default function BurnTable({
       }}
       isApe={true}
       apeAddress={r.APE}
+      apeBal={userBalancesInVaults?.apeBalances[Number(r.vaultId) - 1]}
+      teaBal={userBalancesInVaults?.teaBalances[Number(r.vaultId) - 1]}
+      teaRewards={
+        userBalancesInVaults?.unclaimedSirRewards[Number(r.vaultId) - 1]
+      }
     />
   ));
   let showTea = undefined;
@@ -85,6 +92,21 @@ export default function BurnTable({
         close={() => {
           setSelectedRow(undefined);
         }}
+        teaBal={
+          userBalancesInVaults?.teaBalances[
+            Number(selectedRowParamsTea.vaultId) - 1
+          ]
+        }
+        apeBal={
+          userBalancesInVaults?.apeBalances[
+            Number(selectedRowParamsTea.vaultId) - 1
+          ]
+        }
+        teaRewards={
+          userBalancesInVaults?.unclaimedSirRewards[
+            Number(selectedRowParamsTea.vaultId) - 1
+          ]
+        }
       />
     );
   }
@@ -100,6 +122,21 @@ export default function BurnTable({
           close={() => {
             setSelectedRow(undefined);
           }}
+          teaBal={
+            userBalancesInVaults?.teaBalances[
+              Number(selectedRowParamsApe.vaultId) - 1
+            ]
+          }
+          apeBal={
+            userBalancesInVaults?.apeBalances[
+              Number(selectedRowParamsApe.vaultId) - 1
+            ]
+          }
+          teaRewards={
+            userBalancesInVaults?.unclaimedSirRewards[
+              Number(selectedRowParamsApe.vaultId) - 1
+            ]
+          }
         />
       )}
       {showTea}
@@ -137,6 +174,21 @@ export default function BurnTable({
                               isApe: false,
                               isClaiming,
                             })
+                          }
+                          apeBal={
+                            userBalancesInVaults?.apeBalances[
+                              Number(r.vaultId) - 1
+                            ]
+                          }
+                          teaBal={
+                            userBalancesInVaults?.teaBalances[
+                              Number(r.vaultId) - 1
+                            ]
+                          }
+                          teaRewards={
+                            userBalancesInVaults?.unclaimedSirRewards[
+                              Number(r.vaultId) - 1
+                            ]
                           }
                         />
                       </>

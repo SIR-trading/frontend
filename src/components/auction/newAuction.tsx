@@ -216,7 +216,7 @@ const NewAuction = ({
                               ) ?? ""
                             }
                             className={
-                              "font-lora text-[32px] font-normal leading-[32px]"
+                              "font-geist text-[24px] font-normal leading-[32px]"
                             }
                           />
                         ),
@@ -277,7 +277,7 @@ const NewAuction = ({
                             ) ?? ""
                           }
                           className={
-                            "font-lora text-[32px] font-normal leading-[32px]"
+                            "font-geist text-[24px] font-normal leading-[32px]"
                           }
                         />
                       ),

@@ -7,7 +7,7 @@ import NavItem from "./navItem";
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   return (
-    <div className="flex items-center text-white md:hidden">
+    <div className="flex items-center  md:hidden">
       <Sheet open={openModal} onOpenChange={setOpen}>
         <SheetTrigger>
           <Menu className="cursor-pointer" size={30} />
@@ -39,7 +39,10 @@ export default function SideNav() {
                 <NavItem onClick={() => setOpen(false)} url={"/create-vault"}>
                   Create Vault
                 </NavItem>
-                <NavItem onClick={() => setOpen(false)} url={"/leverage-calculator"}>
+                <NavItem
+                  onClick={() => setOpen(false)}
+                  url={"/leverage-calculator"}
+                >
                   Calculator
                 </NavItem>
                 <NavItem onClick={() => setOpen(false)} url={"/auctions"}>

@@ -107,6 +107,9 @@ importers:
       eslint-plugin-react-compiler:
         specifier: 19.0.0-beta-201e55d-20241215
         version: 19.0.0-beta-201e55d-20241215(eslint@8.57.0)
+      geist:
+        specifier: ^1.4.2
+        version: 1.4.2(next@14.2.15(@babel/core@7.24.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
       graphql-request:
         specifier: ^7.0.1
         version: 7.0.1(graphql@16.8.1)
@@ -161,6 +164,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.3(ts-node@10.9.2(@types/node@20.12.7)(typescript@5.4.5)))
+      use-local-storage:
+        specifier: ^3.0.0
+        version: 3.0.0(react@18.2.0)
       viem:
         specifier: ^2.9.16
         version: 2.9.16(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.22.4)
@@ -6351,6 +6357,11 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     deprecated: This package is no longer supported.
 
+  geist@1.4.2:
+    resolution: {integrity: sha512-OQUga/KUc8ueijck6EbtT07L4tZ5+TZgjw8PyWfxo16sL5FWk7gNViPNU8hgCFjy6bJi9yuTP+CRpywzaGN8zw==}
+    peerDependencies:
+      next: '>=13.2.0'
+
   generate-function@2.3.1:
     resolution: {integrity: sha512-eeB5GfMNeevm/GRYq20ShmsaGcmI81kIX2K9XQx5miC8KdHaC6Jm0qQ8ZNeGOi7wYB8OsdxKs+Y2oVuTFuVwKQ==}
 
@@ -9191,9 +9202,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/6609a88ffa9a16ac5158046761356ce03250a0df:
-    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/6609a88ffa9a16ac5158046761356ce03250a0df}
-    version: 20.51.0
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cfc9a40d8132a34881813cec3d5f8e3a185b3ce3:
+    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cfc9a40d8132a34881813cec3d5f8e3a185b3ce3}
+    version: 20.52.0
 
   ua-parser-js@1.0.37:
     resolution: {integrity: sha512-bhTyI94tZofjo+Dn8SN6Zv8nBDvyXTymAdM3LDI/0IboIUwTu1rEhW7v2TfiVsoYWgkQ4kOVqnI8APUFbIQIFQ==}
@@ -9357,6 +9368,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  use-local-storage@3.0.0:
+    resolution: {integrity: sha512-wlPNnBCG3ULIJMr5A+dvWqLiPWCfsN1Kwijq+sAhT5yV4ex0u6XmZuNwP+RerIOfzBuz1pwSZuzhZMiluGQHfQ==}
+    peerDependencies:
+      react: '>=16.8.1'
 
   use-sidecar@1.1.2:
     resolution: {integrity: sha512-epTbsLuzZ7lPClpz2TyryBfztm7m+28DlEv2ZCQ3MDr5ssiwyOwGH/e5F9CkfWjJ1t4clvI58yF822/GUkjjhw==}
@@ -11955,7 +11971,7 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       node-libcurl: 4.0.0(encoding@0.1.13)
-      uWebSockets.js: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/6609a88ffa9a16ac5158046761356ce03250a0df
+      uWebSockets.js: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cfc9a40d8132a34881813cec3d5f8e3a185b3ce3
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -17342,6 +17358,10 @@ snapshots:
       wide-align: 1.1.5
     optional: true
 
+  geist@1.4.2(next@14.2.15(@babel/core@7.24.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)):
+    dependencies:
+      next: 14.2.15(@babel/core@7.24.4)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+
   generate-function@2.3.1:
     dependencies:
       is-property: 1.0.2
@@ -20470,7 +20490,7 @@ snapshots:
 
   typescript@5.4.5: {}
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/6609a88ffa9a16ac5158046761356ce03250a0df:
+  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/cfc9a40d8132a34881813cec3d5f8e3a185b3ce3:
     optional: true
 
   ua-parser-js@1.0.37: {}
@@ -20603,6 +20623,10 @@ snapshots:
       tslib: 2.6.2
     optionalDependencies:
       '@types/react': 18.2.78
+
+  use-local-storage@3.0.0(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   use-sidecar@1.1.2(@types/react@18.2.78)(react@18.2.0):
     dependencies:

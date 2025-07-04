@@ -14,7 +14,7 @@ const ClaimFeesCheckbox = ({ dividends, value, onChange }: Props) => {
   return (
     <div className="flex justify-between gap-x-4 pt-2">
       <div className="flex items-center gap-x-1 pb-2">
-        <span className="items-center text-sm text-[#B6B6C9]">
+        <span className="items-center text-sm text-on-bg-subdued">
           Dividends: {""}
           <DisplayFormattedNumber
             num={dividends ? formatNumber(dividends, 6) : "0"}
@@ -24,7 +24,7 @@ const ClaimFeesCheckbox = ({ dividends, value, onChange }: Props) => {
       </div>
       <div className="flex items-center justify-end gap-x-2 pb-2">
         <Checkbox
-          className="border border-white bg-secondary-800"
+          className="border border-foreground bg-foreground/5"
           checked={value}
           disabled={!Boolean(dividends)}
           onCheckedChange={(value) => {

@@ -10,7 +10,7 @@ import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFor
 import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
-import { useCallback, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { WETH_ADDRESS } from "@/data/constants";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
@@ -48,8 +48,12 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     amount: formData.bid,
   });
 
-
   const balance = userBalance?.tokenBalance?.result;
+
+  const nextBid = useMemo(
+    () => ((currentBid ?? BigInt(0)) * BigInt(101)) / BigInt(100),
+    [currentBid],
+  );
 
   const { writeContract, reset, data: hash, isPending } = useWriteContract();
   const {
@@ -109,10 +113,10 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
-          className={`nav-shadow relative rounded-xl bg-secondary p-4  text-white transition-all duration-700 `}
+          className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary p-4   transition-all duration-700 `}
         >
           <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
-          <h1 className="text-center font-lora text-2xl">
+          <h1 className="text-center font-geist text-2xl">
             {isTopUp ? "Top up bid" : "Place bid"}{" "}
           </h1>
           <AuctionBidInputs.Root>
@@ -149,9 +153,10 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 (Number(formData.bid) === 0 && !isConfirmed) ||
                 (!balance && !isConfirmed) ||
                 (parseEther(formData.bid) > balance! && !isConfirmed) ||
-                (!isConfirmed &&
-                  !isTopUp &&
-                  formData.bid <= formatEther(currentBid ?? BigInt(0)))
+                (!isConfirmed && isTopUp
+                  ? Number(formData.bid) <=
+                    +formatEther(nextBid - (currentBid ?? BigInt(0)))
+                  : Number(formData.bid) <= +formatEther(nextBid)) // TODO: Add proper error message to show user that minimum bid must be 1% higher than the current bid
               }
               isPending={isPending}
               loading={isConfirming}

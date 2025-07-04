@@ -6,16 +6,16 @@ const InputVariants = classVarianceAuthority.cva(
   "flex w-full py-2 pr-2 text-sm ring-offset-background " +
     "file:border-0 file:bg-transparent file:text-sm file:font-medium " +
     "placeholder:text-muted-foreground   focus-visible:outline-none " +
-    " disabled:cursor-not-allowed disabled:opacity-50",
+    " disabled:cursor-not-allowed disabled:opacity-50 text-foreground ",
   {
     variants: {
       background: {
         transparent:
           "bg-transparent placeholder:text-muted-foreground  w-full p-1 rounded-none ",
-        primary: "bg-primary py-1",
+        primary: "bg-primary/0 dark:bg-primary py-1",
       },
       textSize: { sm: "text-[14px]", md: "text-[18px]", xl: "text-[26px]" },
-      height: { sm: "h-5", md: "h-8", lg: "h-10" },
+      height: { sm: "h-5", md: "h-6", lg: "h-8" },
     },
     defaultVariants: { background: "transparent", height: "lg" },
   },

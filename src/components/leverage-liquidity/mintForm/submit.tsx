@@ -13,9 +13,7 @@ const SubmitContext = React.createContext(undefined);
 const Root = ({ children }: { children: React.ReactNode }) => {
   return (
     <SubmitContext.Provider value={undefined}>
-      <div className=" flex flex-col items-center justify-center gap-y-2 pt-4">
-        {children}
-      </div>
+      <div className=" flex flex-col gap-y-2 pt-4">{children}</div>
     </SubmitContext.Provider>
   );
 };
@@ -24,7 +22,7 @@ const Errors = ({ children }: { children: React.ReactNode }) => {
   const { address } = useAccount();
   return (
     <div className="md:w-[450px]">
-      <p className="h-[14px] text-left text-sm text-red-400">
+      <p className="h-[14px] text-left text-sm text-red">
         {/* Don't show form errors if users is not connected. */}
         {address && <>{children}</>}
       </p>
@@ -112,7 +110,7 @@ const FeeInfo = ({
     }
   }, [deposit, feeAmount, feeValue]);
   return (
-    <div className="h-[40px] text-gray-200 md:w-[450px] ">
+    <div className="mb-2 h-[40px] text-foreground/80">
       <Show when={!!error}>
         <ErrorMessage>{error}</ErrorMessage>
       </Show>
@@ -121,7 +119,7 @@ const FeeInfo = ({
         className=" justify-between text-[14px] data-[state=invalid]:opacity-0"
       >
         <div className="relative flex w-full justify-between text-[13px]">
-          <h3 className="text-gray-300 ">
+          <h3 className="text-foreground">
             <span className="z-20 flex items-center gap-x-1">Fee Percent</span>
           </h3>
           <h4>
@@ -131,7 +129,7 @@ const FeeInfo = ({
           </h4>
         </div>
         <div className="relative flex w-full justify-between text-[13px]">
-          <h3 className="text-gray-300 ">
+          <h3 className="text-foreground">
             <span className="z-20 flex items-center gap-x-1">Fee Amount</span>
           </h3>
           <h4>

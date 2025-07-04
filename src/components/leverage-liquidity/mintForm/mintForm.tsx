@@ -210,7 +210,7 @@ export default function MintForm({ isApe }: Props) {
       : formatUnits(maxCollateralIn ?? 0n, collateralDecimals ?? 18);
   }
   return (
-    <Card className="md:p-[18px] md:pb-[10px]">
+    <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
           title="Mint"
@@ -253,7 +253,7 @@ export default function MintForm({ isApe }: Props) {
                   )} ${depositTokenSymbol}`}
                 />
 
-                <div className="flex w-full justify-start   text-[14px] text-gray-400">
+                <div className="text-gray-400 flex w-full   justify-start text-[14px]">
                   <div className="flex w-[300px]">
                     <p>
                       {isApe
@@ -267,7 +267,7 @@ export default function MintForm({ isApe }: Props) {
             <Show when={needsApproval && !needs0Approval && !isConfirmed}>
               <div className="flex w-full justify-between gap-x-1">
                 <div className="flex items-center gap-x-1">
-                  <span className="text-sm text-neutral-300">
+                  <span className="text-sm text-foreground/60">
                     Approve for maximum amount
                   </span>
                   <ToolTip>
@@ -280,7 +280,7 @@ export default function MintForm({ isApe }: Props) {
                   onCheckedChange={(e) => {
                     setMaxApprove(Boolean(e));
                   }}
-                  className="border border-white bg-secondary-600"
+                  className="border border-foreground bg-foreground/5"
                 ></Checkbox>
               </div>
             </Show>
@@ -357,7 +357,7 @@ export default function MintForm({ isApe }: Props) {
           isApe && (
             <div className="my-2 flex w-full justify-start">
               <Link className="hover:underline" href={"/leverage-calculator"}>
-                <div className="flex flex-row items-center">
+                <div className="flex flex-row items-center text-foreground">
                   <IonCalculator className="mr-1 h-5 w-5" />
                   Profit Calculator
                 </div>
@@ -381,23 +381,9 @@ export default function MintForm({ isApe }: Props) {
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
             <Show when={isApe} fallback={<div className="py-3" />}>
-              <p className="pb-2 text-center text-sm text-gray-500 md:w-[450px]">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
+              <p className="py-2 text-left text-sm text-foreground">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
             </Show>
-            <SubmitButton
-              disabled={!isValid}
-              onClick={() => {
-                if (isValid) {
-                  setOpenTransactionModal(true);
-                }
-              }}
-            >
-              <Show when={!needsApproval} fallback={"Approve"}>
-                <div className="flex items-center gap-x-1">
-                  <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
-                  <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
-                </div>
-              </Show>
-            </SubmitButton>
+
             <MintFormSubmit.FeeInfo
               error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
@@ -409,6 +395,21 @@ export default function MintForm({ isApe }: Props) {
               deposit={deposit}
             />
           </MintFormSubmit.Root>
+          <SubmitButton
+            disabled={!isValid}
+            onClick={() => {
+              if (isValid) {
+                setOpenTransactionModal(true);
+              }
+            }}
+          >
+            <Show when={!needsApproval} fallback={"Approve"}>
+              <div className="flex items-center gap-x-1">
+                <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+                <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
+              </div>
+            </Show>
+          </SubmitButton>
         </motion.div>
       </form>
     </Card>

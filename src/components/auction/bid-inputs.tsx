@@ -40,14 +40,14 @@ function Inputs({
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
-      className="flex justify-between rounded-md bg-primary p-3 data-[state=disabled]:opacity-60"
+      className="flex justify-between rounded-md p-4 data-[state=disabled]:opacity-60"
     >
-      <div className="pt-[26px]">
+      <div>
         <Show
           when={!inputLoading}
           fallback={
             <div className="flex h-[40px] items-center">
-              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-secondary-600"></div>
+              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-foreground/30"></div>
             </div>
           }
         >
@@ -88,7 +88,7 @@ function Inputs({
         >
           {children}
         </div>
-        <h2 className="pt-1 text-right text-sm text-[#B6B6C9]">
+        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
           Balance: {formatNumber(balance ?? "0")}
         </h2>
         <BalancePercent

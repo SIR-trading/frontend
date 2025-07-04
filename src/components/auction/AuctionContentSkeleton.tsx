@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 const AuctionContentSkeleton = () => {
   return (
     <div>
-      <h3 className="mb-8 flex h-[32px] justify-center font-lora text-[32px] font-normal leading-[32px] text-white drop-shadow-md">
+      <h3 className="mb-8 flex h-[32px] justify-center font-geist text-[24px] font-normal leading-[32px] text-foreground">
         <Skeleton
           width="200px"
           height="32px"

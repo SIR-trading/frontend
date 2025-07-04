@@ -8,7 +8,7 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
 
-//  Check for the required fields
+  //  Check for the required fields
   const areRequiredValuesPresent = useMemo(() => {
     return formData.depositToken && formData.versus && formData.leverageTier;
   }, [formData.depositToken, formData.versus, formData.leverageTier]);
@@ -100,16 +100,16 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between rounded-md">
           <h3 className="text-md">
-            <span className="text-sm text-gray-300">
+            <span className="text-gray-300 text-sm">
               Returns in <span>{ticker(formData.long)}</span>
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span>
-              {amounts().long}
-            </span>
+            <span>{amounts().long}</span>
             <span
-              className={Number(amounts().longGain) < 0 ? "text-red-400" : "text-green-400"}
+              className={
+                Number(amounts().longGain) < 0 ? "text-red" : "text-accent"
+              }
             >
               ({Number(amounts().longGain) > 0 ? "+" : ""}
               {amounts().longGain}%)
@@ -118,16 +118,16 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
         </div>
         <div className="flex items-center justify-between rounded-md">
           <h3 className="text-md">
-            <span className="text-sm text-gray-300">
+            <span className="text-gray-300 text-sm">
               Returns in <span>{ticker(formData.versus)}</span>
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span>
-              {amounts().debt}
-            </span>
+            <span>{amounts().debt}</span>
             <span
-              className={Number(amounts().debtGain) < 0 ? "text-red-400" : "text-green-400"}
+              className={
+                Number(amounts().debtGain) < 0 ? "text-red" : "text-accent"
+              }
             >
               ({Number(amounts().debtGain) > 0 ? "+" : ""}
               {amounts().debtGain}%)

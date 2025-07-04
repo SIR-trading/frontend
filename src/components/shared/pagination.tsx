@@ -15,12 +15,12 @@ export default function Pagination({ max }: { max: number }) {
             disabled={page === 1}
             aria-label="Left"
             onClick={prevPage}
-            className="rounded-full bg-primary p-[5px] disabled:opacity-50"
+            className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
           >
             <ChevronLeft size={17} />
           </button>
         </div>
-        <div className="flex h-[25px] items-center rounded-lg bg-primary px-3 text-[15px]">
+        <div className="flex h-[25px] items-center rounded-lg bg-gold/10 px-3 text-[15px] dark:bg-primary">
           {page}
         </div>
         <div>
@@ -28,7 +28,7 @@ export default function Pagination({ max }: { max: number }) {
             role="link"
             aria-label="Scroll Vaults Right"
             disabled={vaultLength !== 10}
-            className="rounded-full bg-primary p-[5px] disabled:opacity-50"
+            className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
             onClick={() => nextPage()}
           >
             <ChevronRight size={17} />

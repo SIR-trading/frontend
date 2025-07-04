@@ -52,14 +52,14 @@ function Inputs({
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
-      className="flex justify-between rounded-md bg-primary p-3 data-[state=disabled]:opacity-60"
+      className="flex justify-between rounded-md bg-primary/5 p-4 data-[state=disabled]:opacity-60 dark:bg-primary"
     >
-      <div className="pt-[26px]">
+      <div>
         <Show
           when={!inputLoading}
           fallback={
             <div className="flex h-[40px] items-center">
-              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-secondary-600"></div>
+              <div className="h-[24px] w-12 animate-pulse rounded-sm bg-foreground/30"></div>
             </div>
           }
         >
@@ -95,7 +95,7 @@ function Inputs({
         <div className="space-y-2">
           {formData.depositToken === WETH_ADDRESS && (
             <div className="flex items-center gap-x-2 pt-1">
-              <h3 className="text-[12px]">Use ETH</h3>
+              <h3 className="text-[12px] text-foreground">Use ETH</h3>
               <Switch
                 checked={useEth}
                 onCheckedChange={() => {
@@ -108,16 +108,15 @@ function Inputs({
         </div>
       </div>
 
-      <div className="flex flex-col items-end">
-        <h2 className="pb-2 text-sm">Deposit Asset</h2>
+      <div className="flex flex-col items-end gap-2">
         <div
-          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-secondary ${!formData.depositToken ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
           {children}
         </div>
-        <h2 className="pt-1 text-right text-sm text-[#B6B6C9]">
+        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
           Balance: <DisplayFormattedNumber num={formatNumber(balance ?? "0")} />
         </h2>
         <BalancePercent

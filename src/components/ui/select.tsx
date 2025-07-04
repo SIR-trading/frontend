@@ -13,13 +13,13 @@ const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 const selectTriggerVariants = cva(
-  "flex h-10 w-full items-center justify-between rounded-md px-3 py-2 placeholder:text-muted-foreground text-sm" +
-    "focus:outline-none focus-visible:outline-none focus-visible:ring-offset-background focus:ring-offset-0  focus:ring focus:ring-ring  disabled:cursor-not-allowed  [&>span]:line-clamp-1",
+  "flex h-8 w-full items-center justify-between rounded-md p-2 placeholder:text-foreground text-sm" +
+    "focus:outline-none focus-visible:outline-none focus-visible:ring-offset-background focus:ring-offset-0  focus:ring focus:ring-ring  disabled:cursor-not-allowed  [&>span]:line-clamp-1 text-foreground",
   {
     variants: {
       colorScheme: {
         light: "bg-primary",
-        dark: "bg-secondary",
+        dark: "bg-tertiary",
       },
       orderDirection: {
         row: "flex-row",
@@ -97,7 +97,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "border-gray relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border-2 bg-secondary  text-white shadow-md" +
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border-2 border-gray bg-gold/10 shadow-md backdrop-blur-3xl  dark:bg-tertiary" +
           " data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" +
           " data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2" +
           " data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
@@ -144,7 +144,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-sm px-2  py-1.5 text-sm" +
-        " cursor-pointer outline-none focus:bg-primary  data-[disabled]:pointer-events-none ",
+        " cursor-pointer outline-none focus:bg-primary/5  data-[disabled]:pointer-events-none ",
       className,
     )}
     {...props}

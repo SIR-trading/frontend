@@ -30,7 +30,7 @@ export default function VaultParamsInputSelects({
   }, [formData.leverageTier, formData.long, formData.versus]);
   const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
-    <div className="relative grid gap-x-4 pb-5 md:grid-cols-3">
+    <div className="relative grid gap-x-4 pb-5 pt-4 md:grid-cols-3">
       <Show when={allSelected}>
         <button
           type="button"
@@ -38,7 +38,7 @@ export default function VaultParamsInputSelects({
             reset();
             resetStore();
           }}
-          className="absolute bottom-0 right-0 z-10 rounded-md bg-red p-[4px]  text-sm leading-none"
+          className="absolute bottom-0 right-0 z-10 rounded-md bg-red p-[4px] text-sm  leading-none text-white"
         >
           clear
         </button>

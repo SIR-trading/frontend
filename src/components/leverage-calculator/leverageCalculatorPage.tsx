@@ -1,4 +1,3 @@
-
 import type { ReactNode } from "react";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
 
@@ -9,7 +8,7 @@ export default function LeverageCalculatorPage({
   title: string;
 }) {
   return (
-    <div className="xl:w-[1250px]">
+    <div className="">
       {/* <PageHeader>{title}</PageHeader> */}
       <PageHeadingSpace />
       {/* <div className="pt-[44px]"></div> */}

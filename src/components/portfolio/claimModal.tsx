@@ -17,7 +17,7 @@ export function ClaimModal({ open, setOpen }: Props) {
         className="bg-transparent "
       >
         <div
-          className={`relative w-[500px] rounded-xl  bg-secondary-700 text-white  transition-all duration-700`}
+          className={`relative w-[500px] rounded-xl  border border-foreground/10 bg-secondary  transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
         </div>

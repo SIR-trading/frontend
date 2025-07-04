@@ -61,10 +61,10 @@ export default function SearchTokensModal({
     <Dialog open={open} onOpenChange={onOpen}>
       <DialogContent
         title="Search Tokens"
-        className="w-[440px] overflow-hidden border-none bg-secondary-900 p-0 text-white"
+        className="w-[440px] overflow-hidden border border-foreground/10 bg-secondary p-0 text-foreground"
       >
         <DialogClose></DialogClose>
-        <div className="relative  h-[80vh] space-y-6 pt-4 text-white">
+        <div className="relative  h-[80vh] space-y-6 pt-4 text-foreground">
           <Show when={enterManually}>
             <div className="px-6">
               <button onClick={() => setEnterManually(false)}>
@@ -80,7 +80,7 @@ export default function SearchTokensModal({
                   type="text"
                   value={manualAddress}
                   onChange={(e) => setManualAddress(e.target.value)}
-                  className="rounded-md p-2 text-[14px] ring-white focus:ring-2"
+                  className="rounded-md p-2 text-[14px] ring-foreground/60 focus:ring-2"
                   inputMode="decimal"
                   autoComplete="off"
                   pattern="^[0-9]*[.,]?[0-9]*$"
@@ -105,7 +105,7 @@ export default function SearchTokensModal({
                     </div>
                     <div>
                       <div className="">{symbol}</div>
-                      <div className="text-sm text-gray-400">{name}</div>
+                      <div className="text-gray-400 text-sm">{name}</div>
                     </div>
                   </div>
                   <div className="flex items-end">
@@ -128,9 +128,14 @@ export default function SearchTokensModal({
                   </div>
                 </div>
               )}
+              {manualAddress && !address && (
+                <div className="flex items-center gap-x-2 pt-4">
+                  <span className="text-red">Not a valid Token Address!</span>
+                </div>
+              )}
               {address && !symbol && !isLoading && (
                 <div className="flex items-center gap-x-2 pt-4">
-                  <span className="text-neutral-300">Token not found!</span>
+                  <span className="text-foreground/60">Token not found!</span>
                 </div>
               )}
               {isLoading && (
@@ -142,27 +147,27 @@ export default function SearchTokensModal({
           </Show>
           <Show when={!enterManually}>
             <div className="space-y-2 px-6">
-              <DialogTitle className="text-center font-lora text-[28px]">
+              <DialogTitle className="text-center font-geist text-[28px]">
                 Select a token
               </DialogTitle>
-              {/* <h1 className="font-geistMono">Select a token</h1> */}
+              {/* <h1 className="font-geist">Select a token</h1> */}
               <div className="">
                 <SearchInput setValue={setSearchQuery} value={searchQuery} />
                 <div className="pt-2 text-sm">
-                  <span className="text-gray-500">
+                  <span className="text-foreground/70">
                     Can&apos;t find token? Enter the token{" "}
                   </span>
                   <button
                     onClick={() => setEnterManually(true)}
-                    className="text-blue-400 underline"
+                    className="text-foreground underline"
                   >
                     here.
                   </button>
                 </div>
               </div>
             </div>
-            <div className="relative z-0 h-[calc(100%-210px)] border-t border-secondary-600  ">
-              <h2 className="font-geistMono py-3 pl-6 text-[14px] text-[#999999]">
+            <div className="relative z-0 h-[calc(100%-210px)] border-t border-foreground/10">
+              <h2 className="py-3 pl-6 font-geist text-[14px] text-[#999999]">
                 Tokens ({tokens?.length})
               </h2>
               <div className=" scrollbar h-[calc(100%-22px)] space-y-2 overflow-y-auto px-2 pb-2">
@@ -209,7 +214,7 @@ function TokenItem({
       onClick={() => {
         selectToken(token);
       }}
-      className="mb-2 flex w-full justify-between rounded-md bg-secondary-500 px-4 py-2 text-left transition-colors hover:bg-secondary-400"
+      className="mb-2 flex w-full justify-between rounded-md px-4 py-2 text-left transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
       <div className="flex items-center gap-x-2">
         <ImageWithFallback
@@ -224,7 +229,7 @@ function TokenItem({
             <span>{token.symbol}</span>
           </div>
           <div>
-            <span className="text-sm text-gray-400">{token.name}</span>
+            <span className="text-gray-400 text-sm">{token.name}</span>
           </div>
         </div>
       </div>

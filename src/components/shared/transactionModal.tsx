@@ -23,7 +23,7 @@ function Root({ open, title, setOpen, children }: Props) {
         className="z-[400] bg-transparent"
       >
         <div
-          className={`relative rounded-xl bg-secondary-800 text-white  transition-all duration-700`}
+          className={`relative rounded-xl border border-foreground/10 bg-secondary transition-all duration-700`}
         >
           {children}
         </div>
@@ -38,7 +38,7 @@ const StatContainer = ({ children }: { children: ReactNode }) => (
 );
 function StatSubmitContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="flex w-full flex-col items-center gap-y-4 rounded-md px-6  py-4">
+    <div className="flex w-full flex-col items-center gap-y-4 rounded-b-xl bg-foreground/7 px-6  py-4 dark:bg-foreground/4">
       {children}
     </div>
   );
@@ -54,7 +54,7 @@ function InfoContainer({
   isConfirming: boolean;
 }) {
   return (
-    <div className="space-y-2 rounded-tl-xl rounded-tr-xl bg-secondary-700 px-6 pb-6 pt-5">
+    <div className="space-y-2 rounded-t-xl px-6 pb-6 pt-5">
       {children}
       {isConfirming && (
         <div className="">

@@ -12,7 +12,7 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
 const tooltipVariants = cva(
-  "max-w-[200px] rounded-md bg-white px-2 py-2 text-gray-800 text-center",
+  "max-w-[200px] rounded-md bg-primary/5 dark:bg-primary  backdrop-blur-xl px-2 py-2 text-foreground text-center",
   {
     variants: {
       size: { "200": "max-w-[200px]", "300": "max-w-[300px]" },
@@ -36,12 +36,19 @@ const ToolTip: FC<TooltipsProps> = ({ children, iconSize, size }) => {
       openDelay={0}
       closeDelay={20}
     >
-      <HoverCardTrigger onClick={() => setOpen(true)}>
+      <HoverCardTrigger
+        onClick={() => setOpen(true)}
+        className="text-foreground/60"
+      >
         <Info size={iconSize ?? 16} />
       </HoverCardTrigger>
       <HoverCardContent side="top" alignOffset={10}>
         <div className={tooltipVariants({ size })}>{children}</div>
-        <HoverCardArrow className="fill-white" height={15} width={14} />
+        <HoverCardArrow
+          className="fill-primary/5 dark:fill-primary"
+          height={15}
+          width={14}
+        />
       </HoverCardContent>
     </HoverCard>
   );

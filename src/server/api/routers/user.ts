@@ -10,6 +10,7 @@ import {
 } from "@/server/queries/vaults";
 import { VaultContract } from "@/contracts/vault";
 import { SirContract } from "@/contracts/sir";
+import { AssistantContract } from "@/contracts/assistant";
 
 export const userRouter = createTRPCRouter({
   getTeaRewards: publicProcedure
@@ -131,7 +132,38 @@ export const userRouter = createTRPCRouter({
 
       return result;
     }),
+  getUserBalancesInVaults: publicProcedure
+    .input(
+      z.object({ address: z.string().startsWith("0x").length(42).optional() }),
+    )
+    .query(async ({ input }) => {
+      if (!input.address) {
+        return { apeBalances: [], teaBalances: [], unclaimedSirRewards: [] };
+      }
+      const totalVaults = await readContract({
+        ...VaultContract,
+        functionName: "numberOfVaults",
+      });
+      if (!totalVaults) {
+        return { apeBalances: [], teaBalances: [], unclaimedSirRewards: [] };
+      }
+      const [apeBalances, teaBalances, unclaimedSirRewards] =
+        await readContract({
+          ...AssistantContract,
+          functionName: "getUserBalances",
+          args: [
+            input.address as TAddressString,
+            BigInt(0), // offset
+            BigInt(totalVaults),
+          ],
+        });
 
+      return {
+        apeBalances,
+        teaBalances,
+        unclaimedSirRewards,
+      };
+    }),
   getTeaPositions: publicProcedure
     .input(
       z.object({ address: z.string().startsWith("0x").length(42).optional() }),
@@ -214,10 +246,10 @@ export const userRouter = createTRPCRouter({
       const result = await readContract({
         abi: SirContract.abi,
         address: SirContract.address,
-        functionName: "totalBalanceOf",
+        functionName: "stakeOf",
         args: [input.user as TAddressString],
       });
-      return result;
+      return result.reduce((acc, val) => acc + BigInt(val), BigInt(0));
     }),
   getSirSupply: publicProcedure.query(async () => {
     const result = await readContract({

@@ -150,7 +150,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         <Calculations disabled={false} />
       </form>
       {selectedVault.result && (
-        <div className="mt-6 flex justify-center text-center text-sm text-gray-500">
+        <div className="mt-6 flex justify-center text-center text-sm text-foreground/70">
           This calculator assumes sufficient liquidity from LPs to support the
           shown price increases.
         </div>

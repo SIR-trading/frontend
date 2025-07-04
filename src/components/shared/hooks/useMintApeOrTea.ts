@@ -7,6 +7,7 @@ import { parseUnits } from "viem";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { Logger } from "@/lib/logs";
 import { useEffect, useMemo, useState } from "react";
+import { getCurrentTime } from "@/lib/utils";
 interface Props {
   collateralToken: string;
   debtToken: string;
@@ -70,7 +71,8 @@ export function useMintApeOrTea({
       isApe,
       { ...vault },
       tokenAmount ?? 0n,
-      debtTokenDeposit ? minCollateralOutWithSlippage ?? 0n : 0n,
+      debtTokenDeposit ? (minCollateralOutWithSlippage ?? 0n) : 0n,
+      getCurrentTime() + 10 * 60, // 10 minutes from now
     ],
     value: ethAmount ?? 0n,
     query: {

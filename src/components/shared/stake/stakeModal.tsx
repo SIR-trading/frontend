@@ -11,10 +11,10 @@ export function StakeModal({ open, setOpen }: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent title="Mint Modal" className="bg-transparent">
         <div
-          className={`relative rounded-xl bg-secondary-800 text-white  transition-all duration-700`}
+          className={`relative rounded-xl border border-foreground/10 bg-secondary transition-all duration-700`}
         >
           <TransactionModal.Close setOpen={setOpen} />
-          <h1 className="pt-4 text-center font-lora text-2xl">Stake</h1>
+          <h1 className="pt-4 text-center font-geist text-2xl">Stake</h1>
           <StakeForm closeStakeModal={() => setOpen(false)}></StakeForm>
         </div>
       </DialogContent>
