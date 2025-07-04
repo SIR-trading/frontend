@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import Countdown from "react-countdown";
 import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAuctionsOnSuccess";
+import { useAccount } from "wagmi";
 
 export enum AuctionCardTitle {
   AUCTION_DETAILS = "Token Address",
@@ -48,6 +49,7 @@ const AuctionCard = ({
   auctionType: "new" | "ongoing" | "past";
   className?: string;
 }) => {
+  const { isConnected } = useAccount();
   const shouldDelay = Boolean(actionDelay && actionDelay > Date.now() / 1000);
   const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
   return (
@@ -80,7 +82,7 @@ const AuctionCard = ({
             shouldDelay && "bg-[#414158] text-white !opacity-100",
           )}
           onClick={() => action.onClick(id)}
-          disabled={shouldDelay || disabled}
+          disabled={!isConnected || shouldDelay || disabled}
         >
           {shouldDelay ? (
             <div className="flex items-center justify-center gap-1">
