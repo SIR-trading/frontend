@@ -25,9 +25,6 @@ export function BidPercent({
     [currentBid, isTopUp, nextBid],
   );
 
-  console.log("minBid", minBid);
-  //   +50% 2x
-
   return (
     <h2 className="flex justify-end gap-x-2 pt-1 text-right text-sm ">
       {settings}

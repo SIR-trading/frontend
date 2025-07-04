@@ -116,13 +116,6 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     },
   });
 
-  console.log({
-    nextBid: formatEther(nextBid),
-    currentBid: formatEther(currentBid ?? BigInt(0)),
-    isTopUp,
-    bid: formData.bid,
-  });
-
   const errorMessage = useMemo(() => {
     if (!isConfirmed) {
       if (!userBalanceFetching) {
