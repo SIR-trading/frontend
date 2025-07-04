@@ -10,7 +10,7 @@ const AuctionContentWrapper = ({
   return (
     <div>
       {header && (
-        <h3 className="mb-4 h-[32px] text-center font-geist text-[24px] font-normal leading-[32px] text-foreground">
+        <h3 className="h-[20px] text-center font-geist text-[20px] font-semibold leading-[20px] text-foreground">
           {header}
         </h3>
       )}

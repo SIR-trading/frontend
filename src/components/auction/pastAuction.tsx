@@ -130,7 +130,7 @@ const PastAuction = ({
         fallback={<AuctionContentSkeleton />}
       >
         {auctions && auctions.length > 0 ? (
-          <AuctionContentWrapper header={"Past auctions"}>
+          <AuctionContentWrapper>
             {auctions?.map(
               ({
                 amount,
