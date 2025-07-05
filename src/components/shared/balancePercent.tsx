@@ -13,7 +13,7 @@ export function BalancePercent({
   settings?: React.ReactNode;
 }) {
   return (
-    <h2 className="flex justify-end gap-x-2 pt-1 text-right text-sm ">
+    <h2 className="flex justify-end gap-x-2 pt-1 text-right font-geist text-sm">
       {settings}
       <button
         onClick={() =>

@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import "@radix-ui/themes/styles.css";
 import { TRPCReactProvider } from "@/trpc/react";
 import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
 import { headers } from "next/headers";
@@ -43,7 +44,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <body className={`${GeistSans.variable} ${inter.className} relative`}>
+          <body
+            className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} relative`}
+          >
             <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
             <Toaster />
             <TRPCReactProvider>

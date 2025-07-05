@@ -38,25 +38,25 @@ export default function Footer() {
         </nav>
         <nav className="flex items-center gap-x-4 text-[14px] text-muted-foreground ">
           <a
-            className="hover:text-foreground"
+            className="p-2 hover:text-foreground"
             href="https://x.com/leveragesir"
             target="_blank"
           >
-            <Fa6BrandsXTwitter width={16} height={18} />
+            <Fa6BrandsXTwitter width={24} height={24} />
           </a>
           <a
-            className="hover:text-foreground"
+            className="p-2 hover:text-foreground"
             href="https://discord.gg/M2SRBDPUR2"
             target="_blank"
           >
-            <Fa6BrandsDiscord width={18} height={18} />
+            <Fa6BrandsDiscord width={24} height={24} />
           </a>
           <a
-            className="hover:text-foreground"
+            className="p-2 hover:text-foreground"
             href="https://github.com/SIR-trading"
             target="_blank"
           >
-            <Fa6BrandsGithub width={18} height={18} />
+            <Fa6BrandsGithub width={24} height={24} />
           </a>
         </nav>
       </div>

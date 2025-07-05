@@ -66,7 +66,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
               {isStaking ? "Unstaked SIR" : "Staked SIR"}
             </span>
           </div>
-          <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
+          <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
             Balance{" "}
             <DisplayFormattedNumber num={formatNumber(balance ?? "0", 8)} />
           </h2>
