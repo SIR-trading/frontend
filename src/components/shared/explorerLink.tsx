@@ -20,7 +20,7 @@ export default function ExplorerLink({
           className="flex gap-x-4 data-[align=center]:justify-center"
         >
           <Link
-            className="flex items-center gap-x-1 text-sm text-gold"
+            className="flex items-center gap-x-1 text-sm text-foreground hover:text-foreground/80"
             target="_blank"
             href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/tx/${transactionHash}`}
           >

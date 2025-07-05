@@ -100,7 +100,7 @@ export function BurnTableRow({
                     setSelectedRow(true);
                   }}
                   type="button"
-                  disabled={teaRewards === 0n}
+                  disabled={!Number(teaRewards)}
                   className="h-7 rounded-full px-5 text-[14px] "
                 >
                   <div>
@@ -183,7 +183,7 @@ export function BurnTableRowMobile({
             <Button
               onClick={() => setSelectedRow(true)}
               type="button"
-              disabled={teaRewards === 0n}
+              disabled={!Number(teaRewards)}
               className="h-7 rounded-full px-5 text-[14px] "
             >
               <div>

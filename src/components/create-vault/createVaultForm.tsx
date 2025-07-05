@@ -30,6 +30,7 @@ import { erc20Abi, zeroAddress } from "viem";
 import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
+import { useFormSuccessReset } from "@/components/leverage-liquidity/mintForm/hooks/useFormSuccessReset";
 export default function CreateVaultForm() {
   const { isConnected } = useAccount();
   const form = useForm<z.infer<typeof CreateVaultInputValues>>({
@@ -57,8 +58,11 @@ export default function CreateVaultForm() {
     },
     [form],
   );
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({ hash });
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    data: transactionData,
+  } = useWaitForTransactionReceipt({ hash });
   const enabled = useMemo(() => {
     if (
       formData.longToken &&
@@ -90,6 +94,15 @@ export default function CreateVaultForm() {
     vaultData,
   });
   const [openModal, setOpenModal] = useState(false);
+
+  useFormSuccessReset({
+    isConfirmed,
+    isConfirming,
+    currentTxType: "create-vault",
+    useEth: false,
+    txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
+  });
+
   useEffect(() => {
     if (isConfirmed && !openModal) {
       form.reset();

@@ -35,6 +35,7 @@ export default function StakeCard() {
           onClick={() => {
             setOpenModal(true);
           }}
+          disabled={!Number(userUnstakedSir)}
           className="py-2"
         >
           Stake

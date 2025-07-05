@@ -6,7 +6,7 @@ import { useFormContext } from "react-hook-form";
 interface Props {
   isConfirming: boolean;
   isConfirmed: boolean;
-  currentTxType: "mint" | "approve" | undefined;
+  currentTxType: "mint" | "approve" | "create-vault" | undefined;
   useEth: boolean;
   txBlock?: number;
 }
@@ -21,6 +21,14 @@ export function useFormSuccessReset({
 
   const utils = api.useUtils();
   useEffect(() => {
+    if (isConfirmed && !useEth && currentTxType === "create-vault") {
+      subgraphSyncPoll(txBlock)
+        .then(() => {
+          utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
+        })
+        .catch((e) => console.log(e));
+      return;
+    }
     if (
       isConfirmed &&
       !useEth &&

@@ -6,12 +6,12 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { BalancePercent } from "@/components/shared/balancePercent";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import Show from "@/components/shared/show";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFormProvider";
+import { BidPercent } from "@/components/auction/bidPercent";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -28,6 +28,9 @@ interface Props {
   disabled: boolean;
   inputLoading: boolean;
   children: ReactNode;
+  currentBid: string;
+  nextBid: string;
+  isTopUp: boolean | undefined;
 }
 function Inputs({
   decimals,
@@ -35,12 +38,15 @@ function Inputs({
   disabled,
   inputLoading,
   children,
+  currentBid,
+  nextBid,
+  isTopUp,
 }: Props) {
   const form = useFormContext<TAuctionBidFormFields>();
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
-      className="flex justify-between rounded-md p-4 data-[state=disabled]:opacity-60"
+      className="mx-4 flex justify-between rounded-md bg-primary/5 p-4 data-[state=disabled]:opacity-60 dark:bg-primary"
     >
       <div>
         <Show
@@ -91,12 +97,15 @@ function Inputs({
         <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
           Balance: {formatNumber(balance ?? "0")}
         </h2>
-        <BalancePercent
+        <BidPercent
           disabled={disabled}
           balance={balance}
           setValue={(s: string) => {
             form.setValue("bid", s);
           }}
+          currentBid={currentBid}
+          nextBid={nextBid}
+          isTopUp={isTopUp}
         />
       </div>
     </div>
