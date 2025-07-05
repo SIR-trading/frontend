@@ -1,4 +1,3 @@
-import Pagination from "@/components/shared/pagination";
 import { Card } from "@/components/ui/card";
 import type { TVaults } from "@/lib/types";
 import { EPage } from "@/lib/types";
@@ -6,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import VaultTable from "./vaultTable/vaultTable";
 import MintForm from "./mintForm/mintForm";
 import Explainer from "../shared/explainer";
+import VaultPagination from "@/components/shared/leverage/VaultPagination";
 
 export default function LeverageLiquidityContent({
   vaultsQuery,
@@ -23,7 +23,7 @@ export default function LeverageLiquidityContent({
         <Card className={"md:px-5"}>
           <div className="flex h-full flex-col justify-between">
             <VaultTable isApe={isApe} />
-            <Pagination
+            <VaultPagination
               max={Math.ceil((vaultsQuery?.vaults.length ?? 0) / 8)}
             />
           </div>

@@ -19,6 +19,9 @@ import Show from "@/components/shared/show";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import type { Address } from "viem";
 import { hexToBigInt } from "viem";
+import Pagination from "@/components/shared/pagination";
+
+const length = 10; // Number of auctions per page
 
 const PastAuction = ({
   uniqueAuctionCollection,
@@ -26,9 +29,18 @@ const PastAuction = ({
   uniqueAuctionCollection: TUniqueAuctionCollection;
 }) => {
   const { address } = useAccount();
+  const [page, setPage] = useState(1);
+
+  const { data: allAuctions } = api.auction.getExpiredAuctions.useQuery({
+    user: address,
+  });
 
   const { data: auctions, isPending: isLoading } =
-    api.auction.getExpiredAuctions.useQuery(address);
+    api.auction.getExpiredAuctions.useQuery({
+      user: address,
+      skip: (page - 1) * length,
+      first: length,
+    });
   const { data: auctionLots, isPending: isLoadingBal } =
     api.auction.getAuctionBalances.useQuery(
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
@@ -63,6 +75,25 @@ const PastAuction = ({
       }
     } else {
       setOpenTransactionModal(false);
+    }
+  };
+
+  const nextPage = () => {
+    const currentLength = auctions?.length;
+
+    if (length === currentLength && allAuctions) {
+      if (allAuctions?.[length - 1]?.id) {
+        setPage((page) => page + 1);
+      }
+    }
+  };
+  const prevPage = () => {
+    if (page > 1) {
+      if (page - 1 === 1) {
+        setPage(1);
+      } else {
+        setPage(page - 1);
+      }
     }
   };
 
@@ -130,122 +161,134 @@ const PastAuction = ({
         fallback={<AuctionContentSkeleton />}
       >
         {auctions && auctions.length > 0 ? (
-          <AuctionContentWrapper>
-            {auctions?.map(
-              ({
-                amount,
-                highestBid,
-                highestBidder,
-                token,
-                isParticipant,
-                isClaimed,
-              }) => (
-                <AuctionCard
-                  auctionType="past"
-                  data={[
-                    [
-                      {
-                        title: AuctionCardTitle.AUCTION_DETAILS,
-                        content: (
-                          <AddressExplorerLink
-                            address={token}
-                            fontSize={20}
-                            shortenLength={4}
-                          />
-                        ),
-                      },
-                      {
-                        title: AuctionCardTitle.AMOUNT,
-                        content: (
-                          <TokenDisplay
-                            amount={
-                              (auctionLots?.get(token) ?? 0n) > 0n
-                                ? auctionLots?.get(token)
-                                : BigInt(amount)
-                            }
-                            labelSize="small"
-                            amountSize="large"
-                            decimals={
-                              uniqueAuctionCollection.collateralDecimalsMap.get(
-                                token,
-                              ) ?? 18
-                            }
-                            unitLabel={
-                              uniqueAuctionCollection.collateralSymbolMap.get(
-                                token,
-                              ) ?? ""
-                            }
-                            className={
-                              "font-geist text-[24px] font-normal leading-[32px]"
-                            }
-                          />
-                        ),
-                        variant: "large",
-                      },
-                    ],
-                    [
-                      {
-                        title: AuctionCardTitle.YOUR_BID,
-                        content: (
-                          <TokenDisplay
-                            amount={BigInt(isParticipant[0]?.bid ?? "0")}
-                            labelSize="small"
-                            amountSize="large"
-                            decimals={18}
-                            unitLabel={"ETH"}
-                            className={"text-lg"}
-                          />
-                        ),
-                      },
-                      {
-                        title: AuctionCardTitle.HIGHEST_BID,
-                        content: (
-                          <TokenDisplay
-                            amount={BigInt(highestBid)}
-                            labelSize="small"
-                            amountSize="large"
-                            decimals={18}
-                            unitLabel={"ETH"}
-                            className={"text-lg"}
-                          />
-                        ),
-                      },
-                    ],
-                    [
-                      {
-                        title: AuctionCardTitle.CLOSING_TIME,
-                        content: "Closed",
-                      },
-                      {
-                        title: AuctionCardTitle.Winner,
-                        content: compareAddress(highestBidder, address) ? (
-                          "YOU WON"
-                        ) : hexToBigInt(highestBidder as Address) ===
-                          BigInt(0) ? (
-                          "N/A"
-                        ) : (
-                          <AddressExplorerLink address={highestBidder} />
-                        ),
-                      },
-                    ],
-                  ]}
-                  key={token}
-                  action={
-                    compareAddress(highestBidder, address)
-                      ? {
-                          title: isClaimed ? "Claimed" : "Claim",
-                          onClick: () => {
-                            handleGetAuctionLot(token);
-                          },
-                        }
-                      : undefined
-                  }
-                  disabled={isClaimed}
-                  id={token}
-                />
-              ),
-            )}
-          </AuctionContentWrapper>
+          <>
+            <AuctionContentWrapper>
+              {auctions?.map(
+                ({
+                  amount,
+                  highestBid,
+                  highestBidder,
+                  token,
+                  isParticipant,
+                  isClaimed,
+                }) => (
+                  <AuctionCard
+                    auctionType="past"
+                    data={[
+                      [
+                        {
+                          title: AuctionCardTitle.AUCTION_DETAILS,
+                          content: (
+                            <AddressExplorerLink
+                              address={token}
+                              fontSize={20}
+                              shortenLength={4}
+                            />
+                          ),
+                        },
+                        {
+                          title: AuctionCardTitle.AMOUNT,
+                          content: (
+                            <TokenDisplay
+                              amount={
+                                (auctionLots?.get(token) ?? 0n) > 0n
+                                  ? auctionLots?.get(token)
+                                  : BigInt(amount)
+                              }
+                              labelSize="small"
+                              amountSize="large"
+                              decimals={
+                                uniqueAuctionCollection.collateralDecimalsMap.get(
+                                  token,
+                                ) ?? 18
+                              }
+                              unitLabel={
+                                uniqueAuctionCollection.collateralSymbolMap.get(
+                                  token,
+                                ) ?? ""
+                              }
+                              className={
+                                "font-geist text-[24px] font-normal leading-[32px]"
+                              }
+                            />
+                          ),
+                          variant: "large",
+                        },
+                      ],
+                      [
+                        {
+                          title: AuctionCardTitle.YOUR_BID,
+                          content: (
+                            <TokenDisplay
+                              amount={BigInt(isParticipant[0]?.bid ?? "0")}
+                              labelSize="small"
+                              amountSize="large"
+                              decimals={18}
+                              unitLabel={"ETH"}
+                              className={"text-lg"}
+                            />
+                          ),
+                        },
+                        {
+                          title: AuctionCardTitle.HIGHEST_BID,
+                          content: (
+                            <TokenDisplay
+                              amount={BigInt(highestBid)}
+                              labelSize="small"
+                              amountSize="large"
+                              decimals={18}
+                              unitLabel={"ETH"}
+                              className={"text-lg"}
+                            />
+                          ),
+                        },
+                      ],
+                      [
+                        {
+                          title: AuctionCardTitle.CLOSING_TIME,
+                          content: "Closed",
+                        },
+                        {
+                          title: AuctionCardTitle.Winner,
+                          content: compareAddress(highestBidder, address) ? (
+                            "YOU WON"
+                          ) : hexToBigInt(highestBidder as Address) ===
+                            BigInt(0) ? (
+                            "N/A"
+                          ) : (
+                            <AddressExplorerLink address={highestBidder} />
+                          ),
+                        },
+                      ],
+                    ]}
+                    key={token}
+                    action={
+                      compareAddress(highestBidder, address)
+                        ? {
+                            title: isClaimed ? "Claimed" : "Claim",
+                            onClick: () => {
+                              handleGetAuctionLot(token);
+                            },
+                          }
+                        : undefined
+                    }
+                    disabled={isClaimed}
+                    id={token}
+                  />
+                ),
+              )}
+            </AuctionContentWrapper>{" "}
+            <div className="pr-4">
+              <Pagination
+                max={auctions.length}
+                page={page}
+                nextPage={nextPage}
+                prevPage={prevPage}
+                length={length}
+                size="lg"
+              />
+            </div>
+          </>
         ) : (
           <div className="flex h-[300px] items-center justify-center">
             <p className="text-lg">No Auctions available</p>
