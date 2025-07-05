@@ -69,12 +69,12 @@ export default async function RootLayout({
               </EvmProvider>
             </TokenlistContextProvider>
           </TRPCReactProvider>
-          <Script
-            strategy="beforeInteractive"
-            id="theme-toggle"
-            src="/theme.js"
-          />
         </body>
+        <Script
+          strategy="beforeInteractive"
+          id="theme-toggle"
+          src="/theme.js"
+        />
       </html>
     </>
   );
