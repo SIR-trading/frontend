@@ -21,7 +21,7 @@ export default function DarkModeToggle() {
         <Button
           variant="outline"
           className={
-            "hover:scale-120 mr-2 rounded-full border-transparent p-0 transition  duration-200 ease-in-out hover:bg-transparent dark:hover:bg-transparent"
+            "mr-2 rounded-full border-transparent p-0 transition duration-200  ease-in-out hover:scale-[1.20] hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
           }
         >
           <Sun className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

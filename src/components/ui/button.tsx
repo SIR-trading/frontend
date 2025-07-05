@@ -16,7 +16,7 @@ const buttonVariants = cva(
         brown: "bg-brown-700 text-brown-100 hover:bg-brown-800 py-2 px-4",
         card: "bg-tertiary border border-tertiary-border",
         outline:
-          "bg-transparent text-foreground border border-foreground rounded-md px-4 py-2 text-[14px] font-semibold  hover:bg-primary/50 dark:hover:bg-gold",
+          "bg-transparent text-foreground border border-foreground rounded-md px-4 py-2 text-[14px] font-semibold hover:bg-gold hover:text-white",
         submit:
           "w-full rounded-md bg-gold py-2 text-xl font-semibold hover:bg-gold/90 text-white",
         greenSubmit:
