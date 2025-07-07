@@ -490,6 +490,94 @@ export const VaultContract = {
     },
     {
       type: "event",
+      name: "Burn",
+      inputs: [
+        {
+          name: "vaultId",
+          type: "uint48",
+          indexed: true,
+          internalType: "uint48",
+        },
+        {
+          name: "burner",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        { name: "isAPE", type: "bool", indexed: false, internalType: "bool" },
+        {
+          name: "tokenIn",
+          type: "uint256",
+          indexed: false,
+          internalType: "uint256",
+        },
+        {
+          name: "collateralWithdrawn",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToStakers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToLPers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+      ],
+      anonymous: false,
+    },
+    {
+      type: "event",
+      name: "Mint",
+      inputs: [
+        {
+          name: "vaultId",
+          type: "uint48",
+          indexed: true,
+          internalType: "uint48",
+        },
+        {
+          name: "minter",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        { name: "isAPE", type: "bool", indexed: false, internalType: "bool" },
+        {
+          name: "collateralIn",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToStakers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToLPers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "tokenOut",
+          type: "uint256",
+          indexed: false,
+          internalType: "uint256",
+        },
+      ],
+      anonymous: false,
+    },
+    {
+      type: "event",
       name: "ReservesChanged",
       inputs: [
         {
@@ -498,8 +586,6 @@ export const VaultContract = {
           indexed: true,
           internalType: "uint48",
         },
-        { name: "isAPE", type: "bool", indexed: false, internalType: "bool" },
-        { name: "isMint", type: "bool", indexed: false, internalType: "bool" },
         {
           name: "reserveLPers",
           type: "uint144",
