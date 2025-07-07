@@ -71,7 +71,7 @@ export default function Select({
                   role="combobox"
                   variant="card"
                   className={cn(
-                    " h-[40px] justify-between text-foreground",
+                    " h-[40px] justify-between font-geist text-foreground",
                     !field.value && "text-muted-foreground",
                   )}
                 >
@@ -104,7 +104,7 @@ export default function Select({
               <Command>
                 <Show when={!field.value && !noSearch}>
                   <input
-                    className="bg-transparent m-2 border-0 p-2 focus-within:bg-none"
+                    className="m-2 border-0 bg-transparent p-2 focus-within:bg-none"
                     placeholder={placeholder ?? "Search..."}
                     value={value}
                     onChange={(e) => onChangeInput?.(e.target.value)}

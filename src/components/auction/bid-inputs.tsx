@@ -1,10 +1,5 @@
 "use client";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import Show from "@/components/shared/show";
@@ -94,7 +89,7 @@ function Inputs({
         >
           {children}
         </div>
-        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
+        <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
           Balance: {formatNumber(balance ?? "0")}
         </h2>
         <BidPercent

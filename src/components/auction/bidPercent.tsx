@@ -2,7 +2,6 @@ import { roundDown } from "@/lib/utils";
 import { useMemo } from "react";
 export function BidPercent({
   setValue,
-  balance,
   disabled,
   settings,
   currentBid,
@@ -26,7 +25,7 @@ export function BidPercent({
   );
 
   return (
-    <h2 className="flex justify-end gap-x-2 pt-1 text-right text-sm ">
+    <h2 className="flex justify-end gap-x-2 pt-1 text-right font-geist text-sm">
       {settings}
       <button
         onClick={() => setValue(roundDown(minBid, 6).toString())}

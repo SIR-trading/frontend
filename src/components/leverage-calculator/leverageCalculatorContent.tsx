@@ -1,9 +1,9 @@
-import Pagination from "@/components/shared/pagination";
 import { Card } from "@/components/ui/card";
 import type { TVaults } from "@/lib/types";
 import { Container } from "@/components/ui/container";
 import CalculatorForm from "./calculatorForm/calculatorForm";
 import VaultTable from "../leverage-liquidity/vaultTable/vaultTable";
+import VaultPagination from "@/components/shared/leverage/VaultPagination";
 
 export default function LeverageCalculatorContent({
   vaultsQuery,
@@ -21,7 +21,7 @@ export default function LeverageCalculatorContent({
         <Card>
           <div className="flex h-full flex-col justify-between">
             <VaultTable isApe={isApe} />
-            <Pagination
+            <VaultPagination
               max={Math.ceil((vaultsQuery?.vaults.length ?? 0) / 8)}
             />
           </div>
