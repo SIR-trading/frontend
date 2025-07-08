@@ -34,4 +34,9 @@ Your staked SIR unlocks gradually—half of your locked amount becomes available
     title: "Create New Vaults",
     description: `Enter any two tokens with a uniswap pool ...`.trim(),
   },
+  [EPage.LEADERBOARD]: {
+    title: "Leaderboard",
+    description:
+      `See who’s winning in the SIR ecosystem. View top traders, liquidity providers, and stakers. Compare your performance against others and get inspired to improve your strategies.`.trim(),
+  },
 };
