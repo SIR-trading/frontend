@@ -7,6 +7,8 @@ import { useMemo } from "react";
 import { api } from "@/trpc/react";
 import PastAuction from "@/components/auction/pastAuction";
 import NewAuction from "@/components/auction/newAuction";
+import { EPage } from "@/lib/types";
+import Explainer from "../shared/explainer";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -56,6 +58,7 @@ const AuctionPage = () => {
     <div>
       <PageHeadingSpace />
       <Container className="w-svw max-w-[904px] lg:w-[904px]">
+        <Explainer page={EPage.AUCTIONS} />
         <Tabs defaultValue="new">
           <TabsList className="mx-auto w-max">
             {tabsItems.map(([value, text]) => (
