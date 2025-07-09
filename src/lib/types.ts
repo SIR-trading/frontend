@@ -9,6 +9,7 @@ export enum EPage {
   "STAKE",
   "AUCTIONS",
   "CREATE_VAULT",
+  "CALCULATOR",
 }
 
 export enum ESubmitType {
