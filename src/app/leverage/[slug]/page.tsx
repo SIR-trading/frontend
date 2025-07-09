@@ -12,7 +12,7 @@ export default async function Home({ params }: { params: { slug: string } }) {
 
   return (
     <main className="flex  flex-col items-center justify-center ">
-      <LeverageLiquidityPage title={"Take on Leverage"}>
+      <LeverageLiquidityPage title={"Leverage with finesse"}>
         <LeverageLiquidityContent
           isApe
           form={<MintForm isApe vaultsQuery={vaultQuery} />}

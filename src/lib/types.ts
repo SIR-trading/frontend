@@ -122,3 +122,10 @@ export type TAuctions = {
   startTime: number;
   tokenIndex: number;
 };
+
+export interface ExplainerContent {
+  title: React.ReactNode;
+  description: React.ReactNode;
+}
+
+export type ExplainersMap = Record<EPage, ExplainerContent>;

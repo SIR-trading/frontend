@@ -2,10 +2,10 @@ import { EPage } from "@/lib/types";
 
 export const Explainers = {
   [EPage.LEVERAGE]: {
-    title: "Take on Leverage",
+    title: "Leverage with finesse",
     description:
-      `APE is a leveraged token that keeps your leverage steady, so gains grow exponentially as prices rise. No daily fees, no losses from market swings, and no forced selling.
-Pay one fee upfront when you mint APE —then hold long-term for amplified growth.`.trim(),
+      `APE tokens lock in perfect constant leverage. No funding fees, no periodic rebalancing, and no margin calls. You pay one fee at mint, and the position is free to hold thereafter.
+As long as the vault maintains sufficient liquidity, routine price swings do not erode returns, letting your leveraged gains compound unhindered over time.`.trim(),
   },
   [EPage.LIQUIDITY]: {
     title: "Provide Liquidity",

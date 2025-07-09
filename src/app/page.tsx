@@ -7,7 +7,7 @@ export default async function Home() {
   const { vaultQuery } = await getVaultsForTable(0);
   return (
     <main className="flex  flex-col items-center justify-center">
-      <LeverageLiquidityPage title={"Take on Leverage"}>
+      <LeverageLiquidityPage title={"Leverage with finesse"}>
         <LeverageLiquidityContent
           isApe
           form={<MintForm isApe vaultsQuery={vaultQuery} />}
