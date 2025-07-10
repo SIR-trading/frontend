@@ -32,3 +32,4 @@ export function useGetTxTokens({ logs }: Props) {
   }, [logs]);
   return { tokenReceived };
 }
+
