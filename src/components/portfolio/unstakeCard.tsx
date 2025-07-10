@@ -36,7 +36,7 @@ export function UnstakeCard() {
           </div>
           <Button
             onClick={() => setOpenModal(true)}
-            disabled={stakedSir.unlockedStake === 0n}
+            disabled={!Number(stakedSir.unlockedStake)}
             className="py-2"
           >
             Unstake

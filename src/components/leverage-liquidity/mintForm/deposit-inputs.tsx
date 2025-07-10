@@ -116,7 +116,7 @@ function Inputs({
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
           {children}
         </div>
-        <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
+        <h2 className="font-geist-mono pt-1 text-right  text-on-bg-subdued">
           Balance: <DisplayFormattedNumber num={formatNumber(balance ?? "0")} />
         </h2>
         <BalancePercent

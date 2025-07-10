@@ -14,7 +14,7 @@ const ClaimFeesCheckbox = ({ dividends, value, onChange }: Props) => {
   return (
     <div className="flex justify-between gap-x-4 pt-2">
       <div className="flex items-center gap-x-1 pb-2">
-        <span className="items-center text-sm text-on-bg-subdued">
+        <span className="font-geist-mono items-center text-sm text-on-bg-subdued">
           Dividends: {""}
           <DisplayFormattedNumber
             num={dividends ? formatNumber(dividends, 6) : "0"}

@@ -5,7 +5,7 @@ import { gql } from "graphql-request";
 
 type TAuctionType = "ongoing" | "expired" | undefined;
 
-const auctions = (type: TAuctionType) => {
+const auctions = (type: TAuctionType, first = 100) => {
   const currentTime = Math.floor(Date.now() / 1000);
   const expectedCurrentTime = currentTime - AUCTION_DURATION;
   const whereClause =
@@ -27,10 +27,12 @@ const auctions = (type: TAuctionType) => {
       isClaimed
     }
 
-    query AuctionQuery($user: Bytes) {
+    query AuctionQuery($user: Bytes, $skip: Int) {
       auctions (
          orderBy: startTime
          orderDirection: asc
+         skip: $skip
+         first: ${first}
          ${whereClause}
       ) {
         ...AuctionFields
@@ -45,9 +47,12 @@ const auctions = (type: TAuctionType) => {
 export const getOngoingAuctions = async (
   user?: string,
   type?: TAuctionType,
+  skip?: number,
+  first = 100,
 ) => {
-  const result = await graphqlClient.request(auctions(type), {
+  const result = await graphqlClient.request(auctions(type, first), {
     user,
+    skip,
   });
 
   return result as {

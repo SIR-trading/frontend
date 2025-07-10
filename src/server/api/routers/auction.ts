@@ -15,9 +15,15 @@ export const auctionRouter = createTRPCRouter({
     }),
 
   getExpiredAuctions: publicProcedure
-    .input(z.string().startsWith("0x").length(42).optional())
-    .query(async ({ input: user }) => {
-      const auctions = await getOngoingAuctions(user, "expired");
+    .input(
+      z.object({
+        user: z.string().startsWith("0x").length(42).optional(),
+        skip: z.number().optional(),
+        first: z.number().default(100),
+      }),
+    )
+    .query(async ({ input: { user, skip, first } }) => {
+      const auctions = await getOngoingAuctions(user, "expired", skip, first);
       return auctions.auctions;
     }),
 

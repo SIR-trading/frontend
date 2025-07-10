@@ -1,12 +1,23 @@
-"use client";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { useVaultProvider } from "../providers/vaultProvider";
-export default function Pagination({ max }: { max: number }) {
+export default function Pagination({
+  max,
+  nextPage,
+  page,
+  prevPage,
+  length,
+  size = "sm",
+}: {
+  max: number;
+  page: number;
+  nextPage: () => void;
+  prevPage: () => void;
+  length: number;
+  size?: "sm" | "lg";
+}) {
   if (max < 1) {
-    max = 1;
+    max = 10;
   }
   // let page = pagination ? parseInt(pagination) : 1;
-  const { nextPage, vaultLength, prevPage, page } = useVaultProvider();
   return (
     <div className="flex items-center justify-end gap-x-3 pt-4">
       <div className="flex items-center gap-x-3">
@@ -17,21 +28,23 @@ export default function Pagination({ max }: { max: number }) {
             onClick={prevPage}
             className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
           >
-            <ChevronLeft size={17} />
+            <ChevronLeft size={size === "sm" ? 17 : 24} />
           </button>
         </div>
-        <div className="flex h-[25px] items-center rounded-lg bg-gold/10 px-3 text-[15px] dark:bg-primary">
+        <div
+          className={`${size === "sm" ? "h-[25px]" : "h-[30px]"} dark:bg-primary" flex items-center rounded-lg bg-gold/10 px-3 text-[15px]`}
+        >
           {page}
         </div>
         <div>
           <button
             role="link"
             aria-label="Scroll Vaults Right"
-            disabled={vaultLength !== 10}
+            disabled={length !== max}
             className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
             onClick={() => nextPage()}
           >
-            <ChevronRight size={17} />
+            <ChevronRight size={size === "sm" ? 17 : 24} />
           </button>
         </div>
       </div>

@@ -1,26 +1,45 @@
 "use client";
-import { Switch } from "@/components/ui/switch";
-import useLocalStorage from "use-local-storage";
 
-const DarkModeToggle = () => {
-  const [isDark, setIsDark] = useLocalStorage<boolean>(
-    "isDark",
-    typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches,
-  );
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+export default function DarkModeToggle() {
+  const { setTheme } = useTheme();
 
   return (
-    <div className="mx-auto flex w-fit items-center justify-center rounded-full border-2 border-foreground p-0.5">
-      <Switch
-        checked={isDark}
-        onCheckedChange={() => {
-          document.documentElement.classList.toggle("dark", !isDark);
-          setIsDark((prev) => !prev);
-        }}
-        className=""
-      />
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className={
+            "mr-2 rounded-full border-transparent p-0 transition duration-200  ease-in-out hover:scale-[1.20] hover:bg-transparent hover:text-foreground dark:hover:bg-transparent"
+          }
+        >
+          <Sun className="h-[1.5rem] w-[1.5rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.5rem] w-[1.5rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-};
-
-export default DarkModeToggle;
+}

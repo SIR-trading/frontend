@@ -108,7 +108,7 @@ const ClaimFees = ({
                   />
                   <span className="font-medium">ETH</span>
                 </div>
-                <h2 className="pt-1 text-right text-sm text-on-bg-subdued">
+                <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
                   Balance:{" "}
                   <DisplayFormattedNumber
                     num={formatNumber(ethBalance ?? "0", 6)}
