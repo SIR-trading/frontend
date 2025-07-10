@@ -6,13 +6,13 @@ export async function selectPayouts() {
   const apr = await db.select().from(payoutTable);
   return apr;
 }
-export async function selectLastMonthPayouts() {
+export async function selectLastWeekPayouts() {
   const now = Math.floor(Date.now() / 1000);
   console.log({ now });
   const payouts = await db
     .select()
     .from(payoutTable)
-    .where(gt(payoutTable.timestamp, now - 30 * 24 * 60 * 60));
+    .where(gt(payoutTable.timestamp, now - 30 * 7 * 60 * 60));
   return payouts;
 }
 export async function selectLastPayout() {
