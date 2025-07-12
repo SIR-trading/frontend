@@ -1,9 +1,7 @@
 import Link from "next/link";
 import NavItem from "./navItem";
-import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import SideNav from "./sideNav";
-import hat from "../../public/images/sir-logo.svg";
 import { CustomConnectButton } from "./customConnectButton";
 import dynamic from "next/dynamic";
 
@@ -52,9 +50,11 @@ export function Header() {
               <div className="hidden items-center lg:flex">|</div>
               <ul className="flex gap-x-3" aria-label="Secondary Navigation">
                 <NavItem url={"/stake"}>Stake</NavItem>
+                <NavItem url={"/auctions"}>Auctions</NavItem>
+                <NavItem url={"/leaderboard"}>Leaderboard</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
                 <NavItem url={"/leverage-calculator"}>Calculator</NavItem>
-                <NavItem url={"/auctions"}>Auctions</NavItem>
+
                 {/* <NavItem url={"/get-tokens"}>Get Tokens</NavItem> */}
               </ul>
             </div>
