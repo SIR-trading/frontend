@@ -22,27 +22,46 @@ export async function syncDividends() {
   // TODO: maybe a better way to do this
   // Use a queue system to prevent multiple syncs
   try {
-    const lastPayout = await selectLastPayout();
+    const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
+    const contractAddress = process.env.NEXT_PUBLIC_SIR_ADDRESS;
+    
+    if (!contractAddress) {
+      throw new Error("NEXT_PUBLIC_SIR_ADDRESS is not set");
+    }
+
+    const lastPayout = await selectLastPayout(chainId, contractAddress);
     if (lastPayout[0]) {
-      await syncPayouts({ timestamp: lastPayout[0].timestamp });
+      await syncPayouts({ 
+        timestamp: lastPayout[0].timestamp, 
+        chainId, 
+        contractAddress 
+      });
     } else {
-      await syncPayouts({ timestamp: 0 });
+      await syncPayouts({ 
+        timestamp: 0, 
+        chainId, 
+        contractAddress 
+      });
     }
     console.log({ lastPayout });
-    const apr = await getAndCalculateLastMonthApr();
+    const apr = await getAndCalculateLastMonthApr(chainId, contractAddress);
     console.log({ apr });
     if (!apr) return;
-    const lastPayoutA = await selectLastPayout();
+    const lastPayoutA = await selectLastPayout(chainId, contractAddress);
     if (lastPayoutA[0]) {
       await insertOrUpdateCurrentApr({
         latestTimestamp: lastPayoutA[0].timestamp,
         apr: apr.toString(),
+        chainId,
+        contractAddress,
       });
     } else {
       console.error("Something went wrong.");
       await insertOrUpdateCurrentApr({
         latestTimestamp: 0,
         apr: apr.toString(),
+        chainId,
+        contractAddress,
       });
     }
     await kv.set("syncId", null);
@@ -53,7 +72,15 @@ export async function syncDividends() {
   }
 }
 
-async function syncPayouts({ timestamp }: { timestamp: number }) {
+async function syncPayouts({ 
+  timestamp, 
+  chainId, 
+  contractAddress 
+}: { 
+  timestamp: number; 
+  chainId: number; 
+  contractAddress: string; 
+}) {
   const dividendPaidEvents = await executeGetDividendGreaterThan({
     timestamp,
   });
@@ -102,6 +129,8 @@ async function syncPayouts({ timestamp }: { timestamp: number }) {
       timestamp: parseInt(e.timestamp),
       sirInUSD: sirInUSD.toString(),
       ethInUSD: ethInUsd.toString(),
+      chainId,
+      contractAddress,
     });
     if (a === null) {
       // a duplicate insert was attempted
@@ -110,8 +139,8 @@ async function syncPayouts({ timestamp }: { timestamp: number }) {
   }
 }
 
-async function getAndCalculateLastMonthApr() {
-  const payouts = await selectLastWeekPayouts();
+async function getAndCalculateLastMonthApr(chainId: number, contractAddress: string) {
+  const payouts = await selectLastWeekPayouts(chainId, contractAddress);
   console.log({ payouts });
   if (!payouts.length) return;
 

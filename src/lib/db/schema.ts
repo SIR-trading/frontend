@@ -12,17 +12,25 @@ export const payoutTable = pgTable("payouts", {
   sirInUSD: text("sir_in_usd").notNull(),
   ethInUSD: text("eth_in_usd").notNull(),
   timestamp: integer("timestamp").notNull(),
-});
+  chainId: integer("chain_id").notNull(),
+  contractAddress: text("contract_address").notNull(),
+}, (table) => [
+  index("payouts_chain_contract_idx").on(table.chainId, table.contractAddress),
+  index("payouts_timestamp_idx").on(table.timestamp),
+]);
 
 export const currentApr = pgTable(
   "current_apr",
   {
-    id: integer("id").primaryKey().default(1), // Always ID 1
+    id: serial("id").primaryKey(),
     apr: text("apr").notNull(),
     latestTimestamp: integer("timestamp").notNull(),
+    chainId: integer("chain_id").notNull(),
+    contractAddress: text("contract_address").notNull(),
   },
   (table) => [
-    unique().on(table.id), // Ensures only one row
+    unique().on(table.chainId, table.contractAddress), // Ensures only one row per chain/contract
+    index("current_apr_chain_contract_idx").on(table.chainId, table.contractAddress),
   ],
 );
 
