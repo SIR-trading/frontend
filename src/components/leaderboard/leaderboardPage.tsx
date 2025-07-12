@@ -115,10 +115,10 @@ const ExpandablePositions = ({
               })()}
             </div>
             <div className={cn(cellStyling, "col-span-2")}>
-              {formatNumber(position.pnlUsd)} USD
+              {position.pnlUsd.toFixed(4)} USD
             </div>
             <div className={cn(cellStyling, "col-span-2")}>
-              {formatNumber(position.pnlCollateral)}
+              {position.pnlCollateral.toFixed(8)} CLT
             </div>
           </div>
         ))}
