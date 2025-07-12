@@ -7,13 +7,15 @@ import { api } from "@/trpc/react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
-import {
-  CollapsibleTrigger,
-  Collapsible,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+
 import { Loader2 } from "lucide-react";
 import ExpandablePositions from "@/components/leaderboard/expandablePositions";
+import {
+  AccordionItem,
+  AccordionContent,
+  AccordionTrigger,
+  Accordion,
+} from "@/components/ui/accordion";
 
 const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 const LeaderboardPage = () => {
@@ -24,33 +26,32 @@ const LeaderboardPage = () => {
     sortbyVaultId: true,
   });
 
+  const closedArrs = Object.entries(closedApePositions ?? {});
+
   return (
     <div className="">
       <Container className="">
         <Explainer page={EPage.LEADERBOARD} />
-        <Card
-          className={
-            "mx-auto w-[calc(100vw-32px)] max-w-[1000px] p-0 md:px-0 md:py-2"
-          }
-        >
+        <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
           <div className="w-full">
             <div className="grid grid-cols-9 text-left text-sm font-normal text-foreground/60">
               <div className={cn(cellStyling, "col-span-1")}>Rank</div>
               <div className={cn(cellStyling, "col-span-4")}>Address</div>
-              <div className={cellStyling}>Absolute gain (USD)</div>
-              <div className={cellStyling}>Relative gain (%)</div>
+              <div className={cellStyling}>PnL [USD]</div>
+              <div className={cellStyling}>% PnL</div>
             </div>
-            <div className="min-h-10 w-full space-y-8">
+            <div className="min-h-10 w-full">
               {isLoading ? (
                 <Loader2 className="mx-auto mt-8 animate-spin" />
-              ) : (
-                Object.entries(closedApePositions ?? {}).map(
-                  ([address, { total, positions }], index) => (
-                    <Collapsible
+              ) : closedArrs.length > 0 ? (
+                <Accordion type="single" collapsible className="w-full">
+                  {closedArrs.map(([address, { total, positions }], index) => (
+                    <AccordionItem
+                      value={"item-" + index}
                       key={address}
-                      className="border-collapse border-y border-foreground/15"
+                      className="border-collapse border-t-[1px] border-foreground/4 last:border-b-[1px]"
                     >
-                      <CollapsibleTrigger asChild>
+                      <AccordionTrigger>
                         <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
                           <div className={cn(cellStyling, "col-span-1")}>
                             {index + 1}
@@ -61,28 +62,32 @@ const LeaderboardPage = () => {
                               "pointer-events-none col-span-4",
                             )}
                           >
-                            <AddressExplorerLink
-                              address={address}
-                              fontSize={14}
-                            />
+                            <div className="pointer-events-auto">
+                              <AddressExplorerLink
+                                address={address}
+                                fontSize={14}
+                              />
+                            </div>
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsd.toFixed(2)} USD
+                            {total.pnlUsd.toFixed(3)} USD
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsdPercentage.toFixed(2)}%
+                            {total.pnlUsdPercentage.toFixed(3)}%
                           </div>
                         </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
+                      </AccordionTrigger>
+                      <AccordionContent asChild>
                         <ExpandablePositions
                           positions={positions}
                           vaults={vaults}
                         />
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ),
-                )
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              ) : (
+                <></>
               )}
             </div>
           </div>
