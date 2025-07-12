@@ -44,7 +44,7 @@ export async function syncDividends() {
       });
     }
     console.log({ lastPayout });
-    const apr = await getAndCalculateLastMonthApr(chainId, contractAddress);
+    const apr = await getAndCalculateLastWeekApr(chainId, contractAddress);
     console.log({ apr });
     if (!apr) return;
     const lastPayoutA = await selectLastPayout(chainId, contractAddress);
@@ -139,7 +139,7 @@ async function syncPayouts({
   }
 }
 
-async function getAndCalculateLastMonthApr(chainId: number, contractAddress: string) {
+async function getAndCalculateLastWeekApr(chainId: number, contractAddress: string) {
   const payouts = await selectLastWeekPayouts(chainId, contractAddress);
   console.log({ payouts });
   if (!payouts.length) return;
@@ -149,7 +149,9 @@ async function getAndCalculateLastMonthApr(chainId: number, contractAddress: str
     if (payout.sirInUSD && payout.ethInUSD) {
       const sirInUsd = parseUnits(payout.sirInUSD, 0);
       const ethInUsd = parseUnits(payout.ethInUSD, 0);
-      result += divide(100n * 12n * ethInUsd, sirInUsd);
+      // APR = (ETH_dividends_USD / SIR_staked_USD) × 365/7 × 100
+      // 365/7 ≈ 52.14, using 365n * 100n / 7n for precision
+      result += divide(365n * 100n * ethInUsd, 7n * sirInUsd);
     }
   });
   console.log(result);
