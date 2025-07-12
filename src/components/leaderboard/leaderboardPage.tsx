@@ -46,7 +46,7 @@ const LeaderboardPage = () => {
                       className="border-collapse border-y border-foreground/15"
                     >
                       <CollapsibleTrigger asChild>
-                        <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium">
+                        <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
                           <div className={cn(cellStyling, "col-span-1")}>
                             {index + 1}
                           </div>
