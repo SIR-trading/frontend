@@ -25,7 +25,7 @@ export default async function AprCard() {
         <ToolTip size="300">
           <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
             <span>
-              The APR is estimated using the past month&apos;s dividend data.
+              The APR is estimated using the past week&apos;s dividend data.
             </span>
           </div>
         </ToolTip>
