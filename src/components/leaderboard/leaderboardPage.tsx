@@ -6,7 +6,7 @@ import { EPage } from "@/lib/types";
 import Explainer from "@/components/shared/explainer";
 import { api } from "@/trpc/react";
 import { Card } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import {
   CollapsibleTrigger,
@@ -100,11 +100,11 @@ const ExpandablePositions = ({
         <div className={cn(cellStyling, "col-span-2")}>PnL (USD)</div>
         <div className={cn(cellStyling, "col-span-2")}>PnL (Collateral)</div>
       </div>
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-[2px]">
         {positions.map((position, index) => (
           <div
             key={index}
-            className="my-[1px] grid grid-cols-9 bg-primary/5 pl-8 text-left text-xs font-normal dark:bg-primary/50"
+            className="grid grid-cols-9 bg-primary/5 pl-8 text-left text-xs font-normal dark:bg-primary/50"
           >
             <div className={cn(cellStyling, "col-span-1")}>Name</div>
             <div className={cn(cellStyling, "col-span-2")}>CLT</div>
