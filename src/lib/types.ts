@@ -10,6 +10,7 @@ export enum EPage {
   "AUCTIONS",
   "CREATE_VAULT",
   "CALCULATOR",
+  "LEADERBOARD",
 }
 
 export enum ESubmitType {
@@ -116,7 +117,6 @@ export type AuctionFieldFragment = {
   }[];
 };
 
-
 export type TAuctions = {
   bidder: Address;
   bid: bigint;
@@ -130,3 +130,33 @@ export interface ExplainerContent {
 }
 
 export type ExplainersMap = Record<EPage, ExplainerContent>;
+export type ClosedApePositionFragment = {
+  collateralDeposited: string;
+  collateralWithdrawn: string;
+  dollarDeposited: string;
+  dollarWithdrawn: string;
+  vaultId: `0x${string}`;
+  user: string;
+  timestamp: string;
+  decimal: string;
+};
+
+export type TClosedApePositions = Record<
+  string,
+  {
+    positions: {
+      pnlUsd: number;
+      pnlCollateral: number;
+      pnlUsdPercentage: number;
+      pnlCollateralPercentage: number;
+      timestamp: number;
+      vaultId: `0x${string}`;
+    }[];
+    total: {
+      pnlUsd: number;
+      pnlCollateral: number;
+      pnlUsdPercentage: number;
+      pnlCollateralPercentage: number;
+    };
+  }
+>;

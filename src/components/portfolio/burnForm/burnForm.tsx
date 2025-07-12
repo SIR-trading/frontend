@@ -98,6 +98,9 @@ export default function BurnForm({
         utils.user.getTotalSirBalance.invalidate().catch((e) => {
           console.log(e);
         });
+        utils.leaderboard.getClosedApePositions.invalidate().catch((e) => {
+          console.log(e);
+        });
       }
 
       subgraphSyncPoll(Number.parseInt(receiptData.blockNumber.toString()))
@@ -116,6 +119,7 @@ export default function BurnForm({
     utils.user.getUserBalancesInVaults,
     isClaimingRewards,
     utils.vault.getTableVaults,
+    utils.leaderboard.getClosedApePositions,
   ]);
 
   const { data: burnData } = useBurnApe({

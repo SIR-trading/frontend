@@ -35,6 +35,12 @@ export default function SideNav() {
               >
                 <NavItem onClick={() => setOpen(false)} url={"/stake"}>
                   Stake
+                </NavItem>{" "}
+                <NavItem onClick={() => setOpen(false)} url={"/auctions"}>
+                  Auctions
+                </NavItem>
+                <NavItem url={"/leaderboard"} onClick={() => setOpen(false)}>
+                  Leaderboard
                 </NavItem>
                 <NavItem onClick={() => setOpen(false)} url={"/create-vault"}>
                   Create Vault
@@ -44,9 +50,6 @@ export default function SideNav() {
                   url={"/leverage-calculator"}
                 >
                   Calculator
-                </NavItem>
-                <NavItem onClick={() => setOpen(false)} url={"/auctions"}>
-                  Auctions
                 </NavItem>
               </ul>
             </nav>

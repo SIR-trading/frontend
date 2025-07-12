@@ -2,7 +2,7 @@
 import { Addreth, AddrethConfig } from "addreth";
 import Link from "next/link";
 import React from "react";
-import type { Address } from "viem";
+import { getAddress } from "viem";
 import { env } from "@/env";
 import { useTheme } from "next-themes";
 
@@ -23,21 +23,19 @@ const AddressExplorerLink = ({
     <Link
       href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/address/${address}`}
       target="_blank"
-      className="-ml-2 flex h-[32px] items-center gap-x-1"
+      className="-ml-2 flex h-[32px] items-center gap-x-1 hover:underline"
     >
       <AddrethConfig>
         <Addreth
-          address={address as Address}
+          address={getAddress(address)}
           actions="none"
           icon={false}
-          uppercase
           theme={{
             textColor: isDarkMode ? "#FFF" : "#000",
             badgeBackground: "#0000",
             fontSize,
           }}
           shortenAddress={shortenLength}
-          underline
         />
       </AddrethConfig>
 
