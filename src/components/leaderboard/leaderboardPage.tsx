@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { Container } from "../ui/container";
-import type { TClosedApePositions } from "@/lib/types";
 import { EPage } from "@/lib/types";
 import Explainer from "@/components/shared/explainer";
 import { api } from "@/trpc/react";
@@ -14,11 +13,17 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { Loader2 } from "lucide-react";
+import ExpandablePositions from "@/components/leaderboard/expandablePositions";
 
 const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 const LeaderboardPage = () => {
   const { data: closedApePositions, isLoading } =
     api.leaderboard.getClosedApePositions.useQuery();
+
+  const { data: vaults } = api.vault.getVaults.useQuery({
+    sortbyVaultId: true,
+  });
+
   return (
     <div className="">
       <Container className="">
@@ -70,7 +75,10 @@ const LeaderboardPage = () => {
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <ExpandablePositions positions={positions} />
+                        <ExpandablePositions
+                          positions={positions}
+                          vaults={vaults}
+                        />
                       </CollapsibleContent>
                     </Collapsible>
                   ),
@@ -84,49 +92,5 @@ const LeaderboardPage = () => {
   );
 };
 
-const ExpandablePositions = ({
-  positions,
-}: {
-  positions: TClosedApePositions[string]["positions"];
-}) => {
-  return (
-    <div className="w-full">
-      <div className="grid grid-cols-9 bg-primary/10 pl-8 text-left text-xs font-medium text-foreground/70 dark:bg-primary">
-        <div className={cn(cellStyling, "col-span-1")}>Token</div>
-        <div className={cn(cellStyling, "col-span-2")}>Collateral</div>
-        <div className={cn(cellStyling, "col-span-2")}>Time it closed</div>
-        <div className={cn(cellStyling, "col-span-2")}>PnL (USD)</div>
-        <div className={cn(cellStyling, "col-span-2")}>PnL (Collateral)</div>
-      </div>
-      <div className="w-full space-y-[2px]">
-        {positions.map((position, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-9 bg-primary/5 pl-8 text-left text-xs font-normal dark:bg-primary/50"
-          >
-            <div className={cn(cellStyling, "col-span-1")}>Name</div>
-            <div className={cn(cellStyling, "col-span-2")}>CLT</div>
-            <div className={cn(cellStyling, "col-span-2")}>
-              {(() => {
-                const date = new Date(position.timestamp * 1000);
-                const hours = date.getHours().toString().padStart(2, "0");
-                const minutes = date.getMinutes().toString().padStart(2, "0");
-                const day = date.getDate();
-                const month = date.toLocaleString("default", { month: "long" });
-                const year = date.getFullYear();
-                return `${hours}:${minutes}, ${month} ${day},${year}`;
-              })()}
-            </div>
-            <div className={cn(cellStyling, "col-span-2")}>
-              {position.pnlUsd.toFixed(4)} USD
-            </div>
-            <div className={cn(cellStyling, "col-span-2")}>
-              {position.pnlCollateral.toFixed(8)} CLT
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+
 export default LeaderboardPage;

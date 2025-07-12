@@ -12,6 +12,7 @@ const closedApePositionsQuery = () => {
       dollarDeposited
       dollarWithdrawn
       user
+      vaultId
       timestamp
       decimal
     }

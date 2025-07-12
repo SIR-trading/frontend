@@ -6,6 +6,7 @@ const vaults = (
   filterDebt: boolean,
   filterLeverage: boolean,
   first = 10,
+  sortbyVaultId = false,
 ) => {
   // I have to make where clase optional
   // very stupid to not have optional values default
@@ -44,8 +45,8 @@ const vaults = (
      
       first: ${first} 
       skip: $skip
-      orderBy: sortKey 
-      orderDirection: desc
+      orderBy: ${sortbyVaultId ? "vaultId" : "sortKey"} 
+      orderDirection: ${sortbyVaultId ? "asc" : "desc"} 
       ${whereClause}
     ) {
       ...VaultFields
@@ -109,12 +110,14 @@ export const executeVaultsQuery = async ({
   filterCollateralToken,
   skip,
   first,
+  sortbyVaultId,
 }: {
   filterLeverage?: string;
   filterDebtToken?: string;
   filterCollateralToken?: string;
   skip?: number;
   first?: number;
+  sortbyVaultId?: boolean;
 }) => {
   const result = await graphqlClient.request(
     vaults(
@@ -122,6 +125,7 @@ export const executeVaultsQuery = async ({
       Boolean(filterDebtToken),
       Boolean(filterLeverage),
       first,
+      sortbyVaultId,
     ),
     {
       collateralToken: filterCollateralToken,

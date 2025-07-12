@@ -60,6 +60,7 @@ export const leaderboardRouter = createTRPCRouter({
                 pnlUsdPercentage,
                 pnlCollateralPercentage,
                 timestamp: +position.timestamp,
+                vaultId: position.vaultId,
               });
               res.total.dollarWithdrawn += dollarWithdrawn;
               res.total.dollarDeposited += dollarDeposited;
@@ -75,6 +76,7 @@ export const leaderboardRouter = createTRPCRouter({
                 pnlUsdPercentage: number;
                 pnlCollateralPercentage: number;
                 timestamp: number;
+                vaultId: `0x${string}`;
               }[],
               total: {
                 dollarDeposited: 0,

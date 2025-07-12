@@ -135,6 +135,7 @@ export type ClosedApePositionFragment = {
   collateralWithdrawn: string;
   dollarDeposited: string;
   dollarWithdrawn: string;
+  vaultId: `0x${string}`;
   user: string;
   timestamp: string;
   decimal: string;
@@ -149,6 +150,7 @@ export type TClosedApePositions = Record<
       pnlUsdPercentage: number;
       pnlCollateralPercentage: number;
       timestamp: number;
+      vaultId: `0x${string}`;
     }[];
     total: {
       pnlUsd: number;
