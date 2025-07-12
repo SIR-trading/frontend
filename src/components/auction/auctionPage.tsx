@@ -57,7 +57,7 @@ const AuctionPage = () => {
   return (
     <div>
       <PageHeadingSpace />
-      <Container className="w-svw max-w-[904px] lg:w-[904px]">
+      <Container className="max-w-[904px] lg:w-[904px]">
         <Explainer page={EPage.AUCTIONS} />
         <Tabs defaultValue="new">
           <TabsList className="mx-auto w-max">
