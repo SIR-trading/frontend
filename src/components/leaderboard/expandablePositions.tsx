@@ -1,5 +1,5 @@
 import type { TClosedApePositions, VaultFieldFragment } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import { useCallback } from "react";
 import { fromHex } from "viem";
 
@@ -80,16 +80,17 @@ const ExpandablePositions = ({
                 })()}
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlUsd.toFixed(3)} USD
+                {formatNumber(position.pnlUsd, 3)} USD
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlCollateral.toFixed(3)} {vaultData.collateralSymbol}
+                {formatNumber(position.pnlCollateral, 3)}{" "}
+                {vaultData.collateralSymbol}
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlUsdPercentage.toFixed(3)}%
+                {formatNumber(position.pnlUsdPercentage, 3)}%
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlCollateralPercentage.toFixed(3)} %
+                {formatNumber(position.pnlCollateralPercentage, 3)} %
               </div>
             </div>
           );

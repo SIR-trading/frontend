@@ -5,7 +5,7 @@ import { EPage } from "@/lib/types";
 import Explainer from "@/components/shared/explainer";
 import { api } from "@/trpc/react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 
 import { Loader2 } from "lucide-react";
@@ -77,10 +77,10 @@ const LeaderboardPage = () => {
                             </div>
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsd.toFixed(3)} USD
+                            {formatNumber(total.pnlUsd, 3)} USD
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsdPercentage.toFixed(3)}%
+                            {formatNumber(total.pnlUsdPercentage, 3)}%
                           </div>
                         </div>
                       </AccordionTrigger>
