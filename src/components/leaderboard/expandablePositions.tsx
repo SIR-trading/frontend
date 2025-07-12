@@ -36,7 +36,7 @@ const ExpandablePositions = ({
       }
       const { collateralSymbol, taxAmount } = vaultData;
       return {
-        name: Number(taxAmount) > 0n ? "APE" : "TEA",
+        name: Number(taxAmount) > 0n ? "TEA" : "APE",
         vaultId,
         collateralSymbol,
       };
