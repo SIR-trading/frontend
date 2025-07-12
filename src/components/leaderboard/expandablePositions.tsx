@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 import { fromHex } from "viem";
 
-const cellStyling = "px-2 md:px-4 py-2.5 flex-1 flex items-center";
+const cellStyling = "px-1 md:px-4 py-2.5 flex-1 flex items-center";
 const ExpandablePositions = ({
   positions,
   vaults,
@@ -43,7 +43,7 @@ const ExpandablePositions = ({
 
   return (
     <>
-      <div className="flex bg-primary/10 pl-8 text-left text-xs font-medium text-foreground/70 dark:bg-primary">
+      <div className="flex bg-primary/10 pl-2 text-left text-xs font-medium text-foreground/70 md:pl-6 dark:bg-primary">
         <div className={cn(cellStyling, "flex-none")}>Token</div>
         <div className={cn(cellStyling)}>Collateral</div>
         <div className={cn(cellStyling)}>Time it closed</div>
@@ -58,7 +58,7 @@ const ExpandablePositions = ({
           return (
             <div
               key={index}
-              className="flex bg-primary/5 pl-8 text-left text-xs font-normal dark:bg-primary/50"
+              className="flex bg-primary/5 pl-2 text-left text-xs font-normal md:pl-6 dark:bg-primary/50"
             >
               <div className={cn(cellStyling, "flex-none")}>
                 APE-{vaultData.vaultId}

@@ -34,9 +34,9 @@ const LeaderboardPage = () => {
         <Explainer page={EPage.LEADERBOARD} />
         <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
           <div className="w-full">
-            <div className="grid grid-cols-8 text-left text-sm font-normal text-foreground/60">
+            <div className="grid grid-cols-9 text-left text-sm font-normal text-foreground/60">
               <div className={cn(cellStyling, "col-span-1")}>Rank</div>
-              <div className={cn(cellStyling, "col-span-3")}>Address</div>
+              <div className={cn(cellStyling, "col-span-4")}>Address</div>
               <div className={cellStyling}>PnL [USD]</div>
               <div className={cellStyling}>% PnL</div>
             </div>
@@ -52,17 +52,24 @@ const LeaderboardPage = () => {
                       className="border-collapse border-t-[1px] border-foreground/4 last:border-b-[1px]"
                     >
                       <AccordionTrigger>
-                        <div className="grid w-full cursor-pointer grid-cols-8 font-geist text-sm font-medium hover:bg-foreground/5">
+                        <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
                           <div className={cn(cellStyling, "col-span-1")}>
                             {index + 1}
                           </div>
                           <div
                             className={cn(
                               cellStyling,
-                              "pointer-events-none col-span-3",
+                              "pointer-events-none col-span-4",
                             )}
                           >
-                            <div className="pointer-events-auto">
+                            <div className="pointer-events-auto max-lg:hidden">
+                              <AddressExplorerLink
+                                address={address}
+                                fontSize={14}
+                                shortenLength={0}
+                              />
+                            </div>
+                            <div className="pointer-events-auto lg:hidden">
                               <AddressExplorerLink
                                 address={address}
                                 fontSize={14}
