@@ -9,69 +9,75 @@ import {
 } from "@/lib/db/queries/select";
 import { executeGetDividendGreaterThan } from "@/server/queries/dividendsPaid";
 import { NextResponse } from "next/server";
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 
 import { kv } from "@vercel/kv";
 import { SIR_USD_PRICE } from "@/data/constants";
-//sleep
+import { parse } from "path";
 
+/**
+ * Main function to synchronize dividend data from blockchain events
+ * Processes new dividend payments and calculates APR based on recent payouts
+ */
 export async function syncDividends() {
-  console.log("RUNNING!");
-  // Using Key Value for 'Process Ids'
-  // To prevent duplicate syncs
-  // TODO: maybe a better way to do this
-  // Use a queue system to prevent multiple syncs
+  console.log("Starting dividend synchronization...");
+  
   try {
+    // Get configuration from environment variables
     const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
     const contractAddress = process.env.NEXT_PUBLIC_SIR_ADDRESS;
     
     if (!contractAddress) {
-      throw new Error("NEXT_PUBLIC_SIR_ADDRESS is not set");
+      throw new Error("NEXT_PUBLIC_SIR_ADDRESS environment variable is not set");
     }
 
-    const lastPayout = await selectLastPayout(chainId, contractAddress);
-    if (lastPayout[0]) {
-      await syncPayouts({ 
-        timestamp: lastPayout[0].timestamp, 
-        chainId, 
-        contractAddress 
-      });
-    } else {
-      await syncPayouts({ 
-        timestamp: 0, 
-        chainId, 
-        contractAddress 
-      });
-    }
-    console.log({ lastPayout });
-    const apr = await getAndCalculateLastWeekApr(chainId, contractAddress);
-    console.log({ apr });
-    if (!apr) return;
-    const lastPayoutA = await selectLastPayout(chainId, contractAddress);
-    if (lastPayoutA[0]) {
+    // Get the last processed payout to determine sync starting point
+    const lastProcessedPayout = await selectLastPayout(chainId, contractAddress);
+    const startTimestamp = lastProcessedPayout[0]?.timestamp ?? 0;
+    
+    // Sync new dividend payouts from the blockchain
+    await syncPayouts({ 
+      timestamp: startTimestamp, 
+      chainId, 
+      contractAddress 
+    });
+    
+    console.log("Last processed payout:", lastProcessedPayout);
+    
+    // Calculate and store the current APR based on recent payouts
+    const weeklyApr = await calculateLastWeekApr(chainId, contractAddress);
+    console.log("Calculated weekly APR:", weeklyApr);
+    
+    if (weeklyApr !== null) {
+      const latestPayout = await selectLastPayout(chainId, contractAddress);
+      const latestTimestamp = latestPayout[0]?.timestamp ?? 0;
+      
       await insertOrUpdateCurrentApr({
-        latestTimestamp: lastPayoutA[0].timestamp,
-        apr: apr.toString(),
-        chainId,
-        contractAddress,
-      });
-    } else {
-      console.error("Something went wrong.");
-      await insertOrUpdateCurrentApr({
-        latestTimestamp: 0,
-        apr: apr.toString(),
+        latestTimestamp,
+        apr: weeklyApr.toString(),
         chainId,
         contractAddress,
       });
     }
+    
+    // Clear the sync lock
     await kv.set("syncId", null);
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch {
+    
+  } catch (error) {
+    console.error("Error during dividend synchronization:", error);
+    // Ensure sync lock is cleared even on failure
     await kv.set("syncId", null);
     return NextResponse.json({ success: false }, { status: 200 });
   }
 }
 
+/**
+ * Fetches and processes dividend payout events from the blockchain
+ * @param timestamp - Starting timestamp to fetch events from
+ * @param chainId - Blockchain network ID
+ * @param contractAddress - SIR contract address
+ */
 async function syncPayouts({ 
   timestamp, 
   chainId, 
@@ -81,84 +87,119 @@ async function syncPayouts({
   chainId: number; 
   contractAddress: string; 
 }) {
-  const dividendPaidEvents = await executeGetDividendGreaterThan({
-    timestamp,
-  });
-  for (const e of dividendPaidEvents) {
-    console.log(e);
-    const ethPrice = await getCoinUsdPriceOnDate({
-      timestamp: parseInt(e.timestamp),
+  // Fetch dividend events that occurred after the given timestamp
+  const dividendPaidEvents = await executeGetDividendGreaterThan({ timestamp });
+  
+  for (const dividendEvent of dividendPaidEvents) {
+    console.log("Processing dividend event:", dividendEvent);
+    
+    // Get ETH price at the time of the dividend event
+    const ethPriceUsd = await getCoinUsdPriceOnDate({
+      timestamp: parseInt(dividendEvent.timestamp),
       id: "ethereum",
     });
 
-    // const sirPrice = await getCoinUsdPriceOnDate({
-    //   timestamp: parseInt(e.timestamp),
-    //   id: "sir",
-    // });
-    if (!ethPrice) {
-      throw new Error("Could not get eth price!");
+    if (!ethPriceUsd) {
+      throw new Error(`Could not fetch ETH price for timestamp: ${dividendEvent.timestamp}`);
     }
 
-    if (!e.ethAmount || !e.stakedAmount) return;
-    const sirUsdPrice =
-      parseUnits(e.sirUsdPrice, 6) > 0n
-        ? parseUnits(e.sirUsdPrice, 6)
-        : parseUnits(SIR_USD_PRICE, 12);
-    const ethParsed = parseUnits(e.ethAmount, 0);
-    const sirParsed = parseUnits(e.stakedAmount, 0);
-    const sirUsdPriceBig = sirUsdPrice; // sir already in usdc decimals(6)
-    const ethUsdPriceBig = parseUnits(ethPrice.toString(), 18);
+    // Skip events with missing essential data
+    if (!dividendEvent.ethAmount || !dividendEvent.stakedAmount) {
+      console.warn("Skipping event with missing amount data");
+      continue;
+    }
+    
+    // Determine SIR USD price: use event price if available, otherwise fallback to constant
+    const sirUsdPriceRaw = parseUnits(dividendEvent.sirUsdPrice, 0) > 0n
+      ? dividendEvent.sirUsdPrice
+      : SIR_USD_PRICE;
+    
+    // Parse amounts from the event (already in their respective decimal formats)
+    const ethAmountWei = parseUnits(dividendEvent.ethAmount, 0);
+    const sirAmountUnits = parseUnits(dividendEvent.stakedAmount, 0);
+    
+    // Convert prices to appropriate decimal precision
+    const sirUsdPriceBigInt = parseUnits(sirUsdPriceRaw, 18);
+    const ethUsdPriceBigInt = parseUnits(ethPriceUsd.toString(), 18);
 
-    const ethDecimals = 10n ** 18n;
-    const sirDecimals = 10n ** 12n;
-    if (
-      ethParsed === 0n ||
-      ethUsdPriceBig === 0n ||
-      sirParsed === 0n ||
-      sirUsdPriceBig === 0n
-    )
-      return;
-    const ethInUsd = (ethParsed * ethUsdPriceBig) / ethDecimals;
-    const sirInUSD = (sirParsed * sirUsdPriceBig) / sirDecimals;
-    console.log(formatUnits(BigInt(e.sirUsdPrice), 6), "SIR USD PRICE");
-    console.log(formatUnits(BigInt(e.stakedAmount), 12), "STAKED AMOUNT");
-    console.log(formatUnits(BigInt(e.ethAmount), 18), "ETH AMOUNT");
-    console.log(formatUnits(sirInUSD, 12));
-    if (!ethPrice) continue;
-    const a = await insertPayout({
-      timestamp: parseInt(e.timestamp),
-      sirInUSD: sirInUSD.toString(),
-      ethInUSD: ethInUsd.toString(),
+    // Define decimal constants for calculations
+    const ETH_DECIMALS = 10n ** 18n;
+    const SIR_DECIMALS = 10n ** 18n;
+    
+    // Skip calculations if any value is zero (would cause division by zero or invalid data)
+    if (ethAmountWei === 0n || ethUsdPriceBigInt === 0n || sirAmountUnits === 0n || sirUsdPriceBigInt === 0n) {
+      console.warn("Skipping event with zero values");
+      continue;
+    }
+    
+    // Calculate USD values for both ETH dividends and SIR staked amounts
+    const ethDividendsUsd = (ethAmountWei * ethUsdPriceBigInt) / ETH_DECIMALS;
+    const sirStakedUsd = (sirAmountUnits * sirUsdPriceBigInt) / SIR_DECIMALS;
+    
+    // Insert the calculated payout data into the database
+    const insertResult = await insertPayout({
+      timestamp: parseInt(dividendEvent.timestamp),
+      sirInUSD: sirStakedUsd.toString(),
+      ethInUSD: ethDividendsUsd.toString(),
       chainId,
       contractAddress,
     });
-    if (a === null) {
-      // a duplicate insert was attempted
+    
+    // If insert returns null, it means this payout was already processed
+    if (insertResult === null) {
+      console.log("Duplicate payout detected, stopping sync");
       return;
     }
   }
 }
 
-async function getAndCalculateLastWeekApr(chainId: number, contractAddress: string) {
-  const payouts = await selectLastWeekPayouts(chainId, contractAddress);
-  console.log({ payouts });
-  if (!payouts.length) return;
+/**
+ * Calculates the annualized percentage return (APR) based on the last week's payouts
+ * @param chainId - Blockchain network ID
+ * @param contractAddress - SIR contract address
+ * @returns Calculated APR as bigint, or null if insufficient data
+ */
+async function calculateLastWeekApr(chainId: number, contractAddress: string): Promise<bigint | null> {
+  const weeklyPayouts = await selectLastWeekPayouts(chainId, contractAddress);
+  console.log("Weekly payouts for APR calculation:", weeklyPayouts);
+  
+  if (!weeklyPayouts.length) {
+    console.log("No payouts found for APR calculation");
+    return null;
+  }
 
-  let result = 0n;
-  payouts.forEach((payout) => {
+  let totalAprBasisPoints = 0n;
+  
+  weeklyPayouts.forEach((payout) => {
     if (payout.sirInUSD && payout.ethInUSD) {
-      const sirInUsd = parseUnits(payout.sirInUSD, 0);
-      const ethInUsd = parseUnits(payout.ethInUSD, 0);
-      // APR = (ETH_dividends_USD / SIR_staked_USD) × 365/7 × 100
-      // 365/7 ≈ 52.14, using 365n * 100n / 7n for precision
-      result += divide(365n * 100n * ethInUsd, 7n * sirInUsd);
+      const sirStakedUsd = parseUnits(payout.sirInUSD, 0);
+      const ethDividendsUsd = parseUnits(payout.ethInUSD, 0);
+      
+      // APR Formula: (ETH dividends USD / SIR staked USD) × (365 days / 7 days) × 100%
+      // Using integer math: (365 * 100 * ethDividends) / (7 * sirStaked)
+      // This gives us APR in basis points (1% = 100 basis points)
+      const payoutAprBasisPoints = safeDivide(
+        365n * 100n * ethDividendsUsd, 
+        7n * sirStakedUsd
+      );
+      
+      totalAprBasisPoints += payoutAprBasisPoints;
     }
   });
-  console.log(result);
-  return result;
+  
+  console.log("Total APR (basis points):", totalAprBasisPoints);
+  return totalAprBasisPoints;
 }
-// because webpack is terrible
-function divide(a: bigint, b: bigint) {
-  if (a === 0n || b === 0n) return 0n;
-  return a / b;
+
+/**
+ * Performs safe division of two bigints, returning 0 if either operand is 0
+ * @param dividend - The number to be divided
+ * @param divisor - The number to divide by
+ * @returns Result of division, or 0 if either input is 0
+ */
+function safeDivide(dividend: bigint, divisor: bigint): bigint {
+  if (dividend === 0n || divisor === 0n) {
+    return 0n;
+  }
+  return dividend / divisor;
 }
