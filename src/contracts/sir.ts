@@ -6,16 +6,8 @@ export const SirContract = {
     {
       type: "constructor",
       inputs: [
-        {
-          name: "contributors",
-          type: "address",
-          internalType: "address",
-        },
-        {
-          name: "weth",
-          type: "address",
-          internalType: "address",
-        },
+        { name: "contributors", type: "address", internalType: "address" },
+        { name: "weth", type: "address", internalType: "address" },
         { name: "systemControl", type: "address", internalType: "address" },
       ],
       stateMutability: "nonpayable",

@@ -4,7 +4,7 @@ import {
   insertPayout,
 } from "@/lib/db/queries/insert";
 import {
-  selectLastMonthPayouts,
+  selectLastWeekPayouts,
   selectLastPayout,
 } from "@/lib/db/queries/select";
 import { executeGetDividendGreaterThan } from "@/server/queries/dividendsPaid";
@@ -111,7 +111,7 @@ async function syncPayouts({ timestamp }: { timestamp: number }) {
 }
 
 async function getAndCalculateLastMonthApr() {
-  const payouts = await selectLastMonthPayouts();
+  const payouts = await selectLastWeekPayouts();
   console.log({ payouts });
   if (!payouts.length) return;
 

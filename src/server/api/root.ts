@@ -6,6 +6,7 @@ import { quoteRouter } from "./routers/quote";
 import { dividendsRouter } from "./routers/dividends";
 import { auctionRouter } from "@/server/api/routers/auction";
 import { priceRouter } from "./routers/price";
+import { leaderboardRouter } from "./routers/leaderboard";
 /**
  * This is the primary router for your server.
  *
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   quote: quoteRouter,
   auction: auctionRouter,
   price: priceRouter,
+  leaderboard: leaderboardRouter,
 });
 
 // export type definition of API

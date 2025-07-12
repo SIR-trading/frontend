@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import type { TUnstakeForm } from "@/lib/types";
 import { BalancePercent } from "@/components/shared/balancePercent";
 
-import sir_logo from "@/../public/images/sir-logo.svg";
+import sir_logo from "@/../public/images/white-logo.svg";
 import Image, { type StaticImageData } from "next/image";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
 import DisplayFormattedNumber from "../displayFormattedNumber";
@@ -30,7 +30,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
           control={form.control}
           name="amount"
           render={({ field }) => (
-            <div>
+            <div className="flex-1">
               <FormItem>
                 <FormControl>
                   <Input
@@ -66,7 +66,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
               {isStaking ? "Unstaked SIR" : "Staked SIR"}
             </span>
           </div>
-          <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
+          <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
             Balance{" "}
             <DisplayFormattedNumber num={formatNumber(balance ?? "0", 8)} />
           </h2>
