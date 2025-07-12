@@ -139,3 +139,22 @@ export type ClosedApePositionFragment = {
   timestamp: string;
   decimal: string;
 };
+
+export type TClosedApePositions = Record<
+  string,
+  {
+    positions: {
+      pnlUsd: number;
+      pnlCollateral: number;
+      pnlUsdPercentage: number;
+      pnlCollateralPercentage: number;
+      timestamp: number;
+    }[];
+    total: {
+      pnlUsd: number;
+      pnlCollateral: number;
+      pnlUsdPercentage: number;
+      pnlCollateralPercentage: number;
+    };
+  }
+>;
