@@ -67,12 +67,3 @@ const StakeData = ({ children }: { children: ReactNode }) => {
 };
 
 export default StakeData;
-
-// <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
-//   <div className="flex w-full flex-row items-center justify-center">
-//     <div className="px-2 text-sm text-gray-300">Staking APR</div>
-//     <ToolTip>Tool tip info.</ToolTip>
-//     {/* <AprInfo></AprInfo>
-//   </div>
-//   <div className=" text-2xl ">N/A</div>
-// </div>

@@ -7,12 +7,19 @@ function sleep(ms: number) {
 }
 export const dividendsRouter = createTRPCRouter({
   longPollDividends: publicProcedure.query(async () => {
+    const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
+    const contractAddress = process.env.NEXT_PUBLIC_SIR_ADDRESS;
+    
+    if (!contractAddress) {
+      throw new Error("NEXT_PUBLIC_SIR_ADDRESS is not set");
+    }
+
     const event = await executeGetLastestDividendsPaid();
     let tries = 0;
     while (true) {
       tries++;
       await sleep(1000);
-      const lastPayout = await selectCurrentApr();
+      const lastPayout = await selectCurrentApr(chainId, contractAddress);
       console.log(lastPayout?.latestTimestamp, event[0]?.timestamp);
 
       if (
@@ -26,7 +33,14 @@ export const dividendsRouter = createTRPCRouter({
     }
   }),
   getApr: publicProcedure.query(async () => {
-    const result = await selectCurrentApr();
+    const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
+    const contractAddress = process.env.NEXT_PUBLIC_SIR_ADDRESS;
+    
+    if (!contractAddress) {
+      throw new Error("NEXT_PUBLIC_SIR_ADDRESS is not set");
+    }
+
+    const result = await selectCurrentApr(chainId, contractAddress);
     console.log(result, "RESULT");
     return result;
   }),
