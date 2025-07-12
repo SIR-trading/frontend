@@ -13,10 +13,11 @@ import {
   Collapsible,
   CollapsibleContent,
 } from "@/components/ui/collapsible";
+import { Loader2 } from "lucide-react";
 
 const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 const LeaderboardPage = () => {
-  const { data: closedApePositions } =
+  const { data: closedApePositions, isLoading } =
     api.leaderboard.getClosedApePositions.useQuery();
 
   console.log(closedApePositions, "closedApePositions");
@@ -36,42 +37,46 @@ const LeaderboardPage = () => {
               <div className={cellStyling}>Absolute gain (USD)</div>
               <div className={cellStyling}>Relative gain (%)</div>
             </div>
-            <div className="w-full space-y-8">
-              {Object.entries(closedApePositions ?? {}).map(
-                ([address, { total, positions }], index) => (
-                  <Collapsible
-                    key={address}
-                    className="border-collapse border-y border-foreground/15"
-                  >
-                    <CollapsibleTrigger asChild>
-                      <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium">
-                        <div className={cn(cellStyling, "col-span-1")}>
-                          {index + 1}
+            <div className="min-h-10 w-full space-y-8">
+              {isLoading ? (
+                <Loader2 className="mx-auto mt-8 animate-spin" />
+              ) : (
+                Object.entries(closedApePositions ?? {}).map(
+                  ([address, { total, positions }], index) => (
+                    <Collapsible
+                      key={address}
+                      className="border-collapse border-y border-foreground/15"
+                    >
+                      <CollapsibleTrigger asChild>
+                        <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium">
+                          <div className={cn(cellStyling, "col-span-1")}>
+                            {index + 1}
+                          </div>
+                          <div
+                            className={cn(
+                              cellStyling,
+                              "pointer-events-none col-span-4",
+                            )}
+                          >
+                            <AddressExplorerLink
+                              address={address}
+                              fontSize={14}
+                            />
+                          </div>
+                          <div className={cellStyling}>
+                            {total.pnlUsd.toFixed(2)} USD
+                          </div>
+                          <div className={cellStyling}>
+                            {total.pnlUsdPercentage.toFixed(2)}%
+                          </div>
                         </div>
-                        <div
-                          className={cn(
-                            cellStyling,
-                            "pointer-events-none col-span-4",
-                          )}
-                        >
-                          <AddressExplorerLink
-                            address={address}
-                            fontSize={14}
-                          />
-                        </div>
-                        <div className={cellStyling}>
-                          {total.pnlUsd.toFixed(2)} USD
-                        </div>
-                        <div className={cellStyling}>
-                          {total.pnlUsdPercentage.toFixed(2)}%
-                        </div>
-                      </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <ExpandablePositions positions={positions} />
-                    </CollapsibleContent>
-                  </Collapsible>
-                ),
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ExpandablePositions positions={positions} />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ),
+                )
               )}
             </div>
           </div>
