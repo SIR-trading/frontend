@@ -19,8 +19,6 @@ const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 const LeaderboardPage = () => {
   const { data: closedApePositions, isLoading } =
     api.leaderboard.getClosedApePositions.useQuery();
-
-  console.log(closedApePositions, "closedApePositions");
   return (
     <div className="">
       <Container className="">
