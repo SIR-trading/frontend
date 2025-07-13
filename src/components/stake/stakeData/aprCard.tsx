@@ -1,22 +1,13 @@
-import { executeGetDividendGreaterThan } from "@/server/queries/dividendsPaid";
-import { api } from "@/trpc/server";
 import React from "react";
 import AprDisplay from "./aprDisplay";
-import { syncDividends } from "@/lib/dividendsSync";
+import { getWeeklyApr } from "@/lib/apr";
 
 import ToolTip from "@/components/ui/tooltip";
 import { Card } from "@/components/ui/card";
 
 export const revalidate = 60 * 15; // 15 minutes
 export default async function AprCard() {
-  let apr = await api.divends.getApr();
-  const dividendsPaidRequest = await executeGetDividendGreaterThan({
-    timestamp: apr?.latestTimestamp ?? 0,
-  });
-  if (dividendsPaidRequest.length) {
-    await syncDividends();
-    apr = await api.divends.getApr();
-  }
+  const apr = await getWeeklyApr();
 
   return (
     <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">

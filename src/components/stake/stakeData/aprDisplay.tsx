@@ -9,7 +9,7 @@ import { formatUnits, parseUnits } from "viem";
 export default function AprDisplay({
   currentApr,
 }: {
-  currentApr: SelectCurrentApr | undefined;
+  currentApr: { apr: string; latestTimestamp: number } | undefined;
 }) {
   const APR = parseUnits(currentApr?.apr ?? "0", 0);
 
