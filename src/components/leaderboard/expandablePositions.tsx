@@ -44,8 +44,12 @@ const ExpandablePositions = ({
   return (
     <>
       <div className="flex bg-primary/10 pl-2 text-left text-xs font-medium text-foreground/70 md:pl-6 dark:bg-primary">
-        <div className={cn(cellStyling, "flex-none")}>Token</div>
-        <div className={cn(cellStyling)}>Collateral</div>
+        <div className={cn(cellStyling, "w-[44px] flex-none md:w-[68px]")}>
+          Token
+        </div>
+        <div className={cn(cellStyling, "w-[65px] flex-none md:w-[89px]")}>
+          Collateral
+        </div>
         <div className={cn(cellStyling)}>Time it closed</div>
         <div className={cn(cellStyling)}>PnL [USD]</div>
         <div className={cn(cellStyling)}>PnL [Collateral]</div>
@@ -60,10 +64,14 @@ const ExpandablePositions = ({
               key={index}
               className="flex bg-primary/5 pl-2 text-left text-xs font-normal md:pl-6 dark:bg-primary/50"
             >
-              <div className={cn(cellStyling, "flex-none")}>
+              <div
+                className={cn(cellStyling, "w-[44px] flex-none md:w-[68px]")}
+              >
                 APE-{vaultData.vaultId}
               </div>
-              <div className={cn(cellStyling)}>
+              <div
+                className={cn(cellStyling, "w-[65px] flex-none md:w-[89px]")}
+              >
                 {vaultData.collateralSymbol}
               </div>
               <div className={cn(cellStyling)}>
