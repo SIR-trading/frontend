@@ -1,7 +1,8 @@
 import type { TClosedApePositions, VaultFieldFragment } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import { useCallback } from "react";
 import { fromHex } from "viem";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
 const cellStyling = "px-1 md:px-4 py-2.5 flex-1 flex items-center";
 const ExpandablePositions = ({
@@ -80,16 +81,16 @@ const ExpandablePositions = ({
                 })()}
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlUsd.toFixed(3)} USD
+                <DisplayFormattedNumber num={formatNumber(position.pnlUsd)} /> USD
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlCollateral.toFixed(3)} {vaultData.collateralSymbol}
+                <DisplayFormattedNumber num={formatNumber(position.pnlCollateral)} /> {vaultData.collateralSymbol}
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlUsdPercentage.toFixed(3)}%
+                <DisplayFormattedNumber num={formatNumber(position.pnlUsdPercentage)} />%
               </div>
               <div className={cn(cellStyling)}>
-                {position.pnlCollateralPercentage.toFixed(3)} %
+                <DisplayFormattedNumber num={formatNumber(position.pnlCollateralPercentage)} />%
               </div>
             </div>
           );

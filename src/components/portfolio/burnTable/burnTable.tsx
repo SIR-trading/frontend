@@ -28,18 +28,18 @@ export default function BurnTable({
   const tea = api.user.getTeaPositions.useQuery({ address });
 
   const selectedRowParamsApe = useMemo(() => {
-    return ape.data?.userPositions.find(
+    return ape.data?.apePositions.find(
       (r) => r.vaultId === selectedRow?.vaultId && selectedRow.isApe,
     );
-  }, [ape.data?.userPositions, selectedRow]);
+  }, [ape.data?.apePositions, selectedRow]);
   const selectedRowParamsTea = useMemo(() => {
-    return tea.data?.userPositionTeas.find(
+    return tea.data?.teaPositions.find(
       (r) => r.vaultId === selectedRow?.vaultId && !selectedRow.isApe,
     );
-  }, [selectedRow, tea.data?.userPositionTeas]);
+  }, [selectedRow, tea.data?.teaPositions]);
 
-  const apeLength = ape?.data?.userPositions?.length ?? 0;
-  const teaLength = tea?.data?.userPositionTeas?.length ?? 0;
+  const apeLength = ape?.data?.apePositions?.length ?? 0;
+  const teaLength = tea?.data?.teaPositions?.length ?? 0;
   const hasPositions = useCheckUserHasPositions({
     apeLength,
     teaLength,
@@ -51,7 +51,7 @@ export default function BurnTable({
     }
   }, [selectedRow?.vaultId]);
   const loading = ape.isLoading || tea.isLoading;
-  const apePosition = ape.data?.userPositions.map((r) => (
+  const apePosition = ape.data?.apePositions.map((r) => (
     <BurnTableRow
       setSelectedRow={(isClaiming: boolean) =>
         setSelectedRow({
@@ -65,7 +65,7 @@ export default function BurnTable({
         id: r.vaultId,
         balance: r.balance,
         user: r.user,
-        positionDecimals: r.positionDecimals,
+        decimals: r.decimals,
         collateralSymbol: r.collateralSymbol,
         debtSymbol: r.debtSymbol,
         collateralToken: r.collateralToken,
@@ -74,7 +74,7 @@ export default function BurnTable({
         vaultId: r.vaultId,
       }}
       isApe={true}
-      apeAddress={r.APE}
+      apeAddress={r.ape}
       apeBal={userBalancesInVaults?.apeBalances[Number(r.vaultId) - 1]}
       teaBal={userBalancesInVaults?.teaBalances[Number(r.vaultId) - 1]}
       teaRewards={
@@ -118,7 +118,7 @@ export default function BurnTable({
           isClaiming={selectedRow?.isClaiming}
           isApe
           params={selectedRowParamsApe}
-          apeAddress={selectedRowParamsApe?.APE}
+          apeAddress={selectedRowParamsApe?.ape}
           close={() => {
             setSelectedRow(undefined);
           }}
@@ -159,7 +159,7 @@ export default function BurnTable({
                   {apePosition}
                 </Show>
                 <Show when={filter === "tea" || filter === "all"}>
-                  {tea.data?.userPositionTeas.map((r) => {
+                  {tea.data?.teaPositions.map((r) => {
                     return (
                       <>
                         <BurnTableRow

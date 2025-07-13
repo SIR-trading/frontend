@@ -66,7 +66,7 @@ export default function BurnForm({
       debtToken: row.debtToken,
       leverageTier: parseInt(row.leverageTier),
       collateralToken: row.collateralToken,
-      decimals: row.positionDecimals,
+      decimals: row.decimals,
     },
     {
       enabled: Boolean(formData.deposit),
@@ -131,7 +131,7 @@ export default function BurnForm({
     },
     amount: parseUnits(
       formData.deposit?.toString() ?? "0",
-      row.positionDecimals,
+      row.decimals,
     ),
   });
 
@@ -149,7 +149,7 @@ export default function BurnForm({
   const { isValid, error } = useBurnFormValidation(
     formData,
     balance,
-    row.positionDecimals,
+    row.decimals,
   );
 
   const { tokenReceived } = useGetTxTokens({ logs: receiptData?.logs });
@@ -206,7 +206,7 @@ export default function BurnForm({
               )}
               {!isClaimingRewards && (
                 <TransactionEstimates
-                  decimals={row.positionDecimals}
+                  decimals={row.decimals}
                   inAssetName={
                     isApe ? `APE-${row.vaultId}` : `TEA-${row.vaultId}`
                   }
@@ -281,7 +281,7 @@ export default function BurnForm({
 
           {!isClaimingRewards && (
             <TokenInput
-              positionDecimals={row.positionDecimals}
+              positionDecimals={row.decimals}
               balance={balance}
               form={form}
               vaultId={row.vaultId}
@@ -312,7 +312,7 @@ export default function BurnForm({
                 amount={
                   isClaimingRewards
                     ? formatUnits(reward, 12)
-                    : formatUnits(quoteBurn ?? 0n, row.positionDecimals)
+                    : formatUnits(quoteBurn ?? 0n, row.decimals)
                 }
                 collateralSymbol={
                   isClaimingRewards ? "SIR" : row.collateralSymbol

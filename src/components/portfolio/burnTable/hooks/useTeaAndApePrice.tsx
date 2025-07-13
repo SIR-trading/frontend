@@ -18,14 +18,14 @@ export function useTeaAndApePrice({
       debtToken: row.debtToken,
       leverageTier: parseInt(row.leverageTier),
       collateralToken: row.collateralToken,
-      decimals: row.positionDecimals,
+      decimals: row.decimals,
     },
     {
       enabled: Boolean(amount),
     },
   );
   console.log("QUOTE__BURN__", quoteBurn);
-  const formatted = formatUnits(quoteBurn ?? 0n, row.positionDecimals);
+  const formatted = formatUnits(quoteBurn ?? 0n, row.decimals);
   const contractAddress: string = row.collateralToken ?? "";
   const { data: tokens } = api.price.getTokenPrice.useQuery(
     {

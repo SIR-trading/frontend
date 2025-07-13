@@ -38,14 +38,15 @@ export default async function RootLayout({
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+        <head />
+        <body
+          className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} relative`}
         >
-          <body
-            className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} relative`}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
           >
             <div className="gradient-bg absolute left-0 top-0 z-[-1] h-full w-full opacity-100"></div>
             <Toaster />
@@ -74,9 +75,9 @@ export default async function RootLayout({
                   </VaultProvider>
                 </EvmProvider>
               </TokenlistContextProvider>
-            </TRPCReactProvider>
-          </body>
-        </ThemeProvider>
+          </TRPCReactProvider>
+          </ThemeProvider>
+        </body>
       </html>
     </>
   );

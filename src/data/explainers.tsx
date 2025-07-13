@@ -132,13 +132,14 @@ export const Explainers: Partial<ExplainersMap> = {
     ),
   },
   [EPage.LEADERBOARD]: {
-    title: "Leaderboard",
+    title: "Trade APE, win SIR",
     description: (
       <>
         <p>
-          View the top traders, liquidity providers, and stakers in the SIR
-          ecosystem. Compare your performance against others and get inspired to
-          improve your strategies.
+          Close any APE position within the current week to enter. The board tracks two scores: total USD profit and relative USD gain (%).
+        </p>
+        <p>
+          Each weekend the top ranks in both categories receive fresh SIR token rewards.
         </p>
       </>
     ),

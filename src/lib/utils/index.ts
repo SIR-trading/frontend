@@ -98,7 +98,7 @@ export function formatNumber(number: number | string, decimals = 3): string {
   }
 
   if (n === 0) {
-    return numberSign + "0";
+    return "0";
   }
   if (n < 1 && n >= 0.001) {
     const parts = n.toString().split(".");

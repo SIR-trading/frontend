@@ -5,11 +5,12 @@ import { EPage } from "@/lib/types";
 import Explainer from "@/components/shared/explainer";
 import { api } from "@/trpc/react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 
 import { Loader2 } from "lucide-react";
 import ExpandablePositions from "@/components/leaderboard/expandablePositions";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import {
   AccordionItem,
   AccordionContent,
@@ -77,10 +78,10 @@ const LeaderboardPage = () => {
                             </div>
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsd.toFixed(3)} USD
+                            <DisplayFormattedNumber num={formatNumber(total.pnlUsd)} /> USD
                           </div>
                           <div className={cellStyling}>
-                            {total.pnlUsdPercentage.toFixed(3)}%
+                            <DisplayFormattedNumber num={formatNumber(total.pnlUsdPercentage)} />%
                           </div>
                         </div>
                       </AccordionTrigger>
