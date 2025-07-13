@@ -16,7 +16,7 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "ES2022"
+      "es2022", "esnext"
     ],
     "noEmit": true,
     "module": "ESNext",
@@ -33,13 +33,6 @@
         "./src/*"
       ]
     }
-    /* Path Aliases */
-    // "baseUrl": ".",
-    // "paths": {
-    //   "@/*": [
-    //     "./src/*"
-    //   ]
-    // }
   },
   "include": [
     ".eslintrc.cjs",

@@ -25,9 +25,9 @@ export async function getWeeklyApr(): Promise<{ apr: string; latestTimestamp: nu
       // Parse amounts - ethAmount is in wei (18 decimals)
       // stakedAmount is in SIR units (12 decimals)
       // sirEthPrice has no decimals (if 1 SIR = 1 ETH, then sirEthPrice = 1)
-      const ethAmount = parseFloat(dividend.ethAmount) / Math.pow(10, ETH_DECIMALS);
-      const sirAmount = parseFloat(dividend.stakedAmount) / Math.pow(10, SIR_DECIMALS);
-      const sirEthPrice = parseFloat(dividend.sirEthPrice);
+      const ethAmount = parseFloat(String(dividend.ethAmount)) / Math.pow(10, ETH_DECIMALS);
+      const sirAmount = parseFloat(String(dividend.stakedAmount)) / Math.pow(10, SIR_DECIMALS);
+      const sirEthPrice = parseFloat(String(dividend.sirEthPrice));
       
       // Skip calculations if any value is zero
       if (ethAmount === 0 || sirAmount === 0 || sirEthPrice === 0) {
