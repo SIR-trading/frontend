@@ -132,7 +132,7 @@ export const Explainers: Partial<ExplainersMap> = {
     ),
   },
   [EPage.LEADERBOARD]: {
-    title: "Trade APE, earn SIR",
+    title: "Trade APE, win SIR",
     description: (
       <>
         <p>
