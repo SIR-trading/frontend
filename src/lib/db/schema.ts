@@ -49,7 +49,5 @@ export const errorLogs = pgTable(
 
 export type InsertPayout = typeof payoutTable.$inferInsert;
 export type SelectPayout = typeof payoutTable.$inferSelect;
-export type InsertCurrentApr = typeof currentApr.$inferInsert;
-export type SelectCurrentApr = typeof currentApr.$inferSelect;
 export type InsertErrorLogs = typeof errorLogs.$inferInsert;
 export type SelectErrorLogs = typeof errorLogs.$inferSelect;
