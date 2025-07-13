@@ -50,8 +50,8 @@ export function Header() {
               <div className="hidden items-center lg:flex">|</div>
               <ul className="flex gap-x-3" aria-label="Secondary Navigation">
                 <NavItem url={"/stake"}>Stake</NavItem>
-                <NavItem url={"/auctions"}>Auctions</NavItem>
                 <NavItem url={"/leaderboard"}>Leaderboard</NavItem>
+                <NavItem url={"/auctions"}>Auctions</NavItem>
                 <NavItem url={"/create-vault"}>Create Vault</NavItem>
                 <NavItem url={"/leverage-calculator"}>Calculator</NavItem>
 
