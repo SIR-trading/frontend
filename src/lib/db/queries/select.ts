@@ -1,6 +1,6 @@
 import { desc, gt, eq, count, and } from "drizzle-orm";
 import { db } from "../db";
-import { currentApr, errorLogs, payoutTable } from "../schema";
+import { errorLogs, payoutTable } from "../schema";
 
 export async function selectPayouts(chainId?: number, contractAddress?: string) {
   const query = db.select().from(payoutTable);
@@ -48,23 +48,6 @@ export async function selectLastPayout(chainId: number, contractAddress: string)
   return apr;
 }
 
-export async function selectCurrentApr(chainId: number, contractAddress: string) {
-  try {
-    const result = await db
-      .select()
-      .from(currentApr)
-      .where(
-        and(
-          eq(currentApr.chainId, chainId),
-          eq(currentApr.contractAddress, contractAddress)
-        )
-      );
-    return result[0];
-  } catch (e) {
-    console.error(e);
-    return { id: 0, apr: "0", latestTimestamp: 0, chainId, contractAddress };
-  }
-}
 export async function selectErrorLogs() {
   const logs = await db.select().from(errorLogs);
   return logs;

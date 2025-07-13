@@ -1,7 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "../db";
 import type {
-  InsertCurrentApr,
   InsertErrorLogs,
   InsertPayout,
 } from "../schema";
@@ -31,19 +30,6 @@ export async function insertPayout(data: InsertPayout) {
   }
 }
 
-export async function insertOrUpdateCurrentApr(data: InsertCurrentApr) {
-  const query = await db
-    .insert(currentApr)
-    .values(data)
-    .onConflictDoUpdate({ 
-      target: [currentApr.chainId, currentApr.contractAddress], 
-      set: {
-        apr: data.apr,
-        latestTimestamp: data.latestTimestamp,
-      }
-    });
-  return query;
-}
 export async function insertErrorLogs(data: InsertErrorLogs) {
   const query = await db.insert(errorLogs).values(data);
   return query;
