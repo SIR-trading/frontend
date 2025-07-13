@@ -1,7 +1,6 @@
 "use client";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import Show from "@/components/shared/show";
-import type { SelectCurrentApr } from "@/lib/db/schema";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
 import { formatUnits, parseUnits } from "viem";
