@@ -43,8 +43,8 @@ export function BurnTableRow({
 
   // const rewards = teaRewards ?? 0n;
   // const hasUnclaimedSir = isApe ? false : rewards > 0n;
-  const teaBalance = formatUnits(teaBal ?? 0n, row.positionDecimals);
-  const apeBalance = formatUnits(apeBal ?? 0n, row.positionDecimals);
+  const teaBalance = formatUnits(teaBal ?? 0n, row.decimals);
+  const apeBalance = formatUnits(apeBal ?? 0n, row.decimals);
   const rewards = formatUnits(teaRewards ?? 0n, 12);
   const positionValue = useTeaAndApePrice({
     isApe,
