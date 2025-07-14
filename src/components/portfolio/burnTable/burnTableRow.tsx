@@ -53,13 +53,13 @@ export function BurnTableRow({
   });
   return (
     <>
-      <tr className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-foreground  md:grid">
-        <td className="flex items-center gap-x-1 font-normal ">
+      <div className="hidden grid-cols-7 items-start gap-x-4 py-2 text-left text-foreground  md:grid">
+        <div className="flex items-center gap-x-1 font-normal ">
           <span className="">{isApe ? "APE" : "TEA"}</span>
           <span className="text-foreground/70">-</span>
           <span className="text-xl text-accent-100 ">{row.vaultId} </span>
-        </td>
-        <td className="flex  items-center gap-x-1 font-normal text-foreground/80">
+        </div>
+        <div className="flex  items-center gap-x-1 font-normal text-foreground/80">
           <ImageWithFallback
             className="rounded-full bg-transparent"
             alt={row.collateralToken}
@@ -68,8 +68,8 @@ export function BurnTableRow({
             height={20}
           />
           <span className="text-[14px]">{row.collateralSymbol}</span>
-        </td>
-        <td className="flex items-center gap-x-1 font-normal text-foreground/80">
+        </div>
+        <div className="flex items-center gap-x-1 font-normal text-foreground/80">
           <ImageWithFallback
             className="rounded-full"
             alt={row.debtSymbol}
@@ -78,11 +78,11 @@ export function BurnTableRow({
             height={20}
           />
           <span className="text-[14px]">{row.debtSymbol}</span>
-        </td>
-        <td className="font-normal text-foreground/80">
+        </div>
+        <div className="font-normal text-foreground/80">
           ^{getLeverageRatio(Number.parseInt(row.leverageTier))}
-        </td>
-        <td className="col-span-3 space-y-3 font-normal">
+        </div>
+        <div className="col-span-3 space-y-3 font-normal">
           <div className="flex items-start  justify-between">
             <span>
               <DisplayFormattedNumber
@@ -128,8 +128,8 @@ export function BurnTableRow({
               </Button>
             </div>
           </div>
-        </td>
-      </tr>
+        </div>
+      </div>
       <BurnTableRowMobile
         apeBalance={apeBalance}
         teaBalance={teaBalance}

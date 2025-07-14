@@ -3,26 +3,38 @@
 import { api } from "@/trpc/react";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import { useGetStakedSir } from "@/components/shared/hooks/useGetStakedSir";
 import { TokenDisplay } from "@/components/ui/token-display";
 import { Card } from "@/components/ui/card";
-
-interface supplyProps {
-  data?: bigint;
-}
+import Show from "@/components/shared/show";
+import { useAccount } from "wagmi";
 
 const StakeData = ({ children }: { children: ReactNode }) => {
-  const { data: unstakedSupply }: supplyProps =
-    api.user.getSirSupply.useQuery();
-  const { data: totalSupply }: supplyProps =
-    api.user.getSirTotalSupply.useQuery();
+  const { 
+    data: unstakedSupply, 
+    isLoading: unstakedSupplyLoading 
+  } = api.user.getSirSupply.useQuery();
+  const { 
+    data: totalSupply, 
+    isLoading: totalSupplyLoading 
+  } = api.user.getSirTotalSupply.useQuery();
+
+  const { address, isConnected } = useAccount();
+  const { 
+    data: stakedPosition, 
+    isLoading: stakedPositionLoading 
+  } = api.user.getStakedSirPosition.useQuery(
+    { user: address ?? "0x" },
+    { enabled: isConnected },
+  );
 
   const totalValueLocked = useMemo(() => {
     if (totalSupply !== undefined && unstakedSupply !== undefined) {
       return totalSupply - unstakedSupply;
     }
   }, [unstakedSupply, totalSupply]);
-  const userStakedSir = useGetStakedSir();
+
+  const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading || !totalValueLocked;
+  const isLoadingUserStake = stakedPositionLoading;
 
   return (
     <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
@@ -34,11 +46,18 @@ const StakeData = ({ children }: { children: ReactNode }) => {
           {parseFloat(formatUnits(totalValueLocked ?? 0n, 12)).toFixed(4)}
         </div> */}
         <div className=" text-2xl font-normal">
-          <TokenDisplay
-            amount={totalValueLocked}
-            decimals={12}
-            unitLabel="SIR"
-          />
+          <Show 
+            when={!isLoadingTVL} 
+            fallback={
+              <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+            }
+          >
+            <TokenDisplay
+              amount={totalValueLocked}
+              decimals={12}
+              unitLabel="SIR"
+            />
+          </Show>
         </div>
       </Card>
 
@@ -47,17 +66,32 @@ const StakeData = ({ children }: { children: ReactNode }) => {
           <div className="px-2 text-sm text-gray-300">Your Staked SIR</div>
         </div>
         <div className=" text-2xl ">
-          <TokenDisplay
-            amount={userStakedSir.unlockedStake}
-            decimals={12}
-            unitLabel={"SIR Unlocked"}
-          />
-          <TokenDisplay
-            amount={userStakedSir.lockedStake}
-            decimals={12}
-            unitLabel={"SIR Locked"}
-          />
-          {/* {formatUnits(userStakedSir, 12)} */}
+          <Show 
+            when={isConnected && !isLoadingUserStake && !!stakedPosition} 
+            fallback={
+              isConnected ? (
+                <div className="space-y-2">
+                  <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                  <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                </div>
+              ) : (
+                <div className="text-sm text-foreground/60 text-center">
+                  Connect wallet to view
+                </div>
+              )
+            }
+          >
+            <TokenDisplay
+              amount={stakedPosition?.unlockedStake}
+              decimals={12}
+              unitLabel={"SIR Unlocked"}
+            />
+            <TokenDisplay
+              amount={stakedPosition?.lockedStake}
+              decimals={12}
+              unitLabel={"SIR Locked"}
+            />
+          </Show>
         </div>
       </Card>
 
