@@ -1,20 +1,30 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { VaultTableRow } from "./vaultTableRow";
-import { useSearchParams } from "next/navigation";
 import ToolTip from "@/components/ui/tooltip";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
 import VaultRowSkeleton from "./vaultRowSkeleton";
 import Show from "@/components/shared/show";
+
 export default function VaultTable({ isApe }: { isApe: boolean }) {
-  const params = useSearchParams();
-  const vaultPage = params.get("vault-page");
-  let pagination = 1;
-  if (vaultPage) {
-    const x = Number.parseInt(vaultPage);
-    if (isFinite(x)) pagination = x;
-  }
+  const [pagination, setPagination] = useState(1);
+  
+  // Get pagination from URL search params on client side only
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const vaultPage = params.get("vault-page");
+      if (vaultPage) {
+        const x = Number.parseInt(vaultPage);
+        if (isFinite(x)) {
+          setPagination(x);
+        }
+      }
+    }
+  }, []);
+  
   const { vaults, isFetching } = useVaultProvider();
+  
   return (
     <table className="w-full">
       <caption className="pb-6 text-left text-[20px] font-semibold leading-[24px]">
@@ -25,7 +35,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
         <VaultTableRowHeaders />
 
         <Show
-          when={!isFetching}
+          when={!isFetching && !!vaults}
           fallback={
             <>
               <VaultRowSkeleton />

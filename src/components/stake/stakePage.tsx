@@ -1,3 +1,4 @@
+"use client";
 import StakeData from "@/components/stake/stakeData/stakeData";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";

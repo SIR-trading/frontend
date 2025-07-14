@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -37,8 +37,11 @@ export default function NavItem({
   theme,
   className,
 }: Props) {
-  const path = usePathname();
-  const active = url === path;
+  const pathname = usePathname();
+  
+  // Check if the current pathname matches the nav item URL
+  const active = pathname === url;
+  
   return (
     <li>
       <Link

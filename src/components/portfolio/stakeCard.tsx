@@ -13,7 +13,7 @@ export default function StakeCard({ bal }: { bal: bigint | undefined }) {
           disabled={!Number(bal)}
           onClick={() => setStakeModal(true)}
           type="button"
-          className="p-2"
+          className="p-2 w-20"
         >
           Stake
         </Button>
