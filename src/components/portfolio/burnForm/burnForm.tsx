@@ -7,7 +7,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { api } from "@/trpc/react";
 import { useBurnApe } from "./hooks/useBurnApe";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, parseUnits, fromHex } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,21 @@ import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import ExplorerLink from "@/components/shared/explorerLink";
 import ErrorMessage from "@/components/ui/error-message";
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string): string => {
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      // If conversion fails, return as-is
+      return vaultId;
+    }
+  }
+  // If it's already a decimal number, return as-is
+  return vaultId;
+};
 
 const BurnSchema = z.object({
   deposit: z.string().optional(),
@@ -208,7 +223,7 @@ export default function BurnForm({
                 <TransactionEstimates
                   decimals={row.decimals}
                   inAssetName={
-                    isApe ? `APE-${row.vaultId}` : `TEA-${row.vaultId}`
+                    isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`
                   }
                   outAssetName={row.collateralSymbol}
                   collateralEstimate={quoteBurn}
