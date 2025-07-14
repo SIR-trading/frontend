@@ -32,16 +32,23 @@ export function useCalculateMaxApe({
     isApe: true,
   });
   const { badHealth, maxCollateralIn } = useMemo(() => {
+    let badHealth = false;
+    if (variant === "red" || variant === "yellow") {
+      badHealth = true;
+    }
+    
+    // Skip calculation if vault is unhealthy
+    if (badHealth) {
+      return { badHealth, maxCollateralIn: 0n };
+    }
+    
     const maxCollateralIn = calculateMaxApe({
       leverageTier: parseUnits(formData.leverageTier ?? "0", 0),
       baseFee: parseUnits(BASE_FEE.toString(), 4),
       apeReserve: ape,
       gentlemenReserve: tea,
     });
-    let badHealth = false;
-    if (variant === "red" || variant === "yellow") {
-      badHealth = true;
-    }
+    
     return { badHealth, maxCollateralIn };
   }, [ape, formData.leverageTier, tea, variant]);
   const { data: maxDebtIn } = api.vault.getDebtTokenMax.useQuery(
@@ -51,7 +58,7 @@ export function useCalculateMaxApe({
       maxCollateralIn: formatUnits(maxCollateralIn ?? 0n, collateralDecimals),
       decimals: collateralDecimals,
     },
-    { enabled: usingDebtToken },
+    { enabled: usingDebtToken && !badHealth },
   );
   return { badHealth, maxDebtIn, maxCollateralIn, isLoading };
 }

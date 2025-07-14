@@ -150,7 +150,6 @@ export default function MintForm({ isApe }: Props) {
     errorMessage,
     rootErrorMessage: formState.errors.root?.message,
   });
-  console.log(requests.mintRequest, "requests.mintRequest");
   const onSubmit = useCallback(() => {
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");

@@ -33,7 +33,7 @@ export function mapLeverage(key: string): string | undefined {
   } else if (key === "-3") {
     return "1.125";
   } else if (key === "-4") {
-    return "1.0635";
+    return "1.0625";
   } else {
     return undefined; // Return undefined if the key does not match any condition
   }

@@ -20,7 +20,6 @@ export function useFilterVaults({ vaultsQuery }: Props) {
     filterLeverage: formData.leverageTier,
     first: 40,
   });
-  console.log(data, "DATA VAULTS");
   const [filters, setFilters] = useState<{
     versus: VaultFieldFragment[];
     long: VaultFieldFragment[];
