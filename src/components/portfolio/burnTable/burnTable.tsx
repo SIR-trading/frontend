@@ -22,7 +22,7 @@ export default function BurnTable({
       }
     | undefined
   >();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { data: userBalancesInVaults } =
     api.user.getUserBalancesInVaults.useQuery({ address });
   const ape = api.user.getApePositions.useQuery({ address });
@@ -160,7 +160,11 @@ export default function BurnTable({
             >
               <Show
                 when={hasPositions}
-                fallback={<IdleContainer>No Positions.</IdleContainer>}
+                fallback={
+                  <IdleContainer>
+                    {isConnected ? "No Positions." : "Connect wallet to view"}
+                  </IdleContainer>
+                }
               >
                 <Show when={filter === "ape" || filter === "all"}>
                   {apePosition}

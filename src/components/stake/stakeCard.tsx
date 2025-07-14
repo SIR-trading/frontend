@@ -27,9 +27,15 @@ export default function StakeCard() {
       </h2>
       <div className="flex items-center justify-between gap-x-2">
         <Show 
-          when={!unstakedSirLoading && isConnected} 
+          when={isConnected && !unstakedSirLoading} 
           fallback={
-            <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+            isConnected ? (
+              <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+            ) : (
+              <div className="text-sm text-foreground/60">
+                Connect wallet to view
+              </div>
+            )
           }
         >
           <TokenDisplay
@@ -46,7 +52,7 @@ export default function StakeCard() {
           onClick={() => {
             setOpenModal(true);
           }}
-          disabled={!Number(userUnstakedSir)}
+          disabled={!isConnected || !Number(userUnstakedSir)}
           className="py-2"
         >
           Stake

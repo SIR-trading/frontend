@@ -34,7 +34,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
   }, [unstakedSupply, totalSupply]);
 
   const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading || !totalValueLocked;
-  const isLoadingUserStake = stakedPositionLoading || !isConnected;
+  const isLoadingUserStake = stakedPositionLoading;
 
   return (
     <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
@@ -67,12 +67,18 @@ const StakeData = ({ children }: { children: ReactNode }) => {
         </div>
         <div className=" text-2xl ">
           <Show 
-            when={!isLoadingUserStake && !!stakedPosition} 
+            when={isConnected && !isLoadingUserStake && !!stakedPosition} 
             fallback={
-              <div className="space-y-2">
-                <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
-                <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
-              </div>
+              isConnected ? (
+                <div className="space-y-2">
+                  <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                  <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                </div>
+              ) : (
+                <div className="text-sm text-foreground/60 text-center">
+                  Connect wallet to view
+                </div>
+              )
             }
           >
             <TokenDisplay

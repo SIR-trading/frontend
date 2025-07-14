@@ -11,6 +11,7 @@ import { useClaim } from "../stake/hooks/useClaim";
 import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
 import { TokenDisplay } from "../ui/token-display";
+import Show from "./show";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -19,7 +20,7 @@ export default function ClaimCard() {
 
   const { isConnected, address } = useAccount();
 
-  const { data: dividends } = api.user.getUserSirDividends.useQuery(
+  const { data: dividends, isLoading: dividendsLoading } = api.user.getUserSirDividends.useQuery(
     { user: address },
     {
       enabled: isConnected,
@@ -98,9 +99,22 @@ export default function ClaimCard() {
           <span>Dividends</span>
         </h2>
         <div className="flex items-center justify-between">
-          <TokenDisplay amount={dividends ?? 0n} unitLabel={"ETH"} />
+          <Show 
+            when={isConnected && !dividendsLoading} 
+            fallback={
+              isConnected ? (
+                <div className="h-6 w-20 bg-foreground/10 rounded animate-pulse"></div>
+              ) : (
+                <div className="text-sm text-foreground/60">
+                  Connect wallet to view
+                </div>
+              )
+            }
+          >
+            <TokenDisplay amount={dividends ?? 0n} unitLabel={"ETH"} />
+          </Show>
           <Button
-            disabled={!dividends || !isValid.isValid}
+            disabled={!isConnected || !dividends || !isValid.isValid}
             onClick={() => {
               if (isValid.isValid) setOpenModal(true);
             }}

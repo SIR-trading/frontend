@@ -2,12 +2,21 @@ import { Button } from "../ui/button";
 import UnstakeFormProvider from "../providers/unstakeFormProvider";
 import { UnstakeModal } from "./unstakeModal";
 import { useState } from "react";
-import { useGetStakedSir } from "../shared/hooks/useGetStakedSir";
 import { TokenDisplay } from "../ui/token-display";
+import Show from "../shared/show";
+import { useAccount } from "wagmi";
+import { api } from "@/trpc/react";
 
 export function UnstakeCard() {
   const [openModal, setOpenModal] = useState(false);
-  const stakedSir = useGetStakedSir();
+  const { isConnected, address } = useAccount();
+  const { data: stakedPosition, isLoading: stakedPositionLoading } = api.user.getStakedSirPosition.useQuery(
+    { user: address ?? "0x" },
+    { enabled: isConnected },
+  );
+  
+  const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
+  
   return (
     <div className=" border-secondary-300">
       <UnstakeFormProvider>
@@ -19,24 +28,36 @@ export function UnstakeCard() {
         </h2>
         <div className="flex items-center justify-between">
           <div className="text-3xl   ">
-            <TokenDisplay
-              amount={stakedSir.unlockedStake}
-              decimals={12}
-              unitLabel={"SIR Unlocked"}
-            />
-            <TokenDisplay
-              amount={stakedSir.lockedStake}
-              decimals={12}
-              unitLabel={"SIR Locked"}
-            />
-            {/* <h4> */}
-            {/*   <span>{formatNumber(formatUnits(stakedSir ?? 0n, 12))}</span> */}
-            {/*   <span className="text-sm text-foreground/70"> SIR</span> */}
-            {/* </h4> */}
+            <Show 
+              when={isConnected && !stakedPositionLoading} 
+              fallback={
+                isConnected ? (
+                  <div className="space-y-2">
+                    <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                    <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-foreground/60">
+                    Connect wallet to view
+                  </div>
+                )
+              }
+            >
+              <TokenDisplay
+                amount={stakedSir.unlockedStake}
+                decimals={12}
+                unitLabel={"SIR Unlocked"}
+              />
+              <TokenDisplay
+                amount={stakedSir.lockedStake}
+                decimals={12}
+                unitLabel={"SIR Locked"}
+              />
+            </Show>
           </div>
           <Button
             onClick={() => setOpenModal(true)}
-            disabled={!Number(stakedSir.unlockedStake)}
+            disabled={!isConnected || !Number(stakedSir.unlockedStake)}
             className="py-2"
           >
             Unstake
