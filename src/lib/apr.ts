@@ -9,10 +9,8 @@ export async function getWeeklyApr(): Promise<{ apr: string; latestTimestamp: nu
   
   // Fetch dividend events from last week directly from subgraph
   const weeklyDividends = await executeGetDividendGreaterThan({ timestamp: oneWeekAgo });
-  console.log("Weekly dividends for APR calculation:", weeklyDividends);
   
   if (!weeklyDividends.length) {
-    console.log("No dividends found for APR calculation");
     return { apr: "0", latestTimestamp: Math.floor(Date.now() / 1000) };
   }
 
@@ -28,9 +26,7 @@ export async function getWeeklyApr(): Promise<{ apr: string; latestTimestamp: nu
       const ethAmount = parseFloat(String(dividend.ethAmount)) / Math.pow(10, ETH_DECIMALS);
       const sirAmount = parseFloat(String(dividend.stakedAmount)) / Math.pow(10, SIR_DECIMALS);
       const sirEthPrice = parseFloat(String(dividend.sirEthPrice));
-      
-      console.log("Dividend values:", { ethAmount, sirAmount, sirEthPrice });
-      
+            
       // Skip calculations if any value is zero
       if (ethAmount === 0 || sirAmount === 0 || sirEthPrice === 0) {
         console.warn("Skipping dividend with zero values");

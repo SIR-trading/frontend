@@ -1,3 +1,4 @@
+"use client";
 import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import StakeCard from "./stakeCard";
