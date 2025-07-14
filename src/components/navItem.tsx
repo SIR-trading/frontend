@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useState, useEffect } from "react";
 
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -37,8 +37,19 @@ export default function NavItem({
   theme,
   className,
 }: Props) {
-  const path = usePathname();
-  const active = url === path;
+  const [mounted, setMounted] = useState(false);
+  const [currentPath, setCurrentPath] = useState("");
+  
+  useEffect(() => {
+    setMounted(true);
+    // Get pathname on client side only
+    if (typeof window !== "undefined") {
+      setCurrentPath(window.location.pathname);
+    }
+  }, []);
+  
+  // Only check for active state after mounting to avoid hydration mismatch
+  const active = mounted ? url === currentPath : false;
   return (
     <li>
       <Link

@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 import { BurnTableRow } from "./burnTableRow";
 import useCheckUserHasPositions from "./hooks/useCheckUserHasPositions";
 import Show from "@/components/shared/show";
+import BurnTableRowSkeleton from "./burnTableRowSkeleton";
 
 export default function BurnTable({
   filter,
@@ -51,6 +52,7 @@ export default function BurnTable({
     }
   }, [selectedRow?.vaultId]);
   const loading = ape.isLoading || tea.isLoading;
+
   const apePosition = ape.data?.apePositions.map((r) => (
     <BurnTableRow
       setSelectedRow={(isClaiming: boolean) =>
@@ -142,14 +144,19 @@ export default function BurnTable({
       {showTea}
 
       {
-        <table className="w-full animate-fade-in">
-          <caption className="hidden">Burn Tokens</caption>
-          <tbody className="flex flex-col gap-y-4">
+        <div className="w-full animate-fade-in">
+          <div className="flex flex-col gap-y-4">
             <BurnTableHeaders />
             {/* PLEASE REFACTOR THIS!!! */}
             <Show
               when={!loading}
-              fallback={<IdleContainer>Loading...</IdleContainer>}
+              fallback={
+                <>
+                  <BurnTableRowSkeleton />
+                  <BurnTableRowSkeleton />
+                  <BurnTableRowSkeleton />
+                </>
+              }
             >
               <Show
                 when={hasPositions}
@@ -197,8 +204,8 @@ export default function BurnTable({
                 </Show>
               </Show>
             </Show>
-          </tbody>
-        </table>
+          </div>
+        </div>
       }
     </div>
   );

@@ -1,3 +1,4 @@
+"use client";
 import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
 import { Card } from "../ui/card";

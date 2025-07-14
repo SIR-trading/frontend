@@ -1,19 +1,15 @@
+"use client";
 import LeverageLiquidityContent from "@/components/leverage-liquidity/leverageLiquidityContent";
 import LeverageLiquidityPage from "@/components/leverage-liquidity/leverageLiquidityPage";
-import MintForm from "@/components/leverage-liquidity/mintForm/mintForm";
-import { getVaultsForTable } from "@/lib/getVaults";
 
-export const revalidate = 0;
-export default async function Home() {
-  const { vaultQuery } = await getVaultsForTable(0);
+export default function Home() {
   return (
     <main className="flex  flex-col items-center justify-center ">
       <LeverageLiquidityPage title="Provide Liquidity">
         <LeverageLiquidityContent
           isApe={false}
-          form={<MintForm isApe vaultsQuery={vaultQuery} />}
-          vaultsQuery={vaultQuery}
-        ></LeverageLiquidityContent>
+          offset={0}
+        />
       </LeverageLiquidityPage>
     </main>
   );

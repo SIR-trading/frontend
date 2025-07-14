@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import BurnTable from "./burnTable/burnTable";
+import BurnTableRowSkeleton from "./burnTable/burnTableRowSkeleton";
+import BurnTableHeaders from "./burnTable/burnTableHeader";
 import { Card } from "../ui/card";
 import { Container } from "../ui/container";
+import NoSSR from "../ui/no-ssr";
 import { UnstakeCard } from "./unstakeCard";
 
 import { SirCard } from "./sirCard";
@@ -59,7 +62,20 @@ export default function PortfolioPage() {
               <Slider value={value} setValue={setValue} />
             </div>
             <div className="">
-              <BurnTable filter={value} />
+              <NoSSR 
+                fallback={
+                  <div className="w-full animate-fade-in">
+                    <div className="flex flex-col gap-y-4">
+                      <BurnTableHeaders />
+                      <BurnTableRowSkeleton />
+                      <BurnTableRowSkeleton />
+                      <BurnTableRowSkeleton />
+                    </div>
+                  </div>
+                }
+              >
+                <BurnTable filter={value} />
+              </NoSSR>
             </div>
           </div>
         </Card>

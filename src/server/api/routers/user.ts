@@ -270,6 +270,11 @@ export const userRouter = createTRPCRouter({
     });
     return result;
   }),
+
+  getWeeklyApr: publicProcedure.query(async () => {
+    const { getWeeklyApr } = await import("@/lib/apr");
+    return await getWeeklyApr();
+  }),
 });
 //todo use ZOD
 

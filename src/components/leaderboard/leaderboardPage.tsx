@@ -29,10 +29,17 @@ const LeaderboardPage = () => {
   const [isClient, setIsClient] = useState(false);
 
   const { data: closedApePositions, isLoading } =
-    api.leaderboard.getClosedApePositions.useQuery();
+    api.leaderboard.getClosedApePositions.useQuery(undefined, {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Use placeholder data to improve perceived performance
+      placeholderData: (previousData) => previousData,
+    });
 
   const { data: vaults } = api.vault.getVaults.useQuery({
     sortbyVaultId: true,
+  }, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: (previousData) => previousData,
   });
 
   useEffect(() => {

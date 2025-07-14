@@ -43,7 +43,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
 
 interface Props {
-  vaultsQuery: TVaults;
+  vaultsQuery?: TVaults;
   isApe: boolean;
 }
 
