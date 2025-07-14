@@ -37,7 +37,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
   const isLoadingUserStake = stakedPositionLoading;
 
   return (
-    <div className="mx-auto grid gap-4 font-normal md:w-[600px] md:grid-cols-3  ">
+    <div className="mx-auto grid gap-4 font-normal md:grid-cols-3  ">
       <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="text-sm font-normal text-gray-300">
           Total Staked SIR
