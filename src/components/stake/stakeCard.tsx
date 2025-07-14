@@ -22,7 +22,7 @@ export default function StakeCard() {
       <StakeFormProvider>
         <StakeModal open={openModal} setOpen={setOpenModal} />
       </StakeFormProvider>
-      <h2 className="flex items-center gap-x-1 pb-1 text-sm text-foreground/80 ">
+      <h2 className="flex items-center gap-x-1 pb-1 text-sm">
         <span>Your Unstaked SIR</span>
       </h2>
       <div className="flex items-center justify-between gap-x-2">
@@ -53,7 +53,7 @@ export default function StakeCard() {
             setOpenModal(true);
           }}
           disabled={!isConnected || !Number(userUnstakedSir)}
-          className="py-2"
+          className="py-2 w-20"
         >
           Stake
         </Button>
