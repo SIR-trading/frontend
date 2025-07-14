@@ -1,9 +1,24 @@
 import { BalancePercent } from "@/components/shared/balancePercent";
 import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatUnits } from "viem";
+import { formatUnits, fromHex } from "viem";
 import type { TBurnForm } from "./burnForm";
 import { formatNumber, inputPatternMatch } from "@/lib/utils";
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string): string => {
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      // If conversion fails, return as-is
+      return vaultId;
+    }
+  }
+  // If it's already a decimal number, return as-is
+  return vaultId;
+};
 
 export function TokenInput({
   form,
@@ -50,7 +65,7 @@ export function TokenInput({
         <div className="flex items-center">
           <h3 className="text-xl">
             {isApe ? "APE-" : "TEA-"}
-            {vaultId}
+            {getDisplayVaultId(vaultId)}
           </h3>
         </div>
       </div>

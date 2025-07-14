@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import type { TAddressString } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 import type { TUserPosition } from "@/server/queries/vaults";
-import { formatUnits } from "viem";
+import { formatUnits, fromHex } from "viem";
 import type { ReactNode } from "react";
 import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import { getLeverageRatio } from "@/lib/utils/calculations";
@@ -17,6 +17,21 @@ interface Props {
   apeAddress?: TAddressString;
   setSelectedRow: (isClaiming: boolean) => void;
 }
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string): string => {
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      // If conversion fails, return as-is
+      return vaultId;
+    }
+  }
+  // If it's already a decimal number, return as-is
+  return vaultId;
+};
 export function BurnTableRow({
   setSelectedRow,
   row,
@@ -57,7 +72,7 @@ export function BurnTableRow({
         <div className="flex items-center gap-x-1 font-normal ">
           <span className="">{isApe ? "APE" : "TEA"}</span>
           <span className="text-foreground/70">-</span>
-          <span className="text-xl text-accent-100 ">{row.vaultId} </span>
+          <span className="text-xl text-accent-100 ">{getDisplayVaultId(row.vaultId)} </span>
         </div>
         <div className="flex  items-center gap-x-1 font-normal text-foreground/80">
           <ImageWithFallback
@@ -166,7 +181,7 @@ export function BurnTableRowMobile({
         <div className="flex justify-center text-lg">
           <span className="">{isApe ? "APE" : "TEA"}</span>
           <span className="text-foreground/70">-</span>
-          <span className="text-accent-100  ">{row.vaultId} </span>
+          <span className="text-accent-100  ">{getDisplayVaultId(row.vaultId)} </span>
         </div>
       </td>
       <MobileTh title={"Long"}>{row.debtSymbol}</MobileTh>
