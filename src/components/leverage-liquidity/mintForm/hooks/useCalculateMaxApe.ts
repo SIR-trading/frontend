@@ -1,50 +1,81 @@
 import { BASE_FEE } from "@/data/constants";
 import { calculateMaxApe } from "@/lib/utils/calculations";
 import { api } from "@/trpc/react";
-import { useMemo } from "react";
 import { formatUnits, parseUnits } from "viem";
 import useCalculateVaultHealth from "../../vaultTable/hooks/useCalculateVaultHealth";
 import { useFormContext } from "react-hook-form";
 import { parseAddress } from "@/lib/utils";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 
+interface UseCalculateMaxApeParams {
+  /** The vault ID to calculate max ape for */
+  vaultId: number;
+  /** Whether the user is using debt token instead of collateral token */
+  usingDebtToken: boolean;
+  /** Number of decimals for the collateral token */
+  collateralDecimals: number;
+  /** Tax amount as a string (will be converted to BigInt) */
+  taxAmount: string;
+}
+
+interface UseCalculateMaxApeReturn {
+  /** Whether the vault health is bad (red or yellow) */
+  badHealth: boolean;
+  /** Maximum debt token amount that can be used (only available when usingDebtToken is true) */
+  maxDebtIn: bigint | undefined;
+  /** Maximum collateral amount that can be minted */
+  maxCollateralIn: bigint | undefined;
+  /** Whether the data is still loading */
+  isLoading: boolean;
+}
+
+/**
+ * Hook to calculate the maximum amount of APE that can be minted for a given vault
+ * without causing insufficient liquidity or bad vault health.
+ * 
+ * @param params - Configuration parameters for the calculation
+ * @returns Object containing max amounts and vault health status
+ */
 export function useCalculateMaxApe({
   vaultId,
   usingDebtToken,
   collateralDecimals,
-}: {
-  vaultId: number;
-  usingDebtToken: boolean;
-  collateralDecimals: number;
-}) {
+  taxAmount,
+}: UseCalculateMaxApeParams): UseCalculateMaxApeReturn {
   const formData = useFormContext<TMintFormFields>().watch();
-  const { data, isLoading } = api.vault.getReserve.useQuery(
+  
+  // Fetch vault reserve data (APE and TEA reserves)
+  const { data: reserveData, isLoading: isLoadingReserves } = api.vault.getReserve.useQuery(
     { vaultId },
     { enabled: vaultId !== -1 && Number.isFinite(vaultId) },
   );
-  const ape = data?.[0]?.reserveApes ?? 0n;
-  const tea = data?.[0]?.reserveLPers ?? 0n;
+  
+  // Extract reserve amounts with fallback to 0
+  const apeReserve = reserveData?.[0]?.reserveApes ?? 0n;
+  const teaReserve = reserveData?.[0]?.reserveLPers ?? 0n;
 
-  const { variant } = useCalculateVaultHealth({
+  // Calculate vault health status
+  const { variant: healthVariant } = useCalculateVaultHealth({
     leverageTier: Number.parseInt(formData.leverageTier),
-    apeCollateral: ape,
-    teaCollateral: tea,
+    apeCollateral: apeReserve,
+    teaCollateral: teaReserve,
     isApe: true,
   });
-  const { badHealth, maxCollateralIn } = useMemo(() => {
-    const maxCollateralIn = calculateMaxApe({
-      leverageTier: parseUnits(formData.leverageTier ?? "0", 0),
-      baseFee: parseUnits(BASE_FEE.toString(), 4),
-      apeReserve: ape,
-      gentlemenReserve: tea,
-    });
-    let badHealth = false;
-    if (variant === "red" || variant === "yellow") {
-      badHealth = true;
-    }
-    return { badHealth, maxCollateralIn };
-  }, [ape, formData.leverageTier, tea, variant]);
-  const { data: maxDebtIn } = api.vault.getDebtTokenMax.useQuery(
+
+  // Calculate max APE that can be minted using the new formula
+  const maxCollateralIn = calculateMaxApe({
+    leverageTier: parseUnits(formData.leverageTier ?? "0", 0),
+    baseFeeBigInt: parseUnits(BASE_FEE.toString(), 4),
+    apeReserve,
+    gentlemenReserve: teaReserve,
+    taxAmountBigInt: parseUnits(taxAmount, 0),
+  });
+  
+  // Determine if vault health is bad (red or yellow status)
+  const badHealth = healthVariant === "red" || healthVariant === "yellow";
+
+  // Fetch maximum debt token amount (only when using debt token)
+  const { data: maxDebtIn, isLoading: isLoadingDebtMax } = api.vault.getDebtTokenMax.useQuery(
     {
       debtToken: parseAddress(formData.versus) ?? "0x",
       collateralToken: parseAddress(formData.long) ?? "0x",
@@ -53,5 +84,13 @@ export function useCalculateMaxApe({
     },
     { enabled: usingDebtToken },
   );
-  return { badHealth, maxDebtIn, maxCollateralIn, isLoading };
+
+  const isLoading = isLoadingReserves || (usingDebtToken && isLoadingDebtMax);
+
+  return { 
+    badHealth, 
+    maxDebtIn, 
+    maxCollateralIn, 
+    isLoading 
+  };
 }

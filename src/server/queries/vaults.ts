@@ -34,6 +34,7 @@ const vaults = (
     lockedLiquidity
     apeAddress
     taxAmount
+    rate
     apeDecimals
     apeCollateral
     teaCollateral

@@ -69,38 +69,64 @@ export function getLeverageRatio(k: number) {
 
 /**
  * Calculate maximum amount of ape that can be minted without causing insufficient liquidity.
- * @param LeverageTier - number
+ * @param leverageTier - bigint - The leverage tier
+ * @param baseFeeBigInt - bigint - The base fee (will be divided by 10000)
+ * @param apeReserve - bigint - The ape reserve amount
+ * @param gentlemenReserve - bigint - The gentlemen reserve amount
+ * @param taxAmountBigInt - bigint - The tax amount (will be divided by 255)
  *
  */
 interface Params {
   leverageTier: bigint;
-  baseFee: bigint;
+  baseFeeBigInt: bigint;
   apeReserve: bigint;
   gentlemenReserve: bigint;
+  taxAmountBigInt: bigint;
 }
 export function calculateMaxApe({
   leverageTier,
-  baseFee,
+  baseFeeBigInt,
   apeReserve,
   gentlemenReserve,
+  taxAmountBigInt,
 }: Params) {
   try {
-    if (leverageTier > 0) {
-      const nom =
-        (10n ** 4n + 2n ** leverageTier * baseFee) *
-        (4n * gentlemenReserve - 5n * 2n ** leverageTier * apeReserve);
-      const result = nom / (2n ** (leverageTier + 2n) * (12500n - baseFee));
-      return result;
-    } else {
-      const a = 5n * apeReserve;
-      const nom =
-        (2n ** -leverageTier * 10n ** 4n + baseFee) *
-        (2n ** (2n - leverageTier) * gentlemenReserve - a);
-      const dom = 2n ** (2n - leverageTier) * (12500n - baseFee);
-      const result = nom / dom;
+    // leverageRatio = 2^leverageTier + 1
+    console.log("_____________________________")
+    console.log("leverageTier:", leverageTier);
+    console.log("baseFeeBigInt:", baseFeeBigInt);
+    console.log("gentlemenReserve:", gentlemenReserve);
+    console.log("taxAmountBigInt:", taxAmountBigInt);
+
+    const absoluteTier = 2n ** (leverageTier >= 0 ? leverageTier : -leverageTier);
+    console.log("absoluteTier:", absoluteTier);
+
+    // gentlemenReserveMin = (leverageRatio - 1) * apeReserve
+    const gentlemenReserveMin = leverageTier >= 0n ?
+      apeReserve * absoluteTier:
+      apeReserve / absoluteTier;
+    console.log("gentlemenReserveMin:", gentlemenReserveMin);
+
+    const gentlemenReserveMinInc = gentlemenReserve + 5n * gentlemenReserveMin / 4n;
+    console.log("gentlemenReserveMinInc:", gentlemenReserveMinInc);
+
+    const denominator = 12_500n * 610n - baseFeeBigInt * (610n + taxAmountBigInt);
+    console.log("denominator:", denominator);
+
+    // Handle leverage ratio calculation using only BigInt operations
+    if (leverageTier < 0n) {
+      const numerator = absoluteTier * 10_000n + baseFeeBigInt;
+      const result = 610n * numerator * gentlemenReserveMinInc / denominator;
       return result;
     }
-  } catch {
+
+    const numerator =  10_000n + absoluteTier * baseFeeBigInt;
+    const result = 610n * numerator * gentlemenReserveMinInc / (denominator * absoluteTier);
+    console.log("calculateMaxApe result:", result);
+    return result;
+
+  } catch (error) {
+    console.error("Error in calculateMaxApe:", error);
     return undefined;
   }
 }

@@ -23,6 +23,7 @@ import useFormFee from "./hooks/useFormFee";
 import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
 import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
+import useCalculateVaultHealth from "../vaultTable/hooks/useCalculateVaultHealth";
 import { useFilterVaults } from "./hooks/useFilterVaults";
 import { useMintFormValidation } from "./hooks/useMintFormValidation";
 import Dropdown from "@/components/shared/dropDown";
@@ -125,12 +126,29 @@ export default function MintForm({ isApe }: Props) {
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
   });
   const usingDebtToken = useIsDebtToken();
-  const { maxCollateralIn, maxDebtIn, badHealth, isLoading } =
-    useCalculateMaxApe({
-      usingDebtToken,
-      collateralDecimals: collateralDecimals ?? 18,
-      vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
-    });
+  
+  // Use different hooks based on whether this is leverage (isApe=true) or liquidity (isApe=false)
+  const leverageHookResult = useCalculateMaxApe({
+    usingDebtToken,
+    collateralDecimals: collateralDecimals ?? 18,
+    vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
+    taxAmount: selectedVault.result?.taxAmount ?? "0",
+  });
+  
+  const liquidityHookResult = useCalculateVaultHealth({
+    vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
+    isApe: true,
+  });
+  
+  // Determine which results to use based on page type
+  const { maxCollateralIn, maxDebtIn, badHealth, isLoading } = isApe 
+    ? leverageHookResult 
+    : { 
+        maxCollateralIn: undefined, 
+        maxDebtIn: undefined, 
+        badHealth: liquidityHookResult.badHealth, 
+        isLoading: liquidityHookResult.isLoading 
+      };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
   const { isValid, errorMessage } = useMintFormValidation({
     ethBalance: userEthBalance,
@@ -150,7 +168,6 @@ export default function MintForm({ isApe }: Props) {
     errorMessage,
     rootErrorMessage: formState.errors.root?.message,
   });
-  console.log(requests.mintRequest, "requests.mintRequest");
   const onSubmit = useCallback(() => {
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");
@@ -319,7 +336,7 @@ export default function MintForm({ isApe }: Props) {
         />
         <DepositInputs.Root>
           <DepositInputs.Inputs
-            inputLoading={isLoading}
+            inputLoading={isLoading ?? false}
             disabled={false}
             decimals={collateralDecimals ?? 18}
             useEth={useEth}

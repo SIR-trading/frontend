@@ -23,7 +23,6 @@ import {
   getLeverageRatio,
 } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
-import { api } from "@/trpc/react";
 import useVaultFilterStore from "@/lib/store";
 
 export function VaultTableRow({
@@ -102,7 +101,7 @@ export function VaultTableRow({
       }
     }
   };
-  const parsedTaxAmount = parseUnits(pool.taxAmount, 0);
+  const parsedRateAmount = parseUnits(pool.rate, 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
   return (
     <tr
@@ -121,7 +120,7 @@ export function VaultTableRow({
       <td className="h-full">
         <div className="flex h-full items-center gap-x-1">
           <span className="w-5">{pool.vaultId}</span>
-          {parsedTaxAmount > 0n && (
+          {parsedRateAmount > 0n && (
             <HoverCard openDelay={0} closeDelay={20}>
               <HoverCardTrigger asChild>
                 <div className="flex h-full items-center">
@@ -138,7 +137,7 @@ export function VaultTableRow({
                 <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
                     {`LPers of this vault are rewarded with
-                    ${formatNumber(formatUnits(parsedTaxAmount * 24n * 60n * 60n, 12), 10)}
+                    ${formatNumber(formatUnits(parsedRateAmount * 24n * 60n * 60n, 12), 10)}
                     SIR/day.`}
                   </span>
                 </div>
