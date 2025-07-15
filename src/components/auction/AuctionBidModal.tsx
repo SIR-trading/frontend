@@ -19,7 +19,6 @@ import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctio
 import Show from "@/components/shared/show";
 import ToolTip from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatNumber } from "@/lib/utils";
 
 export type TAuctionBidModalState = {
   open: boolean;

@@ -25,7 +25,6 @@ const handler = async (req: NextRequest) => {
       return NextResponse.json({ success: false }, { status: 500 });
     }
     while (graphBlock._meta.block.number < blockNumber) {
-      console.log(loops, "LOOPS", blockNumber, graphBlock._meta.block.number);
       await sleep(300);
       loops++;
       graphBlock = await executeGetBlockNumber();

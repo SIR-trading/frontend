@@ -1,3 +1,4 @@
+"use client";
 import StakeData from "@/components/stake/stakeData/stakeData";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
@@ -10,7 +11,7 @@ const stakePage = () => {
   return (
     <div className="">
       <PageHeadingSpace />
-      <Container className="max-w-[600px]  md:w-[600px]">
+      <Container className="md:w-[700px]">
         <Explainer page={EPage.STAKE} />
         <StakeData>
           <AprCard />

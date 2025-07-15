@@ -2,45 +2,78 @@ import { Button } from "../ui/button";
 import UnstakeFormProvider from "../providers/unstakeFormProvider";
 import { UnstakeModal } from "./unstakeModal";
 import { useState } from "react";
-import { useGetStakedSir } from "../shared/hooks/useGetStakedSir";
 import { TokenDisplay } from "../ui/token-display";
+import Show from "../shared/show";
+import { useAccount } from "wagmi";
+import { api } from "@/trpc/react";
 
 export function UnstakeCard() {
   const [openModal, setOpenModal] = useState(false);
-  const stakedSir = useGetStakedSir();
+  const { isConnected, address } = useAccount();
+  const { data: stakedPosition, isLoading: stakedPositionLoading } = api.user.getStakedSirPosition.useQuery(
+    { user: address ?? "0x" },
+    { enabled: isConnected },
+  );
+  
+  const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
+  
   return (
     <div className=" border-secondary-300">
       <UnstakeFormProvider>
         <UnstakeModal open={openModal} setOpen={setOpenModal} />
       </UnstakeFormProvider>
-      <div className="rounded-md bg-primary/5 px-2 py-2 text-2xl dark:bg-primary">
-        <h2 className="flex items-center gap-x-1 pb-1 text-sm ">
-          <span>Your Staked SIR</span>
-        </h2>
-        <div className="flex items-center justify-between">
-          <div className="text-3xl   ">
-            <TokenDisplay
-              amount={stakedSir.unlockedStake}
-              decimals={12}
-              unitLabel={"SIR Unlocked"}
-            />
-            <TokenDisplay
-              amount={stakedSir.lockedStake}
-              decimals={12}
-              unitLabel={"SIR Locked"}
-            />
-            {/* <h4> */}
-            {/*   <span>{formatNumber(formatUnits(stakedSir ?? 0n, 12))}</span> */}
-            {/*   <span className="text-sm text-foreground/70"> SIR</span> */}
-            {/* </h4> */}
+      <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
+        <div className="flex justify-between rounded-md text-2xl">
+          <div className="flex gap-x-2">
+            <div className="flex w-full justify-between">
+              <div>
+                <h2 className="pb-1 text-sm">
+                  Your Staked SIR
+                </h2>
+                <div className="flex justify-between text-3xl">
+                  <div className="flex items-end gap-x-1">
+                    <Show 
+                      when={isConnected && !stakedPositionLoading} 
+                      fallback={
+                        isConnected ? (
+                          <div className="space-y-2">
+                            <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                            <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-foreground/60">
+                            Connect wallet to view
+                          </div>
+                        )
+                      }
+                    >
+                      <div className="flex flex-col">
+                        <TokenDisplay
+                          amount={stakedSir.unlockedStake}
+                          decimals={12}
+                          unitLabel={"SIR Unlocked"}
+                        />
+                        <TokenDisplay
+                          amount={stakedSir.lockedStake}
+                          decimals={12}
+                          unitLabel={"SIR Locked"}
+                        />
+                      </div>
+                    </Show>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <Button
-            onClick={() => setOpenModal(true)}
-            disabled={!Number(stakedSir.unlockedStake)}
-            className="py-2"
-          >
-            Unstake
-          </Button>
+          <div className="flex items-end">
+            <Button
+              onClick={() => setOpenModal(true)}
+              disabled={!isConnected || !Number(stakedSir.unlockedStake)}
+              className="py-2 w-20"
+            >
+              Unstake
+            </Button>
+          </div>
         </div>
       </div>
     </div>

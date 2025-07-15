@@ -21,7 +21,6 @@ export function useApproveErc20({
   approveContract,
   useMaxApprove,
 }: Props) {
-  console.log(tokenAddr === USDT_ADDRESS, tokenAddr, USDT_ADDRESS);
   const needs0Approval = useMemo(() => {
     if (allowance === undefined) {
       return false;

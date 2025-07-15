@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import BurnTable from "./burnTable/burnTable";
+import BurnTableRowSkeleton from "./burnTable/burnTableRowSkeleton";
+import BurnTableHeaders from "./burnTable/burnTableHeader";
 import { Card } from "../ui/card";
 import { Container } from "../ui/container";
+import NoSSR from "../ui/no-ssr";
 import { UnstakeCard } from "./unstakeCard";
 
 import { SirCard } from "./sirCard";
@@ -19,47 +22,60 @@ export default function PortfolioPage() {
       {/* <div className="pt-[44px]" /> */}
       <Container className="space-y-4">
         <Explainer page={EPage.PORTFOLIO} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <div className="flex h-full flex-col justify-between">
-              <div>
-                <div className="flex justify-between">
-                  <div>
-                    <h1 className="text-xl">SIR Staking</h1>
+        <Card className="w-full">
+          <div className="grid gap-4 md:grid-cols-2 h-full">
+            <div className="flex flex-col justify-between h-full">
+              <div className="rounded-md p-2 pb-2">
+                <div className="flex justify-between rounded-md text-2xl">
+                  <div className="flex gap-x-2">
+                    <div className="flex w-full justify-between">
+                      <div>
+                        <div className="text-sm">
+                          <p>Stake your SIR to earn ETH dividends.</p>
+                        </div>
+                        <div className="pt-2">
+                          <ContributorClaim />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <ContributorClaim />
-                </div>
-
-                <div className="pt-2 text-sm text-foreground/70">
-                  <p>Stake your SIR to earn ETH dividends.</p>
                 </div>
               </div>
               <SirCard />
             </div>
-
-            <div className="pt-2" />
-            {/* <ContributorClaim /> */}
-          </Card>
-          <Card className=" w-full px-4 py-4">
-            <div className="space-y-3 ">
-              <div className="grid  gap-y-3">
-                {/* <SirCard /> */}
+            <div className="grid gap-y-3 h-full">
+              <div className="h-full">
                 <UnstakeCard />
+              </div>
+              <div className="h-full">
                 <ClaimCard />
               </div>
             </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
         <Card className="py-4">
           <div className="rounded-md bg-primary/5 px-4 py-2 dark:bg-primary">
             <div className="flex  items-center justify-between pb-4 lg:pb-8 ">
-              <h2 className="flex items-center gap-x-1 pb-1 text-sm text-foreground/80 ">
+              <h2 className="flex items-center gap-x-1 pb-1 text-sm">
                 <span>My Tokens</span>
               </h2>
               <Slider value={value} setValue={setValue} />
             </div>
             <div className="">
-              <BurnTable filter={value} />
+              <NoSSR 
+                fallback={
+                  <div className="w-full animate-fade-in">
+                    <div className="flex flex-col gap-y-4">
+                      <BurnTableHeaders />
+                      <BurnTableRowSkeleton />
+                      <BurnTableRowSkeleton />
+                      <BurnTableRowSkeleton />
+                    </div>
+                  </div>
+                }
+              >
+                <BurnTable filter={value} />
+              </NoSSR>
             </div>
           </div>
         </Card>

@@ -23,6 +23,7 @@ export const leaderboardRouter = createTRPCRouter({
         const { items: positions, total: totalDepositAndWithdraw } =
           userPositions.reduce(
             (res, position) => {
+              // Collateral amounts use position-specific decimals
               const collateralDeposited = +formatUnits(
                 BigInt(position.collateralDeposited),
                 Number(position.decimal),
@@ -31,13 +32,14 @@ export const leaderboardRouter = createTRPCRouter({
                 BigInt(position.collateralWithdrawn),
                 Number(position.decimal),
               );
+              // USD amounts always use 6 decimals (standard USD precision)
               const dollarDeposited = +formatUnits(
                 BigInt(position.dollarDeposited),
-                Number(position.decimal),
+                6, // USD amounts always use 6 decimals
               );
               const dollarWithdrawn = +formatUnits(
                 BigInt(position.dollarWithdrawn),
-                Number(position.decimal),
+                6, // USD amounts always use 6 decimals
               );
 
               const pnlUsd = calculatePnl(dollarWithdrawn, dollarDeposited);

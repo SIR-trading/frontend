@@ -31,7 +31,10 @@ async function handler(req: NextRequest) {
   const { searchParams } = new URL(req.url ?? "");
   const auth = searchParams.get("auth");
   if (auth === env.SECRET_KEY) {
-    const payouts = await selectPayouts();
+    const chainId = parseInt(searchParams.get("chainId") ?? process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
+    const contractAddress = searchParams.get("contractAddress") ?? process.env.NEXT_PUBLIC_SIR_ADDRESS;
+    
+    const payouts = await selectPayouts(chainId, contractAddress);
     return NextResponse.json({ payouts }, { status: 200 });
   }
   return NextResponse.json({}, { status: 403 });

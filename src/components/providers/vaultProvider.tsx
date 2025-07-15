@@ -51,7 +51,9 @@ export const VaultProvider = ({ children }: Props) => {
       },
     },
     {
-      staleTime: 1000 * 60,
+      staleTime: 1000 * 60, // 1 minute
+      // Use placeholder data to maintain smooth UX while refetching
+      placeholderData: (previousData) => previousData,
     },
   );
   const queryClient = useQueryClient();

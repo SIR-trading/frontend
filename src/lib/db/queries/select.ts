@@ -1,37 +1,53 @@
-import { desc, gt, eq, count } from "drizzle-orm";
+import { desc, gt, eq, count, and } from "drizzle-orm";
 import { db } from "../db";
-import { currentApr, errorLogs, payoutTable } from "../schema";
+import { errorLogs, payoutTable } from "../schema";
 
-export async function selectPayouts() {
-  const apr = await db.select().from(payoutTable);
-  return apr;
+export async function selectPayouts(chainId?: number, contractAddress?: string) {
+  const query = db.select().from(payoutTable);
+  
+  if (chainId && contractAddress) {
+    return query.where(
+      and(
+        eq(payoutTable.chainId, chainId),
+        eq(payoutTable.contractAddress, contractAddress)
+      )
+    );
+  }
+  
+  return query;
 }
-export async function selectLastWeekPayouts() {
+
+export async function selectLastWeekPayouts(chainId: number, contractAddress: string) {
   const now = Math.floor(Date.now() / 1000);
   console.log({ now });
   const payouts = await db
     .select()
     .from(payoutTable)
-    .where(gt(payoutTable.timestamp, now - 30 * 7 * 60 * 60));
+    .where(
+      and(
+        gt(payoutTable.timestamp, now - 30 * 7 * 60 * 60),
+        eq(payoutTable.chainId, chainId),
+        eq(payoutTable.contractAddress, contractAddress)
+      )
+    );
   return payouts;
 }
-export async function selectLastPayout() {
+
+export async function selectLastPayout(chainId: number, contractAddress: string) {
   const apr = await db
     .select()
     .from(payoutTable)
+    .where(
+      and(
+        eq(payoutTable.chainId, chainId),
+        eq(payoutTable.contractAddress, contractAddress)
+      )
+    )
     .orderBy(desc(payoutTable.timestamp))
     .limit(1);
   return apr;
 }
-export async function selectCurrentApr() {
-  try {
-    const result = await db.select().from(currentApr);
-    return result[0];
-  } catch (e) {
-    console.error(e);
-    return { id: 0, apr: "0", latestTimestamp: 0 };
-  }
-}
+
 export async function selectErrorLogs() {
   const logs = await db.select().from(errorLogs);
   return logs;

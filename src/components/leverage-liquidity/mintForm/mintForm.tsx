@@ -43,7 +43,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
 
 interface Props {
-  vaultsQuery: TVaults;
+  vaultsQuery?: TVaults;
   isApe: boolean;
 }
 
@@ -150,7 +150,6 @@ export default function MintForm({ isApe }: Props) {
     errorMessage,
     rootErrorMessage: formState.errors.root?.message,
   });
-  console.log(requests.mintRequest, "requests.mintRequest");
   const onSubmit = useCallback(() => {
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");

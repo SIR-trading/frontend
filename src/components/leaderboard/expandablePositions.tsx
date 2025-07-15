@@ -2,6 +2,7 @@ import type { TClosedApePositions, VaultFieldFragment } from "@/lib/types";
 import { cn, formatNumber } from "@/lib/utils";
 import { useCallback } from "react";
 import { fromHex } from "viem";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
 const cellStyling = "px-1 md:px-4 py-2.5 flex-1 flex items-center";
 const ExpandablePositions = ({

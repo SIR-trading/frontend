@@ -56,14 +56,14 @@ const vaults = (
 };
 const userApePositionsQuery = gql`
   query getUserApePositions($user: Bytes) {
-    userPositions(where: { user: $user }) {
+    apePositions(where: { user: $user }) {
       user
       vaultId
-      APE
+      ape
       balance
       debtToken
       debtSymbol
-      positionDecimals
+      decimals
       collateralToken
       collateralSymbol
       leverageTier
@@ -73,11 +73,11 @@ const userApePositionsQuery = gql`
 
 const userTeaPositionsQuery = gql`
   query getUserTeaPositions($user: Bytes) {
-    userPositionTeas(where: { user: $user }) {
+    teaPositions(where: { user: $user }) {
       user
       vaultId
       balance
-      positionDecimals
+      decimals
       debtToken
       debtSymbol
       collateralToken
@@ -134,13 +134,14 @@ export const executeVaultsQuery = async ({
       skip,
     },
   );
+  
   return result as { vaults: VaultFieldFragment[] };
 };
 
 export type TUserPosition = {
   id: string;
   balance: bigint;
-  positionDecimals: number;
+  decimals: number;
   user: TAddressString;
   collateralSymbol: string;
   debtSymbol: string;
@@ -149,8 +150,8 @@ export type TUserPosition = {
   leverageTier: string;
   vaultId: string;
 };
-export type TUserApePosition = TUserPosition & { APE: TAddressString };
+export type TUserApePosition = TUserPosition & { ape: TAddressString };
 export type userPositionsQueryTea = {
-  userPositionTeas: TUserPosition[];
+  teaPositions: TUserPosition[];
 };
-export type userPositionsQueryApe = { userPositions: TUserApePosition[] };
+export type userPositionsQueryApe = { apePositions: TUserApePosition[] };

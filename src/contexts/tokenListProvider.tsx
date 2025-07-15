@@ -27,7 +27,7 @@ export function TokenlistContextProvider({
       return tokensList;
     },
   });
-  console.log(data, error, isLoading, "TOKENS DATA");
+  
   return (
     <TokenlistContext.Provider value={{ tokenlist: data }}>
       {children}

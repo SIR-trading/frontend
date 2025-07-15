@@ -1,7 +1,6 @@
 "use client";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import Show from "@/components/shared/show";
-import type { SelectCurrentApr } from "@/lib/db/schema";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
 import { formatUnits, parseUnits } from "viem";
@@ -9,7 +8,7 @@ import { formatUnits, parseUnits } from "viem";
 export default function AprDisplay({
   currentApr,
 }: {
-  currentApr: SelectCurrentApr | undefined;
+  currentApr: { apr: string; latestTimestamp: number } | undefined;
 }) {
   const APR = parseUnits(currentApr?.apr ?? "0", 0);
 
