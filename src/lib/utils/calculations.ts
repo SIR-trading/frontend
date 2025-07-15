@@ -102,15 +102,16 @@ export function calculateMaxApe({
     console.log("absoluteTier:", absoluteTier);
 
     // gentlemenReserveMin = (leverageRatio - 1) * apeReserve
+    console.log("apeReserve:", apeReserve);
     const gentlemenReserveMin = leverageTier >= 0n ?
       apeReserve * absoluteTier:
       apeReserve / absoluteTier;
     console.log("gentlemenReserveMin:", gentlemenReserveMin);
 
-    const gentlemenReserveMinInc = gentlemenReserve + 5n * gentlemenReserveMin / 4n;
+    const gentlemenReserveMinInc = gentlemenReserve - 5n * gentlemenReserveMin / 4n;
     console.log("gentlemenReserveMinInc:", gentlemenReserveMinInc);
 
-    const denominator = 12_500n * 610n - baseFeeBigInt * (610n + taxAmountBigInt);
+    const denominator = 12_500n * 610n - baseFeeBigInt * (610n - taxAmountBigInt);
     console.log("denominator:", denominator);
 
     // Handle leverage ratio calculation using only BigInt operations
@@ -121,6 +122,7 @@ export function calculateMaxApe({
     }
 
     const numerator =  10_000n + absoluteTier * baseFeeBigInt;
+    console.log("numerator:", numerator);
     const result = 610n * numerator * gentlemenReserveMinInc / (denominator * absoluteTier);
     console.log("calculateMaxApe result:", result);
     return result;
