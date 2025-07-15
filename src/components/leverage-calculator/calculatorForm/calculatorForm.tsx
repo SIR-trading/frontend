@@ -12,12 +12,11 @@ import Show from "@/components/shared/show";
 import { useFilterVaults } from "./hooks/useFilterVaults";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
 import { useFindVault } from "./hooks/useFindVault";
-import useIsDebtToken from "./hooks/useIsDebtToken";
 import useGetFormTokensInfo from "./hooks/useGetUserBals";
 import Calculations from "@/components/leverage-calculator/calculatorForm/calculations";
 import { api } from "@/trpc/react";
 import type { TVaults } from "@/lib/types";
-import { useCalculateMaxApe } from "@/components/leverage-liquidity/mintForm/hooks/useCalculateMaxApe";
+import useCalculateVaultHealth from "@/components/leverage-liquidity/vaultTable/hooks/useCalculateVaultHealth";
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed
@@ -96,11 +95,9 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     setValue,
   ]);
 
-  const usingDebtToken = useIsDebtToken();
-  const { isLoading } = useCalculateMaxApe({
-    usingDebtToken,
-    collateralDecimals: collateralDecimals ?? 18,
+  const { isLoading } = useCalculateVaultHealth({
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
+    isApe: true,
   });
 
   const disabledPriceInputs = !Boolean(selectedVault.result);
@@ -116,7 +113,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         />
         <DepositInputs.Root>
           <DepositInputs.Inputs
-            inputLoading={isLoading}
+            inputLoading={isLoading ?? false}
             disabled={false}
             decimals={collateralDecimals ?? 18}
           >

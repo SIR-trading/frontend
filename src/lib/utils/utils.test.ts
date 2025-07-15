@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from "vitest";
-import { add, formatNumber, formatSmallNumber } from "./index";
+import { add, formatNumber } from "./index";
 import {
   calculateApr,
   calculateMaxApe,
@@ -44,18 +44,20 @@ test("Calculate Maximum Ape", () => {
   expect(
     calculateMaxApe({
       leverageTier: 2n,
-      baseFee: 1n,
+      baseFeeBigInt: 1n,
       apeReserve: 1000n,
       gentlemenReserve: 10000n,
+      taxAmountBigInt: 0n,
     }),
   ).toBe(1000n);
 
   expect(
     calculateMaxApe({
       leverageTier: -2n,
-      baseFee: 1n,
+      baseFeeBigInt: 1n,
       apeReserve: 1000n,
       gentlemenReserve: 10000n,
+      taxAmountBigInt: 0n,
     }),
   ).toBe(31003n);
 });

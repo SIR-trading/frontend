@@ -47,6 +47,7 @@ export interface VaultFieldFragment {
   collateralToken: string;
   collateralSymbol: string;
   taxAmount: string;
+  rate: string;
   vaultId: string;
   leverageTier: number;
   lockedLiquidity: string;
