@@ -21,7 +21,6 @@ import TransactionInfo from "./transactionInfo";
 import Show from "@/components/shared/show";
 import useFormFee from "./hooks/useFormFee";
 import { useResetTransactionModal } from "./hooks/useResetTransactionModal";
-import ErrorMessage from "@/components/ui/error-message";
 import { useCalculateMaxApe } from "./hooks/useCalculateMaxApe";
 import useCalculateVaultHealth from "../vaultTable/hooks/useCalculateVaultHealth";
 import { useFilterVaults } from "./hooks/useFilterVaults";
@@ -65,7 +64,7 @@ export default function MintForm({ isApe }: Props) {
   const isWeth = useIsWeth();
 
   // Ensure use eth toggle is not used on non-weth tokens
-  const { setError, formState, setValue, watch, handleSubmit } =
+  const { setError, formState, watch, handleSubmit } =
     useFormContext<TMintFormFields>();
   const { deposit, leverageTier, long: longInput } = watch();
   const useEth = useMemo(() => {
@@ -161,6 +160,7 @@ export default function MintForm({ isApe }: Props) {
     mintFetching: isMintFetching,
     approveFetching: isApproveFetching,
     maxCollateralIn: isApe ? maxIn : 0n,
+    badHealth,
   });
 
   useSetRootError({
@@ -202,15 +202,6 @@ export default function MintForm({ isApe }: Props) {
       setOpenTransactionModal(false);
     }
   };
-  const disabledInputs = useMemo(() => {
-    if (!selectedVault.result?.vaultId || !isApe) {
-      setValue("deposit", "");
-      return false;
-    }
-    if (badHealth) {
-      return true;
-    }
-  }, [selectedVault.result?.vaultId, isApe, badHealth, setValue]);
 
   useResetAfterApprove({
     isConfirmed,
@@ -382,14 +373,6 @@ export default function MintForm({ isApe }: Props) {
             </div>
           )
         }
-        {/* opacity-0 */}
-        <div
-          className={`py-3 ${Boolean(disabledInputs && !isLoading) === true ? "" : "opacity-0"}`}
-        >
-          {/* <Show when={Boolean(disabledInputs && !isLoading)}> */}
-          <ErrorMessage>Insufficient liquidity in the vault.</ErrorMessage>
-          {/* </Show> */}
-        </div>
         <Estimations
           isApe={isApe}
           disabled={!Boolean(amountTokens)}
