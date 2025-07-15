@@ -21,6 +21,7 @@ interface Props {
   isApe: boolean;
   decimals: number;
   maxCollateralIn?: bigint;
+  badHealth?: boolean;
 }
 
 /**
@@ -41,12 +42,22 @@ export const useMintFormValidation = ({
   useEth,
   decimals,
   isApe,
+  badHealth,
 }: Props) => {
   const chainId = useGetChainId();
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
   const { deposit, slippage, depositToken, versus } = formData;
   const { isValid, errorMessage } = useMemo(() => {
+    // Check vault health first - disable minting if vault is not healthy (red or yellow)
+    // This should show immediately when vault is selected, regardless of deposit amount
+    if (badHealth && isApe) {
+      return {
+        isValid: false,
+        errorMessage: "Insufficient liquidity in the vault.",
+      };
+    }
+    
     if (usingDebtToken(versus, depositToken)) {
       const num = Number.parseFloat(slippage ?? "0");
       if (num < 0 || num > 10) {
@@ -63,6 +74,7 @@ export const useMintFormValidation = ({
       };
     }
 
+    // Only check for deposit amount > 0 if vault health is good
     if (parseUnits(deposit ?? "0", decimals) <= 0n) {
       return {
         isValid: false,
@@ -73,7 +85,7 @@ export const useMintFormValidation = ({
       if (parseUnits(deposit ?? "0", decimals) > maxCollateralIn) {
         return {
           isValid: false,
-          errorMessage: "Insufficient Collateral in Vault.",
+          errorMessage: "Insufficient liquidity in the vault.",
         };
       }
     } else if (!maxCollateralIn && isApe) {
@@ -151,6 +163,7 @@ export const useMintFormValidation = ({
       }
     }
   }, [
+    badHealth,
     versus,
     depositToken,
     chainId,
