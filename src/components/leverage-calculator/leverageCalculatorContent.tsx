@@ -34,22 +34,26 @@ export default function LeverageCalculatorContent({
             {/* Wrap VaultTable in NoSSR to prevent SSR issues */}
             <NoSSR 
               fallback={
-                <div className="p-4">
-                  <div className="grid grid-cols-7 gap-4 mb-4 pb-2 border-b border-foreground/15">
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-4 bg-foreground/10 rounded animate-pulse"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-12 w-full bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-12 w-full bg-foreground/10 rounded animate-pulse"></div>
-                    <div className="h-12 w-full bg-foreground/10 rounded animate-pulse"></div>
-                  </div>
-                </div>
+                <table className="w-full p-4 min-h-[400px]">
+                  <thead>
+                    <tr className="grid grid-cols-7 gap-4 mb-4 pb-2 border-b border-foreground/15">
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                      <th className="h-4 bg-foreground/10 rounded animate-pulse"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="space-y-2">
+                    <tr className="h-12 w-full bg-foreground/10 rounded animate-pulse"></tr>
+                    <tr className="h-12 w-full bg-foreground/10 rounded animate-pulse"></tr>
+                    <tr className="h-12 w-full bg-foreground/10 rounded animate-pulse"></tr>
+                    <tr className="h-12 w-full bg-foreground/10 rounded animate-pulse"></tr>
+                    <tr className="h-12 w-full bg-foreground/10 rounded animate-pulse"></tr>
+                  </tbody>
+                </table>
               }
             >
               <VaultTable isApe={isApe} />

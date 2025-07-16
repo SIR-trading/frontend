@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
@@ -37,11 +38,14 @@ export default function NavItem({
   theme,
   className,
 }: Props) {
+  const [active, setActive] = useState(false);
   const pathname = usePathname();
-  
-  // Check if the current pathname matches the nav item URL
-  const active = pathname === url;
-  
+
+  useEffect(() => {
+    // This effect will run on the client after hydration
+    setActive(pathname === url);
+  }, [pathname, url]);
+
   return (
     <li>
       <Link

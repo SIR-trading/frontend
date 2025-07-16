@@ -24,6 +24,8 @@ import {
 } from "@/lib/utils/calculations";
 import { getLogoAsset } from "@/lib/assets";
 import useVaultFilterStore from "@/lib/store";
+import { useFormContext } from "react-hook-form";
+import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 
 export function VaultTableRow({
   pool,
@@ -75,7 +77,24 @@ export function VaultTableRow({
     ];
     return a;
   }, [pool.apeCollateral, pool.teaCollateral]);
-  const { setValue } = useMintFormProviderApi();
+  
+  // Get both form contexts - one might be null depending on which page we're on
+  const { setValue: setMintValue } = useMintFormProviderApi();
+  
+  // For Calculator page - create a wrapper function
+  let calculatorSetValue: ((name: string, value: string) => void) | null = null;
+  try {
+    const calculatorForm = useFormContext<TCalculatorFormFields>();
+    calculatorSetValue = (name: string, value: string) => {
+      calculatorForm.setValue(name as keyof TCalculatorFormFields, value);
+    };
+  } catch {
+    // Calculator form context not available, we're probably on Leverage/Liquidity page
+  }
+  
+  // Use calculator form if available, otherwise use mint form
+  const setValue = calculatorSetValue ?? setMintValue;
+  
   const teaCollateral = parseFloat(
     formatUnits(reservesData[0]?.reserveLPers ?? 0n, 18),
   );
@@ -101,7 +120,7 @@ export function VaultTableRow({
       }
     }
   };
-  const parsedRateAmount = parseUnits(pool.rate, 0); // CONVERT rate
+  const parsedRateAmount = parseUnits(String(pool.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
   return (
     <tr
