@@ -82,7 +82,7 @@ export function useCalculateMaxApe({
       maxCollateralIn: formatUnits(maxCollateralIn ?? 0n, collateralDecimals),
       decimals: collateralDecimals,
     },
-    { enabled: usingDebtToken },
+    { enabled: usingDebtToken && !badHealth },
   );
 
   const isLoading = isLoadingReserves || (usingDebtToken && isLoadingDebtMax);

@@ -29,7 +29,7 @@ export default function LeverageCalculatorContent({
         {/* Always show the form immediately - it handles its own loading states */}
         <CalculatorForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
         
-        <Card>
+        <Card className={"md:px-5"}>
           <div className="flex h-full flex-col justify-between">
             {/* Wrap VaultTable in NoSSR to prevent SSR issues */}
             <NoSSR 

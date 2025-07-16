@@ -135,6 +135,7 @@ export const executeVaultsQuery = async ({
       skip,
     },
   );
+  
   return result as { vaults: VaultFieldFragment[] };
 };
 

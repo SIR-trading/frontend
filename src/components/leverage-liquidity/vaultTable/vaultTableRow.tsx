@@ -45,25 +45,6 @@ export function VaultTableRow({
       return 0;
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
-  // // Add a query to retrieve collateral data
-  // // Hydrate with server data
-  // const { data: reservesData } = api.vault.getReserve.useQuery(
-  //   {
-  //     vaultId: Number.parseInt(pool.vaultId),
-  //   },
-  //   {
-  //     // Dont fetch data on component mount
-  //     // Data is from server and is fresh until invalidation
-  //     refetchOnMount: false,
-  //     initialData: [
-  //       {
-  //         reserveApes: pool.apeCollateral,
-  //         reserveLPers: pool.teaCollateral,
-  //         tickPriceX42: 0n,
-  //       },
-  //     ],
-  //   },
-  // );
 
   const reservesData = useMemo(() => {
     const a = [
@@ -84,6 +65,17 @@ export function VaultTableRow({
   );
   const tvl = apeCollateral + teaCollateral;
   const tvlPercent = tvl / apeCollateral;
+  
+  // Debug log before health calculation
+  console.log('⚡ HEALTH DEBUG - leverageTier before health calculation:', {
+    vaultId: pool.vaultId,
+    leverageTier: pool.leverageTier,
+    leverageTierType: typeof pool.leverageTier,
+    isNaN: Number.isNaN(pool.leverageTier),
+    apeCollateral: reservesData[0]?.reserveApes,
+    teaCollateral: reservesData[0]?.reserveLPers
+  });
+  
   const variant = useCalculateVaultHealth({
     isApe,
     leverageTier: pool.leverageTier,
