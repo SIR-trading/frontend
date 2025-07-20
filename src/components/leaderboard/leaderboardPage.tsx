@@ -1,4 +1,3 @@
-"use client";
 import { Container } from "../ui/container";
 import { EPage } from "@/lib/types";
 import Explainer from "@/components/shared/explainer";

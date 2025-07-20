@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useMemo, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { Card } from "@/components/ui/card";
