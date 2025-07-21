@@ -13,7 +13,6 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-import ImageWithFallback from "../shared/ImageWithFallback";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioItem } from "./radioItem";
 import TransactionModal from "../shared/transactionModal";
@@ -21,7 +20,7 @@ import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionSta
 import TransactionInfoCreateVault from "./transactionInfoCreateVault";
 import { api } from "@/trpc/react";
 import { useCheckValidityCreactVault } from "./hooks/useCheckValidityCreateVault";
-import { getLogoAsset } from "@/lib/assets";
+import { TokenImage } from "../shared/TokenImage";
 import Show from "../shared/show";
 import SearchTokensModal from "./searchTokensModal";
 import { ChevronDown } from "lucide-react";
@@ -285,12 +284,12 @@ function SelectTokenDialogTrigger({
           {tokenAddress && (
             <>
               <div className="h-7 w-7">
-                <ImageWithFallback
+                <TokenImage
+                  address={tokenAddress}
                   alt=""
                   className="h-7 w-7 rounded-full"
                   width={25}
                   height={25}
-                  src={getLogoAsset(tokenAddress)}
                 />
               </div>
               <div className="">

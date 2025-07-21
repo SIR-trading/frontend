@@ -14,8 +14,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import type { TAddressString } from "@/lib/types";
-import ImageWithFallback from "./ImageWithFallback";
-import { getLogoAsset } from "@/lib/assets";
+import { TokenImage } from "./TokenImage";
 import type { TMintFormFields } from "../providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
 //retrive FormField props
@@ -31,8 +30,8 @@ function Item({
   return (
     <SelectItem value={value}>
       <div className="flex items-center gap-x-2 text-sm">
-        <ImageWithFallback
-          src={getLogoAsset(tokenAddress as TAddressString)}
+        <TokenImage
+          address={tokenAddress as TAddressString}
           width={25}
           height={25}
           className="h-6 w-6 rounded-full"
