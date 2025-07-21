@@ -6,7 +6,6 @@ import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import type { Address } from "viem";
 import SearchInput from "./searchInput";
 import ImageWithFallback from "../shared/ImageWithFallback";
-import { getLogoAsset } from "@/lib/assets";
 import { useTokenLogo } from "@/hooks/useTokenLogo";
 import { useFormContext } from "react-hook-form";
 import type { CreateVaultInputValues } from "@/lib/schemas";
@@ -57,6 +56,7 @@ export default function SearchTokensModal({
   const { name, symbol, address, isLoading } = useRetrieveToken({
     tokenAddress: manualAddress,
   });
+  const { primary: manualTokenLogo, fallback: manualTokenFallback } = useTokenLogo(address as Address | undefined, "1");
   console.log({ name, symbol, address });
   return (
     <Dialog open={open} onOpenChange={onOpen}>
@@ -100,7 +100,8 @@ export default function SearchTokensModal({
                         width={35}
                         className="h-full w-full"
                         height={35}
-                        src={getLogoAsset(address)}
+                        src={manualTokenLogo}
+                        secondaryFallbackUrl={manualTokenFallback}
                         alt=""
                       />
                     </div>
@@ -210,6 +211,17 @@ function TokenItem({
   selectToken: (token: TToken) => void;
 }) {
   const { primary, fallback } = useTokenLogo(token.address as Address, "1");
+  
+  // Debug logging for Rekt token
+  if (token.symbol === "REKT") {
+    console.log("REKT token debug in TokenItem:", {
+      address: token.address,
+      primary,
+      fallback,
+      logoURI: token.logoURI,
+      tokenObject: token
+    });
+  }
   
   return (
     <button

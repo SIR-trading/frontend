@@ -39,11 +39,17 @@ export function TokenlistContextProvider({
     );
     
     // Add SIR token if not present
-    if (!hasSirToken) {
-      return [sirToken, ...data]; // Put SIR first for prominence in search
+    const result = !hasSirToken ? [sirToken, ...data] : data; // Put SIR first for prominence in search
+    
+    // Debug: Check if Rekt token is in the list
+    const rektToken = result.find(token => token.symbol === "REKT");
+    if (rektToken) {
+      console.log("TokenlistContextProvider: Rekt token found:", rektToken);
+    } else {
+      console.log("TokenlistContextProvider: Rekt token NOT found in tokenlist");
     }
     
-    return data;
+    return result;
   }, [data]);
   
   return (

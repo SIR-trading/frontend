@@ -83,6 +83,17 @@ export function getLogoAssetWithFallback(
     (t) => t.address.toLowerCase() === address.toLowerCase()
   );
   
+  // Debug logging for Rekt token
+  if (address.toLowerCase() === "0xdd3b11ef34cd511a2da159034a05fcb94d806686") {
+    console.log("getLogoAssetWithFallback debug for REKT:", {
+      address,
+      primaryLogo,
+      tokenFound: !!token,
+      tokenLogoURI: token?.logoURI,
+      tokenListLength: tokenList?.length
+    });
+  }
+  
   return {
     primary: primaryLogo,
     fallback: token?.logoURI,

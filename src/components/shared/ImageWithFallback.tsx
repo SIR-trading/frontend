@@ -44,6 +44,16 @@ const ImageWithFallback = (props: Props) => {
   delete imgProps.secondaryFallbackUrl;
   
   const handleError = () => {
+    // Debug logging for Rekt token
+    if (typeof src === "string" && src.includes("0xdd3b11ef34cd511a2da159034a05fcb94d806686")) {
+      console.log("ImageWithFallback error for REKT:", {
+        fallbackAttempts,
+        secondaryFallbackUrl,
+        fallbackImageUrl,
+        currentSrc: imgSrc
+      });
+    }
+    
     if (fallbackAttempts === 0 && secondaryFallbackUrl) {
       // First fallback: try secondary fallback URL (logoURI from assets.json)
       setImgSrc(secondaryFallbackUrl);
