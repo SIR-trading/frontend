@@ -1,10 +1,10 @@
 import React from "react";
-import ImageWithFallback from "../shared/ImageWithFallback";
+import { TokenImage } from "../shared/TokenImage";
 import { mapLeverage } from "@/lib/utils";
 import type { TAddressString } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { tokenSchema } from "@/lib/schemas";
-import { getLogoAsset, getLogoJson } from "@/lib/assets";
+import { getLogoJson } from "@/lib/assets";
 import { useReadContracts } from "wagmi";
 import { erc20Abi } from "viem";
 
@@ -72,9 +72,9 @@ export default function TransactionInfoCreateVault({
                   : symbols?.[0].result ?? "Unknown"}
               </span>
 
-              <ImageWithFallback
+              <TokenImage
+                address={longToken as TAddressString}
                 alt={longTokenData?.success ? longTokenData.data.symbol : ""}
-                src={getLogoAsset(longToken as TAddressString)}
                 width={20}
                 height={20}
               />
@@ -92,13 +92,11 @@ export default function TransactionInfoCreateVault({
                   : symbols?.[1].result ?? "unknown"}
               </span>
 
-              <ImageWithFallback
+              <TokenImage
+                address={versusToken as TAddressString}
+                alt={versusTokenData?.success ? versusTokenData.data.symbol : ""}
                 width={20}
                 height={20}
-                alt={
-                  versusTokenData?.success ? versusTokenData.data.symbol : ""
-                }
-                src={getLogoAsset(versusToken as TAddressString)}
               />
             </div>
           )}

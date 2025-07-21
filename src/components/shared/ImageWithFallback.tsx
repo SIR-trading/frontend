@@ -23,29 +23,64 @@ interface Props {
   lazyRoot?: string | undefined;
   className?: string | undefined;
   fallbackImageUrl?: string | StaticImageData;
+  secondaryFallbackUrl?: string; // Additional fallback before final unknown image
 }
 
 const ImageWithFallback = (props: Props) => {
-  let { fallbackImageUrl } = props;
+  const { fallbackImageUrl, secondaryFallbackUrl } = props;
   const { src, ...rest } = props;
   const [imgSrc, setImgSrc] = useState<string | StaticImageData | undefined>(
     undefined,
   );
+  const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  
   useEffect(() => {
     setImgSrc(src);
+    setFallbackAttempts(0);
   }, [src]);
+  
   const imgProps = { ...rest };
-  fallbackImageUrl = unknownImg as string | StaticImageData;
   delete imgProps.fallbackImageUrl;
+  delete imgProps.secondaryFallbackUrl;
+  
+  const handleError = () => {
+    // Debug logging for Rekt token
+    if (typeof src === "string" && src.includes("0xdd3b11ef34cd511a2da159034a05fcb94d806686")) {
+      console.log("ImageWithFallback error for REKT:", {
+        fallbackAttempts,
+        secondaryFallbackUrl,
+        fallbackImageUrl,
+        currentSrc: imgSrc,
+        originalSrc: src
+      });
+    }
+    
+    if (fallbackAttempts === 0 && secondaryFallbackUrl) {
+      // First fallback: try secondary fallback URL (logoURI from assets.json)
+      console.log("Trying secondary fallback:", secondaryFallbackUrl);
+      setImgSrc(secondaryFallbackUrl);
+      setFallbackAttempts(1);
+    } else if (fallbackAttempts <= 1 && fallbackImageUrl) {
+      // Second fallback: use provided fallback
+      console.log("Trying provided fallback:", fallbackImageUrl);
+      setImgSrc(fallbackImageUrl);
+      setFallbackAttempts(2);
+    } else {
+      // Final fallback: unknown image
+      console.log("Using final fallback: unknown image");
+      setImgSrc(unknownImg as string | StaticImageData);
+      setFallbackAttempts(3);
+    }
+  };
+  
   if (imgSrc) {
     return (
       // eslint-disable-next-line jsx-a11y/alt-text
       <Image
         {...imgProps}
         src={imgSrc}
-        onError={() => {
-          setImgSrc(fallbackImageUrl);
-        }}
+        onError={handleError}
+        unoptimized={typeof imgSrc === "string" && imgSrc.startsWith("http")}
       />
     );
   }
@@ -54,9 +89,8 @@ const ImageWithFallback = (props: Props) => {
     <Image
       {...imgProps}
       src={src}
-      onError={() => {
-        setImgSrc(fallbackImageUrl);
-      }}
+      onError={handleError}
+      unoptimized={typeof src === "string" && src.startsWith("http")}
     />
   );
 };

@@ -1,6 +1,6 @@
 import Select from "@/components/shared/Select";
 import { useDebounce } from "@/components/shared/hooks/useDebounce";
-import { getLogoAsset } from "@/lib/assets";
+import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import useVaultFilterStore from "@/lib/store";
 import { api } from "@/trpc/react";
 import type { StaticImageData } from "next/image";
@@ -20,6 +20,8 @@ export default function SelectWithSearch({ name, title, items }: Props) {
   const type = name === "long" ? "collateral" : "debt";
   const [input, setInput] = useState("");
   const { debouncedValue, debouncing } = useDebounce(input, 300);
+  const { tokenlist } = useTokenlistContext();
+  
   const { data, isFetching } = api.vault.getSearchVaults.useQuery(
     {
       search: debouncedValue.toUpperCase(),
@@ -29,6 +31,20 @@ export default function SelectWithSearch({ name, title, items }: Props) {
       enabled: Boolean(debouncedValue),
     },
   );
+  
+  // Helper function to get logo with fallback from tokenlist
+  const getLogoWithFallback = (address: string) => {
+    // First try to find from tokenlist (which has curated logoURIs)
+    const token = tokenlist?.find(
+      (t) => t.address.toLowerCase() === address.toLowerCase()
+    );
+    if (token?.logoURI) {
+      return token.logoURI;
+    }
+    // Fall back to Trust Wallet
+    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`;
+  };
+  
   let searchItems: TItem[] | undefined = [
     ...new Map(
       data?.vaults?.map((item) => [
@@ -41,13 +57,13 @@ export default function SelectWithSearch({ name, title, items }: Props) {
       return {
         label: e.collateralSymbol,
         value: e.collateralToken + "," + e.collateralSymbol,
-        imageUrl: getLogoAsset(e.collateralToken as `0x${string}`),
+        imageUrl: getLogoWithFallback(e.collateralToken),
       };
     } else {
       return {
         label: e.debtSymbol,
         value: e.debtToken + "," + e.debtSymbol,
-        imageUrl: getLogoAsset(e.debtToken as `0x${string}`),
+        imageUrl: getLogoWithFallback(e.debtToken),
       };
     }
   });

@@ -1,9 +1,8 @@
 "use client";
-import { ASSET_REPO } from "@/data/constants";
-import { env } from "@/env";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
+import { getSirTokenMetadata } from "@/lib/assets";
 interface TokenlistContextType {
   tokenlist: TToken[] | undefined;
 }
@@ -17,7 +16,7 @@ export function TokenlistContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { data, error, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["tokenlist"],
     queryFn: async () => {
       const tokensResp = (await fetch("/assets.json").then((r) =>
@@ -28,8 +27,33 @@ export function TokenlistContextProvider({
     },
   });
   
+  // Add SIR token dynamically to the tokenlist
+  const enhancedTokenlist = useMemo(() => {
+    if (!data) return undefined;
+    
+    const sirToken = getSirTokenMetadata();
+    
+    // Check if SIR token is already in the list (shouldn't be after our change)
+    const hasSirToken = data.some(
+      (token) => token.address.toLowerCase() === sirToken.address.toLowerCase()
+    );
+    
+    // Add SIR token if not present
+    const result = !hasSirToken ? [sirToken, ...data] : data; // Put SIR first for prominence in search
+    
+    // Debug: Check if Rekt token is in the list
+    const rektToken = result.find(token => token.symbol === "REKT");
+    if (rektToken) {
+      console.log("TokenlistContextProvider: Rekt token found:", rektToken);
+    } else {
+      console.log("TokenlistContextProvider: Rekt token NOT found in tokenlist");
+    }
+    
+    return result;
+  }, [data]);
+  
   return (
-    <TokenlistContext.Provider value={{ tokenlist: data }}>
+    <TokenlistContext.Provider value={{ tokenlist: enhancedTokenlist }}>
       {children}
     </TokenlistContext.Provider>
   );
