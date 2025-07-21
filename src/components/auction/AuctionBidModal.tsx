@@ -1,8 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import TransactionModal from "@/components/shared/transactionModal";
 import AuctionBidInputs from "./bid-inputs";
-import ImageWithFallback from "@/components/shared/ImageWithFallback";
-import { getLogoAsset } from "@/lib/assets";
+import { TokenImage } from "@/components/shared/TokenImage";
 import { formatEther, parseEther } from "viem";
 import useAuctionTokenInfo from "@/components/auction/hooks/useAuctionTokenInfo";
 import { useFormContext } from "react-hook-form";
@@ -167,8 +166,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               nextBid={formatEther(nextBid)}
               isTopUp={isTopUp}
             >
-              <ImageWithFallback
-                src={getLogoAsset(WETH_ADDRESS)}
+              <TokenImage
+                address={WETH_ADDRESS}
                 alt="alt"
                 width={25}
                 height={25}

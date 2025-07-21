@@ -5,8 +5,7 @@ import type { Address } from "viem";
 import { formatUnits } from "viem";
 import ExplorerLink from "./explorerLink";
 import { motion } from "motion/react";
-import ImageWithFallback from "./ImageWithFallback";
-import { getLogoAsset } from "@/lib/assets";
+import { TokenImage } from "./TokenImage";
 
 export default function TransactionSuccess({
   amountReceived,
@@ -36,12 +35,12 @@ export default function TransactionSuccess({
         <div className="flex justify-center gap-x-2">
           <div className="flex items-center justify-center gap-x-1">
             {assetAddress && (
-              <ImageWithFallback
+              <TokenImage
                 className="h-5 w-5 rounded-full"
                 alt={assetReceived ?? ""}
                 width={24}
                 height={24}
-                src={getLogoAsset(assetAddress)}
+                address={assetAddress}
               />
             )}
             {assetReceived}{" "}

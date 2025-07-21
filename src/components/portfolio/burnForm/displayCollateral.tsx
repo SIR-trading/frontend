@@ -1,6 +1,5 @@
-import ImageWithFallback from "@/components/shared/ImageWithFallback";
+import { TokenImage } from "@/components/shared/TokenImage";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import { getLogoAsset } from "@/lib/assets";
 import { formatNumber } from "@/lib/utils";
 export function DisplayCollateral({
   bg,
@@ -35,8 +34,8 @@ export function DisplayCollateral({
               data-state={!isClaiming ? "claiming" : ""}
               className="flex h-[45px] w-[134px] items-center  gap-x-2 rounded-md bg-secondary-800 px-2 data-[state=claiming]:justify-end "
             >
-              <ImageWithFallback
-                src={getLogoAsset(data?.collateralToken)}
+              <TokenImage
+                address={data?.collateralToken}
                 alt="collateral"
                 width={28}
                 height={28}
