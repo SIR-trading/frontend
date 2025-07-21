@@ -1,6 +1,4 @@
 "use client";
-import { ASSET_REPO } from "@/data/constants";
-import { env } from "@/env";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import React, { createContext, useContext } from "react";
@@ -17,7 +15,7 @@ export function TokenlistContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { data, error, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["tokenlist"],
     queryFn: async () => {
       const tokensResp = (await fetch("/assets.json").then((r) =>

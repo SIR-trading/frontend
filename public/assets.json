@@ -1,9 +1,9 @@
 [
   {
     "name": "Synthetics Implemented Right",
-    "address": "0x1278B112943Abc025a0DF081Ee42369414c3A834",
+    "address": "0x4Da4fb565Dcd5D5C5dB495205c109bA983A8ABa2",
     "symbol": "SIR",
-    "decimals": 18,
+    "decimals": 12,
     "chainId": 1,
     "logoURI": "https://app.sir.trading/images/sir-logo.svg"
   },
