@@ -1,5 +1,7 @@
 import { ApeContract } from "@/contracts/ape";
 import { AssistantContract } from "@/contracts/assistant";
+import { env } from "@/env";
+import { ZTokenPrices } from "@/lib/schemas";
 import type { TCurrentApePositions, TClosedApePositions } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
@@ -20,72 +22,132 @@ export const leaderboardRouter = createTRPCRouter({
   getActiveApePositions: publicProcedure.query(async () => {
     const { apePositions } = await getCurrentApePositions();
 
-    const apeTotalSupply = await multicall({
-      contracts: apePositions.map((position) => ({
-        address: position.apeAddress,
-        abi: ApeContract.abi,
-        functionName: "totalSupply",
-      })),
-    });
+    if (apePositions.length === 0) {
+      return {} as TCurrentApePositions;
+    }
 
-    const vaultReserves = await readContract({
-      ...AssistantContract,
-      functionName: "getReserves",
-      args: [
-        apePositions.map((position) => fromHex(position.vaultId, "number")),
-      ],
-    });
+    // Optimize data preparation using a single reduce
+    const { apeTokens, totalSupplyContracts, vaultIds } = apePositions.reduce(
+      (acc, position) => {
+        // Add unique collateral tokens for price API
+        if (!acc.collateralTokenSet.has(position.collateralToken)) {
+          acc.collateralTokenSet.add(position.collateralToken);
+          acc.apeTokens.push({
+            network: "eth-mainnet",
+            address: position.collateralToken,
+          });
+        }
 
-    const netPosition = apePositions.map(
-      (
+        // Add contract call for total supply
+        acc.totalSupplyContracts.push({
+          address: position.apeAddress,
+          abi: ApeContract.abi,
+          functionName: "totalSupply" as const,
+        });
+
+        // Add vault ID
+        acc.vaultIds.push(fromHex(position.vaultId, "number"));
+
+        return acc;
+      },
+      {
+        collateralTokenSet: new Set<string>(),
+        apeTokens: [] as { network: string; address: string }[],
+        totalSupplyContracts: [] as {
+          address: `0x${string}`;
+          abi: typeof ApeContract.abi;
+          functionName: "totalSupply";
+        }[],
+        vaultIds: [] as number[],
+      },
+    );
+
+    // Execute all async operations in parallel
+    const [priceResponse, apeTotalSupply, vaultReserves] = await Promise.all([
+      fetch(
+        `https://api.g.alchemy.com/prices/v1/${env.ALCHEMY_BEARER}/tokens/by-address`,
         {
-          apeBalance,
-          leverageTier,
-          vaultId,
-          user,
-          collateralTotal,
-          dollarTotal,
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            addresses: apeTokens,
+          }),
         },
-        index,
-      ) => {
+      ).catch((error) => {
+        console.error("Failed to fetch token prices:", error);
+        return null;
+      }),
+      multicall({
+        contracts: totalSupplyContracts,
+      }),
+      readContract({
+        ...AssistantContract,
+        functionName: "getReserves",
+        args: [vaultIds],
+      }),
+    ]);
+
+    // Build price lookup map with fallback handling
+    const prices: Record<string, string> = {};
+    if (priceResponse?.ok) {
+      try {
+        const priceResult = ZTokenPrices.parse(await priceResponse.json());
+        priceResult.data.forEach((token) => {
+          prices[token.address] = token.prices[0]?.value ?? "0";
+        });
+      } catch (error) {
+        console.error("Failed to parse price data:", error);
+      }
+    }
+
+    // Process positions with optimized calculations
+    const userPositionsMap = new Map<string, number>();
+
+    apePositions.forEach(
+      ({ apeBalance, leverageTier, user, collateralToken }, index) => {
         const totalSupply = BigInt(apeTotalSupply[index]?.result ?? 0n);
         const collateralApeVault = vaultReserves[index]?.reserveApes ?? 0n;
+
+        // Skip calculation if no reserves or total supply
+        if (totalSupply === 0n || collateralApeVault === 0n) {
+          return;
+        }
+
         const collateralPosition =
           (BigInt(apeBalance) * collateralApeVault) / totalSupply;
 
         const leverageMultiplier = BigInt(1 + (leverageTier - 1) * 10000);
         const netCollateralPosition = collateralPosition / leverageMultiplier;
 
-        return {
-          vaultId,
-          user,
-          collateralPosition,
-          collateralTotal,
-          netCollateralPosition,
-          dollarTotal,
-        };
-      },
-    );
+        const dollarValue = prices[collateralToken] ?? "0";
+        const netCollateralPositionUsd =
+          +formatEther(netCollateralPosition) * +dollarValue;
 
-    const groupedPositions = groupBy(netPosition, (position) =>
-      getAddress(position.user),
-    );
-
-    return Object.entries(groupedPositions).reduce<TCurrentApePositions>(
-      (acc, [user, userPositions]) => {
-        const totalNet = userPositions.reduce(
-          (res, { netCollateralPosition }) => res + netCollateralPosition,
-          0n,
+        // Accumulate user positions directly
+        const userAddress = getAddress(user);
+        const currentTotal = userPositionsMap.get(userAddress) ?? 0;
+        userPositionsMap.set(
+          userAddress,
+          currentTotal + netCollateralPositionUsd,
         );
-        acc[user] = {
-          pnlUsd: +formatEther(totalNet), // USD amounts always use 6 decimals
-          pnlUsdPercentage: +formatEther(totalNet),
-        };
-        return acc;
       },
-      {} as TCurrentApePositions,
     );
+
+    // Convert to final format
+    const result: TCurrentApePositions = {};
+    userPositionsMap.forEach((totalNet, user) => {
+      result[user] = {
+        pnlUsd: totalNet,
+        pnlUsdPercentage: totalNet,
+      };
+    });
+
+    return result;
   }),
+
   getClosedApePositions: publicProcedure.query(async () => {
     const { closedApePositions } = await getClosedApePositions();
 

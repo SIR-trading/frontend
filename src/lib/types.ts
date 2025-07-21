@@ -151,6 +151,7 @@ export type CurrentApePositionFragment = {
   apeAddress: `0x${string}`;
   apeDecimals: number;
   leverageTier: number;
+  collateralToken: `0x${string}`;
 };
 
 export type TClosedApePositions = Record<
