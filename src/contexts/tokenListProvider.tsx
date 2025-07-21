@@ -1,7 +1,8 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
+import { getSirTokenMetadata } from "@/lib/assets";
 interface TokenlistContextType {
   tokenlist: TToken[] | undefined;
 }
@@ -26,8 +27,27 @@ export function TokenlistContextProvider({
     },
   });
   
+  // Add SIR token dynamically to the tokenlist
+  const enhancedTokenlist = useMemo(() => {
+    if (!data) return undefined;
+    
+    const sirToken = getSirTokenMetadata();
+    
+    // Check if SIR token is already in the list (shouldn't be after our change)
+    const hasSirToken = data.some(
+      (token) => token.address.toLowerCase() === sirToken.address.toLowerCase()
+    );
+    
+    // Add SIR token if not present
+    if (!hasSirToken) {
+      return [sirToken, ...data]; // Put SIR first for prominence in search
+    }
+    
+    return data;
+  }, [data]);
+  
   return (
-    <TokenlistContext.Provider value={{ tokenlist: data }}>
+    <TokenlistContext.Provider value={{ tokenlist: enhancedTokenlist }}>
       {children}
     </TokenlistContext.Provider>
   );

@@ -6,6 +6,20 @@ import { getAddress } from "viem";
 import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
 
+/**
+ * Get SIR token metadata dynamically based on environment
+ */
+export function getSirTokenMetadata() {
+  return {
+    name: "Synthetics Implemented Right",
+    address: env.NEXT_PUBLIC_SIR_ADDRESS,
+    symbol: "SIR",
+    decimals: 12,
+    chainId: parseInt(env.NEXT_PUBLIC_CHAIN_ID),
+    logoURI: "https://app.sir.trading/images/white-logo.svg",
+  };
+}
+
 export function getLogoAsset(
   address: `0x${string}` | undefined,
   chainId?: string,
@@ -38,6 +52,41 @@ export function getLogoAsset(
   } catch {
     return "";
   }
+}
+
+/**
+ * Enhanced logo asset function that falls back to assets.json logoURI
+ * if Trust Wallet asset is not available
+ */
+export function getLogoAssetWithFallback(
+  address: `0x${string}` | undefined,
+  tokenList?: Array<{ address: string; logoURI: string }>,
+  chainId?: string,
+): { primary: string | StaticImageData; fallback?: string } {
+  if (!address) {
+    return { primary: "" };
+  }
+  
+  // Handle SIR token dynamically based on environment
+  if (address.toLowerCase() === env.NEXT_PUBLIC_SIR_ADDRESS.toLowerCase()) {
+    return {
+      primary: sirIcon as StaticImageData,
+      fallback: "https://app.sir.trading/images/white-logo.svg",
+    };
+  }
+  
+  // First try the standard Trust Wallet approach
+  const primaryLogo = getLogoAsset(address, chainId);
+  
+  // Find fallback from tokenlist
+  const token = tokenList?.find(
+    (t) => t.address.toLowerCase() === address.toLowerCase()
+  );
+  
+  return {
+    primary: primaryLogo,
+    fallback: token?.logoURI,
+  };
 }
 
 export function getLogoJson(address: `0x${string}` | undefined) {

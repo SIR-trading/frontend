@@ -7,6 +7,7 @@ import type { Address } from "viem";
 import SearchInput from "./searchInput";
 import ImageWithFallback from "../shared/ImageWithFallback";
 import { getLogoAsset } from "@/lib/assets";
+import { useTokenLogo } from "@/hooks/useTokenLogo";
 import { useFormContext } from "react-hook-form";
 import type { CreateVaultInputValues } from "@/lib/schemas";
 import type { z } from "zod";
@@ -208,6 +209,8 @@ function TokenItem({
   token: TToken;
   selectToken: (token: TToken) => void;
 }) {
+  const { primary, fallback } = useTokenLogo(token.address as Address, "1");
+  
   return (
     <button
       type="button"
@@ -219,7 +222,8 @@ function TokenItem({
       <div className="flex items-center gap-x-2">
         <ImageWithFallback
           className="h-10 w-10 rounded-full"
-          src={getLogoAsset(token.address as Address, "1")}
+          src={primary}
+          secondaryFallbackUrl={fallback}
           width={40}
           height={40}
           alt=""

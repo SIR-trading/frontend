@@ -23,29 +23,49 @@ interface Props {
   lazyRoot?: string | undefined;
   className?: string | undefined;
   fallbackImageUrl?: string | StaticImageData;
+  secondaryFallbackUrl?: string; // Additional fallback before final unknown image
 }
 
 const ImageWithFallback = (props: Props) => {
-  let { fallbackImageUrl } = props;
+  const { fallbackImageUrl, secondaryFallbackUrl } = props;
   const { src, ...rest } = props;
   const [imgSrc, setImgSrc] = useState<string | StaticImageData | undefined>(
     undefined,
   );
+  const [fallbackAttempts, setFallbackAttempts] = useState(0);
+  
   useEffect(() => {
     setImgSrc(src);
+    setFallbackAttempts(0);
   }, [src]);
+  
   const imgProps = { ...rest };
-  fallbackImageUrl = unknownImg as string | StaticImageData;
   delete imgProps.fallbackImageUrl;
+  delete imgProps.secondaryFallbackUrl;
+  
+  const handleError = () => {
+    if (fallbackAttempts === 0 && secondaryFallbackUrl) {
+      // First fallback: try secondary fallback URL (logoURI from assets.json)
+      setImgSrc(secondaryFallbackUrl);
+      setFallbackAttempts(1);
+    } else if (fallbackAttempts <= 1 && fallbackImageUrl) {
+      // Second fallback: use provided fallback
+      setImgSrc(fallbackImageUrl);
+      setFallbackAttempts(2);
+    } else {
+      // Final fallback: unknown image
+      setImgSrc(unknownImg as string | StaticImageData);
+      setFallbackAttempts(3);
+    }
+  };
+  
   if (imgSrc) {
     return (
       // eslint-disable-next-line jsx-a11y/alt-text
       <Image
         {...imgProps}
         src={imgSrc}
-        onError={() => {
-          setImgSrc(fallbackImageUrl);
-        }}
+        onError={handleError}
       />
     );
   }
@@ -54,9 +74,7 @@ const ImageWithFallback = (props: Props) => {
     <Image
       {...imgProps}
       src={src}
-      onError={() => {
-        setImgSrc(fallbackImageUrl);
-      }}
+      onError={handleError}
     />
   );
 };

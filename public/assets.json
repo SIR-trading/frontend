@@ -1,13 +1,5 @@
 [
   {
-    "name": "Synthetics Implemented Right",
-    "address": "0x4Da4fb565Dcd5D5C5dB495205c109bA983A8ABa2",
-    "symbol": "SIR",
-    "decimals": 12,
-    "chainId": 1,
-    "logoURI": "https://app.sir.trading/images/sir-logo.svg"
-  },
-  {
     "name": "Tether",
     "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     "symbol": "USDT",
@@ -17,7 +9,7 @@
     "marketCap": 143455452045
   },
   {
-    "name": "Binance Coin (Portal)",
+    "name": "Binance Coin",
     "address": "0x418D75f65a02b3D53B2418FB8E1fe493759c7605",
     "symbol": "BNB",
     "decimals": 18,
@@ -1833,6 +1825,15 @@
     "chainId": 1,
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xfd418e42783382E86Ae91e445406600Ba144D162/logo.png",
     "marketCap": 85152777
+  },
+  {
+    "name": "Rekt",
+    "address": "0xdd3b11ef34cd511a2da159034a05fcb94d806686",
+    "symbol": "REKT",
+    "decimals": 18,
+    "chainId": 1,
+    "logoURI": "https://assets.coingecko.com/coins/images/51727/standard/rektcion_trans_200px.png",
+    "marketCap": 0
   },
   {
     "name": "Yield Guild Games",

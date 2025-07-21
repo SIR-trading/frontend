@@ -4,13 +4,11 @@ import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import boostIcon from "@/../public/images/white-logo.svg";
 import { motion } from "motion/react";
-import unknownImg from "@/../public/IconUnknown.png";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
 import type { TVault } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
-import ImageWithFallback from "@/components/shared/ImageWithFallback";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import {
   HoverCard,
@@ -22,7 +20,7 @@ import {
   calculateApeVaultFee,
   getLeverageRatio,
 } from "@/lib/utils/calculations";
-import { getLogoAsset } from "@/lib/assets";
+import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
@@ -166,21 +164,19 @@ export function VaultTableRow({
         </div>
       </td>
       <td className="relative flex items-center md:col-span-3">
-        <ImageWithFallback
-          fallbackImageUrl={unknownImg}
-          className="h-6 w-6 rounded-full "
-          src={getLogoAsset(pool.collateralToken as `0x${string}`)}
+        <TokenImage
+          address={pool.collateralToken as `0x${string}`}
+          className="h-6 w-6 rounded-full"
           width={28}
           height={28}
-          alt=""
+          alt="Collateral token"
         />
-        <ImageWithFallback
-          className="h-6 w-6 rounded-full "
-          fallbackImageUrl={unknownImg}
-          src={getLogoAsset(pool.debtToken as `0x${string}`)}
+        <TokenImage
+          address={pool.debtToken as `0x${string}`}
+          className="h-6 w-6 rounded-full"
           width={28}
           height={28}
-          alt=""
+          alt="Debt token"
         />
         <div className="px-1"></div>
         <span className="hidden font-normal md:block">
