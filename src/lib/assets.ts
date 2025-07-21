@@ -20,40 +20,6 @@ export function getSirTokenMetadata() {
   };
 }
 
-export function getLogoAsset(
-  address: `0x${string}` | undefined,
-  chainId?: string,
-) {
-  if (!address) {
-    return "";
-  }
-  const getChainName = () => {
-    let chainIdEnv = env.NEXT_PUBLIC_CHAIN_ID;
-    if (chainId !== undefined) {
-      chainIdEnv = chainId;
-    }
-    if (chainIdEnv === "1") {
-      return "ethereum";
-    }
-    if (chainIdEnv === "11155111") {
-      return "sepolia";
-    }
-    if (chainIdEnv === "17000") {
-      return "holesky";
-    }
-  };
-  if (address.toLowerCase() === env.NEXT_PUBLIC_SIR_ADDRESS.toLowerCase()) {
-    return sirIcon as StaticImageData;
-  }
-  const chainName = getChainName();
-  try {
-    const asset = `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/logo.png`;
-    return asset;
-  } catch {
-    return "";
-  }
-}
-
 /**
  * Enhanced logo asset function that falls back to assets.json logoURI
  * if Trust Wallet asset is not available
@@ -75,8 +41,31 @@ export function getLogoAssetWithFallback(
     };
   }
   
-  // First try the standard Trust Wallet approach
-  const primaryLogo = getLogoAsset(address, chainId);
+  // Build Trust Wallet logo URL
+  const getChainName = () => {
+    let chainIdEnv = env.NEXT_PUBLIC_CHAIN_ID;
+    if (chainId !== undefined) {
+      chainIdEnv = chainId;
+    }
+    if (chainIdEnv === "1") {
+      return "ethereum";
+    }
+    if (chainIdEnv === "11155111") {
+      return "sepolia";
+    }
+    if (chainIdEnv === "17000") {
+      return "holesky";
+    }
+  };
+  
+  const chainName = getChainName();
+  let primaryLogo: string | StaticImageData = "";
+  
+  try {
+    primaryLogo = `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/logo.png`;
+  } catch {
+    primaryLogo = "";
+  }
   
   // Find fallback from tokenlist
   const token = tokenList?.find(

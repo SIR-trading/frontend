@@ -4,9 +4,8 @@ import { formatNumber } from "@/lib/utils";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { formatUnits, fromHex } from "viem";
 import type { ReactNode } from "react";
-import ImageWithFallback from "@/components/shared/ImageWithFallback";
+import { TokenImage } from "@/components/shared/TokenImage";
 import { getLeverageRatio } from "@/lib/utils/calculations";
-import { getLogoAsset } from "@/lib/assets";
 import Show from "@/components/shared/show";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { useTeaAndApePrice } from "./hooks/useTeaAndApePrice";
@@ -75,20 +74,20 @@ export function BurnTableRow({
           <span className="text-xl text-accent-100 ">{getDisplayVaultId(row.vaultId)} </span>
         </div>
         <div className="flex  items-center gap-x-1 font-normal text-foreground/80">
-          <ImageWithFallback
+          <TokenImage
             className="rounded-full bg-transparent"
             alt={row.collateralToken}
-            src={getLogoAsset(row.collateralToken)}
+            address={row.collateralToken}
             width={20}
             height={20}
           />
           <span className="text-[14px]">{row.collateralSymbol}</span>
         </div>
         <div className="flex items-center gap-x-1 font-normal text-foreground/80">
-          <ImageWithFallback
+          <TokenImage
             className="rounded-full"
             alt={row.debtSymbol}
-            src={getLogoAsset(row.debtToken)}
+            address={row.debtToken}
             width={20}
             height={20}
           />
