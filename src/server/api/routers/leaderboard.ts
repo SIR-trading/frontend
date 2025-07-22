@@ -11,6 +11,7 @@ import {
 } from "@/server/queries/leaderboard";
 import groupBy from "lodash.groupby";
 import { formatUnits, fromHex, getAddress } from "viem";
+import { VaultContract } from "@/contracts/vault";
 
 const calculatePnl = (withdrawn: number, deposited: number) =>
   withdrawn - deposited;
@@ -63,32 +64,39 @@ export const leaderboardRouter = createTRPCRouter({
     );
 
     // Execute all async operations in parallel
-    const [priceResponse, apeTotalSupply, vaultReserves] = await Promise.all([
-      fetch(
-        `https://api.g.alchemy.com/prices/v1/${env.ALCHEMY_BEARER}/tokens/by-address`,
-        {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
+    const [priceResponse, apeTotalSupply, vaultReserves, systemParams] =
+      await Promise.all([
+        fetch(
+          `https://api.g.alchemy.com/prices/v1/${env.ALCHEMY_BEARER}/tokens/by-address`,
+          {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              addresses: apeTokens,
+            }),
           },
-          body: JSON.stringify({
-            addresses: apeTokens,
-          }),
-        },
-      ).catch((error) => {
-        console.error("Failed to fetch token prices:", error);
-        return null;
-      }),
-      multicall({
-        contracts: totalSupplyContracts,
-      }),
-      readContract({
-        ...AssistantContract,
-        functionName: "getReserves",
-        args: [vaultIds],
-      }),
-    ]);
+        ).catch((error) => {
+          console.error("Failed to fetch token prices:", error);
+          return null;
+        }),
+        multicall({
+          contracts: totalSupplyContracts,
+        }),
+        readContract({
+          ...AssistantContract,
+          functionName: "getReserves",
+          args: [vaultIds],
+        }),
+        readContract({
+          ...VaultContract,
+          functionName: "systemParams",
+        }),
+      ]);
+
+    const fBase = systemParams.baseFee.fee;
 
     // Build price lookup map with fallback handling
     const prices: Record<string, string> = {};
@@ -113,11 +121,12 @@ export const leaderboardRouter = createTRPCRouter({
       (
         {
           apeBalance,
-          leverageTier,
           user,
           collateralToken,
           dollarTotal,
+          collateralTotal,
           apeDecimals,
+          leverageTier,
         },
         index,
       ) => {
@@ -141,6 +150,31 @@ export const leaderboardRouter = createTRPCRouter({
 
         // Parse dollar total (assuming it's in wei format like other USD amounts)
         const dollarTotalUsd = +formatUnits(BigInt(dollarTotal), 6);
+
+        // Calculate PnL: subtract dollarTotal from totalNet
+        const pnlUsd = netCollateralPositionUsd - dollarTotalUsd;
+        const pnlPercentage =
+          dollarTotalUsd > 0 ? (pnlUsd / dollarTotalUsd) * 100 : 0;
+
+        console.log({
+          user,
+          apeBalance: formatUnits(BigInt(apeBalance), apeDecimals),
+          collateralApeVault: formatUnits(collateralApeVault, apeDecimals),
+          collateralPosition: formatUnits(collateralPosition, apeDecimals),
+          netCollateralPosition: formatUnits(
+            netCollateralPosition,
+            apeDecimals,
+          ),
+          netCollateralPositionUsd,
+          dollarTotalUsd,
+          pnlUsd,
+          pnlPercentage,
+          totalSupply: formatUnits(totalSupply, apeDecimals),
+          collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
+          leverageMultiplier,
+          fBase,
+          leverageTier,
+        });
 
         // Accumulate user positions directly
         const userAddress = getAddress(user);
