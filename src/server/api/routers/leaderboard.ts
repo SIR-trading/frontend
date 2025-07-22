@@ -104,10 +104,16 @@ export const leaderboardRouter = createTRPCRouter({
     }
 
     // Process positions with optimized calculations
-    const userPositionsMap = new Map<string, number>();
+    const userPositionsMap = new Map<
+      string,
+      { totalNet: number; dollarTotal: number }
+    >();
 
     apePositions.forEach(
-      ({ apeBalance, leverageTier, user, collateralToken }, index) => {
+      (
+        { apeBalance, leverageTier, user, collateralToken, dollarTotal },
+        index,
+      ) => {
         const totalSupply = BigInt(apeTotalSupply[index]?.result ?? 0n);
         const collateralApeVault = vaultReserves[index]?.reserveApes ?? 0n;
 
@@ -126,22 +132,28 @@ export const leaderboardRouter = createTRPCRouter({
         const netCollateralPositionUsd =
           +formatEther(netCollateralPosition) * +dollarValue;
 
+        // Parse dollar total (assuming it's in wei format like other USD amounts)
+        const dollarTotalUsd = +formatUnits(BigInt(dollarTotal), 6);
+
         // Accumulate user positions directly
         const userAddress = getAddress(user);
-        const currentTotal = userPositionsMap.get(userAddress) ?? 0;
-        userPositionsMap.set(
-          userAddress,
-          currentTotal + netCollateralPositionUsd,
-        );
+        const current = userPositionsMap.get(userAddress) ?? {
+          totalNet: 0,
+          dollarTotal: 0,
+        };
+        userPositionsMap.set(userAddress, {
+          totalNet: current.totalNet + netCollateralPositionUsd,
+          dollarTotal: current.dollarTotal + dollarTotalUsd,
+        });
       },
     );
 
     // Convert to final format
     const result: TCurrentApePositions = {};
-    userPositionsMap.forEach((totalNet, user) => {
+    userPositionsMap.forEach(({ totalNet, dollarTotal }, user) => {
       result[user] = {
-        pnlUsd: totalNet,
-        pnlUsdPercentage: totalNet,
+        pnlUsd: calculatePnl(totalNet, dollarTotal),
+        pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
       };
     });
 
