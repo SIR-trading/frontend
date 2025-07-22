@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { fromHex } from "viem";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
-const cellStyling = "pr-1 md:pr-4 py-2.5 flex-1 flex items-center";
+const cellStyling = "pr-2 md:pr-4 py-2.5 flex-1 flex items-center";
 
 const ExpandableActivePositions = ({
   positions,
