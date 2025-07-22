@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { fromHex } from "viem";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
-const cellStyling = "px-1 md:px-4 py-2.5 flex-1 flex items-center";
+const cellStyling = "pr-1 md:pr-4 py-2.5 flex-1 flex items-center";
 
 const ExpandableActivePositions = ({
   positions,
@@ -47,11 +47,11 @@ const ExpandableActivePositions = ({
     <>
       <div className="flex bg-primary/10 pl-2 text-left text-xs font-medium text-foreground/70 md:pl-6 dark:bg-primary">
         <div className={cn(cellStyling, "flex-none")}>Token</div>
-        <div className={cn(cellStyling)}>Collateral</div>
-        <div className={cn(cellStyling)}>Deposited [USD]</div>
-        <div className={cn(cellStyling)}>Net Position [USD]</div>
+        <div className={cn(cellStyling)}>Collateral Deposited</div>
         <div className={cn(cellStyling)}>Current PnL [USD]</div>
-        <div className={cn(cellStyling)}>Current % PnL</div>
+        <div className={cn(cellStyling)}>Current PnL [Collateral]</div>
+        <div className={cn(cellStyling)}>Current % PnL [USD]</div>
+        <div className={cn(cellStyling)}>Current % PnL [Collateral]</div>
       </div>
       <div className="w-full space-y-[2px]">
         {positions.map((position, index) => {
@@ -65,19 +65,10 @@ const ExpandableActivePositions = ({
                 APE-{vaultData.vaultId}
               </div>
               <div className={cn(cellStyling)}>
+                <DisplayFormattedNumber
+                  num={formatNumber(+position.collateralTotal)}
+                />{" "}
                 {vaultData.collateralSymbol}
-              </div>
-              <div className={cn(cellStyling)}>
-                <DisplayFormattedNumber
-                  num={formatNumber(+position.dollarTotal)}
-                />{" "}
-                USD
-              </div>
-              <div className={cn(cellStyling)}>
-                <DisplayFormattedNumber
-                  num={formatNumber(position.netCollateralPosition)}
-                />{" "}
-                USD
               </div>
               <div className={cn(cellStyling)}>
                 <DisplayFormattedNumber num={formatNumber(position.pnlUsd)} />{" "}
@@ -85,7 +76,19 @@ const ExpandableActivePositions = ({
               </div>
               <div className={cn(cellStyling)}>
                 <DisplayFormattedNumber
+                  num={formatNumber(position.pnlCollateral)}
+                />{" "}
+                {vaultData.collateralSymbol}
+              </div>
+              <div className={cn(cellStyling)}>
+                <DisplayFormattedNumber
                   num={formatNumber(position.pnlUsdPercentage)}
+                />
+                %
+              </div>
+              <div className={cn(cellStyling)}>
+                <DisplayFormattedNumber
+                  num={formatNumber(position.pnlCollateralPercentage)}
                 />
                 %
               </div>

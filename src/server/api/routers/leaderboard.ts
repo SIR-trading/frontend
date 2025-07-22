@@ -117,16 +117,7 @@ export const leaderboardRouter = createTRPCRouter({
       {
         totalNet: number;
         dollarTotal: number;
-        positions: {
-          vaultId: `0x${string}`;
-          apeBalance: string;
-          collateralToken: string;
-          pnlUsd: number;
-          pnlUsdPercentage: number;
-          leverageTier: number;
-          netCollateralPosition: number;
-          dollarTotal: number;
-        }[];
+        positions: TCurrentApePositions[string]["positions"];
       }
     >();
 
@@ -137,6 +128,7 @@ export const leaderboardRouter = createTRPCRouter({
           user,
           collateralToken,
           dollarTotal,
+          collateralTotal,
           apeDecimals,
           leverageTier,
           vaultId,
@@ -165,10 +157,28 @@ export const leaderboardRouter = createTRPCRouter({
         // Parse dollar total (assuming it's in wei format like other USD amounts)
         const dollarTotalUsd = +formatUnits(BigInt(dollarTotal), 6);
 
+        // Calculate collateral amounts for PnL
+        const currentCollateralAmount = +formatUnits(
+          netCollateralPosition,
+          apeDecimals,
+        );
+        const originalCollateralDeposited = +formatUnits(
+          BigInt(collateralTotal),
+          apeDecimals,
+        );
+
         // Calculate PnL: subtract dollarTotal from totalNet
         const pnlUsd = netCollateralPositionUsd - dollarTotalUsd;
         const pnlPercentage =
           dollarTotalUsd > 0 ? (pnlUsd / dollarTotalUsd) * 100 : 0;
+
+        // Calculate collateral PnL
+        const pnlCollateral =
+          currentCollateralAmount - originalCollateralDeposited;
+        const pnlCollateralPercentage =
+          originalCollateralDeposited > 0
+            ? (pnlCollateral / originalCollateralDeposited) * 100
+            : 0;
 
         // Accumulate user positions with individual position details
         const userAddress = getAddress(user);
@@ -185,9 +195,12 @@ export const leaderboardRouter = createTRPCRouter({
           collateralToken,
           pnlUsd,
           pnlUsdPercentage: pnlPercentage,
+          pnlCollateral,
+          pnlCollateralPercentage,
           leverageTier,
           netCollateralPosition: netCollateralPositionUsd,
           dollarTotal: dollarTotalUsd,
+          collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
         };
 
         userPositionsMap.set(userAddress, {

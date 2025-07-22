@@ -187,9 +187,12 @@ export type TCurrentApePositions = Record<
       collateralToken: string;
       pnlUsd: number;
       pnlUsdPercentage: number;
+      pnlCollateral: number;
+      pnlCollateralPercentage: number;
       leverageTier: number;
       netCollateralPosition: number;
       dollarTotal: number;
+      collateralTotal: string;
     }[];
   }
 >;
