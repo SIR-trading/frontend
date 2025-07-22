@@ -142,6 +142,18 @@ export type ClosedApePositionFragment = {
   decimal: string;
 };
 
+export type CurrentApePositionFragment = {
+  vaultId: `0x${string}`;
+  user: string;
+  collateralTotal: string;
+  dollarTotal: string;
+  apeBalance: string;
+  apeAddress: `0x${string}`;
+  apeDecimals: number;
+  leverageTier: number;
+  collateralToken: `0x${string}`;
+};
+
 export type TClosedApePositions = Record<
   string,
   {
@@ -159,5 +171,28 @@ export type TClosedApePositions = Record<
       pnlUsdPercentage: number;
       pnlCollateralPercentage: number;
     };
+  }
+>;
+
+export type TCurrentApePositions = Record<
+  string,
+  {
+    total: {
+      pnlUsd: number;
+      pnlUsdPercentage: number;
+    };
+    positions: {
+      vaultId: `0x${string}`;
+      apeBalance: string;
+      collateralToken: string;
+      pnlUsd: number;
+      pnlUsdPercentage: number;
+      pnlCollateral: number;
+      pnlCollateralPercentage: number;
+      leverageTier: number;
+      netCollateralPosition: number;
+      dollarTotal: number;
+      collateralTotal: string;
+    }[];
   }
 >;

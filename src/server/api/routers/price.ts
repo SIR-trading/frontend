@@ -5,25 +5,39 @@ import { ZTokenPrices } from "@/lib/schemas";
 export const priceRouter = createTRPCRouter({
   // Returns the latest price for vault tokens by symbol
   getVaultPrices: publicProcedure
-    .input(z.object({ collateralToken: z.string(), debtToken: z.string(), chain: z.string().default("eth-mainnet") }))
+    .input(
+      z.object({
+        collateralToken: z.string(),
+        debtToken: z.string(),
+        chain: z.string().default("eth-mainnet"),
+      }),
+    )
     .query(async ({ input }) => {
       const { collateralToken, debtToken, chain } = input;
-      console.log("-_".repeat(100), "Fetching vault prices for:", collateralToken, debtToken);
+      console.log(
+        "-_".repeat(100),
+        "Fetching vault prices for:",
+        collateralToken,
+        debtToken,
+      );
 
       const options = {
-        method: 'POST',
-        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({
           addresses: [
             { network: chain, address: collateralToken },
-            { network: chain, address: debtToken }
-          ]
-        })
+            { network: chain, address: debtToken },
+          ],
+        }),
       };
 
       const response = await fetch(
         `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
-        options
+        options,
       );
       // Parse and validate the fetched JSON using ZVaultPrices
       return ZTokenPrices.parse(await response.json());
@@ -37,21 +51,64 @@ export const priceRouter = createTRPCRouter({
       console.log("-_".repeat(100), "fetching price for", contractAddress);
 
       const options = {
-        method: 'POST',
-        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
         body: JSON.stringify({
-          addresses: [
-            { network: chain, address: contractAddress }
-          ]
-        })
+          addresses: [{ network: chain, address: contractAddress }],
+        }),
       };
 
       const response = await fetch(
         `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
-        options
+        options,
       );
       // Parse and validate the fetched JSON using ZVaultPrices
       return ZTokenPrices.parse(await response.json());
-    })
+    }),
 
+  getTokenPrices: publicProcedure
+    .input(
+      z.object({
+        addresses: z.array(z.string()),
+        chain: z.string().default("eth-mainnet"),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { addresses, chain } = input;
+      console.log(
+        "-_".repeat(100),
+        "Fetching prices for addresses:",
+        addresses,
+      );
+
+      const options = {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          addresses: addresses.map((address) => ({ network: chain, address })),
+        }),
+      };
+
+      const response = await fetch(
+        `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+        options,
+      );
+      // Parse and validate the fetched JSON using ZTokenPrices
+      const result = ZTokenPrices.parse(await response.json());
+
+      // Convert result to the object format {address: result}
+      return result.data.reduce(
+        (acc, token) => {
+          acc[token.address] = token;
+          return acc;
+        },
+        {} as Record<string, (typeof result.data)[0]>,
+      );
+    }),
 });
