@@ -15,8 +15,6 @@ import { TokenDisplay } from "../ui/token-display";
 import { Checkbox } from "../ui/checkbox";
 import Show from "../shared/show";
 import ExplorerLink from "../shared/explorerLink";
-// import sirIcon from "../../../public/images/sir-logo.svg";
-// import type { StaticImageData } from "next/image";
 
 export default function ContributorClaim() {
   const { isConnected, address } = useAccount();
