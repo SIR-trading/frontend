@@ -154,7 +154,7 @@ export const leaderboardRouter = createTRPCRouter({
         const collateralPosition =
           (BigInt(apeBalance) * collateralApeVault) / totalSupply;
 
-        const leverageMultiplier = BigInt(10000 + (leverageTier - 1) * fBase);
+        const leverageMultiplier = BigInt(10000 + 2 ** leverageTier * fBase);
         const netCollateralPosition =
           (collateralPosition * 10000n) / leverageMultiplier; // 10000n to adjust fBase for percentage
 
