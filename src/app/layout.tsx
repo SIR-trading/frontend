@@ -27,7 +27,7 @@ export const metadata = {
     "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
-    title: "SIR - Pay once, keep the upside.",
+    title: "SIR App Interface",
     description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
     url: "https://app.sir.trading",
     siteName: "SIR",
@@ -36,14 +36,14 @@ export const metadata = {
         url: "https://app.sir.trading/social-media-preview.png", // Use absolute URL
         width: 1200,
         height: 630,
-        alt: "SIR - Pay once, keep the upside.",
+        alt: "SIR App Interface",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SIR - Pay once, keep the upside.",
+    title: "SIR App Interface",
     description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
     images: ["https://app.sir.trading/social-media-preview.png"],
     creator: "@leveragesir",
