@@ -7,6 +7,14 @@ import { cn, formatNumber } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import ExpandableActivePositions from "@/components/leaderboard/expandableActivePositions";
+import {
+  AccordionItem,
+  AccordionContent,
+  AccordionTrigger,
+  Accordion,
+} from "@/components/ui/accordion";
+
 type SortField = "pnlUsd" | "pnlUsdPercentage";
 type SortDirection = "asc" | "desc";
 
@@ -20,6 +28,16 @@ const ActiveApePositions = () => {
       // Use placeholder data to improve perceived performance
       placeholderData: (previousData) => previousData,
     });
+
+  const { data: vaults } = api.vault.getVaults.useQuery(
+    {
+      sortbyVaultId: true,
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      placeholderData: (previousData) => previousData,
+    },
+  );
 
   useEffect(() => {
     setIsClient(true);
@@ -36,8 +54,8 @@ const ActiveApePositions = () => {
     }
 
     return entries.sort(([, a], [, b]) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      const aValue = a.total[sortField];
+      const bValue = b.total[sortField];
 
       if (sortDirection === "desc") {
         return bValue - aValue;
@@ -94,42 +112,66 @@ const ActiveApePositions = () => {
           {isLoading ? (
             <Loader2 className="mx-auto mt-8 animate-spin" />
           ) : sortedData.length > 0 ? (
-            sortedData.map(([address, { pnlUsd, pnlUsdPercentage }], index) => (
-              <div
-                className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5"
-                key={address}
-              >
-                <div className={cn(cellStyling, "col-span-1")}>{index + 1}</div>
-                <div
-                  className={cn(cellStyling, "pointer-events-none col-span-4")}
+            <Accordion type="single" collapsible className="w-full">
+              {sortedData.map(([address, { total, positions }], index) => (
+                <AccordionItem
+                  value={"item-" + index}
+                  key={address}
+                  className="border-collapse border-t-[1px] border-foreground/4 last:border-b-[1px]"
                 >
-                  <div className="pointer-events-auto max-lg:hidden">
-                    <AddressExplorerLink
-                      address={address}
-                      fontSize={14}
-                      shortenLength={0}
+                  <AccordionTrigger>
+                    <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
+                      <div className={cn(cellStyling, "col-span-1")}>
+                        {index + 1}
+                      </div>
+                      <div
+                        className={cn(
+                          cellStyling,
+                          "pointer-events-none col-span-4",
+                        )}
+                      >
+                        <div className="pointer-events-auto max-lg:hidden">
+                          <AddressExplorerLink
+                            address={address}
+                            fontSize={14}
+                            shortenLength={0}
+                          />
+                        </div>
+                        <div className="pointer-events-auto lg:hidden">
+                          <AddressExplorerLink
+                            address={address}
+                            fontSize={14}
+                          />
+                        </div>
+                      </div>
+                      <div className={cellStyling}>
+                        <DisplayFormattedNumber
+                          num={formatNumber(total.pnlUsd)}
+                        />{" "}
+                        USD
+                      </div>
+                      <div className={cellStyling}>
+                        <DisplayFormattedNumber
+                          num={formatNumber(total.pnlUsdPercentage)}
+                        />
+                        %
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent asChild>
+                    <ExpandableActivePositions
+                      positions={positions}
+                      vaults={vaults}
                     />
-                  </div>
-                  <div className="pointer-events-auto lg:hidden">
-                    <AddressExplorerLink address={address} fontSize={14} />
-                  </div>
-                </div>
-                <div className={cellStyling}>
-                  <DisplayFormattedNumber num={formatNumber(pnlUsd)} /> USD
-                </div>
-                <div className={cellStyling}>
-                  <DisplayFormattedNumber
-                    num={formatNumber(pnlUsdPercentage)}
-                  />
-                  %
-                </div>
-              </div>
-            ))
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           ) : (
             <></>
           )}
         </div>
-      </div>{" "}
+      </div>
     </Card>
   );
 };

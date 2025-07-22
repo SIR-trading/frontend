@@ -177,7 +177,19 @@ export type TClosedApePositions = Record<
 export type TCurrentApePositions = Record<
   string,
   {
-    pnlUsd: number;
-    pnlUsdPercentage: number;
+    total: {
+      pnlUsd: number;
+      pnlUsdPercentage: number;
+    };
+    positions: {
+      vaultId: `0x${string}`;
+      apeBalance: string;
+      collateralToken: string;
+      pnlUsd: number;
+      pnlUsdPercentage: number;
+      leverageTier: number;
+      netCollateralPosition: number;
+      dollarTotal: number;
+    }[];
   }
 >;

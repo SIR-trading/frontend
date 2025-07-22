@@ -114,7 +114,20 @@ export const leaderboardRouter = createTRPCRouter({
     // Process positions with optimized calculations
     const userPositionsMap = new Map<
       string,
-      { totalNet: number; dollarTotal: number }
+      {
+        totalNet: number;
+        dollarTotal: number;
+        positions: {
+          vaultId: `0x${string}`;
+          apeBalance: string;
+          collateralToken: string;
+          pnlUsd: number;
+          pnlUsdPercentage: number;
+          leverageTier: number;
+          netCollateralPosition: number;
+          dollarTotal: number;
+        }[];
+      }
     >();
 
     apePositions.forEach(
@@ -124,9 +137,9 @@ export const leaderboardRouter = createTRPCRouter({
           user,
           collateralToken,
           dollarTotal,
-          collateralTotal,
           apeDecimals,
           leverageTier,
+          vaultId,
         },
         index,
       ) => {
@@ -157,47 +170,43 @@ export const leaderboardRouter = createTRPCRouter({
         const pnlPercentage =
           dollarTotalUsd > 0 ? (pnlUsd / dollarTotalUsd) * 100 : 0;
 
-        console.log({
-          user,
-          vaultId: vaultIds[index],
-          apeBalance: formatUnits(BigInt(apeBalance), apeDecimals),
-          collateralApeVault: formatUnits(collateralApeVault, apeDecimals),
-          collateralPosition: formatUnits(collateralPosition, apeDecimals),
-          netCollateralPosition: formatUnits(
-            netCollateralPosition,
-            apeDecimals,
-          ),
-          netCollateralPositionUsd,
-          dollarTotalUsd,
-          pnlUsd,
-          pnlPercentage,
-          totalSupply: formatUnits(totalSupply, apeDecimals),
-          collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
-          leverageMultiplier,
-          fBase,
-          leverageTier,
-          apeDecimals,
-        });
-
-        // Accumulate user positions directly
+        // Accumulate user positions with individual position details
         const userAddress = getAddress(user);
         const current = userPositionsMap.get(userAddress) ?? {
           totalNet: 0,
           dollarTotal: 0,
+          positions: [],
         };
+
+        // Add individual position details
+        const positionDetail = {
+          vaultId,
+          apeBalance: formatUnits(BigInt(apeBalance), apeDecimals),
+          collateralToken,
+          pnlUsd,
+          pnlUsdPercentage: pnlPercentage,
+          leverageTier,
+          netCollateralPosition: netCollateralPositionUsd,
+          dollarTotal: dollarTotalUsd,
+        };
+
         userPositionsMap.set(userAddress, {
           totalNet: current.totalNet + netCollateralPositionUsd,
           dollarTotal: current.dollarTotal + dollarTotalUsd,
+          positions: [...current.positions, positionDetail],
         });
       },
     );
 
     // Convert to final format
     const result: TCurrentApePositions = {};
-    userPositionsMap.forEach(({ totalNet, dollarTotal }, user) => {
+    userPositionsMap.forEach(({ totalNet, dollarTotal, positions }, user) => {
       result[user] = {
-        pnlUsd: calculatePnl(totalNet, dollarTotal),
-        pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
+        total: {
+          pnlUsd: calculatePnl(totalNet, dollarTotal),
+          pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
+        },
+        positions,
       };
     });
 
