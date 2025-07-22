@@ -21,6 +21,7 @@ const inter = Inter({
 
 // console.log(Inter, "INTER");
 export const metadata = {
+  metadataBase: new URL('https://app.sir.trading'), // Add your deployed URL here
   title: "SIR",
   description:
     "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
@@ -28,14 +29,21 @@ export const metadata = {
   openGraph: {
     title: "SIR - Pay once, keep the upside.",
     description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
-    images: ["/social-media-preview.svg", "/social-media-preview.png"], // Custom social image first, then fallbacks
+    images: [
+      {
+        url: "/social-media-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "SIR - Pay once, keep the upside.",
+      },
+    ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "SIR - Pay once, keep the upside.",
     description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
-    images: ["/social-media-preview.svg", "/social-media-preview.png"], // Custom social image first, then fallbacks
+    images: ["/social-media-preview.png"],
   },
 };
 
