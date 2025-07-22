@@ -48,7 +48,7 @@ const ExpandableActivePositions = ({
       <div className="flex bg-primary/10 pl-2 text-left text-xs font-medium text-foreground/70 md:pl-6 dark:bg-primary">
         <div className={cn(cellStyling, "flex-none")}>Token</div>
         <div className={cn(cellStyling)}>Collateral</div>
-        <div className={cn(cellStyling)}>APE Balance</div>
+        <div className={cn(cellStyling)}>Deposited [USD]</div>
         <div className={cn(cellStyling)}>Net Position [USD]</div>
         <div className={cn(cellStyling)}>Current PnL [USD]</div>
         <div className={cn(cellStyling)}>Current % PnL</div>
@@ -69,8 +69,9 @@ const ExpandableActivePositions = ({
               </div>
               <div className={cn(cellStyling)}>
                 <DisplayFormattedNumber
-                  num={formatNumber(+position.apeBalance)}
-                />
+                  num={formatNumber(+position.dollarTotal)}
+                />{" "}
+                USD
               </div>
               <div className={cn(cellStyling)}>
                 <DisplayFormattedNumber
