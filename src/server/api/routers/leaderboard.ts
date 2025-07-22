@@ -10,7 +10,7 @@ import {
   getCurrentApePositions,
 } from "@/server/queries/leaderboard";
 import groupBy from "lodash.groupby";
-import { formatEther, formatUnits, fromHex, getAddress } from "viem";
+import { formatUnits, fromHex, getAddress } from "viem";
 
 const calculatePnl = (withdrawn: number, deposited: number) =>
   withdrawn - deposited;
@@ -111,7 +111,14 @@ export const leaderboardRouter = createTRPCRouter({
 
     apePositions.forEach(
       (
-        { apeBalance, leverageTier, user, collateralToken, dollarTotal },
+        {
+          apeBalance,
+          leverageTier,
+          user,
+          collateralToken,
+          dollarTotal,
+          apeDecimals,
+        },
         index,
       ) => {
         const totalSupply = BigInt(apeTotalSupply[index]?.result ?? 0n);
@@ -130,7 +137,7 @@ export const leaderboardRouter = createTRPCRouter({
 
         const dollarValue = prices[collateralToken] ?? "0";
         const netCollateralPositionUsd =
-          +formatEther(netCollateralPosition) * +dollarValue;
+          +formatUnits(netCollateralPosition, apeDecimals) * +dollarValue;
 
         // Parse dollar total (assuming it's in wei format like other USD amounts)
         const dollarTotalUsd = +formatUnits(BigInt(dollarTotal), 6);
