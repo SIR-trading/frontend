@@ -174,6 +174,7 @@ export const leaderboardRouter = createTRPCRouter({
           leverageMultiplier,
           fBase,
           leverageTier,
+          apeDecimals,
         });
 
         // Accumulate user positions directly

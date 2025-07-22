@@ -35,6 +35,7 @@ const currentApePositionsQuery = gql`
     apeBalance: balance
     apeAddress: ape
     leverageTier
+    apeDecimals: decimals
     collateralToken
   }
   query CurrentApePositionsQuery {
