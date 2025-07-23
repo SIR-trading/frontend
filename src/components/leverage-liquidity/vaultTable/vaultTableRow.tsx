@@ -24,18 +24,21 @@ import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
-import { api } from "@/trpc/react";
 
 export function VaultTableRow({
   pool,
   isApe,
   badgeVariant: _badgeVariant,
   number: _number,
+  apyData,
+  isApyLoading,
 }: {
   badgeVariant: VariantProps<typeof badgeVariants>;
   number: string;
   pool: TVault;
   isApe: boolean;
+  apyData?: { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number };
+  isApyLoading?: boolean;
 }) {
   const fee = calculateApeVaultFee(pool.leverageTier) * 100;
   
@@ -51,18 +54,18 @@ export function VaultTableRow({
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
   
-  // Query APY data for this vault (only if !isApe, i.e., on Liquidity page)
-  const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
-    { vaultId: pool.vaultId },
-    {
-      enabled: !isApe, // Only fetch if we need to show APY (Liquidity page)
-      refetchOnMount: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }
-  );
+  // Remove individual APY query since we get it from props now
+  // const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
+  //   { vaultId: pool.vaultId },
+  //   {
+  //     enabled: !isApe, // Only fetch if we need to show APY (Liquidity page)
+  //     refetchOnMount: false,
+  //     staleTime: 5 * 60 * 1000, // 5 minutes
+  //   }
+  // );
   
   const APY = useMemo(() => {
-    if (isApe || isApyLoading || !apyData) return 0;
+    if (isApe || (isApyLoading ?? false) || !apyData) return 0;
     return apyData.apy;
   }, [apyData, isApyLoading, isApe]);
   // // Add a query to retrieve collateral data

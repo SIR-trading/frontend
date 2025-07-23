@@ -29,6 +29,25 @@ const ZVaultFilters = z.object({
   filterCollateralToken: z.string().optional(),
 });
 
+// Cache for SIR price to avoid repeated Uniswap calls (5 minute cache)
+let sirPriceCache: { price: number; timestamp: number } | null = null;
+const SIR_PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Get cached SIR price or fetch from Uniswap if cache is expired
+ */
+async function getCachedSirPrice(): Promise<number> {
+  const now = Date.now();
+  
+  if (sirPriceCache && (now - sirPriceCache.timestamp) < SIR_PRICE_CACHE_DURATION) {
+    return sirPriceCache.price;
+  }
+  
+  const price = await getSirPriceInWeth();
+  sirPriceCache = { price, timestamp: now };
+  return price;
+}
+
 /**
  * Calculate the APY from SIR token rewards for a specific vault
  */
@@ -56,8 +75,8 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
     
-    // Get SIR price in WETH from Uniswap
-    const sirPriceInWeth = await getSirPriceInWeth();
+    // Get SIR price in WETH from Uniswap (cached)
+    const sirPriceInWeth = await getCachedSirPrice();
     console.log("SIR price in WETH:", sirPriceInWeth);
     
     if (sirPriceInWeth === 0) {
@@ -206,6 +225,147 @@ async function convertWethPriceToCollateral(
     return 0;
   }
 }
+/**
+ * Batch fetch token prices from Alchemy to avoid redundant API calls
+ */
+async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<Map<string, number>> {
+  const priceMap = new Map<string, number>();
+  
+  if (collateralTokens.length === 0) {
+    return priceMap;
+  }
+  
+  try {
+    // Add WETH to the list for price conversion
+    const tokensToFetch = [WethContract.address, ...collateralTokens];
+    
+    const response = await fetch(
+      `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          addresses: tokensToFetch.map(addr => ({ network: "eth-mainnet", address: addr })),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Alchemy API error: ${response.status}`);
+    }
+
+    const data = await response.json() as {
+      data: Array<{
+        address: string;
+        prices: Array<{ value: string; currency: string }>;
+      }>;
+    };
+
+    // Store USD prices for all tokens
+    data.data.forEach(tokenData => {
+      if (tokenData.prices[0]?.value) {
+        priceMap.set(tokenData.address.toLowerCase(), parseFloat(tokenData.prices[0].value));
+      }
+    });
+
+    return priceMap;
+  } catch (error) {
+    console.error("Error batch fetching token prices:", error);
+    return priceMap;
+  }
+}
+
+/**
+ * Calculate SIR rewards APY using cached prices to avoid redundant API calls
+ */
+async function calculateSirRewardsApyWithCachedPrices(
+  vault: VaultWithCollateral,
+  sirPriceInWeth: number,
+  tokenPrices: Map<string, number>
+): Promise<number> {
+  try {
+    if (!vault?.rate || parseFloat(vault.rate) === 0) {
+      return 0; // No SIR rewards for this vault
+    }
+
+    // Convert rate from string to float (rate is already per second, scaled by 10^12)
+    const ratePerSecond = parseFloat(vault.rate) / 1e12;
+    
+    // Convert to annual rate (seconds in a year = 365 * 24 * 60 * 60)
+    const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
+    const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
+    
+    if (sirPriceInWeth === 0) {
+      return 0;
+    }
+
+    // Convert SIR price to vault's collateral token using cached prices
+    const sirPriceInCollateral = convertWethPriceToCollateralCached(
+      sirPriceInWeth,
+      vault.collateralToken as TAddressString,
+      tokenPrices
+    );
+
+    if (sirPriceInCollateral === 0) {
+      return 0;
+    }
+
+    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
+    const vaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
+    
+    if (vaultCollateral === 0) {
+      return 0; // No collateral, can't calculate APY
+    }
+
+    // Calculate annual SIR rewards value in collateral token
+    const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
+    
+    // Calculate APY as percentage: (annual rewards value / collateral) * 100
+    const apy = (annualRewardsValue / vaultCollateral) * 100;
+    
+    return apy;
+  } catch (error) {
+    console.error("Error calculating SIR rewards APY with cached prices:", error);
+    return 0;
+  }
+}
+
+/**
+ * Convert WETH price to collateral token price using cached price data
+ */
+function convertWethPriceToCollateralCached(
+  wethPrice: number,
+  collateralTokenAddress: TAddressString,
+  tokenPrices: Map<string, number>
+): number {
+  try {
+    // If collateral is WETH, no conversion needed
+    if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
+      return wethPrice;
+    }
+
+    const wethUsdPrice = tokenPrices.get(WethContract.address.toLowerCase());
+    const collateralUsdPrice = tokenPrices.get(collateralTokenAddress.toLowerCase());
+
+    if (!wethUsdPrice || !collateralUsdPrice || collateralUsdPrice === 0) {
+      console.warn(`Missing price data for ${collateralTokenAddress}`);
+      return 0;
+    }
+
+    // Convert: SIR -> WETH -> USD -> Collateral
+    const sirUsdPrice = wethPrice * wethUsdPrice;
+    const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
+
+    return sirCollateralPrice;
+  } catch (error) {
+    console.error("Error converting WETH price to collateral with cached data:", error);
+    return 0;
+  }
+}
+
 export const vaultRouter = createTRPCRouter({
   getVaults: publicProcedure
     .input(
@@ -536,6 +696,102 @@ export const vaultRouter = createTRPCRouter({
           sirRewardsApy: 0,
           feesCount: 0,
         };
+      }
+    }),
+
+  // Optimized endpoint to get APY for multiple vaults with shared price data
+  getVaultsApy: publicProcedure
+    .input(
+      z.object({
+        vaultIds: z.array(z.string()),
+      })
+    )
+    .query(async ({ input }) => {
+      const { vaultIds } = input;
+      
+      if (vaultIds.length === 0) {
+        return {};
+      }
+      
+      // Calculate timestamp for 1 month ago
+      const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+      
+      try {
+        // Fetch all vault data once
+        const vaults = await executeVaultsQuery({});
+        const vaultMap = new Map(vaults.vaults.map(v => [v.vaultId, v as VaultWithCollateral]));
+        
+        // Get SIR price in WETH once (shared across all vaults, cached)
+        const sirPriceInWeth = await getCachedSirPrice();
+        
+        if (sirPriceInWeth === 0) {
+          console.warn("Could not fetch SIR price from Uniswap");
+          // Return zero APY for all vaults
+          return Object.fromEntries(
+            vaultIds.map(id => [id, { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 }])
+          );
+        }
+        
+        // Get unique collateral tokens to batch price conversions
+        const uniqueCollateralTokens = new Set(
+          vaultIds.map(id => vaultMap.get(id)?.collateralToken).filter(Boolean)
+        );
+        
+        // Batch fetch all token prices from Alchemy
+        const tokenPrices = await batchGetTokenPrices([...uniqueCollateralTokens] as TAddressString[]);
+        
+        // Process each vault
+        const results: Record<string, { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number }> = {};
+        
+        await Promise.all(
+          vaultIds.map(async (vaultId) => {
+            try {
+              const vault = vaultMap.get(vaultId);
+              if (!vault) {
+                results[vaultId] = { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 };
+                return;
+              }
+              
+              // Get fees APY
+              const feesData = await executeGetVaultFees({
+                vaultId,
+                timestampThreshold: oneMonthAgo.toString(),
+              });
+
+              const totalLpApy = feesData.fees.reduce((prod, fee) => {
+                return prod * (1 + parseFloat(fee.lpApy));
+              }, 1);
+              
+              const feesApy = (totalLpApy ** (365 / 30) - 1) * 100;
+              
+              // Calculate SIR rewards APY using cached prices
+              const sirRewardsApy = await calculateSirRewardsApyWithCachedPrices(
+                vault,
+                sirPriceInWeth,
+                tokenPrices
+              );
+              
+              const totalApy = feesApy + sirRewardsApy;
+              
+              results[vaultId] = {
+                apy: totalApy,
+                feesApy: feesApy,
+                sirRewardsApy: sirRewardsApy,
+                feesCount: feesData.fees.length,
+              };
+            } catch (error) {
+              console.error(`Error calculating APY for vault ${vaultId}:`, error);
+              results[vaultId] = { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 };
+            }
+          })
+        );
+        
+        return results;
+      } catch (error) {
+        console.error("Error fetching vaults APY:", error);
+        return Object.fromEntries(
+          vaultIds.map(id => [id, { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 }])
+        );
       }
     }),
 });
