@@ -57,7 +57,6 @@ export default function SearchTokensModal({
     tokenAddress: manualAddress,
   });
   const { primary: manualTokenLogo, fallback: manualTokenFallback } = useTokenLogo(address as Address | undefined, "1");
-  console.log({ name, symbol, address });
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       <DialogContent
@@ -211,17 +210,6 @@ function TokenItem({
   selectToken: (token: TToken) => void;
 }) {
   const { primary, fallback } = useTokenLogo(token.address as Address, "1");
-  
-  // Debug logging for Rekt token
-  if (token.symbol === "REKT") {
-    console.log("REKT token debug in TokenItem:", {
-      address: token.address,
-      primary,
-      fallback,
-      logoURI: token.logoURI,
-      tokenObject: token
-    });
-  }
   
   return (
     <button

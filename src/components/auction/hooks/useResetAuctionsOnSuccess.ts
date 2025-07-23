@@ -19,15 +19,6 @@ export default function useResetAuctionsOnSuccess({
 }: Props) {
   const utils = api.useUtils();
 
-  console.log({
-    here: "useResetAuctionsOnSuccess",
-    isConfirmed,
-    isConfirming,
-    txBlock,
-    actions,
-    auctionType,
-  });
-
   useEffect(() => {
     if (isConfirmed) {
       actions();
