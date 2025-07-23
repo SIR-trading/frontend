@@ -223,7 +223,7 @@ export function VaultTableRow({
                       </div>
                       <div className="flex justify-between">
                         <span>SIR Rewards:</span>
-                        <span>{formatNumber(apyData.sirRewardsApy || 0, 2)}%</span>
+                        <span className="ml-2">{formatNumber(apyData.sirRewardsApy || 0, 2)}%</span>
                       </div>
                       <div className="border-t border-foreground/20 pt-1 flex justify-between font-semibold">
                         <span>Total APY:</span>
