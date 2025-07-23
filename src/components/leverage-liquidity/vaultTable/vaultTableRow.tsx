@@ -204,12 +204,45 @@ export function VaultTableRow({
         </span>
       </td>
       <td className="hidden items-center md:flex">
-        <h4 className="font-normal text-foreground/80">
-          {!isApe 
-            ? (isApyLoading ? "..." : formatNumber(APY, 2))
-            : formatNumber(POL, 1)
-          }%
-        </h4>
+        {!isApe ? (
+          <HoverCard openDelay={0} closeDelay={20}>
+            <HoverCardTrigger asChild>
+              <h4 className="font-normal text-foreground/80 cursor-help">
+                {isApyLoading ? "..." : formatNumber(APY, 2)}%
+              </h4>
+            </HoverCardTrigger>
+            <HoverCardContent side="top" alignOffset={10}>
+              <div className="mb-2 max-w-[250px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
+                <div className="space-y-1">
+                  <div className="font-semibold">APY Breakdown:</div>
+                  {apyData && (
+                    <>
+                      <div className="flex justify-between">
+                        <span>LP Fees:</span>
+                        <span>{formatNumber(apyData.feesApy || 0, 2)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>SIR Rewards:</span>
+                        <span>{formatNumber(apyData.sirRewardsApy || 0, 2)}%</span>
+                      </div>
+                      <div className="border-t border-foreground/20 pt-1 flex justify-between font-semibold">
+                        <span>Total APY:</span>
+                        <span>{formatNumber(apyData.apy || 0, 2)}%</span>
+                      </div>
+                    </>
+                  )}
+                  {!apyData && !isApyLoading && (
+                    <div className="text-foreground/60">No data available</div>
+                  )}
+                </div>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        ) : (
+          <h4 className="font-normal text-foreground/80">
+            {formatNumber(POL, 1)}%
+          </h4>
+        )}
       </td>
       <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
         {roundDown(fee, 2)}%{" "}

@@ -4,20 +4,198 @@ import { getVaultsForTable } from "@/lib/getVaults";
 import { ZAddress } from "@/lib/schemas";
 import type { TAddressString } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
+import { rpcViemClient } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
 import { executeGetVaultFees } from "@/server/queries/fees";
 import type { Address } from "viem";
-import { erc20Abi } from "viem";
+import { erc20Abi, formatUnits } from "viem";
 import { parseUnits } from "viem";
 import { z } from "zod";
 import { VaultContract } from "@/contracts/vault";
+import { UniswapQuoterV2 } from "@/contracts/uniswap-quoterv2";
+import { SirContract } from "@/contracts/sir";
+import { WethContract } from "@/contracts/weth";
 const ZVaultFilters = z.object({
   filterLeverage: z.string().optional(),
   filterDebtToken: z.string().optional(),
   filterCollateralToken: z.string().optional(),
 });
+
+/**
+ * Calculate the APY from SIR token rewards for a specific vault
+ */
+async function calculateSirRewardsApy(vaultId: string): Promise<number> {
+  try {
+    // Get vault information to get the rate and collateral token
+    const vaults = await executeVaultsQuery({});
+    const vault = vaults.vaults.find(v => v.vaultId === vaultId);
+    
+    if (!vault?.rate || parseFloat(vault.rate) === 0) {
+      return 0; // No SIR rewards for this vault
+    }
+
+    // Convert rate from string to float (rate is already per second, scaled by 10^12)
+    const ratePerSecond = parseFloat(vault.rate) / 1e12;
+    // Log the rate for debugging  
+    console.log("Rate per second:", ratePerSecond);
+
+    // Log rate per day for debugging
+    const SECONDS_IN_DAY = 24 * 60 * 60;
+    const dailyRate = ratePerSecond * SECONDS_IN_DAY;
+    console.log("Rate per day:", dailyRate);
+    
+    // Convert to annual rate (seconds in a year = 365 * 24 * 60 * 60)
+    const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
+    const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
+    
+    // Get SIR price in WETH from Uniswap
+    const sirPriceInWeth = await getSirPriceInWeth();
+    console.log("SIR price in WETH:", sirPriceInWeth);
+    
+    if (sirPriceInWeth === 0) {
+      console.warn("Could not fetch SIR price from Uniswap");
+      return 0;
+    }
+
+    // Convert SIR price to vault's collateral token
+    const sirPriceInCollateral = await convertWethPriceToCollateral(
+      sirPriceInWeth,
+      vault.collateralToken as TAddressString
+    );
+
+    if (sirPriceInCollateral === 0) {
+      console.warn("Could not convert SIR price to collateral token");
+      return 0;
+    }
+
+    // Get vault TVL in collateral token
+    const vaultTvl = parseFloat(vault.totalValue);
+    
+    if (vaultTvl === 0) {
+      return 0; // No TVL, can't calculate APY
+    }
+
+    // Calculate annual SIR rewards value in collateral token
+    const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
+    
+    // Calculate APY as percentage: (annual rewards value / TVL) * 100
+    const apy = (annualRewardsValue / vaultTvl) * 100;
+    
+    return apy;
+  } catch (error) {
+    console.error("Error calculating SIR rewards APY:", error);
+    return 0;
+  }
+}
+
+/**
+ * Get SIR price in WETH from Uniswap V3
+ */
+async function getSirPriceInWeth(): Promise<number> {
+  try {
+    // Quote 1 SIR in WETH using Uniswap V3 Quoter
+    const result = await rpcViemClient.simulateContract({
+      ...UniswapQuoterV2,
+      functionName: "quoteExactInputSingle",
+      args: [
+        {
+          tokenIn: SirContract.address,
+          tokenOut: WethContract.address,
+          fee: 10000,
+          amountIn: parseUnits("1", 12), // 1 SIR (12 decimals)
+          sqrtPriceLimitX96: 0n,
+        },
+      ],
+    });
+
+    // Result is [amountOut, sqrtPriceX96, initializedTicksCrossed, gasEstimate]
+    const [amountOut] = result.result;
+    
+    // Convert to number (WETH has 18 decimals)
+    return Number(formatUnits(amountOut, 18));
+  } catch (error) {
+    console.error("Error fetching SIR price from Uniswap:", error);
+    return 0;
+  }
+}
+
+/**
+ * Convert WETH price to collateral token price
+ */
+async function convertWethPriceToCollateral(
+  wethPrice: number,
+  collateralTokenAddress: TAddressString
+): Promise<number> {
+  try {
+    // If collateral is WETH, no conversion needed
+    if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
+      return wethPrice;
+    }
+
+    // Get WETH/Collateral price from Alchemy
+    const response = await fetch(
+      `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+      {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          addresses: [
+            { network: "eth-mainnet", address: WethContract.address },
+            { network: "eth-mainnet", address: collateralTokenAddress },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Alchemy API error: ${response.status}`);
+    }
+
+    const data = await response.json() as {
+      data: Array<{
+        address: string;
+        prices: Array<{ value: string; currency: string }>;
+      }>;
+    };
+
+    const wethData = data.data.find(
+      (token) => token.address.toLowerCase() === WethContract.address.toLowerCase()
+    );
+    const collateralData = data.data.find(
+      (token) => token.address.toLowerCase() === collateralTokenAddress.toLowerCase()
+    );
+
+    if (!wethData?.prices[0]?.value || !collateralData?.prices[0]?.value) {
+      throw new Error("Price data not available");
+    }
+
+    const wethUsdPrice = parseFloat(wethData.prices[0].value);
+    const collateralUsdPrice = parseFloat(collateralData.prices[0].value);
+
+    if (collateralUsdPrice === 0) {
+      throw new Error("Collateral price is zero");
+    }
+
+    console.log(`Eth USD price:`, wethUsdPrice);
+    console.log(`Collateral USD price for ${collateralTokenAddress}:`, collateralUsdPrice);
+
+    // Convert: SIR -> WETH -> USD -> Collateral
+    const sirUsdPrice = wethPrice * wethUsdPrice;
+    const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
+
+    console.log(`SIR price in ${collateralTokenAddress}:`, sirCollateralPrice);
+
+    return sirCollateralPrice;
+  } catch (error) {
+    console.error("Error converting WETH price to collateral:", error);
+    return 0;
+  }
+}
 export const vaultRouter = createTRPCRouter({
   getVaults: publicProcedure
     .input(
@@ -314,6 +492,7 @@ export const vaultRouter = createTRPCRouter({
       const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
       
       try {
+        // Get fees APY
         const feesData = await executeGetVaultFees({
           vaultId,
           timestampThreshold: oneMonthAgo.toString(),
@@ -325,16 +504,26 @@ export const vaultRouter = createTRPCRouter({
         }, 1);
         
         // Convert to annualized percentage
-        const annualizedApy = (totalLpApy ** (365 / 30) - 1) * 100;
+        const feesApy = (totalLpApy ** (365 / 30) - 1) * 100;
+
+        // Get SIR rewards APY
+        const sirRewardsApy = await calculateSirRewardsApy(vaultId);
+
+        // Total APY is the sum of fees APY and SIR rewards APY
+        const totalApy = feesApy + sirRewardsApy;
 
         return {
-          apy: annualizedApy,
+          apy: totalApy,
+          feesApy: feesApy,
+          sirRewardsApy: sirRewardsApy,
           feesCount: feesData.fees.length,
         };
       } catch (error) {
         console.error("Error fetching vault APY:", error);
         return {
           apy: 0,
+          feesApy: 0,
+          sirRewardsApy: 0,
           feesCount: 0,
         };
       }

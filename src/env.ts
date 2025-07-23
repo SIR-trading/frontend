@@ -5,11 +5,8 @@ export const env = createEnv({
    * Specify your server-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars.
    */
-
-  // COINGECKO_API=CG-5PHeXo67HYraaF49yhMbZZ6f
   server: {
     SECRET_KEY: z.string(),
-    COINGECKO_API: z.string(),
     RPC_URL: z.string(),
     SUBGRAPH_URL: z.string(),
     KV_REST_API_READ_ONLY_TOKEN: z.string(),
@@ -42,7 +39,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     SECRET_KEY: process.env.SECRET_KEY,
-    COINGECKO_API: process.env.COINGECKO_API,
     ALCHEMY_BEARER: process.env.ALCHEMY_BEARER,
     NEXT_PUBLIC_ORACLE_ADDRESS: process.env.NEXT_PUBLIC_ORACLE_ADDRESS,
     NEXT_PUBLIC_BASE_FEE: process.env.NEXT_PUBLIC_BASE_FEE,

@@ -80,7 +80,7 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
         <th className="hidden items-center gap-x-1 font-medium md:flex">
           <span>APY</span>
           <ToolTip iconSize={12}>
-            Annualized Percentage Yield based on the last 30 days of LP fees.
+            Total Annualized Percentage Yield including LP fees from the last 30 days and SIR token rewards.
           </ToolTip>
         </th>
       ) : (
