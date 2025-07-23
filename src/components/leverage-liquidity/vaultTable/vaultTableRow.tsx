@@ -258,7 +258,7 @@ export function VaultTableRow({
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
             >
-              <Badge {...variant} className="text-nowrap text-[10px]">
+              <Badge variant={variant.variant} className="text-nowrap text-[10px]">
                 {`^${getLeverageRatio(pool.leverageTier)}${showPercent() ? " (^" + formatNumber(tvlPercent, 2) + ")" : ""}`}
               </Badge>
             </motion.div>

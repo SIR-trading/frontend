@@ -124,7 +124,7 @@ export const userRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       if (!input.address) {
-        return;
+        return { apePositions: [] };
       }
       const result = await executeGetUserApePositions({
         user: input.address as TAddressString,
@@ -170,7 +170,7 @@ export const userRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       if (!input.address) {
-        return;
+        return { teaPositions: [] };
       }
       const result = await executeGetUserTeaPositions({
         user: input.address as TAddressString,

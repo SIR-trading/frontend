@@ -155,14 +155,14 @@ function LeaderboardTable<T, P>({
                             "pointer-events-none col-span-4",
                           )}
                         >
-                          <div className="pointer-events-auto max-lg:hidden">
+                          <div className="pointer-events-auto max-lg:hidden" onClick={(e) => e.stopPropagation()}>
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
                               shortenLength={0}
                             />
                           </div>
-                          <div className="pointer-events-auto lg:hidden">
+                          <div className="pointer-events-auto lg:hidden" onClick={(e) => e.stopPropagation()}>
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
