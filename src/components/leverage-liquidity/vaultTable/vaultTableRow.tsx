@@ -24,10 +24,13 @@ import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
+import { api } from "@/trpc/react";
 
 export function VaultTableRow({
   pool,
   isApe,
+  badgeVariant: _badgeVariant,
+  number: _number,
 }: {
   badgeVariant: VariantProps<typeof badgeVariants>;
   number: string;
@@ -35,6 +38,8 @@ export function VaultTableRow({
   isApe: boolean;
 }) {
   const fee = calculateApeVaultFee(pool.leverageTier) * 100;
+  
+  // Calculate POL (Protocol Owned Liquidity)
   const POL = useMemo(() => {
     const totalLocked = parseUnits(pool.totalTea, 0);
     const lockedLiquidity = parseUnits(pool.lockedLiquidity, 0);
@@ -45,6 +50,21 @@ export function VaultTableRow({
       return 0;
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
+  
+  // Query APY data for this vault (only if !isApe, i.e., on Liquidity page)
+  const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
+    { vaultId: pool.vaultId },
+    {
+      enabled: !isApe, // Only fetch if we need to show APY (Liquidity page)
+      refetchOnMount: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
+  
+  const APY = useMemo(() => {
+    if (isApe || isApyLoading || !apyData) return 0;
+    return apyData.apy;
+  }, [apyData, isApyLoading, isApe]);
   // // Add a query to retrieve collateral data
   // // Hydrate with server data
   // const { data: reservesData } = api.vault.getReserve.useQuery(
@@ -185,7 +205,10 @@ export function VaultTableRow({
       </td>
       <td className="hidden items-center md:flex">
         <h4 className="font-normal text-foreground/80">
-          {formatNumber(POL, 1)}%
+          {!isApe 
+            ? (isApyLoading ? "..." : formatNumber(APY, 2))
+            : formatNumber(POL, 1)
+          }%
         </h4>
       </td>
       <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">

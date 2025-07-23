@@ -32,7 +32,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
       </caption>
 
       <tbody className="space-y-2">
-        <VaultTableRowHeaders />
+        <VaultTableRowHeaders isApe={isApe} />
 
         <Show
           when={!isFetching && !!vaults}
@@ -70,18 +70,27 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   );
 }
 
-function VaultTableRowHeaders() {
+function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
   return (
     <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
       <th className="font-medium">Id</th>
       <th className="font-medium md:col-span-3">Vault</th>
 
-      <th className="hidden items-center gap-x-1 font-medium md:flex">
-        <span>Pol</span>
-        <ToolTip iconSize={12}>
-          Protocol Owned Liquidity is liquidity that will never be withdrawn.
-        </ToolTip>
-      </th>
+      {!isApe ? (
+        <th className="hidden items-center gap-x-1 font-medium md:flex">
+          <span>APY</span>
+          <ToolTip iconSize={12}>
+            Annualized Percentage Yield based on the last 30 days of LP fees.
+          </ToolTip>
+        </th>
+      ) : (
+        <th className="hidden items-center gap-x-1 font-medium md:flex">
+          <span>Pol</span>
+          <ToolTip iconSize={12}>
+            Protocol Owned Liquidity is liquidity that will never be withdrawn.
+          </ToolTip>
+        </th>
+      )}
       <th className="gap hidden items-center gap-x-1 font-medium md:flex">
         Fees
         <ToolTip iconSize={12}>

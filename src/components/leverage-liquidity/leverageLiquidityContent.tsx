@@ -51,7 +51,9 @@ export default function LeverageLiquidityContent({
                     <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
                       <th className="font-medium">Id</th>
                       <th className="font-medium md:col-span-3">Vault</th>
-                      <th className="hidden items-center gap-x-1 font-medium md:flex">Pol</th>
+                      <th className="hidden items-center gap-x-1 font-medium md:flex">
+                        {!isApe ? "APY" : "Pol"}
+                      </th>
                       <th className="gap hidden items-center gap-x-1 font-medium md:flex">Fees</th>
                       <th className="relative z-10 flex items-center gap-x-1 font-medium">Leverage</th>
                       <th className="relative text-right font-medium md:col-span-2">TVL</th>

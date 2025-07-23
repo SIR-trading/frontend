@@ -7,6 +7,7 @@ import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
+import { executeGetVaultFees } from "@/server/queries/fees";
 import type { Address } from "viem";
 import { erc20Abi } from "viem";
 import { parseUnits } from "viem";
@@ -297,6 +298,45 @@ export const vaultRouter = createTRPCRouter({
           ],
         });
         return [quote, 0n];
+      }
+    }),
+
+  getVaultApy: publicProcedure
+    .input(
+      z.object({
+        vaultId: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { vaultId } = input;
+      
+      // Calculate timestamp for 1 month ago (30 days * 24 hours * 60 minutes * 60 seconds)
+      const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+      
+      try {
+        const feesData = await executeGetVaultFees({
+          vaultId,
+          timestampThreshold: oneMonthAgo.toString(),
+        });
+
+        // Multiply all lpApy values from the past month
+        const totalLpApy = feesData.fees.reduce((prod, fee) => {
+          return prod * (1 + parseFloat(fee.lpApy));
+        }, 1);
+        
+        // Convert to annualized percentage
+        const annualizedApy = (totalLpApy ** (365 / 30) - 1) * 100;
+
+        return {
+          apy: annualizedApy,
+          feesCount: feesData.fees.length,
+        };
+      } catch (error) {
+        console.error("Error fetching vault APY:", error);
+        return {
+          apy: 0,
+          feesCount: 0,
+        };
       }
     }),
 });
