@@ -2,7 +2,7 @@ import { ApeContract } from "@/contracts/ape";
 import { AssistantContract } from "@/contracts/assistant";
 import { getVaultsForTable } from "@/lib/getVaults";
 import { ZAddress } from "@/lib/schemas";
-import type { TAddressString } from "@/lib/types";
+import type { TAddressString, VaultFieldFragment } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { rpcViemClient } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
@@ -17,6 +17,12 @@ import { VaultContract } from "@/contracts/vault";
 import { UniswapQuoterV2 } from "@/contracts/uniswap-quoterv2";
 import { SirContract } from "@/contracts/sir";
 import { WethContract } from "@/contracts/weth";
+
+// Extended vault interface that includes the fields from GraphQL that are missing in VaultFieldFragment
+interface VaultWithCollateral extends VaultFieldFragment {
+  apeCollateral: string;
+  teaCollateral: string;
+}
 const ZVaultFilters = z.object({
   filterLeverage: z.string().optional(),
   filterDebtToken: z.string().optional(),
@@ -30,7 +36,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
   try {
     // Get vault information to get the rate and collateral token
     const vaults = await executeVaultsQuery({});
-    const vault = vaults.vaults.find(v => v.vaultId === vaultId);
+    const vault = vaults.vaults.find(v => v.vaultId === vaultId) as VaultWithCollateral | undefined;
     
     if (!vault?.rate || parseFloat(vault.rate) === 0) {
       return 0; // No SIR rewards for this vault
@@ -70,18 +76,22 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
       return 0;
     }
 
-    // Get vault TVL in collateral token
-    const vaultTvl = parseFloat(vault.totalValue);
+    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
+    const gentlemenCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
     
-    if (vaultTvl === 0) {
-      return 0; // No TVL, can't calculate APY
+    if (gentlemenCollateral === 0) {
+      return 0; // No collateral, can't calculate APY
     }
 
     // Calculate annual SIR rewards value in collateral token
     const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
+
+    // Log the calculated values for debugging
+    console.log(`Vault ${vaultId} - Annual rewards value:`, annualRewardsValue);
+    console.log(`Vault ${vaultId} - TEA Collateral:`, gentlemenCollateral);
     
-    // Calculate APY as percentage: (annual rewards value / TVL) * 100
-    const apy = (annualRewardsValue / vaultTvl) * 100;
+    // Calculate APY as percentage: (annual rewards value / collateral) * 100
+    const apy = (annualRewardsValue / gentlemenCollateral) * 100;
     
     return apy;
   } catch (error) {
