@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from "vitest";
-import { add } from "./index";
+import { add, formatNumber } from "./index";
 import {
   calculateMaxApe,
   getLeverageRatio,
@@ -37,4 +37,15 @@ test("Calculate Maximum Ape", () => {
       taxAmountBigInt: 0n,
     }),
   ).toBe(31003n);
+});
+
+test("Format very small number", () => {
+  const result = formatNumber("0.000000000003", 3);
+  console.log("formatNumber result:", result);
+  expect(typeof result).toBe("object");
+  if (typeof result === "object") {
+    expect(result.type).toBe("small");
+    expect(result.zeroCount).toBe(11);
+    expect(result.sigDigits).toBe("3"); // Should be just "3", not "300"
+  }
 });

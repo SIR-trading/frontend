@@ -127,8 +127,10 @@ export function formatNumber(input: number | string | bigint, significant = 3): 
       const expNum = Math.abs(parseInt(exponent ?? "0"));
       const mantissaNum = parseFloat(mantissa ?? "0");
       zeroCount = expNum - 1;
-      sigDigits = (mantissaNum * Math.pow(10, mantissa?.includes('.') ? mantissa.split('.')[1]?.length ?? 0 : 0))
-        .toFixed(0).padStart(significant, '0').slice(0, significant);
+      
+      // Get the significant digits without padding
+      const mantissaStr = mantissaNum.toString().replace('.', '');
+      sigDigits = mantissaStr.slice(0, significant);
     } else {
       // Regular decimal
       const parts = numStr.split('.');
@@ -142,7 +144,9 @@ export function formatNumber(input: number | string | bigint, significant = 3): 
         }
       }
       
-      sigDigits = decimalPart.slice(zeroCount, zeroCount + significant);
+      // Get only the actual significant digits available, don't pad
+      const remainingDigits = decimalPart.slice(zeroCount);
+      sigDigits = remainingDigits.slice(0, significant);
     }
     
     return {
