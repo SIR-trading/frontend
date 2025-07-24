@@ -244,12 +244,12 @@ export function VaultTableRow({
           </HoverCard>
         ) : (
           <h4 className="font-normal text-foreground/80">
-            <DisplayFormattedNumber num={POL} significant={1} />%
+            <DisplayFormattedNumber num={POL} significant={2} />%
           </h4>
         )}
       </td>
       <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
-        {roundDown(fee, 2)}%{" "}
+        {roundDown(fee, 0)}%{" "}
       </td>
       <td className="relative flex items-center">
         <HoverCard openDelay={0} closeDelay={20}>
