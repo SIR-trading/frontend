@@ -2,7 +2,7 @@ import type { MutableRefObject, SyntheticEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { FormControl } from "../ui/form";
 import { RadioGroupItem } from "../ui/radio-group";
-import { mapLeverage } from "@/lib/utils";
+import { mapLeverage } from "@/lib/utils/index";
 import ToolTip from "../ui/tooltip";
 
 const leverageOptions = [

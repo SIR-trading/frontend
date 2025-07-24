@@ -18,7 +18,6 @@ import { useGetTxTokens } from "./hooks/useGetTxTokens";
 import { X } from "lucide-react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import { useClaimTeaRewards } from "./hooks/useClaimTeaRewards";
-import { formatNumber } from "@/lib/utils";
 import ClaimAndStakeToggle from "./claimAndStakeToggle";
 import { DisplayCollateral } from "./displayCollateral";
 import { TokenInput } from "./tokenInput";
@@ -212,7 +211,8 @@ export default function BurnForm({
                   <div className="space-x-1">
                     <span className="text-lg">
                       <DisplayFormattedNumber
-                        num={formatNumber(formatUnits(reward, 12), 8)}
+                        num={formatUnits(reward, 12)}
+                        significant={8}
                       />
                     </span>
                     <span className="text-[14px] text-foreground/70">SIR</span>

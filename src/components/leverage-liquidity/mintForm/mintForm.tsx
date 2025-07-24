@@ -9,7 +9,7 @@ import VaultParamsInputSelects from "./vaultParamsInputSelects";
 import { useQuoteMint } from "./hooks/useQuoteMint";
 import useSetRootError from "./hooks/useSetRootError";
 import { Card } from "@/components/ui/card";
-import { formatNumber, parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils";
 import Estimations from "./estimations";
 import MintFormSubmit from "./submit";
 import { useFormSuccessReset } from "./hooks/useFormSuccessReset";
@@ -28,6 +28,7 @@ import { useMintFormValidation } from "./hooks/useMintFormValidation";
 import Dropdown from "@/components/shared/dropDown";
 import { useIsWeth } from "./hooks/useIsWeth";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
 import { useFindVault } from "./hooks/useFindVault";
@@ -252,13 +253,25 @@ export default function MintForm({ isApe }: Props) {
               <TransactionModal.StatContainer>
                 <TransactionModal.StatRow
                   title={"Fee Percent"}
-                  value={fee ? fee.toString() + "%" : "0%"}
+                  value={
+                    <span>
+                      <DisplayFormattedNumber
+                        num={fee ? fee.toString() : "0"}
+                      />
+                      <span>%</span>
+                    </span>
+                  }
                 />
                 <TransactionModal.StatRow
                   title="Fee Amount"
-                  value={`${formatNumber(
-                    parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100),
-                  )} ${depositTokenSymbol}`}
+                  value={
+                    <span>
+                      <DisplayFormattedNumber
+                        num={(parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100)).toString()}
+                      />
+                      <span className="ml-1">{depositTokenSymbol ?? ""}</span>
+                    </span>
+                  }
                 />
 
                 <div className="text-gray-400 flex w-full   justify-start text-[14px]">
@@ -388,10 +401,9 @@ export default function MintForm({ isApe }: Props) {
               error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
               isValid={isValid}
-              feeAmount={`${formatNumber(
-                parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100),
-              )} ${depositTokenSymbol}`}
+              feeAmount={(parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100)).toString()}
               feePercent={fee}
+              symbol={depositTokenSymbol}
               deposit={deposit}
             />
           </MintFormSubmit.Root>

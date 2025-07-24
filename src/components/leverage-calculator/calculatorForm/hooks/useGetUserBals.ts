@@ -1,6 +1,6 @@
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import { VaultContract } from "@/contracts/vault";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import { api } from "@/trpc/react";
 import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";

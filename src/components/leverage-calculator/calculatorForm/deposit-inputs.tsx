@@ -6,7 +6,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
 import Show from "@/components/shared/show";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";

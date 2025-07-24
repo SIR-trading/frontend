@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 import {
   Popover,
   PopoverTrigger,

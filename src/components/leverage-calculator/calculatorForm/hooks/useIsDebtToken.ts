@@ -1,5 +1,5 @@
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 

@@ -1,5 +1,3 @@
-import { L_FEE } from "@/data/constants";
-import { formatNumber } from "@/lib/utils";
 import { calculateApeVaultFee, calculateTeaVaultFee } from "@/lib/utils/calculations";
 import { useMemo } from "react";
 
@@ -11,10 +9,10 @@ export default function useGetFee({ levTier, isApe }: Props) {
   const fee = useMemo(() => {
     const lev = parseFloat(levTier);
     if (!isApe) {
-      return formatNumber(calculateTeaVaultFee() * 100, 2);
+      return (calculateTeaVaultFee() * 100).toString();
     }
     if (isFinite(lev)) {
-      return formatNumber(calculateApeVaultFee(lev) * 100, 2);
+      return (calculateApeVaultFee(lev) * 100).toString();
     } else {
       return undefined;
     }

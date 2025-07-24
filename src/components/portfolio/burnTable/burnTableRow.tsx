@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import type { TAddressString } from "@/lib/types";
-import { formatNumber } from "@/lib/utils";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { formatUnits, fromHex } from "viem";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import type { ReactNode } from "react";
 import { TokenImage } from "@/components/shared/TokenImage";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import Show from "@/components/shared/show";
-import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { useTeaAndApePrice } from "./hooks/useTeaAndApePrice";
 
 interface Props {
@@ -100,10 +99,10 @@ export function BurnTableRow({
           <div className="flex items-start  justify-between">
             <span>
               <DisplayFormattedNumber
-                num={formatNumber(isApe ? apeBalance : teaBalance, 3)}
+                num={isApe ? apeBalance : teaBalance}
               />
               <span className="ml-1 italic text-foreground/70">
-                (${formatNumber(positionValue)})
+                ($<DisplayFormattedNumber num={positionValue} />)
               </span>
               <span className="text-gray-400 pl-1 text-[12px]"></span>
             </span>
@@ -120,7 +119,7 @@ export function BurnTableRow({
                   <div>
                     <span>Claim</span>
                     <span className="text-gray-300 pl-1 text-[12px]">
-                      <span>{formatNumber(rewards, 2)}</span>
+                      <span><DisplayFormattedNumber num={rewards} significant={2} /></span>
                       <span className="pl-[2px] ">SIR</span>
                     </span>
                   </div>
@@ -204,7 +203,7 @@ export function BurnTableRowMobile({
                 <span>Claim</span>
                 <span className="text-gray-300 pl-1 text-[12px]">
                   <span>
-                    <DisplayFormattedNumber num={formatNumber(rewards, 2)} />
+                    <DisplayFormattedNumber num={rewards} significant={2} />
                   </span>
                   <span className="pl-[2px] ">SIR</span>
                 </span>

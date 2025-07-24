@@ -1,7 +1,6 @@
 import { FormLabel } from "@/components/ui/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatNumber } from "@/lib/utils";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 
 interface Props {
@@ -17,7 +16,8 @@ const ClaimFeesCheckbox = ({ dividends, value, onChange }: Props) => {
         <span className="font-geist-mono items-center text-sm text-on-bg-subdued">
           Dividends: {""}
           <DisplayFormattedNumber
-            num={dividends ? formatNumber(dividends, 6) : "0"}
+            num={dividends ?? "0"}
+            significant={6}
           />{" "}
           ETH
         </span>

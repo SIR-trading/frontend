@@ -92,7 +92,7 @@ function StatRow({
 }: {
   title: string;
   info?: string;
-  value: string;
+  value: string | React.ReactNode;
 }) {
   return (
     <div className="relative  flex h-[20px] justify-between text-[13px]">
@@ -102,7 +102,11 @@ function StatRow({
         </span>
       </h3>
       <h4>
-        <DisplayFormattedNumber num={value} />
+        {typeof value === 'string' ? (
+          <DisplayFormattedNumber num={value} />
+        ) : (
+          value
+        )}
       </h4>
     </div>
   );

@@ -3,7 +3,8 @@ import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { formatUnits, fromHex } from "viem";
 import type { TBurnForm } from "./burnForm";
-import { formatNumber, inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string): string => {
@@ -79,7 +80,7 @@ export function TokenInput({
 
         <span className="text-gray-300 text-sm italic">
           Balance{" "}
-          {formatNumber(formatUnits(balance ?? 0n, positionDecimals), 8)}
+          <DisplayFormattedNumber num={formatUnits(balance ?? 0n, positionDecimals)} significant={8} />
         </span>
       </div>
     </div>

@@ -1,5 +1,5 @@
 "use client";
-import { formatSmallNumber } from "@/lib/utils";
+import { formatSmallNumber } from "@/lib/utils/index";
 import React, { useMemo } from "react";
 
 export default function Page() {

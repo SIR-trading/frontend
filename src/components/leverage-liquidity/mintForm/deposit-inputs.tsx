@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { BalancePercent } from "@/components/shared/balancePercent";
-import { formatNumber, inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
 import { Switch } from "@/components/ui/switch";
 import { WETH_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
@@ -117,7 +117,7 @@ function Inputs({
           {children}
         </div>
         <h2 className="font-geist-mono pt-1 text-right  text-on-bg-subdued">
-          Balance: <DisplayFormattedNumber num={formatNumber(balance ?? "0")} />
+          Balance: <DisplayFormattedNumber num={balance ?? "0"} />
         </h2>
         <BalancePercent
           settings={<MintFormSettings />}

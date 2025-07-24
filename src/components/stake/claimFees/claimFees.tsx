@@ -10,7 +10,6 @@ import { useEffect } from "react";
 
 import { type SimulateContractReturnType } from "viem";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { formatNumber } from "@/lib/utils";
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import { useState } from "react";
@@ -90,7 +89,8 @@ const ClaimFees = ({
             <div className="flex flex-col justify-between">
               <div className="bg-card h-10 w-40 rounded-md text-[28px] ring-offset-background">
                 <DisplayFormattedNumber
-                  num={formatNumber(claimAmount ?? "0", 3)}
+                  num={claimAmount ?? "0"}
+                  significant={3}
                 />
               </div>
               {/* <div className="pt-2 text-sm italic text-foreground/70">$66.88</div> */}
@@ -111,7 +111,8 @@ const ClaimFees = ({
                 <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
                   Balance:{" "}
                   <DisplayFormattedNumber
-                    num={formatNumber(ethBalance ?? "0", 6)}
+                    num={ethBalance ?? "0"}
+                    significant={6}
                   />
                 </h2>
               </div>

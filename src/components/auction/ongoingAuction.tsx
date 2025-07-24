@@ -13,7 +13,7 @@ import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage"
 import { TokenDisplay } from "@/components/ui/token-display";
 import { AUCTION_DURATION } from "@/components/auction/__constants";
 import Countdown from "react-countdown";
-import { compareAddress } from "@/lib/utils";
+import { compareAddress } from "@/lib/utils/index";
 import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";

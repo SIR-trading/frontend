@@ -14,7 +14,7 @@ import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/tran
 import React from "react";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
-import { compareAddress } from "@/lib/utils";
+import { compareAddress } from "@/lib/utils/index";
 import { WETH_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";

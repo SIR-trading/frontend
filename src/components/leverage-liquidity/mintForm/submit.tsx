@@ -88,6 +88,7 @@ const FeeInfo = ({
   feeAmount,
   feeValue,
   deposit,
+  symbol,
   isValid,
   error,
 }: {
@@ -95,6 +96,7 @@ const FeeInfo = ({
   feePercent: string | undefined;
   deposit: string | undefined;
   feeValue: string | undefined;
+  symbol?: string;
   isValid: boolean;
   error?: string;
 }) => {
@@ -124,8 +126,9 @@ const FeeInfo = ({
           </h3>
           <h4>
             <DisplayFormattedNumber
-              num={feePercent ? feePercent.toString() + "%" : "0%"}
+              num={feePercent ? feePercent.toString() : "0"}
             />
+            <span>%</span>
           </h4>
         </div>
         <div className="relative flex w-full justify-between text-[13px]">
@@ -136,6 +139,7 @@ const FeeInfo = ({
             <DisplayFormattedNumber
               num={feeAmount ? feeAmount.toString() : "0"}
             />
+            {symbol && <span className="ml-1">{symbol}</span>}
           </h4>
         </div>
       </div>

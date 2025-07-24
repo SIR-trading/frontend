@@ -1,4 +1,4 @@
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 
 export function usingDebtToken(versus: string, depositToken: string) {
   if (depositToken === parseAddress(versus) && depositToken !== "") {

@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import Countdown from "react-countdown";

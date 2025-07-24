@@ -1,6 +1,6 @@
 import React, { type ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 export type HeadeOneProps = React.HtmlHTMLAttributes<HTMLHeadingElement> & {
   children: ReactNode;
 };

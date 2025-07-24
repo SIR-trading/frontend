@@ -5,6 +5,7 @@ import type { TAddressString } from "../types";
 import numeral from "numeral";
 import { BASE_FEE, L_FEE } from "@/data/constants";
 import { getLeverageRatio } from "./calculations";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -58,6 +59,7 @@ export function roundDown(float: number, decimals: number) {
   const roundedDown = Math.floor(float * factor) / factor;
   return roundedDown;
 }
+
 export function inputPatternMatch(s: string, decimals = 18) {
   const pattern = /^[0-9]*[.,]?[0-9]*$/;
   const decimalPattern = RegExp(`^\\d+(\\.\\d{0,${decimals}})?$`);
@@ -67,121 +69,140 @@ export function inputPatternMatch(s: string, decimals = 18) {
   if (pattern.test(s) && decimalPattern.test(s)) return true;
   return false;
 }
+
 /**
- * @returns string | Will round down to 10th decimal
+ * Format descriptor for very small numbers that need subscript notation
  */
-export function formatNumber(number: number | string, decimals = 3): string {
+export type SmallNumberFormat = {
+  type: 'small';
+  sign: string;
+  zeroCount: number;
+  sigDigits: string;
+};
+
+/**
+ * Format numbers for display with proper handling of large/small numbers
+ * @param input - number, bigint, or string to format
+ * @param significant - number of significant digits to display (default: 3)
+ * @returns string for regular numbers, or SmallNumberFormat object for very small numbers
+ */
+export function formatNumber(input: number | string | bigint, significant = 3): string | SmallNumberFormat {
+  // Handle bigint
+  if (typeof input === "bigint") {
+    return formatNumber(input.toString(), significant);
+  }
   
-  if (typeof number === "string") {
-    number = Number.parseFloat(number);
-    if (!Number.isFinite(number)) {
+  // Parse string input
+  if (typeof input === "string") {
+    const parsed = Number.parseFloat(input);
+    if (!Number.isFinite(parsed) || Number.isNaN(parsed)) {
       return "0";
     }
-  }
-  const numberSign = Math.sign(Number(number)) === -1 ? "-" : "";
-  number = Math.abs(Number(number));
-
-  let n = number;
-  // round down
-
-  if (number >= 1 && number <= 999) {
-    const parts = n.toString().split(".");
-    if (!parts[0]) {
-      return numberSign + "0";
-    }
-    // show only three most sign digits
-    const sig = 3 - parts[0].length;
-    return (
-      numberSign +
-      Number.parseFloat(`${parts[0]}.${parts[1]?.slice(0, sig)}`).toString()
-    );
+    input = parsed;
   }
 
-  if (n === 0) {
+  // Handle NaN and non-finite numbers
+  if (!Number.isFinite(input) || Number.isNaN(input)) {
     return "0";
   }
-  if (n < 1 && n >= 0.001) {
-    const parts = n.toString().split(".");
-    // return numberSign +  trimToSignificantDigits(n).toString();
-    let zeros = 0;
-    if (parts[1]?.split("")) {
-      for (const digit of parts[1]?.split("")) {
-        if (digit === "0") {
-          zeros++;
+
+  const isNegative = input < 0;
+  const absNumber = Math.abs(input);
+  const sign = isNegative ? "-" : "";
+
+  // Handle zero
+  if (absNumber === 0) {
+    return "0";
+  }
+
+  // Handle very small numbers (< 0.001) with subscript notation  
+  if (absNumber < 0.001) {
+    const numStr = absNumber.toString();
+    let zeroCount = 0;
+    let sigDigits = "";
+    
+    if (numStr.includes('e')) {
+      // Scientific notation from JavaScript - convert to decimal
+      const [mantissa, exponent] = numStr.split('e');
+      const expNum = Math.abs(parseInt(exponent ?? "0"));
+      const mantissaNum = parseFloat(mantissa ?? "0");
+      zeroCount = expNum - 1;
+      sigDigits = (mantissaNum * Math.pow(10, mantissa?.includes('.') ? mantissa.split('.')[1]?.length ?? 0 : 0))
+        .toFixed(0).padStart(significant, '0').slice(0, significant);
+    } else {
+      // Regular decimal
+      const parts = numStr.split('.');
+      const decimalPart = parts[1] ?? "";
+      
+      for (const digit of decimalPart) {
+        if (digit === '0') {
+          zeroCount++;
         } else {
-          // break once you hit a number other then 0
           break;
         }
       }
+      
+      sigDigits = decimalPart.slice(zeroCount, zeroCount + significant);
     }
-    return (
-      numberSign +
-      Number.parseFloat(`0.${parts[1]?.slice(0, decimals + zeros)}`).toString()
-    );
-  }
-  if (n < 0.001) {
-    return numberSign + formatSmallNumber(n);
-    // const factor = Math.pow(10, 10);
-    // const roundedDown = Math.floor(n * factor) / factor;
-    // return numberSign +  roundedDown.toExponential();
-  }
-  if (n > 999) {
-    const num = numeral(n);
-    const f = num.format("0.000a").toUpperCase();
-    const parts = f.split(".");
-
-    if (!parts[0]) {
-      return numberSign + "0";
-    }
-    // show only three most sign digits
-    const sig = 3 - parts[0].length;
-
-    return (
-      numberSign +
-      (Number.parseFloat(`${parts[0]}.${parts[1]?.slice(0, sig)}`).toString() +
-        `${f[f.length - 1]}`)
-    );
-  }
-  if (decimals) {
-    n = roundDown(n, 10);
+    
+    return {
+      type: 'small' as const,
+      sign,
+      zeroCount,
+      sigDigits
+    };
   }
 
-  return numberSign + n.toString();
+  // Handle small numbers (0.001 <= n < 1) - just show normal decimal
+  if (absNumber >= 0.001 && absNumber < 1) {
+    // For numbers between 0.001 and 1, use toPrecision to get significant digits
+    const formatted = absNumber.toPrecision(significant);
+    // Remove unnecessary trailing zeros and decimal point if not needed
+    const cleaned = parseFloat(formatted).toString();
+    return `${sign}${cleaned}`;
+  }
+
+  // Handle regular numbers (1 <= n <= 999)
+  if (absNumber >= 1 && absNumber <= 999) {
+    // Use toPrecision for consistent significant digits
+    const formatted = absNumber.toPrecision(significant);
+    const cleaned = parseFloat(formatted).toString();
+    return `${sign}${cleaned}`;
+  }
+
+  // Handle large numbers (> 999) with K, M, B notation
+  if (absNumber > 999) {
+    // Calculate appropriate decimal places for the given significant digits
+    const orderOfMagnitude = Math.floor(Math.log10(absNumber));
+    const leadingDigits = Math.floor(orderOfMagnitude / 3) * 3; // Round down to nearest thousand power
+    const remainingDigits = orderOfMagnitude - leadingDigits;
+    const decimalPlaces = Math.max(0, significant - remainingDigits - 1);
+    
+    // Create format string for numeral.js
+    const formatStr = decimalPlaces > 0 ? `0.${'0'.repeat(decimalPlaces)}a` : '0a';
+    let formatted = numeral(absNumber).format(formatStr).toUpperCase();
+    
+    // Remove trailing zeros and unnecessary decimal points
+    formatted = formatted.replace(/\.0+([KMBTQ])$/, '$1'); // Remove .0, .00, etc before suffix
+    formatted = formatted.replace(/(\.\d*?)0+([KMBTQ])$/, '$1$2'); // Remove trailing zeros after decimal
+    formatted = formatted.replace(/\.([KMBTQ])$/, '$1'); // Remove empty decimal point
+    
+    return `${sign}${formatted}`;
+  }
+
+  // Fallback for edge cases
+  const rounded = roundDown(absNumber, 10);
+  return `${sign}${rounded.toString()}`;
 }
-export function formatSmallNumber(number: number) {
-  const num = number.toString();
-  console.log(num, "NUM");
-  if (num.includes("e")) {
-    console.log("e", num);
-    // number is in scientific notation
-    const sige = parseInt(num.split("e")[1] ?? "0");
-    const nums = parseInt(
-      num.split("e")[0]?.replace(".", "").slice(0, 3) ?? "0",
-    );
 
-    console.log({ sige }, parseInt(num.split("e")[0] ?? "0"));
-    const result = "0.0" + `v${Math.abs(sige).toString()}` + nums;
-    console.log({ result });
-    return result;
-  }
-  const decimalPart = num.split(".")[1];
-  if (decimalPart === undefined) {
-    return "0";
-  }
-  let zeros = 0;
-  for (const i of decimalPart) {
-    if (i === "0") {
-      zeros++;
-    }
-    if (i !== "0") {
-      break;
-    }
-  }
-  const sig = decimalPart.slice(zeros, zeros + 3);
-  console.log({ sig, zeros, decimalPart });
-  const result = "0.0" + `v${zeros.toString()}` + sig;
-  return result;
+/**
+ * @deprecated Use formatNumber instead. This function will be removed.
+ */
+export function formatSmallNumber(number: number): string {
+  // Legacy function - just return the number as string for now
+  return number.toString();
 }
+
 export function formatBigInt(b: bigint | undefined, fixed: number) {
   const parsed =
     Math.floor(parseFloat(formatUnits(b ?? 0n, 18)) * 10 ** fixed) /

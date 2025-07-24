@@ -1,6 +1,6 @@
 import React from "react";
 import { TokenImage } from "../shared/TokenImage";
-import { mapLeverage } from "@/lib/utils";
+import { mapLeverage } from "@/lib/utils/index";
 import type { TAddressString } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { tokenSchema } from "@/lib/schemas";

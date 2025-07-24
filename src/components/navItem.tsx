@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 
 const navItemVariants = cva(
   "whitespace-nowrap cursor-pointer rounded-md px-2 hover:text-foreground text-foreground/50 data-[active=true]:text-foreground",

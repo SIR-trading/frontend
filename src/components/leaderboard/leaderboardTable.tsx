@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
@@ -171,13 +171,13 @@ function LeaderboardTable<T, P>({
                         </div>
                         <div className={cellStyling}>
                           <DisplayFormattedNumber
-                            num={formatNumber(total.pnlUsd)}
+                            num={total.pnlUsd}
                           />{" "}
                           USD
                         </div>
                         <div className={cellStyling}>
                           <DisplayFormattedNumber
-                            num={formatNumber(total.pnlUsdPercentage)}
+                            num={total.pnlUsdPercentage}
                           />
                           %
                         </div>

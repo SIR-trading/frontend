@@ -10,7 +10,7 @@ twitter:
 
 ### GENERATE GRAPHQL TYPES
 
-`npm exec graphclient build`
+`pnpm exec graphclient build`
 
 ### ENVIRONMENT VARIABLES
 

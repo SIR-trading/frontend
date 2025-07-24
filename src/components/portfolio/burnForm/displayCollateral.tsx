@@ -1,6 +1,5 @@
 import { TokenImage } from "@/components/shared/TokenImage";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import { formatNumber } from "@/lib/utils";
 export function DisplayCollateral({
   bg,
   data,
@@ -25,7 +24,7 @@ export function DisplayCollateral({
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-[28px]">
-            <DisplayFormattedNumber num={formatNumber(amount, 4)} />
+            <DisplayFormattedNumber num={amount} significant={4} />
           </h2>
         </div>
         <div>

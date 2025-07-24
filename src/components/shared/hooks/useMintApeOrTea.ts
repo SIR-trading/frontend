@@ -7,7 +7,7 @@ import { parseUnits } from "viem";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { Logger } from "@/lib/logs";
 import { useEffect, useMemo, useState } from "react";
-import { getCurrentTime } from "@/lib/utils";
+import { getCurrentTime } from "@/lib/utils/index";
 interface Props {
   collateralToken: string;
   debtToken: string;

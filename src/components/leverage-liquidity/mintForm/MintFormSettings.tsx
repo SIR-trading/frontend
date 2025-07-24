@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useFormContext } from "react-hook-form";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
-import { inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
 import ToolTip from "@/components/ui/tooltip";
 export default function MintFormSettings() {
   const isDebt = useIsDebtToken();

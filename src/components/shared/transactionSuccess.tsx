@@ -1,4 +1,3 @@
-import { formatNumber } from "@/lib/utils";
 import { CircleCheck } from "lucide-react";
 import React from "react";
 import type { Address } from "viem";
@@ -6,6 +5,7 @@ import { formatUnits } from "viem";
 import ExplorerLink from "./explorerLink";
 import { motion } from "motion/react";
 import { TokenImage } from "./TokenImage";
+import DisplayFormattedNumber from "./displayFormattedNumber";
 
 export default function TransactionSuccess({
   amountReceived,
@@ -46,7 +46,7 @@ export default function TransactionSuccess({
             {assetReceived}{" "}
           </div>
           <div>
-            {formatNumber(formatUnits(amountReceived ?? 0n, decimals ?? 18), 6)}
+            <DisplayFormattedNumber num={formatUnits(amountReceived ?? 0n, decimals ?? 18)} significant={6} />
           </div>
         </div>
       )}

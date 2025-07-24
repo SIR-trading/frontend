@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { api } from "@/trpc/react";
-import { compareAddress } from "@/lib/utils";
+import { compareAddress } from "@/lib/utils/index";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionModal from "@/components/shared/transactionModal";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";

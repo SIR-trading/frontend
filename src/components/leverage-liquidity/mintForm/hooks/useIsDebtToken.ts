@@ -1,5 +1,5 @@
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 

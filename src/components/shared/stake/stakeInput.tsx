@@ -10,7 +10,7 @@ import { BalancePercent } from "@/components/shared/balancePercent";
 
 import sir_logo from "@/../public/images/white-logo.svg";
 import Image, { type StaticImageData } from "next/image";
-import { formatNumber, inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
 import DisplayFormattedNumber from "../displayFormattedNumber";
 
 interface Props {
@@ -68,7 +68,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
           </div>
           <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
             Balance{" "}
-            <DisplayFormattedNumber num={formatNumber(balance ?? "0", 8)} />
+            <DisplayFormattedNumber num={balance ?? "0"} significant={8} />
           </h2>
           <div className="flex justify-end"></div>
           <BalancePercent

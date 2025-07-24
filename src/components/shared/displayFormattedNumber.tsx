@@ -1,22 +1,29 @@
 import { useMemo } from "react";
+import type React from "react";
+import { formatNumber } from "@/lib/utils";
 
-export default function DisplayFormattedNumber({ num }: { num: string }) {
-  const { sig, exp } = useMemo(() => {
-    if (num.includes("v")) {
-      const split = num.split("v")[1];
-      if (!split) return { sig: "0", exp: 0 };
-      return { sig: split.slice(1, split.length), exp: split[0] };
+type DisplayProps = {
+  num: number | string | bigint;
+  significant?: number;
+};
+
+export default function DisplayFormattedNumber({ num, significant = 3 }: DisplayProps) {
+  const formattedData = useMemo(() => {
+    // Call formatNumber internally
+    const formatted = formatNumber(num, significant);
+    
+    // Handle SmallNumberFormat object
+    if (typeof formatted === "object" && formatted.type === 'small') {
+      return (
+        <>
+          {formatted.sign}0.0<sub>{formatted.zeroCount}</sub>{formatted.sigDigits}
+        </>
+      );
     }
-    return { sig: "0", exp: 0 };
-  }, [num]);
-  if (!num.includes("v")) {
-    return num;
-  }
-  return (
-    <>
-      0.0
-      <sub>{exp}</sub>
-      {sig}
-    </>
-  );
+    
+    // For regular strings, return as-is
+    return formatted;
+  }, [num, significant]);
+
+  return <>{formattedData}</>;
 }

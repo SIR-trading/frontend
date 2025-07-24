@@ -1,5 +1,5 @@
 import type { badgeVariants } from "@/components/ui/badge";
-import { mapLeverage } from "@/lib/utils";
+import { mapLeverage } from "@/lib/utils/index";
 import type { VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { parseUnits } from "viem";

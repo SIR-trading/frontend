@@ -1,8 +1,9 @@
 import { Badge, type badgeVariants } from "@/components/ui/badge";
-import { formatNumber, roundDown } from "@/lib/utils";
+import { roundDown } from "@/lib/utils";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import boostIcon from "@/../public/images/white-logo.svg";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
@@ -176,9 +177,9 @@ export function VaultTableRow({
               <HoverCardContent side="top" alignOffset={10}>
                 <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
-                    {`LPers of this vault are rewarded with
-                    ${formatNumber(formatUnits(parsedRateAmount * 24n * 60n * 60n, 12), 10)}
-                    SIR/day.`}
+                    LPers of this vault are rewarded with{" "}
+                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={10} />{" "}
+                    SIR/day.
                   </span>
                 </div>
               </HoverCardContent>
@@ -211,7 +212,7 @@ export function VaultTableRow({
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger asChild>
               <h4 className="font-normal text-foreground/80 cursor-help">
-                {isApyLoading ? "..." : formatNumber(APY, 2)}%
+                {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
               </h4>
             </HoverCardTrigger>
             <HoverCardContent side="top" alignOffset={10}>
@@ -222,15 +223,15 @@ export function VaultTableRow({
                     <>
                       <div className="flex justify-between">
                         <span>LP Fees:</span>
-                        <span>{formatNumber(apyData.feesApy || 0, 2)}%</span>
+                        <span><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</span>
                       </div>
                       <div className="flex justify-between">
                         <span>SIR Rewards:</span>
-                        <span className="ml-2">{formatNumber(apyData.sirRewardsApy || 0, 2)}%</span>
+                        <span className="ml-2"><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</span>
                       </div>
                       <div className="border-t border-foreground/20 pt-1 flex justify-between font-semibold">
                         <span>Total APY:</span>
-                        <span>{formatNumber(apyData.apy || 0, 2)}%</span>
+                        <span><DisplayFormattedNumber num={apyData.apy || 0} significant={2} />%</span>
                       </div>
                     </>
                   )}
@@ -243,7 +244,7 @@ export function VaultTableRow({
           </HoverCard>
         ) : (
           <h4 className="font-normal text-foreground/80">
-            {formatNumber(POL, 1)}%
+            <DisplayFormattedNumber num={POL} significant={1} />%
           </h4>
         )}
       </td>
@@ -259,7 +260,14 @@ export function VaultTableRow({
               transition={{ duration: 1 }}
             >
               <Badge variant={variant.variant} className="text-nowrap text-[10px]">
-                {`^${getLeverageRatio(pool.leverageTier)}${showPercent() ? " (^" + formatNumber(tvlPercent, 2) + ")" : ""}`}
+                ^{getLeverageRatio(pool.leverageTier)}
+                {showPercent() && (
+                  <>
+                    {" (^"}
+                    <DisplayFormattedNumber num={tvlPercent} significant={2} />
+                    {")"}
+                  </>
+                )}
               </Badge>
             </motion.div>
           </HoverCardTrigger>

@@ -1,8 +1,9 @@
 "use client";
 import { FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formatNumber, inputPatternMatch } from "@/lib/utils";
+import { inputPatternMatch } from "@/lib/utils/index";
 import Show from "@/components/shared/show";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFormProvider";
@@ -90,7 +91,7 @@ function Inputs({
           {children}
         </div>
         <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
-          Balance: {formatNumber(balance ?? "0")}
+          Balance: <DisplayFormattedNumber num={balance ?? "0"} />
         </h2>
         <BidPercent
           disabled={disabled}

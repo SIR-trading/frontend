@@ -3,7 +3,7 @@ import { useApproveErc20 } from "@/components/shared/hooks/useApproveErc20";
 import { useMintApeOrTea } from "@/components/shared/hooks/useMintApeOrTea";
 import { VaultContract } from "@/contracts/vault";
 import type { TVaults } from "@/lib/types";
-import { formatDataInput } from "@/lib/utils";
+import { formatDataInput } from "@/lib/utils/index";
 import { useFormContext } from "react-hook-form";
 import type { SimulateContractReturnType } from "viem";
 import { parseUnits } from "viem";

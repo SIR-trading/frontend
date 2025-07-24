@@ -2,10 +2,10 @@ import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionEstimates } from "./transactionEstimates";
 import { TransactionStatus } from "./transactionStatus";
 import { CircleCheck } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
 import { formatUnits } from "viem";
 import { motion } from "motion/react";
 import ExplorerLink from "@/components/shared/explorerLink";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 interface Props {
   isConfirmed: boolean;
   decimals: number;
@@ -102,7 +102,7 @@ export default function TransactionInfo({
         {Boolean(tokenReceived) && (
           <h3 className="flex items-center justify-center gap-x-1 ">
             <span className="text-xl font-medium ">
-              {formatNumber(formatUnits(tokenReceived ?? 0n, decimals), 4)}{" "}
+              <DisplayFormattedNumber num={formatUnits(tokenReceived ?? 0n, decimals)} significant={4} />{" "}
               {isApe ? "APE" : "TEA"}
               <span className="text-gray-400">{"-"}</span>
               {vaultId}{" "}

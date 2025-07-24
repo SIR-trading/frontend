@@ -1,4 +1,3 @@
-import { formatNumber } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
 import { formatUnits } from "viem";
 import type { TMintFormFields } from "../providers/mintFormProvider";
@@ -29,10 +28,8 @@ export function TransactionEstimates({
       <h3 className="space-x-1">
         <span>
           <DisplayFormattedNumber
-            num={formatNumber(
-              formatUnits(collateralEstimate ?? 0n, decimals),
-              6,
-            )}
+            num={formatUnits(collateralEstimate ?? 0n, decimals)}
+            significant={6}
           />
         </span>
         <span className="text-gray-300 text-sm">{outAssetName}</span>

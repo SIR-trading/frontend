@@ -1,7 +1,7 @@
 "use client";
 import useVaultFilterStore from "@/lib/store";
 import type { TVaults } from "@/lib/types";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import { api } from "@/trpc/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getQueryKey } from "@trpc/react-query";

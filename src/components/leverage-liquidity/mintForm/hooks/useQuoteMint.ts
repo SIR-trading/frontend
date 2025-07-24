@@ -1,6 +1,6 @@
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useDebounce } from "@/components/shared/hooks/useDebounce";
-import { formatDataInput } from "@/lib/utils";
+import { formatDataInput } from "@/lib/utils/index";
 import { api } from "@/trpc/react";
 import { useFormContext } from "react-hook-form";
 

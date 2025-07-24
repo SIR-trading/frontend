@@ -1,6 +1,6 @@
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import type { TVaults, VaultFieldFragment } from "@/lib/types";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";

@@ -1,6 +1,6 @@
 import { useSimulateContract } from "wagmi";
 import { VaultContract } from "@/contracts/vault";
-import { getCurrentTime } from "@/lib/utils";
+import { getCurrentTime } from "@/lib/utils/index";
 export function useBurnApe({
   data,
   isApe,

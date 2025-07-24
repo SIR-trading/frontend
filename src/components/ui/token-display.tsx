@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cn, formatNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils/index";
 import * as classVarianceAuthority from "class-variance-authority";
 import { formatUnits } from "viem";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
@@ -47,16 +47,17 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref,
   ) => {
-    const tokenAmount = disableRounding
-      ? formatUnits(amount ?? 0n, decimals ?? 18)
-      : formatNumber(formatUnits(amount ?? 0n, decimals ?? 18), round);
+    const tokenAmount = formatUnits(amount ?? 0n, decimals ?? 18);
     return (
       <h3
         ref={ref}
         className={cn(AmountVariants({ amountSize, className }))}
         {...props}
       >
-        <DisplayFormattedNumber num={tokenAmount} />
+        <DisplayFormattedNumber 
+          num={tokenAmount} 
+          significant={disableRounding ? undefined : round} 
+        />
         <span className={cn(LabelVariants({ labelSize }))}> {unitLabel}</span>
       </h3>
     );

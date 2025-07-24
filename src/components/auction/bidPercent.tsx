@@ -1,4 +1,4 @@
-import { roundDown } from "@/lib/utils";
+import { roundDown } from "@/lib/utils/index";
 import { useMemo } from "react";
 export function BidPercent({
   setValue,

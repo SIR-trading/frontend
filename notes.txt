@@ -1,9 +1,0 @@
-each dropdown narrows down others 
-
-quoteMint -> calc how much you would get of ape
-for calc how ape user get -> Poll every minute
-// calc fee with fe function
-
-
-// get user tokens
- 

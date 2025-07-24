@@ -4,7 +4,7 @@ import { api } from "@/trpc/react";
 import { formatUnits, parseUnits } from "viem";
 import useCalculateVaultHealth from "../../vaultTable/hooks/useCalculateVaultHealth";
 import { useFormContext } from "react-hook-form";
-import { parseAddress } from "@/lib/utils";
+import { parseAddress } from "@/lib/utils/index";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 
 interface UseCalculateMaxApeParams {
