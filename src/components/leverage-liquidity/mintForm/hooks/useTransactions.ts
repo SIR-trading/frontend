@@ -46,9 +46,10 @@ export function useTransactions({
     tokenAllowance,
   });
 
+  // Skip approval logic when using ETH directly
   const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
     useMaxApprove: maxApprove,
-    tokenAddr: formData.depositToken ?? "",
+    tokenAddr: useEth ? "" : (formData.depositToken ?? ""), // Skip approval when using ETH
     approveContract: VaultContract.address,
     amount: parseUnits(formData.deposit ?? "0", decimals),
     allowance: tokenAllowance ?? 0n,
@@ -57,12 +58,12 @@ export function useTransactions({
   return {
     requests: {
       mintRequest: Mint?.request as SimulateReq,
-      approveWriteRequest: approveSimulate.data?.request as SimulateReq,
+      approveWriteRequest: useEth ? undefined : (approveSimulate.data?.request as SimulateReq), // No approval needed for ETH
     },
-    isApproveFetching: approveSimulate.isFetching,
+    isApproveFetching: useEth ? false : approveSimulate.isFetching, // No approval fetching for ETH
     isMintFetching: mintFetching,
-    needs0Approval,
-    needsApproval,
+    needs0Approval: useEth ? false : needs0Approval, // No approval needed for ETH
+    needsApproval: useEth ? false : needsApproval, // No approval needed for ETH
   };
 }
 
