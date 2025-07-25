@@ -46,7 +46,7 @@ const vaults = (
      
       first: ${first} 
       skip: $skip
-      orderBy: ${sortbyVaultId ? "vaultId" : "sortKey"} 
+      orderBy: ${sortbyVaultId ? "vaultId" : "totalValueUsd"} 
       orderDirection: ${sortbyVaultId ? "asc" : "desc"} 
       ${whereClause}
     ) {
