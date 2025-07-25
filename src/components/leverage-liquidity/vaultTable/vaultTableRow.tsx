@@ -211,7 +211,7 @@ export function VaultTableRow({
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger asChild>
-              <h4 className="font-normal text-foreground/80 cursor-help">
+              <h4 className="font-normal text-foreground/80">
                 {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
               </h4>
             </HoverCardTrigger>
