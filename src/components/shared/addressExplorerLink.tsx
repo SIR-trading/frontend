@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { env } from "@/env";
 import { useTheme } from "next-themes";
+import { useEnsName } from "@/components/shared/hooks/useEnsName";
 
 const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
@@ -17,12 +18,16 @@ const AddressExplorerLink = ({
 }) => {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
+  const { ensName, isLoading } = useEnsName(address);
   
   // Function to shorten the address
   const shortenAddress = (addr: string, length: number) => {
     if (length === 0) return addr; // Don't shorten if length is 0
     return `${addr.slice(0, 6)}...${addr.slice(-length)}`;
   };
+
+  // Determine what to display: ENS name if available, otherwise shortened address
+  const displayText = ensName ?? shortenAddress(address, shortenLength);
   
   return (
     <Link
@@ -31,7 +36,7 @@ const AddressExplorerLink = ({
       className="-ml-2 flex h-[32px] items-center gap-x-1 hover:underline"
     >
       <span style={{ fontSize, color: isDarkMode ? "#FFF" : "#000" }}>
-        {shortenAddress(address, shortenLength)}
+        {isLoading ? shortenAddress(address, shortenLength) : displayText}
       </span>
     </Link>
   );
