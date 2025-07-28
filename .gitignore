@@ -12,6 +12,7 @@
 /prisma/db.sqlite
 /prisma/db.sqlite-journal
 .vscode
+
 # next.js
 /.next/
 /out/
@@ -42,3 +43,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# build data
+/public/build-data.json
