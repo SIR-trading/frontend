@@ -1,7 +1,10 @@
-import { EContracts, getAddress } from "@/lib/contractAddresses";
+import type { TAddressString } from "@/lib/types";
+import buildData from "@/../public/build-data.json";
+
+const VAULT_ADDRESS = buildData.contractAddresses.vault as TAddressString;
 
 export const VaultContract = {
-  address: getAddress(EContracts.VAULT),
+  address: VAULT_ADDRESS,
   abi: [
     {
       type: "constructor",

@@ -1,13 +1,16 @@
-import { BASE_FEE, L_FEE } from "@/data/constants";
+// Calculation utilities for fees and leverage
+// All functions now accept parameters directly for maximum flexibility
+// Use BASE_FEE and MINTING_FEE from @/lib/buildData when calling these functions
 
 /**
  *
  * @param k - Leverage Tier should be values -4 to 2
+ * @param baseFee - The base fee as decimal (e.g., 0.025 for 2.5%)
  * @returns number
  */
-export function calculateApeVaultFee(k: number) {
+export function calculateApeVaultFee(k: number, baseFee: number) {
   const l = getLeverageRatio(k);
-  const b = (1 + (l - 1) * BASE_FEE) ** 2;
+  const b = (1 + (l - 1) * baseFee) ** 2;
   const a = 1 / b;
   return (1 * 10 - a * 10) / 10;
 }
@@ -15,10 +18,11 @@ export function calculateApeVaultFee(k: number) {
 /**
  *
  * @param k - Leverage Tier should be values -4 to 2
+ * @param mintingFee - The minting fee as decimal (e.g., 0.005 for 0.5%)
  * @returns number
  */
-export function calculateTeaVaultFee() {
-  const a = 1 / (1 + L_FEE);
+export function calculateTeaVaultFee(mintingFee: number) {
+  const a = 1 / (1 + mintingFee);
   return (1 * 10 - a * 10) / 10;
 }
 

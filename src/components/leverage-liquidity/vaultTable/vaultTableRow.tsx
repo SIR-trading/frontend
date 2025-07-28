@@ -7,7 +7,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
-import type { TVault } from "@/lib/types";
+import type { TVault, TAddressString } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
@@ -21,6 +21,10 @@ import {
   calculateApeVaultFee,
   getLeverageRatio,
 } from "@/lib/utils/calculations";
+
+import buildData from "@/../public/build-data.json";
+const BASE_FEE = buildData.systemParams.baseFee;
+
 import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
@@ -41,7 +45,7 @@ export function VaultTableRow({
   apyData?: { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number };
   isApyLoading?: boolean;
 }) {
-  const fee = calculateApeVaultFee(pool.leverageTier) * 100;
+  const fee = calculateApeVaultFee(pool.leverageTier, BASE_FEE) * 100;
   
   // Calculate POL (Protocol Owned Liquidity)
   const POL = useMemo(() => {
@@ -189,14 +193,14 @@ export function VaultTableRow({
       </td>
       <td className="relative flex items-center md:col-span-3">
         <TokenImage
-          address={pool.collateralToken as `0x${string}`}
+          address={pool.collateralToken as TAddressString}
           className="h-6 w-6 rounded-full"
           width={28}
           height={28}
           alt="Collateral token"
         />
         <TokenImage
-          address={pool.debtToken as `0x${string}`}
+          address={pool.debtToken as TAddressString}
           className="h-6 w-6 rounded-full"
           width={28}
           height={28}

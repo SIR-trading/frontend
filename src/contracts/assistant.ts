@@ -1,7 +1,10 @@
-import { EContracts, getAddress } from "@/lib/contractAddresses";
+import type { TAddressString } from "@/lib/types";
+import buildData from "@/../public/build-data.json";
+
+const ASSISTANT_ADDRESS = buildData.contractAddresses.assistant as TAddressString;
 
 export const AssistantContract = {
-  address: getAddress(EContracts.ASSISTANT),
+  address: ASSISTANT_ADDRESS,
   abi: [
     {
       type: "constructor",

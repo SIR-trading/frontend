@@ -1,7 +1,10 @@
-import { EContracts, getAddress } from "@/lib/contractAddresses";
+import type { TAddressString } from "@/lib/types";
+import buildData from "@/../public/build-data.json";
+
+const ORACLE_ADDRESS = buildData.contractAddresses.oracle as TAddressString;
 
 export const OracleContract = {
-  address: getAddress(EContracts.ORACLE),
+  address: ORACLE_ADDRESS,
   abi: [
     {
       type: "constructor",

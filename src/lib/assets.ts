@@ -1,5 +1,8 @@
 import { ASSET_REPO } from "@/data/constants";
 import { env } from "@/env";
+import buildData from "@/../public/build-data.json";
+
+const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
 import sirIcon from "../../public/images/white-logo.svg";
 import type { StaticImageData } from "next/image";
 import { getAddress } from "viem";
@@ -7,12 +10,12 @@ import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
 
 /**
- * Get SIR token metadata dynamically based on environment
+ * Get SIR token metadata dynamically based on build-time data
  */
 export function getSirTokenMetadata() {
   return {
     name: "Synthetics Implemented Right",
-    address: env.NEXT_PUBLIC_SIR_ADDRESS,
+    address: SIR_ADDRESS,
     symbol: "SIR",
     decimals: 12,
     chainId: parseInt(env.NEXT_PUBLIC_CHAIN_ID),
@@ -25,7 +28,7 @@ export function getSirTokenMetadata() {
  * if Trust Wallet asset is not available
  */
 export function getLogoAssetWithFallback(
-  address: `0x${string}` | undefined,
+  address: TAddressString | undefined,
   tokenList?: Array<{ address: string; logoURI: string }>,
   chainId?: string,
 ): { primary: string | StaticImageData; fallback?: string } {
@@ -33,8 +36,8 @@ export function getLogoAssetWithFallback(
     return { primary: "" };
   }
   
-  // Handle SIR token dynamically based on environment
-  if (address.toLowerCase() === env.NEXT_PUBLIC_SIR_ADDRESS.toLowerCase()) {
+  // Handle SIR token dynamically based on build-time data
+  if (address.toLowerCase() === SIR_ADDRESS.toLowerCase()) {
     return {
       primary: sirIcon as StaticImageData,
       fallback: "https://app.sir.trading/images/white-logo.svg",
@@ -83,14 +86,14 @@ export function getLogoAssetWithFallback(
  * with components that expect a simple string/StaticImageData
  */
 export function getLogoAssetWithFallbackSimple(
-  address: `0x${string}` | undefined,
+  address: TAddressString | undefined,
   chainId?: string,
 ): string | StaticImageData {
   const result = getLogoAssetWithFallback(address, undefined, chainId);
   return result.primary;
 }
 
-export function getLogoJson(address: `0x${string}` | undefined) {
+export function getLogoJson(address: TAddressString | undefined) {
   if (!address) {
     return "";
   }

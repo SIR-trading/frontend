@@ -21,16 +21,20 @@ export const env = createEnv({
    * Specify your client-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars. To expose them to the client, prefix them with
    * `NEXT_PUBLIC_`.
+   * 
+   * Note: Most contract addresses and system parameters are now fetched at build time
+   * from the Assistant contract. Only the Assistant address is required in env variables.
    */
   client: {
     NEXT_PUBLIC_ASSISTANT_ADDRESS: z.string(),
-    NEXT_PUBLIC_ORACLE_ADDRESS: z.string(),
-    NEXT_PUBLIC_SIR_ADDRESS: z.string(),
-    NEXT_PUBLIC_VAULT_ADDRESS: z.string(),
     NEXT_PUBLIC_CHAIN_ID: z.string(),
-    NEXT_PUBLIC_BASE_FEE: z.string(),
-    NEXT_PUBLIC_MINTING_FEE: z.string(),
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    
+    // Optional: Keep these for backward compatibility during migration
+    // These will be used as fallbacks if build-time data fetching fails
+    NEXT_PUBLIC_ORACLE_ADDRESS: z.string().optional(),
+    NEXT_PUBLIC_SIR_ADDRESS: z.string().optional(),
+    NEXT_PUBLIC_VAULT_ADDRESS: z.string().optional(),
+    // Note: BASE_FEE and MINTING_FEE are now fetched at build time from contracts
   },
 
   /**
@@ -41,8 +45,6 @@ export const env = createEnv({
     SECRET_KEY: process.env.SECRET_KEY,
     ALCHEMY_BEARER: process.env.ALCHEMY_BEARER,
     NEXT_PUBLIC_ORACLE_ADDRESS: process.env.NEXT_PUBLIC_ORACLE_ADDRESS,
-    NEXT_PUBLIC_BASE_FEE: process.env.NEXT_PUBLIC_BASE_FEE,
-    NEXT_PUBLIC_MINTING_FEE: process.env.NEXT_PUBLIC_MINTING_FEE,
     DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
     NEXT_PUBLIC_VAULT_ADDRESS: process.env.NEXT_PUBLIC_VAULT_ADDRESS,

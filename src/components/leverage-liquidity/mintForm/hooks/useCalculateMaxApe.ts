@@ -1,4 +1,6 @@
-import { BASE_FEE } from "@/data/constants";
+import buildData from "@/../public/build-data.json";
+
+const BASE_FEE = buildData.systemParams.baseFee;
 import { calculateMaxApe } from "@/lib/utils/calculations";
 import { api } from "@/trpc/react";
 import { formatUnits, parseUnits } from "viem";
@@ -44,6 +46,9 @@ export function useCalculateMaxApe({
 }: UseCalculateMaxApeParams): UseCalculateMaxApeReturn {
   const formData = useFormContext<TMintFormFields>().watch();
   
+  // Load build-time data for system parameters
+  const baseFee = BASE_FEE;
+  
   // Fetch vault reserve data (APE and TEA reserves)
   const { data: reserveData, isLoading: isLoadingReserves } = api.vault.getReserve.useQuery(
     { vaultId },
@@ -63,9 +68,11 @@ export function useCalculateMaxApe({
   });
 
   // Calculate max APE that can be minted using the new formula
+  // Use build-time data for base fee
+  
   const maxCollateralIn = calculateMaxApe({
     leverageTier: parseUnits(formData.leverageTier ?? "0", 0),
-    baseFeeBigInt: parseUnits(BASE_FEE.toString(), 4),
+    baseFeeBigInt: parseUnits(baseFee.toString(), 4),
     apeReserve,
     gentlemenReserve: teaReserve,
     taxAmountBigInt: parseUnits(taxAmount, 0),

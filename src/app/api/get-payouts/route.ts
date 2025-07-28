@@ -1,5 +1,8 @@
 import { env } from "@/env";
-import { deleteCurrentApr, deletePayouts } from "@/lib/db/queries/insert";
+import type { TAddressString } from "@/lib/types";
+import buildData from "@/../public/build-data.json";
+
+const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
 import { selectPayouts } from "@/lib/db/queries/select";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -31,8 +34,18 @@ async function handler(req: NextRequest) {
   const { searchParams } = new URL(req.url ?? "");
   const auth = searchParams.get("auth");
   if (auth === env.SECRET_KEY) {
-    const chainId = parseInt(searchParams.get("chainId") ?? process.env.NEXT_PUBLIC_CHAIN_ID ?? "1");
-    const contractAddress = searchParams.get("contractAddress") ?? process.env.NEXT_PUBLIC_SIR_ADDRESS;
+    const chainId = parseInt(searchParams.get("chainId") ?? env.NEXT_PUBLIC_CHAIN_ID ?? "1");
+    
+    // Get SIR contract address from build-time data, fallback to env var
+    let contractAddress = searchParams.get("contractAddress");
+    if (!contractAddress) {
+      try {
+        contractAddress = SIR_ADDRESS;
+      } catch {
+        // Fallback to env var if build-time data not available
+        contractAddress = env.NEXT_PUBLIC_SIR_ADDRESS ?? '';
+      }
+    }
     
     const payouts = await selectPayouts(chainId, contractAddress);
     return NextResponse.json({ payouts }, { status: 200 });

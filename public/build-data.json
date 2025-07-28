@@ -1,0 +1,17 @@
+{
+  "contractAddresses": {
+    "assistant": "0xd175DAF6474BC8384279Fe5dF75F211B646002BC",
+    "vault": "0x7Dad75dD36dE234C937C105e652B6E50d68b0309",
+    "sir": "0x4Da4fb565Dcd5D5C5dB495205c109bA983A8ABa2",
+    "systemControl": "0xbbb9BafB8E41f081fFa064b697bBeffd1a5B52F4",
+    "oracle": "0xeD89aF5E62965C45956A0125a5d078218228497A"
+  },
+  "systemParams": {
+    "baseFee": 0.2,
+    "mintingFee": 0.0989,
+    "mintingStopped": false,
+    "cumulativeTax": 402,
+    "lastUpdated": 1753725545298
+  },
+  "buildTimestamp": 1753725545298
+}
