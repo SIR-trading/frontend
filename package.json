@@ -75,6 +75,7 @@
     "react-countdown": "^2.3.6",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.51.3",
+    "redis": "^5.6.1",
     "server-only": "^0.0.1",
     "sqlite3": "link:@libsql/client/sqlite3",
     "superjson": "^2.2.1",

@@ -174,6 +174,11 @@ export type TClosedApePositions = Record<
   }
 >;
 
+export type TPositionsResponse = {
+  activeApePositions: TCurrentApePositions;
+  closedApePositions: TClosedApePositions;
+};
+
 export type TCurrentApePositions = Record<
   string,
   {
