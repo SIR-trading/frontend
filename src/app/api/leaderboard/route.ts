@@ -23,7 +23,7 @@ export async function GET() {
   const result = { activeApePositions, closedApePositions };
   console.log("Fetched new leaderboard positions");
   await redis.set(CACHE_KEY, JSON.stringify(result), {
-    EX: 60 * 10, // Cache for 10 minutes
+    EX: 60 * 30, // Cache for 10 minutes
   });
   return NextResponse.json(result);
 }
