@@ -14,10 +14,12 @@ export async function GET() {
     console.log("Returning cached leaderboard positions");
     return NextResponse.json(JSON.parse(cached));
   }
+
   const [activeApePositions, closedApePositions] = await Promise.all([
     getActiveApePositions(),
     getClosedApePositions(),
   ]);
+
   const result = { activeApePositions, closedApePositions };
   console.log("Fetched new leaderboard positions");
   await redis.set(CACHE_KEY, JSON.stringify(result), {
