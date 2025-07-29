@@ -6,6 +6,7 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    DATABASE_URL: z.string(),
     SECRET_KEY: z.string(),
     RPC_URL: z.string(),
     SUBGRAPH_URL: z.string(),
@@ -13,7 +14,6 @@ export const env = createEnv({
     KV_REST_API_TOKEN: z.string(),
     KV_REST_API_URL: z.string(),
     KV_URL: z.string(),
-    DATABASE_URL: z.string(),
     ALCHEMY_BEARER: z.string(),
   },
 
@@ -42,10 +42,10 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
     SECRET_KEY: process.env.SECRET_KEY,
     ALCHEMY_BEARER: process.env.ALCHEMY_BEARER,
     NEXT_PUBLIC_ORACLE_ADDRESS: process.env.NEXT_PUBLIC_ORACLE_ADDRESS,
-    DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
     NEXT_PUBLIC_VAULT_ADDRESS: process.env.NEXT_PUBLIC_VAULT_ADDRESS,
     RPC_URL: process.env.RPC_URL,

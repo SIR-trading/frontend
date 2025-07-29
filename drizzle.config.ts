@@ -6,7 +6,7 @@ export default defineConfig({
   schema: "./src/lib/db/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgresql://postgres.wwogvwdgbevkgqyagedi:tfp1TYoft0ZLO09Q@aws-0-us-west-1.pooler.supabase.com:6543/postgres",
+    url: process.env.DATABASE_URL!,
   },
   verbose: true,
   strict: true,

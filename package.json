@@ -24,8 +24,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
-    "@libsql/client": "^0.6.2",
-    "@libsql/linux-x64-gnu": "^0.4.6",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-collapsible": "^1.1.11",
@@ -76,7 +74,6 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.51.3",
     "server-only": "^0.0.1",
-    "sqlite3": "link:@libsql/client/sqlite3",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",

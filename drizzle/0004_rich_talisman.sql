@@ -1,1 +1,0 @@
-ALTER TABLE "apr_rates" RENAME COLUMN "feedback" TO "apr";

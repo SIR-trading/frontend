@@ -16,14 +16,14 @@ twitter:
 
 #### Server-side Environment Variables
 ```
-SECRET_KEY=Secret key for server operations
+SECRET_KEY=Secret key for server operations  
+DATABASE_URL=Database connection URL for error logging
 RPC_URL=RPC URL for backend calls
 SUBGRAPH_URL=Subgraph query url
 KV_REST_API_READ_ONLY_TOKEN=Vercel KV read-only token
 KV_REST_API_TOKEN=Vercel KV API token
 KV_REST_API_URL=Vercel KV API URL
 KV_URL=Vercel KV connection URL
-DATABASE_URL=Database connection URL
 ALCHEMY_BEARER=Alchemy API bearer token for price data
 ```
 

@@ -276,14 +276,3 @@ export const userRouter = createTRPCRouter({
     return await getWeeklyApr();
   }),
 });
-//todo use ZOD
-
-// create: publicProcedure
-//   .input(z.object({ name: z.string().min(1) }))
-//   .mutation(async ({ input }) => {
-//     // simulate a slow db call
-//     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-//     user = { id: user.id + 1, name: input.name };
-//     return user;
-//   }),

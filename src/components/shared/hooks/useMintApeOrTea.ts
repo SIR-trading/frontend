@@ -43,9 +43,9 @@ export function useMintApeOrTea({
   const tokenAmount = useEth ? 0n : amount;
   const ethAmount = useEth ? amount : 0n;
   const form = useFormContext<TMintFormFields>();
+  const { address } = useAccount();
   const formData = form.watch();
   let minCollateralOutWithSlippage = 0n;
-  const { address } = useAccount();
   if (minCollateralOut !== undefined) {
     if (minCollateralOut > 0n) {
       const slippage = parseUnits(
@@ -108,6 +108,7 @@ export function useMintApeOrTea({
     tokenAmount,
     vault,
   ]);
+
   if (error) {
     console.log(error, "APE OR TEA ERROR");
   }

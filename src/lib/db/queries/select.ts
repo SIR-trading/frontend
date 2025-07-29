@@ -1,52 +1,6 @@
-import { desc, gt, eq, count, and } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { db } from "../db";
-import { errorLogs, payoutTable } from "../schema";
-
-export async function selectPayouts(chainId?: number, contractAddress?: string) {
-  const query = db.select().from(payoutTable);
-  
-  if (chainId && contractAddress) {
-    return query.where(
-      and(
-        eq(payoutTable.chainId, chainId),
-        eq(payoutTable.contractAddress, contractAddress)
-      )
-    );
-  }
-  
-  return query;
-}
-
-export async function selectLastWeekPayouts(chainId: number, contractAddress: string) {
-  const now = Math.floor(Date.now() / 1000);
-  console.log({ now });
-  const payouts = await db
-    .select()
-    .from(payoutTable)
-    .where(
-      and(
-        gt(payoutTable.timestamp, now - 30 * 7 * 60 * 60),
-        eq(payoutTable.chainId, chainId),
-        eq(payoutTable.contractAddress, contractAddress)
-      )
-    );
-  return payouts;
-}
-
-export async function selectLastPayout(chainId: number, contractAddress: string) {
-  const apr = await db
-    .select()
-    .from(payoutTable)
-    .where(
-      and(
-        eq(payoutTable.chainId, chainId),
-        eq(payoutTable.contractAddress, contractAddress)
-      )
-    )
-    .orderBy(desc(payoutTable.timestamp))
-    .limit(1);
-  return apr;
-}
+import { errorLogs } from "../schema";
 
 export async function selectErrorLogs() {
   const logs = await db.select().from(errorLogs);
