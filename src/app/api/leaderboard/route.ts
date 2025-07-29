@@ -1,12 +1,11 @@
 import { getActiveApePositions } from "@/server/leaderboard/getActiveApePositions";
-import { getClosedApePositions } from "@/server/leaderboard/getClosedApePositions";
 import { createClient } from "redis";
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 
 const redis = await createClient({ url: env.REDIS_URL }).connect();
 
-const CACHE_KEY = "leaderboard:positions";
+const CACHE_KEY = "leaderboard:closedPositions";
 
 export async function GET() {
   const cached = await redis.get(CACHE_KEY);
@@ -15,12 +14,9 @@ export async function GET() {
     return NextResponse.json(JSON.parse(cached));
   }
 
-  const [activeApePositions, closedApePositions] = await Promise.all([
-    getActiveApePositions(),
-    getClosedApePositions(),
-  ]);
+  const [activeApePositions] = await Promise.all([getActiveApePositions()]);
 
-  const result = { activeApePositions, closedApePositions };
+  const result = { activeApePositions };
   console.log("Fetched new leaderboard positions");
   await redis.set(CACHE_KEY, JSON.stringify(result), {
     EX: 60 * 30, // Cache for 10 minutes
