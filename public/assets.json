@@ -1843,5 +1843,13 @@
     "chainId": 1,
     "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x25f8087EAD173b73D6e8B84329989A8eEA16CF73/logo.png",
     "marketCap": 85117677
+  },
+  {
+    "name": "PepeUSD",
+    "address": "0xed7fd16423Bc19b9143313ac5E4B7F731D714e97",
+    "symbol": "PEPEUSD",
+    "decimals": 6,
+    "chainId": 1,
+    "logoURI": "https://dd.dexscreener.com/ds-data/tokens/ethereum/0xed7fd16423bc19b9143313ac5e4b7f731d714e97.png"
   }
 ]
