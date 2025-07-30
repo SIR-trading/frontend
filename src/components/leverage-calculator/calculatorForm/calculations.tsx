@@ -3,6 +3,7 @@ import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import useFormFee from "@/components/leverage-calculator/calculatorForm/hooks/useFormFee";
 import useIsDebtToken from "@/components/leverage-calculator/calculatorForm/hooks/useIsDebtToken";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
 export default function Calculations({ disabled }: { disabled: boolean }) {
   const form = useFormContext<TCalculatorFormFields>();
@@ -105,7 +106,7 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span>{amounts().long}</span>
+            <span><DisplayFormattedNumber num={amounts().long} significant={4} /></span>
             <span
               className={
                 Number(amounts().longGain) < 0 ? "text-red" : "text-accent"
@@ -123,7 +124,7 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span>{amounts().debt}</span>
+            <span><DisplayFormattedNumber num={amounts().debt} significant={4} /></span>
             <span
               className={
                 Number(amounts().debtGain) < 0 ? "text-red" : "text-accent"
