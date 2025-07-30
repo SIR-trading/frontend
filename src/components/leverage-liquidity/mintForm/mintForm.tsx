@@ -140,12 +140,11 @@ export default function MintForm({ isApe }: Props) {
   });
   
   // Determine which results to use based on page type
-  const { maxCollateralIn, maxDebtIn, badHealth, isLoading } = isApe 
+  const { maxCollateralIn, maxDebtIn, isLoading } = isApe 
     ? leverageHookResult 
     : { 
         maxCollateralIn: undefined, 
         maxDebtIn: undefined, 
-        badHealth: liquidityHookResult.badHealth, 
         isLoading: liquidityHookResult.isLoading 
       };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
@@ -158,7 +157,6 @@ export default function MintForm({ isApe }: Props) {
   }, [isApe, maxIn, deposit, depositDecimals]);
   const { isValid, errorMessage } = useMintFormValidation({
     ethBalance: userEthBalance,
-    isApe,
     decimals: depositDecimals ?? 18,
     useEth,
     requests,
@@ -166,7 +164,6 @@ export default function MintForm({ isApe }: Props) {
     tokenAllowance: userBalance?.tokenAllowance?.result,
     mintFetching: isMintFetching,
     approveFetching: isApproveFetching,
-    badHealth,
   });
 
   useSetRootError({

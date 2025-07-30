@@ -18,9 +18,7 @@ interface Props {
   mintFetching: boolean;
   approveFetching?: boolean;
   useEth?: boolean;
-  isApe: boolean;
   decimals: number;
-  badHealth?: boolean;
 }
 
 /**
@@ -39,22 +37,14 @@ export const useMintFormValidation = ({
   ethBalance,
   useEth,
   decimals,
-  isApe,
-  badHealth,
 }: Props) => {
   const chainId = useGetChainId();
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
   const { deposit, slippage, depositToken, versus } = formData;
   const { isValid, errorMessage } = useMemo(() => {
-    // Check vault health first - disable minting if vault is not healthy (red or yellow)
-    // This should show immediately when vault is selected, regardless of deposit amount
-    if (badHealth && isApe) {
-      return {
-        isValid: false,
-        errorMessage: "Insufficient liquidity in the vault.",
-      };
-    }
+    // Note: We no longer block minting based on vault health (badHealth)
+    // Users can now mint beyond the optimal threshold, they'll just see a warning
     
     if (usingDebtToken(versus, depositToken)) {
       const num = Number.parseFloat(slippage ?? "0");
@@ -151,13 +141,11 @@ export const useMintFormValidation = ({
       }
     }
   }, [
-    badHealth,
     versus,
     depositToken,
     chainId,
     deposit,
     decimals,
-    isApe,
     useEth,
     tokenBalance,
     tokenAllowance,
