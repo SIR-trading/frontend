@@ -23,6 +23,22 @@ interface Props {
   isApe?: boolean;
 }
 
+/**
+ * Formats a price value for display in entry/exit price inputs.
+ * Uses normal decimal notation rounded to 3 significant digits.
+ */
+function formatPriceForInput(price: number): string {
+  if (!Number.isFinite(price) || Number.isNaN(price) || price === 0) {
+    return "0";
+  }
+  
+  return new Intl.NumberFormat('en', {
+    notation: 'standard',                 // never use exponential
+    maximumSignificantDigits: 3,          // 3 significant digits
+    useGrouping: false                    // no thousands separators
+  }).format(price);
+}
+
 export default function CalculatorForm({ vaultsQuery }: Props) {
   const { collateralDecimals } = useGetFormTokensInfo();
   const { versus, long, leverageTiers } = useFilterVaults({ vaultsQuery });
@@ -69,15 +85,15 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
       debtInCollateralToken
     ) {
       // If deposit token is the debt token, use converted debtInCollateralToken value
-      entryPriceValue = debtInCollateralToken.toFixed(6);
+      entryPriceValue = formatPriceForInput(debtInCollateralToken);
     } else if (collateralInDebtToken) {
       // Otherwise, default to collateralInDebtToken
-      entryPriceValue = collateralInDebtToken.toFixed(6);
+      entryPriceValue = formatPriceForInput(collateralInDebtToken);
     }
 
     if (entryPriceValue) {
       const entryPrice = Number(entryPriceValue);
-      const exitPrice = (entryPrice * 2).toFixed(6);
+      const exitPrice = formatPriceForInput(entryPrice * 2);
       setValue("entryPrice", entryPriceValue);
       setValue("exitPrice", exitPrice);
       setValue("deposit", "1");

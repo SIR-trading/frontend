@@ -65,11 +65,23 @@ export function roundDown(float: number, decimals: number) {
 
 export function inputPatternMatch(s: string, decimals = 18) {
   const pattern = /^[0-9]*[.,]?[0-9]*$/;
+  const scientificPattern = /^[0-9]*\.?[0-9]*[eE][-+]?[0-9]+$/;
   const decimalPattern = RegExp(`^\\d+(\\.\\d{0,${decimals}})?$`);
+  
   if (s === "") {
     return true;
   }
-  if (pattern.test(s) && decimalPattern.test(s)) return true;
+  
+  // Allow scientific notation for very small/large numbers
+  if (scientificPattern.test(s)) {
+    return true;
+  }
+  
+  // Allow regular decimal patterns
+  if (pattern.test(s) && decimalPattern.test(s)) {
+    return true;
+  }
+  
   return false;
 }
 
