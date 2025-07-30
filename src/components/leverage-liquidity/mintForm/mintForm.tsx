@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { motion } from "motion/react";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { type TVaults } from "@/lib/types";
 import DepositInputs from "./deposit-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
@@ -58,14 +58,13 @@ export default function MintForm({ isApe }: Props) {
     userEthBalance,
     userBalanceFetching,
     userBalance,
-    debtDecimals,
     collateralDecimals,
     depositDecimals,
   } = useGetFormTokensInfo();
   const isWeth = useIsWeth();
 
   // Ensure use eth toggle is not used on non-weth tokens
-  const { setError, formState, watch, handleSubmit } =
+  const { setError, formState, watch, handleSubmit, setValue } =
     useFormContext<TMintFormFields>();
   const { deposit, leverageTier, long: longInput } = watch();
   const useEth = useMemo(() => {
@@ -150,6 +149,13 @@ export default function MintForm({ isApe }: Props) {
         isLoading: liquidityHookResult.isLoading 
       };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
+  
+  // Check if user's input exceeds the optimal amount for constant leverage
+  const isExceedingOptimal = useMemo(() => {
+    if (!isApe || !maxIn || !deposit) return false;
+    const depositAmount = parseUnits(deposit, depositDecimals ?? 18);
+    return depositAmount > maxIn;
+  }, [isApe, maxIn, deposit, depositDecimals]);
   const { isValid, errorMessage } = useMintFormValidation({
     ethBalance: userEthBalance,
     isApe,
@@ -160,7 +166,6 @@ export default function MintForm({ isApe }: Props) {
     tokenAllowance: userBalance?.tokenAllowance?.result,
     mintFetching: isMintFetching,
     approveFetching: isApproveFetching,
-    maxCollateralIn: isApe ? maxIn : 0n,
     badHealth,
   });
 
@@ -212,12 +217,6 @@ export default function MintForm({ isApe }: Props) {
   const depositTokenSymbol = !usingDebtToken
     ? selectedVault.result?.collateralSymbol
     : selectedVault.result?.debtSymbol;
-  let maxTokenIn;
-  if (isApe) {
-    maxTokenIn = usingDebtToken
-      ? formatUnits(maxDebtIn ?? 0n, debtDecimals ?? 18)
-      : formatUnits(maxCollateralIn ?? 0n, collateralDecimals ?? 18);
-  }
   return (
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -347,7 +346,6 @@ export default function MintForm({ isApe }: Props) {
             setUseEth={(b: boolean) => {
               setUseEth(b);
             }}
-            maxTokenIn={badHealth ? undefined : maxTokenIn}
             balance={formatUnits(balance ?? 0n, depositDecimals ?? 18)}
           >
             <Dropdown.Root
@@ -373,6 +371,33 @@ export default function MintForm({ isApe }: Props) {
             </Dropdown.Root>
           </DepositInputs.Inputs>
         </DepositInputs.Root>
+        
+        {/* Warning when exceeding optimal amount for constant leverage */}
+        <Show when={isExceedingOptimal}>
+          <div className="my-3 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3">
+            <div className="flex items-start gap-2">
+              <div className="text-yellow-500">⚠️</div>
+              <div className="text-sm text-yellow-200">
+                <strong>Leverage Variability Warning:</strong> The amount you&apos;ve entered exceeds the vault&apos;s optimal liquidity threshold of{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const maxAmount = formatUnits(maxIn ?? 0n, depositDecimals ?? 18);
+                    setValue("deposit", maxAmount);
+                  }}
+                  className="font-bold text-yellow-100 underline hover:text-white transition-colors"
+                >
+                  <DisplayFormattedNumber 
+                    num={formatUnits(maxIn ?? 0n, depositDecimals ?? 18)} 
+                  />
+                  {" "}{depositTokenSymbol}
+                </button>. 
+                Beyond this point, your leverage ratio may not remain constant and could vary with market conditions.
+              </div>
+            </div>
+          </div>
+        </Show>
+        
         {
           /* Calculator link */
           isApe && (

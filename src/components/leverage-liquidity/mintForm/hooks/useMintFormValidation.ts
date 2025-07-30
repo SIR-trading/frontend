@@ -20,7 +20,6 @@ interface Props {
   useEth?: boolean;
   isApe: boolean;
   decimals: number;
-  maxCollateralIn?: bigint;
   badHealth?: boolean;
 }
 
@@ -38,7 +37,6 @@ export const useMintFormValidation = ({
   approveFetching,
   tokenBalance,
   ethBalance,
-  maxCollateralIn,
   useEth,
   decimals,
   isApe,
@@ -81,19 +79,9 @@ export const useMintFormValidation = ({
         errorMessage: "Enter amount greater than 0.",
       };
     }
-    if (maxCollateralIn && isApe) {
-      if (parseUnits(deposit ?? "0", decimals) > maxCollateralIn) {
-        return {
-          isValid: false,
-          errorMessage: "Insufficient liquidity in the vault.",
-        };
-      }
-    } else if (!maxCollateralIn && isApe) {
-      return {
-        isValid: false,
-        errorMessage: "",
-      };
-    }
+    // Note: We no longer enforce maxCollateralIn as a hard limit
+    // The max button will still use this value, but users can input larger amounts
+    // A warning will be shown instead when exceeding the optimal amount
     if (useEth) {
       if ((ethBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
         return {
@@ -169,7 +157,6 @@ export const useMintFormValidation = ({
     chainId,
     deposit,
     decimals,
-    maxCollateralIn,
     isApe,
     useEth,
     tokenBalance,

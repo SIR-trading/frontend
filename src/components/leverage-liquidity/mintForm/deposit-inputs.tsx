@@ -33,7 +33,6 @@ interface Props {
   setUseEth: (b: boolean) => void;
   decimals: number;
   disabled: boolean;
-  maxTokenIn?: string | undefined;
   inputLoading: boolean;
   children: ReactNode;
 }
@@ -43,7 +42,6 @@ function Inputs({
   useEth,
   setUseEth,
   disabled,
-  maxTokenIn,
   inputLoading,
   children,
 }: Props) {
@@ -126,7 +124,6 @@ function Inputs({
           setValue={(s: string) => {
             form.setValue("deposit", s);
           }}
-          overrideMaxValue={maxTokenIn}
         />
       </div>
     </div>
