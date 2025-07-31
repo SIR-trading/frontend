@@ -20,14 +20,19 @@ const ErrorLogSchema = z.object({
 });
 export type ErrorLog = z.infer<typeof ErrorLogSchema>;
 const handler = async (req: NextRequest) => {
-  const ip = req.ip ?? req.headers.get("x-forwarded-for")?.split(",")[0];
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const realIp = req.headers.get("x-real-ip");
+  const ip: string = forwardedFor?.split(",")[0] ?? realIp ?? "unknown";
+
   console.log({ ip });
-  if (!ip) return NextResponse.json({ success: false }, { status: 200 });
+  if (!ip || ip === "unknown")
+    return NextResponse.json({ success: false }, { status: 200 });
   const rate = await ratelimit.limit(ip);
   console.log("5");
   if (!rate.success)
     return NextResponse.json({ success: false }, { status: 200 });
   console.log("4");
+
   const resp = (await req.json()) as unknown;
   const ipHash = hashString(ip);
   const ipData = await selectLogCountFromIp({ ipHash });

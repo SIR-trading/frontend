@@ -48,6 +48,7 @@
     "@trpc/server": "next",
     "@types/numeral": "^2.0.5",
     "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.35.2",
     "@vercel/kv": "^3.0.0",
     "addreth": "^3.0.1",
     "class-variance-authority": "^0.7.0",
@@ -64,7 +65,7 @@
     "lodash.groupby": "^4.6.0",
     "lucide-react": "^0.368.0",
     "motion": "^11.11.17",
-    "next": "^14.2.15",
+    "next": "15.3.3",
     "next-themes": "^0.4.6",
     "numeral": "^2.0.6",
     "pino-pretty": "^11.0.0",
@@ -73,6 +74,7 @@
     "react-countdown": "^2.3.6",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.51.3",
+    "redis": "^5.6.1",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.2",
@@ -110,7 +112,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
-    "vitest": "^1.5.0"
+    "vitest": "3.0.5"
   },
   "ct3aMetadata": {
     "initVersion": "7.30.1"
