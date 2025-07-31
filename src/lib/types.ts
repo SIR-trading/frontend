@@ -188,6 +188,7 @@ export type TCurrentApePositions = Record<
     };
     positions: {
       vaultId: `0x${string}`;
+      user: `0x${string}`;
       apeBalance: string;
       collateralToken: string;
       pnlUsd: number;

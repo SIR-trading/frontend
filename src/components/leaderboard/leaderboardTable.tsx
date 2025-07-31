@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils/index";
+import { cn } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
@@ -10,7 +10,9 @@ import {
   AccordionTrigger,
   Accordion,
 } from "@/components/ui/accordion";
-import type { VaultFieldFragment } from "@/lib/types";
+import { fromHex } from "viem";
+import { api } from "@/trpc/react";
+import { useAccount } from "wagmi";
 
 export const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 
@@ -25,9 +27,12 @@ interface LeaderboardTableProps<T, P> {
   emptyStateMessage?: string;
   expandableComponent: React.ComponentType<{
     positions: P;
-    vaults: { vaults: VaultFieldFragment[] } | undefined;
+    vault: (_vaultId: `0x${string}`) => {
+      vaultId: number;
+      collateralSymbol: string;
+    };
+    userAddress?: `0x${string}` | undefined;
   }>;
-  vaults: { vaults: VaultFieldFragment[] } | undefined;
   extractTotal: (item: T) => { pnlUsd: number; pnlUsdPercentage: number };
   extractPositions: (item: T) => P;
 }
@@ -39,13 +44,49 @@ function LeaderboardTable<T, P>({
   pnlPercentageLabel,
   emptyStateMessage,
   expandableComponent: ExpandableComponent,
-  vaults,
   extractTotal,
   extractPositions,
 }: LeaderboardTableProps<T, P>) {
   const [sortField, setSortField] = useState<SortField>("pnlUsd");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
+  const { address: userAddress, isConnected } = useAccount();
+
+  const { data: vaults } = api.vault.getVaults.useQuery(
+    {
+      sortbyVaultId: true,
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      placeholderData: (previousData) => previousData,
+    },
+  );
+
+  const vault = useCallback(
+    (_vaultId: `0x${string}`) => {
+      const vaultId = fromHex(_vaultId, "number");
+      const totalVaults = vaults?.vaults.length ?? 0;
+      if (vaultId <= 0 || vaultId > totalVaults) {
+        return {
+          vaultId,
+          collateralSymbol: "Unknown",
+        };
+      }
+      const vaultData = vaults?.vaults[vaultId - 1];
+      if (!vaultData) {
+        return {
+          vaultId,
+          collateralSymbol: "Unknown",
+        };
+      }
+      const { collateralSymbol } = vaultData;
+      return {
+        vaultId,
+        collateralSymbol,
+      };
+    },
+    [vaults],
+  );
 
   useEffect(() => {
     setIsClient(true);
@@ -155,14 +196,20 @@ function LeaderboardTable<T, P>({
                             "pointer-events-none col-span-4",
                           )}
                         >
-                          <div className="pointer-events-auto max-lg:hidden" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="pointer-events-auto max-lg:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
                               shortenLength={0}
                             />
                           </div>
-                          <div className="pointer-events-auto lg:hidden" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="pointer-events-auto lg:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
@@ -170,10 +217,7 @@ function LeaderboardTable<T, P>({
                           </div>
                         </div>
                         <div className={cellStyling}>
-                          <DisplayFormattedNumber
-                            num={total.pnlUsd}
-                          />{" "}
-                          USD
+                          <DisplayFormattedNumber num={total.pnlUsd} /> USD
                         </div>
                         <div className={cellStyling}>
                           <DisplayFormattedNumber
@@ -186,7 +230,8 @@ function LeaderboardTable<T, P>({
                     <AccordionContent asChild>
                       <ExpandableComponent
                         positions={positions}
-                        vaults={vaults}
+                        vault={vault}
+                        userAddress={isConnected ? userAddress : undefined}
                       />
                     </AccordionContent>
                   </AccordionItem>

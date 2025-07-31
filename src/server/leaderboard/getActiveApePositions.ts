@@ -148,6 +148,7 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         netCollateralPosition: netCollateralPositionUsd,
         dollarTotal: dollarTotalUsd,
         collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
+        user: userAddress,
       };
       userPositionsMap.set(userAddress, {
         totalNet: current.totalNet + netCollateralPositionUsd,

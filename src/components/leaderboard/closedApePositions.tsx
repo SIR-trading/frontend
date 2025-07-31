@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import { api } from "@/trpc/react";
 import ExpandablePositions from "@/components/leaderboard/expandablePositions";
 import LeaderboardTable from "@/components/leaderboard/leaderboardTable";
 import type { TClosedApePositions } from "@/lib/types";
@@ -11,16 +10,6 @@ const ClosedApePositions = () => {
     data: { closedApePositions },
     isLoading,
   } = useApePositions();
-
-  const { data: vaults } = api.vault.getVaults.useQuery(
-    {
-      sortbyVaultId: true,
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      placeholderData: (previousData) => previousData,
-    },
-  );
 
   return (
     <LeaderboardTable<
@@ -33,7 +22,6 @@ const ClosedApePositions = () => {
       pnlPercentageLabel="% PnL"
       emptyStateMessage="No APE positions closed in the last week."
       expandableComponent={ExpandablePositions}
-      vaults={vaults}
       extractTotal={(item) => item.total}
       extractPositions={(item) => item.positions}
     />
