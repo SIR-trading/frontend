@@ -5,7 +5,6 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
-import { headers } from "next/headers";
 import { Header } from "@/components/header";
 import { Inter } from "next/font/google";
 import Warning from "@/components/ui/warning";
@@ -14,6 +13,7 @@ import { VaultProvider } from "@/components/providers/vaultProvider";
 import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 import MintFormProvider from "@/components/providers/mintFormProvider";
 import { ThemeProvider } from "next-themes";
+import type { ReactNode } from "react";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -21,14 +21,15 @@ const inter = Inter({
 
 // console.log(Inter, "INTER");
 export const metadata = {
-  metadataBase: new URL('https://app.sir.trading'),
+  metadataBase: new URL("https://app.sir.trading"),
   title: "SIR",
   description:
     "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
     title: "SIR App Interface",
-    description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
+    description:
+      "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
     url: "https://app.sir.trading",
     siteName: "SIR",
     images: [
@@ -44,7 +45,8 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SIR App Interface",
-    description: "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
+    description:
+      "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
     images: ["https://app.sir.trading/social-media-preview.png"],
     creator: "@leveragesir",
   },
@@ -53,15 +55,13 @@ export const metadata = {
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const cookie = headers().get("cookie");
   // const headerList = headers();
   // const country = headerList.get("x-country");
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
         <body
           className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} relative`}
         >
@@ -75,7 +75,7 @@ export default async function RootLayout({
             <Toaster />
             <TRPCReactProvider>
               <TokenlistContextProvider>
-                <EvmProvider cookie={cookie}>
+                <EvmProvider>
                   <VaultProvider>
                     <MintFormProvider>
                       <div className=" flex min-h-screen flex-col">
@@ -98,7 +98,7 @@ export default async function RootLayout({
                   </VaultProvider>
                 </EvmProvider>
               </TokenlistContextProvider>
-          </TRPCReactProvider>
+            </TRPCReactProvider>
           </ThemeProvider>
         </body>
       </html>
