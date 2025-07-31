@@ -52,13 +52,7 @@ export const metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  // const headerList = headers();
-  // const country = headerList.get("x-country");
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <html lang="en" suppressHydrationWarning>
