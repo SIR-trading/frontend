@@ -1,5 +1,4 @@
 import { getActiveApePositions } from "@/server/leaderboard/getActiveApePositions";
-import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { createClient } from "redis";

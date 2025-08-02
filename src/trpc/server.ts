@@ -11,7 +11,7 @@ import { createTRPCContext } from "@/server/api/trpc";
  * handling a tRPC call from a React Server Component.
  */
 const createContext = cache(async () => {
-  const headersList = await headers();
+  const headersList = headers();
   const heads = new Headers(headersList);
   heads.set("x-trpc-source", "rsc");
 
