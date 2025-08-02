@@ -35,6 +35,7 @@ interface LeaderboardTableProps<T, P> {
   }>;
   extractTotal: (item: T) => { pnlUsd: number; pnlUsdPercentage: number };
   extractPositions: (item: T) => P;
+  extractRank: (item: T) => number;
 }
 
 function LeaderboardTable<T, P>({
@@ -46,6 +47,7 @@ function LeaderboardTable<T, P>({
   expandableComponent: ExpandableComponent,
   extractTotal,
   extractPositions,
+  extractRank,
 }: LeaderboardTableProps<T, P>) {
   const [sortField, setSortField] = useState<SortField>("pnlUsd");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -116,6 +118,25 @@ function LeaderboardTable<T, P>({
     });
   }, [data, sortField, sortDirection, isClient, extractTotal]);
 
+  const dataWithUserOnTop = useMemo(() => {
+    if (!isConnected || !userAddress) return sortedData;
+
+    const userEntryIndex = sortedData.findIndex(
+      ([address]) => address.toLowerCase() === userAddress.toLowerCase(),
+    );
+
+    if (userEntryIndex === -1) return sortedData;
+
+    const userEntry = sortedData[userEntryIndex];
+    if (!userEntry) return sortedData;
+
+    const otherEntries = sortedData.filter(
+      (_, index) => index !== userEntryIndex,
+    );
+
+    return [userEntry, ...otherEntries];
+  }, [sortedData, userAddress, isConnected]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "desc" ? "asc" : "desc");
@@ -175,9 +196,13 @@ function LeaderboardTable<T, P>({
             <Loader2 className="mx-auto mt-8 animate-spin" />
           ) : sortedData.length > 0 ? (
             <Accordion type="single" collapsible className="w-full">
-              {sortedData.map(([address, item], index) => {
+              {dataWithUserOnTop.map(([address, item], index) => {
                 const total = extractTotal(item);
                 const positions = extractPositions(item);
+                const isUserRow =
+                  isConnected &&
+                  userAddress &&
+                  address.toLowerCase() === userAddress.toLowerCase();
 
                 return (
                   <AccordionItem
@@ -186,14 +211,21 @@ function LeaderboardTable<T, P>({
                     className="border-collapse border-t-[1px] border-foreground/4 last:border-b-[1px]"
                   >
                     <AccordionTrigger>
-                      <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
+                      <div
+                        className={cn(
+                          "grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5",
+                          isUserRow &&
+                            "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
+                        )}
+                      >
                         <div className={cn(cellStyling, "col-span-1")}>
-                          {index + 1}
+                          {extractRank(item)}
                         </div>
                         <div
                           className={cn(
                             cellStyling,
                             "pointer-events-none col-span-4",
+                            isUserRow && "font-semibold",
                           )}
                         >
                           <div

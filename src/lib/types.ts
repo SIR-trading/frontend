@@ -171,6 +171,7 @@ export type TClosedApePositions = Record<
       pnlUsdPercentage: number;
       pnlCollateralPercentage: number;
     };
+    rank: number;
   }
 >;
 
@@ -186,6 +187,7 @@ export type TCurrentApePositions = Record<
       pnlUsd: number;
       pnlUsdPercentage: number;
     };
+    rank: number;
     positions: {
       vaultId: `0x${string}`;
       user: `0x${string}`;

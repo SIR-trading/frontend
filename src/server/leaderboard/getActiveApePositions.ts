@@ -159,14 +159,28 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
   );
 
   const result: TCurrentApePositions = {};
-  userPositionsMap.forEach(({ totalNet, dollarTotal, positions }, user) => {
-    result[user] = {
-      total: {
-        pnlUsd: calculatePnl(totalNet, dollarTotal),
-        pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
-      },
+
+  const sortedUsers = Array.from(userPositionsMap.entries())
+    .map(([user, { totalNet, dollarTotal, positions }]) => ({
+      user,
+      pnlUsd: calculatePnl(totalNet, dollarTotal),
+      pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
       positions,
-    };
-  });
+    }))
+    .sort((a, b) => b.pnlUsd - a.pnlUsd);
+
+  sortedUsers.forEach(
+    ({ user, pnlUsd, pnlUsdPercentage, positions }, index) => {
+      result[user] = {
+        total: {
+          pnlUsd,
+          pnlUsdPercentage,
+        },
+        rank: index + 1,
+        positions,
+      };
+    },
+  );
+
   return result;
 }

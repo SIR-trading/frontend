@@ -24,6 +24,7 @@ const ClosedApePositions = () => {
       expandableComponent={ExpandablePositions}
       extractTotal={(item) => item.total}
       extractPositions={(item) => item.positions}
+      extractRank={(item) => item.rank}
     />
   );
 };

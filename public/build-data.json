@@ -10,8 +10,8 @@
     "baseFee": 0.2,
     "mintingFee": 0.0989,
     "mintingStopped": false,
-    "cumulativeTax": 402,
-    "lastUpdated": 1753973214777
+    "cumulativeTax": 527,
+    "lastUpdated": 1754164466523
   },
-  "buildTimestamp": 1753973214777
+  "buildTimestamp": 1754164466523
 }
