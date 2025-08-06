@@ -7,11 +7,11 @@
     "oracle": "0xeD89aF5E62965C45956A0125a5d078218228497A"
   },
   "systemParams": {
-    "baseFee": 0.2,
+    "baseFee": 0.1,
     "mintingFee": 0.0989,
     "mintingStopped": false,
     "cumulativeTax": 527,
-    "lastUpdated": 1754175365473
+    "lastUpdated": 1754483603239
   },
-  "buildTimestamp": 1754175365473
+  "buildTimestamp": 1754483603239
 }

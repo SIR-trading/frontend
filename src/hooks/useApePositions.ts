@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { TPositionsResponse } from "@/lib/types";
 
 const useApePositions = () => {
-  const { data, ...queryRetruns } = useQuery({
+  const { data, ...queryReturns } = useQuery({
     queryKey: ["apePositions"],
     queryFn: async () => {
       const res = await fetch(`/api/leaderboard`);
@@ -19,7 +19,7 @@ const useApePositions = () => {
         closedApePositions: {},
         activeApePositions: {},
       } as TPositionsResponse),
-    ...queryRetruns,
+    ...queryReturns,
   };
 };
 

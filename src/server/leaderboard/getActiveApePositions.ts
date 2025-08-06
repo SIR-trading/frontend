@@ -79,14 +79,21 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
     } catch {}
   }
 
-  const userPositionsMap = new Map<
-    string,
-    {
-      totalNet: number;
-      dollarTotal: number;
-      positions: TCurrentApePositions[string]["positions"];
-    }
-  >();
+  const allPositions: Array<{
+    vaultId: `0x${string}`;
+    user: `0x${string}`;
+    apeBalance: string;
+    collateralToken: string;
+    pnlUsd: number;
+    pnlUsdPercentage: number;
+    pnlCollateral: number;
+    pnlCollateralPercentage: number;
+    leverageTier: number;
+    netCollateralPosition: number;
+    dollarTotal: number;
+    collateralTotal: string;
+  }> = [];
+
   apePositions.forEach(
     (
       {
@@ -130,13 +137,8 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         originalCollateralDeposited > 0
           ? (pnlCollateral / originalCollateralDeposited) * 100
           : 0;
-      const userAddress = getAddress(user);
-      const current = userPositionsMap.get(userAddress) ?? {
-        totalNet: 0,
-        dollarTotal: 0,
-        positions: [],
-      };
-      const positionDetail = {
+
+      allPositions.push({
         vaultId,
         apeBalance: formatUnits(BigInt(apeBalance), apeDecimals),
         collateralToken,
@@ -148,39 +150,25 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         netCollateralPosition: netCollateralPositionUsd,
         dollarTotal: dollarTotalUsd,
         collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
-        user: userAddress,
-      };
-      userPositionsMap.set(userAddress, {
-        totalNet: current.totalNet + netCollateralPositionUsd,
-        dollarTotal: current.dollarTotal + dollarTotalUsd,
-        positions: [...current.positions, positionDetail],
+        user: getAddress(user),
       });
     },
   );
 
+  // Sort positions by PnL in descending order
+  const sortedPositions = allPositions.sort((a, b) => b.pnlUsd - a.pnlUsd);
+
   const result: TCurrentApePositions = {};
-
-  const sortedUsers = Array.from(userPositionsMap.entries())
-    .map(([user, { totalNet, dollarTotal, positions }]) => ({
-      user,
-      pnlUsd: calculatePnl(totalNet, dollarTotal),
-      pnlUsdPercentage: calculatePercentage(totalNet, dollarTotal),
-      positions,
-    }))
-    .sort((a, b) => b.pnlUsd - a.pnlUsd);
-
-  sortedUsers.forEach(
-    ({ user, pnlUsd, pnlUsdPercentage, positions }, index) => {
-      result[user] = {
-        total: {
-          pnlUsd,
-          pnlUsdPercentage,
-        },
-        rank: index + 1,
-        positions,
-      };
-    },
-  );
+  sortedPositions.forEach((position, index) => {
+    result[`position-${index}`] = {
+      total: {
+        pnlUsd: position.pnlUsd,
+        pnlUsdPercentage: position.pnlUsdPercentage,
+      },
+      rank: index + 1,
+      positions: [position], // Each entry now contains a single position
+    };
+  });
 
   return result;
 }
