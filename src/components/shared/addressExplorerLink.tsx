@@ -19,7 +19,7 @@ const AddressExplorerLink = ({
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
   const { ensName, isLoading } = useEnsName(address);
-  
+
   // Function to shorten the address
   const shortenAddress = (addr: string, length: number) => {
     if (length === 0) return addr; // Don't shorten if length is 0
@@ -28,12 +28,12 @@ const AddressExplorerLink = ({
 
   // Determine what to display: ENS name if available, otherwise shortened address
   const displayText = ensName ?? shortenAddress(address, shortenLength);
-  
+
   return (
     <Link
       href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/address/${address}`}
       target="_blank"
-      className="-ml-2 flex h-[32px] items-center gap-x-1 hover:underline"
+      className="flex h-[32px] items-center gap-x-1 hover:underline"
     >
       <span style={{ fontSize, color: isDarkMode ? "#FFF" : "#000" }}>
         {isLoading ? shortenAddress(address, shortenLength) : displayText}

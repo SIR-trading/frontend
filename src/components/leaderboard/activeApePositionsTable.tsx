@@ -10,8 +10,12 @@ import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import type { TCurrentApePositions, TAddressString } from "@/lib/types";
 import { TokenImage } from "@/components/shared/TokenImage";
+import Show from "@/components/shared/show";
+import { Button } from "@/components/ui/button";
+import { BurnFormModal } from "@/components/portfolio/burnTable/burnFormModal";
+import BurnForm from "@/components/portfolio/burnForm/burnForm";
 
-const cellStyling = "px-2 md:px-4 py-3 flex items-center";
+const cellStyling = "pr-2 md:pr-4 py-2.5 flex-1 flex items-center";
 
 type SortField = "pnlUsd" | "pnlUsdPercentage";
 type SortDirection = "asc" | "desc";
@@ -28,6 +32,12 @@ export const ActiveApePositionsTable: React.FC<
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
   const { address: userAddress, isConnected } = useAccount();
+  const [selectedPosition, setSelectedPosition] = useState<{
+    vaultId: string;
+    isApe: boolean;
+    isClaiming: boolean;
+    positionAddress: string;
+  } | null>(null);
 
   const { data: vaults } = api.vault.getVaults.useQuery(
     {
@@ -38,6 +48,32 @@ export const ActiveApePositionsTable: React.FC<
       placeholderData: (previousData) => previousData,
     },
   );
+
+  const { data: userBalancesInVaults } =
+    api.user.getUserBalancesInVaults.useQuery(
+      { address: userAddress },
+      { enabled: Boolean(userAddress) },
+    );
+
+  const { data: apePositions } = api.user.getApePositions.useQuery(
+    { address: userAddress },
+    { enabled: Boolean(userAddress) },
+  );
+
+  const getUserApeBalance = (vaultId: number) => {
+    if (!userBalancesInVaults) return 0n;
+    return userBalancesInVaults.apeBalances[vaultId - 1] ?? 0n;
+  };
+
+  const getUserApePosition = (vaultId: number) => {
+    return apePositions?.apePositions.find(
+      (pos) => fromHex(pos.vaultId as `0x${string}`, "number") === vaultId,
+    );
+  };
+
+  const selectedApePosition = selectedPosition
+    ? getUserApePosition(+selectedPosition.vaultId)
+    : null;
 
   const getVaultInfo = useCallback(
     (_vaultId: `0x${string}`) => {
@@ -156,182 +192,248 @@ export const ActiveApePositionsTable: React.FC<
   }
 
   return (
-    <Card className="mx-auto w-full p-0 md:px-0 md:py-2">
-      <div className="w-full">
-        <div className="">
-          {/* Table Header */}
-          <div className="grid grid-cols-11 border-b border-foreground/10 text-left text-sm font-normal text-foreground/60">
-            <div className={cn(cellStyling, "col-span-1")}>Rank</div>
-            <div className={cn(cellStyling, "col-span-2")}>Vault</div>
-            <div className={cn(cellStyling, "col-span-2")}>Address</div>
-            <div className={cn(cellStyling, "col-span-2")}>Deposit</div>
-            <div
-              className={cn(
-                cellStyling,
-                "col-span-2 cursor-pointer hover:bg-foreground/5",
-              )}
-              onClick={() => handleSort("pnlUsd")}
-            >
-              <span className="flex items-center">
-                Current PnL
-                {getSortIcon("pnlUsd")}
-              </span>
-            </div>
-            <div
-              className={cn(
-                cellStyling,
-                "col-span-2 cursor-pointer hover:bg-foreground/5",
-              )}
-              onClick={() => handleSort("pnlUsdPercentage")}
-            >
-              <span className="flex items-center">
-                Current % PnL
-                {getSortIcon("pnlUsdPercentage")}
-              </span>
-            </div>
-          </div>
-
-          {/* Table Body */}
-          <div className="min-h-10 w-full">
-            {isLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="animate-spin" />
+    <>
+      {selectedPosition && selectedApePosition && (
+        <BurnFormModal reset={() => setSelectedPosition(null)}>
+          <BurnForm
+            balance={getUserApeBalance(parseInt(selectedPosition.vaultId))}
+            row={{
+              id: selectedApePosition.vaultId,
+              balance: selectedApePosition.balance,
+              user: selectedApePosition.user,
+              decimals: selectedApePosition.decimals,
+              collateralSymbol: selectedApePosition.collateralSymbol,
+              debtSymbol: selectedApePosition.debtSymbol,
+              collateralToken: selectedApePosition.collateralToken,
+              debtToken: selectedApePosition.debtToken,
+              leverageTier: selectedApePosition.leverageTier,
+              vaultId: selectedApePosition.vaultId,
+            }}
+            isApe={true}
+            close={() => setSelectedPosition(null)}
+            teaRewardBalance={0n}
+            isClaiming={false}
+            levTier={selectedApePosition.leverageTier}
+          />
+        </BurnFormModal>
+      )}
+      <Card className="mx-auto w-full p-0 md:px-0 md:py-2">
+        <div className="w-full">
+          <div className="">
+            {/* Table Header */}
+            <div className="flex border-b border-foreground/10 text-left text-sm font-normal text-foreground/60">
+              <div className={cn(cellStyling, "w-14 flex-none pl-2")}>Rank</div>
+              <div className={cn(cellStyling, "min-w-[80px] md:min-w-[160px]")}>
+                Vault
               </div>
-            ) : dataWithUserOnTop.length > 0 ? (
-              <div className="w-full">
-                {dataWithUserOnTop.map(([key, item]) => {
-                  const position = item.positions[0]; // Each item now has a single position
-                  if (!position) return null;
-
-                  const vaultInfo = getVaultInfo(position.vaultId);
-                  const isUserPosition =
-                    isConnected &&
-                    userAddress &&
-                    position.user.toLowerCase() === userAddress.toLowerCase();
-
-                  return (
-                    <div
-                      key={key}
-                      className={cn(
-                        "grid grid-cols-11 border-b border-foreground/5 text-sm font-medium hover:bg-foreground/5",
-                        isUserPosition &&
-                          "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
-                      )}
-                    >
-                      {/* Rank */}
-                      <div className={cn(cellStyling, "col-span-1")}>
-                        {item.rank}
-                      </div>
-
-                      {/* Token */}
-                      <div className={cn(cellStyling, "col-span-2")}>
-                        <div className="relative flex items-center">
-                          <TokenImage
-                            address={vaultInfo.collateralToken}
-                            className="h-6 w-6 rounded-full"
-                            width={28}
-                            height={28}
-                            alt="Collateral token"
-                          />
-                          <TokenImage
-                            address={vaultInfo.debtToken}
-                            className="h-6 w-6 rounded-full"
-                            width={28}
-                            height={28}
-                            alt="Debt token"
-                          />
-                          <div className="px-1"></div>
-                          <span className="hidden font-normal md:block">
-                            {vaultInfo.collateralSymbol}/{vaultInfo.debtSymbol}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Address */}
-                      <div className={cn(cellStyling, "col-span-2")}>
-                        <div className="flex w-full items-center justify-between">
-                          <AddressExplorerLink
-                            address={position.user}
-                            fontSize={14}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Deposit */}
-                      <div className={cn(cellStyling, "col-span-2")}>
-                        <div className="flex flex-col text-xs">
-                          <span>
-                            <DisplayFormattedNumber
-                              num={position.dollarTotal}
-                            />{" "}
-                            USD
-                          </span>
-                          <span className="text-foreground/60">
-                            (
-                            <DisplayFormattedNumber
-                              num={+position.collateralTotal}
-                            />{" "}
-                            {vaultInfo.collateralSymbol})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Current PnL */}
-                      <div className={cn(cellStyling, "col-span-2")}>
-                        <div className="flex flex-col text-xs">
-                          <span
-                            className={
-                              position.pnlUsd >= 0
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }
-                          >
-                            <DisplayFormattedNumber num={position.pnlUsd} /> USD
-                          </span>
-                          <span className="text-foreground/60">
-                            (
-                            <DisplayFormattedNumber
-                              num={position.pnlCollateral}
-                            />{" "}
-                            {vaultInfo.collateralSymbol})
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Current % PnL */}
-                      <div className={cn(cellStyling, "col-span-2")}>
-                        <div className="flex flex-col text-xs">
-                          <span
-                            className={
-                              position.pnlUsdPercentage >= 0
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }
-                          >
-                            <DisplayFormattedNumber
-                              num={position.pnlUsdPercentage}
-                            />
-                            %
-                          </span>
-                          <span className="text-foreground/60">
-                            (
-                            <DisplayFormattedNumber
-                              num={position.pnlCollateralPercentage}
-                            />
-                            % in {vaultInfo.collateralSymbol})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className={cn(cellStyling, "min-w-[120px]")}>Address</div>
+              <div className={cn(cellStyling, "")}>Deposit</div>
+              <div
+                className={cn(
+                  cellStyling,
+                  " cursor-pointer hover:bg-foreground/5",
+                )}
+                onClick={() => handleSort("pnlUsd")}
+              >
+                <span className="flex items-center">
+                  Current PnL
+                  {getSortIcon("pnlUsd")}
+                </span>
               </div>
-            ) : (
-              <></>
-            )}
+              <div
+                className={cn(
+                  cellStyling,
+                  " cursor-pointer hover:bg-foreground/5",
+                )}
+                onClick={() => handleSort("pnlUsdPercentage")}
+              >
+                <span className="flex items-center">
+                  Current % PnL
+                  {getSortIcon("pnlUsdPercentage")}
+                </span>
+              </div>
+              <div className={cn(cellStyling, "flex-none pr-0 md:pr-0")}>
+                <span className={"w-[45px]"}></span>
+              </div>
+            </div>
+
+            {/* Table Body */}
+            <div className="min-h-10 w-full">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="animate-spin" />
+                </div>
+              ) : dataWithUserOnTop.length > 0 ? (
+                <div className="w-full">
+                  {dataWithUserOnTop.map(([key, item]) => {
+                    const position = item.positions[0]; // Each item now has a single position
+                    if (!position) return null;
+
+                    const vaultInfo = getVaultInfo(position.vaultId);
+                    const isUserPosition =
+                      isConnected &&
+                      userAddress &&
+                      position.user.toLowerCase() === userAddress.toLowerCase();
+
+                    return (
+                      <div
+                        key={key}
+                        className={cn(
+                          "flex border-b border-foreground/5 text-sm font-medium hover:bg-foreground/5",
+                          isUserPosition &&
+                            "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
+                        )}
+                      >
+                        {/* Rank */}
+                        <div className={cn(cellStyling, "w-14 flex-none pl-2")}>
+                          {item.rank}
+                        </div>
+
+                        {/* Vault */}
+                        <div
+                          className={cn(
+                            cellStyling,
+                            "min-w-[80px] md:min-w-[160px]",
+                          )}
+                        >
+                          <div className="relative flex items-center">
+                            <TokenImage
+                              address={vaultInfo.collateralToken}
+                              className="h-6 w-6 rounded-full"
+                              width={28}
+                              height={28}
+                              alt="Collateral token"
+                            />
+                            <TokenImage
+                              address={vaultInfo.debtToken}
+                              className="h-6 w-6 rounded-full"
+                              width={28}
+                              height={28}
+                              alt="Debt token"
+                            />
+                            <div className="px-1"></div>
+                            <span className="hidden text-xs font-normal md:block">
+                              {vaultInfo.collateralSymbol}/
+                              {vaultInfo.debtSymbol}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Address */}
+                        <div className={cn(cellStyling, "min-w-[120px]")}>
+                          <div className="flex w-full items-center justify-between">
+                            <AddressExplorerLink
+                              address={position.user}
+                              fontSize={12}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Deposit */}
+                        <div className={cn(cellStyling, "")}>
+                          <div className="flex flex-col text-xs">
+                            <span>
+                              <DisplayFormattedNumber
+                                num={position.dollarTotal}
+                              />{" "}
+                              USD
+                            </span>
+                            <span className="text-foreground/60">
+                              (
+                              <DisplayFormattedNumber
+                                num={+position.collateralTotal}
+                              />{" "}
+                              {vaultInfo.collateralSymbol})
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Current PnL */}
+                        <div className={cn(cellStyling, "")}>
+                          <div className="flex flex-col text-xs">
+                            <span
+                              className={
+                                position.pnlUsd >= 0
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }
+                            >
+                              <DisplayFormattedNumber num={position.pnlUsd} />{" "}
+                              USD
+                            </span>
+                            <span className="text-foreground/60">
+                              (
+                              <DisplayFormattedNumber
+                                num={position.pnlCollateral}
+                              />{" "}
+                              {vaultInfo.collateralSymbol})
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Current % PnL */}
+                        <div className={cn(cellStyling, "")}>
+                          <div className="flex flex-col text-xs">
+                            <span
+                              className={
+                                position.pnlUsdPercentage >= 0
+                                  ? "text-green-500"
+                                  : "text-red-500"
+                              }
+                            >
+                              <DisplayFormattedNumber
+                                num={position.pnlUsdPercentage}
+                              />
+                              %
+                            </span>
+                            <span className="text-foreground/60">
+                              (
+                              <DisplayFormattedNumber
+                                num={position.pnlCollateralPercentage}
+                              />
+                              % in {vaultInfo.collateralSymbol})
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* User Action */}
+                        <div
+                          className={cn(
+                            cellStyling,
+                            "relative flex-none pr-0 md:pr-0",
+                          )}
+                        >
+                          <Show
+                            when={!!isUserPosition}
+                            fallback={<span className={"w-[45px]"}></span>}
+                          >
+                            <Button
+                              onClick={() =>
+                                setSelectedPosition({
+                                  vaultId: position.vaultId.toString(),
+                                  isApe: true,
+                                  isClaiming: false,
+                                  positionAddress: position.user,
+                                })
+                              }
+                              type="button"
+                              className="h-7 w-[45px] -translate-x-2 rounded-full p-1 text-[12px] md:-translate-x-4"
+                            >
+                              Burn
+                            </Button>
+                          </Show>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <></>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </>
   );
 };

@@ -7,12 +7,6 @@ import type { TCurrentApePositions } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { getCurrentApePositions } from "@/server/queries/leaderboard";
 import { formatUnits, fromHex, getAddress } from "viem";
-
-const calculatePnl = (withdrawn: number, deposited: number) =>
-  withdrawn - deposited;
-const calculatePercentage = (withdrawn: number, deposited: number) =>
-  deposited > 0 ? (withdrawn / deposited - 1) * 100 : 0;
-
 export async function getActiveApePositions(): Promise<TCurrentApePositions> {
   const { apePositions } = await getCurrentApePositions();
   if (apePositions.length === 0) return {};
