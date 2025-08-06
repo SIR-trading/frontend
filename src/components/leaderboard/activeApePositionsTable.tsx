@@ -281,7 +281,7 @@ export const ActiveApePositionsTable: React.FC<
                         className={cn(
                           "flex border-b border-foreground/5 text-sm font-medium hover:bg-foreground/5",
                           isUserPosition &&
-                            "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
+                            "bg-primary/5 hover:bg-foreground/15 dark:bg-primary",
                         )}
                       >
                         {/* Rank */}
