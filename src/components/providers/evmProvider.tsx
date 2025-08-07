@@ -5,12 +5,7 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
-import {
-  cookieStorage,
-  cookieToInitialState,
-  createStorage,
-  WagmiProvider,
-} from "wagmi";
+import { WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { env } from "@/env";
 const getChainId = () => {
@@ -45,13 +40,7 @@ export const wagmiConfig = getDefaultConfig({
   // }),
 });
 
-function EvmProvider({
-  children,
-  // cookie,
-}: {
-  children: React.ReactNode;
-  cookie: string | null;
-}) {
+function EvmProvider({ children }: { children: React.ReactNode }) {
   // const initialState = cookieToInitialState(wagmiConfig, cookie);
   //initialState={initialState}
   return (

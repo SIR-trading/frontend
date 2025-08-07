@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils/index";
+import { cn } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
@@ -10,7 +10,9 @@ import {
   AccordionTrigger,
   Accordion,
 } from "@/components/ui/accordion";
-import type { VaultFieldFragment } from "@/lib/types";
+import { fromHex } from "viem";
+import { api } from "@/trpc/react";
+import { useAccount } from "wagmi";
 
 export const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 
@@ -25,11 +27,15 @@ interface LeaderboardTableProps<T, P> {
   emptyStateMessage?: string;
   expandableComponent: React.ComponentType<{
     positions: P;
-    vaults: { vaults: VaultFieldFragment[] } | undefined;
+    vault: (_vaultId: `0x${string}`) => {
+      vaultId: number;
+      collateralSymbol: string;
+    };
+    userAddress?: `0x${string}` | undefined;
   }>;
-  vaults: { vaults: VaultFieldFragment[] } | undefined;
   extractTotal: (item: T) => { pnlUsd: number; pnlUsdPercentage: number };
   extractPositions: (item: T) => P;
+  extractRank: (item: T) => number;
 }
 
 function LeaderboardTable<T, P>({
@@ -39,13 +45,50 @@ function LeaderboardTable<T, P>({
   pnlPercentageLabel,
   emptyStateMessage,
   expandableComponent: ExpandableComponent,
-  vaults,
   extractTotal,
   extractPositions,
+  extractRank,
 }: LeaderboardTableProps<T, P>) {
   const [sortField, setSortField] = useState<SortField>("pnlUsd");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
+  const { address: userAddress, isConnected } = useAccount();
+
+  const { data: vaults } = api.vault.getVaults.useQuery(
+    {
+      sortbyVaultId: true,
+    },
+    {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      placeholderData: (previousData) => previousData,
+    },
+  );
+
+  const vault = useCallback(
+    (_vaultId: `0x${string}`) => {
+      const vaultId = fromHex(_vaultId, "number");
+      const totalVaults = vaults?.vaults.length ?? 0;
+      if (vaultId <= 0 || vaultId > totalVaults) {
+        return {
+          vaultId,
+          collateralSymbol: "Unknown",
+        };
+      }
+      const vaultData = vaults?.vaults[vaultId - 1];
+      if (!vaultData) {
+        return {
+          vaultId,
+          collateralSymbol: "Unknown",
+        };
+      }
+      const { collateralSymbol } = vaultData;
+      return {
+        vaultId,
+        collateralSymbol,
+      };
+    },
+    [vaults],
+  );
 
   useEffect(() => {
     setIsClient(true);
@@ -74,6 +117,25 @@ function LeaderboardTable<T, P>({
       }
     });
   }, [data, sortField, sortDirection, isClient, extractTotal]);
+
+  const dataWithUserOnTop = useMemo(() => {
+    if (!isConnected || !userAddress) return sortedData;
+
+    const userEntryIndex = sortedData.findIndex(
+      ([address]) => address.toLowerCase() === userAddress.toLowerCase(),
+    );
+
+    if (userEntryIndex === -1) return sortedData;
+
+    const userEntry = sortedData[userEntryIndex];
+    if (!userEntry) return sortedData;
+
+    const otherEntries = sortedData.filter(
+      (_, index) => index !== userEntryIndex,
+    );
+
+    return [userEntry, ...otherEntries];
+  }, [sortedData, userAddress, isConnected]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -134,9 +196,13 @@ function LeaderboardTable<T, P>({
             <Loader2 className="mx-auto mt-8 animate-spin" />
           ) : sortedData.length > 0 ? (
             <Accordion type="single" collapsible className="w-full">
-              {sortedData.map(([address, item], index) => {
+              {dataWithUserOnTop.map(([address, item], index) => {
                 const total = extractTotal(item);
                 const positions = extractPositions(item);
+                const isUserRow =
+                  isConnected &&
+                  userAddress &&
+                  address.toLowerCase() === userAddress.toLowerCase();
 
                 return (
                   <AccordionItem
@@ -145,24 +211,37 @@ function LeaderboardTable<T, P>({
                     className="border-collapse border-t-[1px] border-foreground/4 last:border-b-[1px]"
                   >
                     <AccordionTrigger>
-                      <div className="grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5">
+                      <div
+                        className={cn(
+                          "grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5",
+                          isUserRow &&
+                            "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
+                        )}
+                      >
                         <div className={cn(cellStyling, "col-span-1")}>
-                          {index + 1}
+                          {extractRank(item)}
                         </div>
                         <div
                           className={cn(
                             cellStyling,
                             "pointer-events-none col-span-4",
+                            isUserRow && "font-semibold",
                           )}
                         >
-                          <div className="pointer-events-auto max-lg:hidden" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="pointer-events-auto max-lg:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
                               shortenLength={0}
                             />
                           </div>
-                          <div className="pointer-events-auto lg:hidden" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="pointer-events-auto lg:hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <AddressExplorerLink
                               address={address}
                               fontSize={14}
@@ -170,10 +249,7 @@ function LeaderboardTable<T, P>({
                           </div>
                         </div>
                         <div className={cellStyling}>
-                          <DisplayFormattedNumber
-                            num={total.pnlUsd}
-                          />{" "}
-                          USD
+                          <DisplayFormattedNumber num={total.pnlUsd} /> USD
                         </div>
                         <div className={cellStyling}>
                           <DisplayFormattedNumber
@@ -186,7 +262,8 @@ function LeaderboardTable<T, P>({
                     <AccordionContent asChild>
                       <ExpandableComponent
                         positions={positions}
-                        vaults={vaults}
+                        vault={vault}
+                        userAddress={isConnected ? userAddress : undefined}
                       />
                     </AccordionContent>
                   </AccordionItem>

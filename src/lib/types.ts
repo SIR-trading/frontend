@@ -171,8 +171,14 @@ export type TClosedApePositions = Record<
       pnlUsdPercentage: number;
       pnlCollateralPercentage: number;
     };
+    rank: number;
   }
 >;
+
+export type TPositionsResponse = {
+  activeApePositions: TCurrentApePositions;
+  closedApePositions: TClosedApePositions;
+};
 
 export type TCurrentApePositions = Record<
   string,
@@ -181,8 +187,10 @@ export type TCurrentApePositions = Record<
       pnlUsd: number;
       pnlUsdPercentage: number;
     };
+    rank: number;
     positions: {
       vaultId: `0x${string}`;
+      user: `0x${string}`;
       apeBalance: string;
       collateralToken: string;
       pnlUsd: number;
