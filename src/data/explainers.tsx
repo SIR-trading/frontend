@@ -136,10 +136,10 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Close any APE position within the current week to enter. The board tracks two scores: total USD profit and relative USD gain (%).
+          Close any APE position within the current month to enter. The board tracks two scores: total USD profit and relative USD gain (%).
         </p>
         <p>
-          Each weekend the top ranks in both categories receive fresh SIR token rewards.
+          On the 1st of each month, the top performers in both categories will receive 1M SIR tokens as rewards.
         </p>
       </>
     ),

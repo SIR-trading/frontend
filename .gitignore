@@ -46,3 +46,6 @@ yarn-error.log*
 # build data
 /public/build-data.json
 .env*.local
+
+# Claude
+.claude

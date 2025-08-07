@@ -47,9 +47,9 @@ const currentApePositionsQuery = gql`
 
 export const getClosedApePositions = async () => {
   const timestamp = Math.floor(Date.now() / 1000); // Convert to seconds
-  const oneWeekAgo = timestamp - 7 * 24 * 60 * 60;
+  const oneMonthAgo = timestamp - 30 * 24 * 60 * 60;
   const result = await graphqlClient.request(closedApePositionsQuery, {
-    oneWeekAgo: oneWeekAgo,
+    oneWeekAgo: oneMonthAgo,
   });
 
   return result as {
