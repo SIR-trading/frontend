@@ -19,8 +19,8 @@ const closedApePositionsQuery = gql`
     decimal
   }
 
-  query ClosedApePositionsQuery($oneWeekAgo: Int) {
-    closedApePositions(where: { timestamp_gte: $oneWeekAgo }) {
+  query ClosedApePositionsQuery($startTimestamp: Int) {
+    closedApePositions(where: { timestamp_gte: $startTimestamp }) {
       ...ClosedApePositionFields
     }
   }
@@ -46,10 +46,13 @@ const currentApePositionsQuery = gql`
 `;
 
 export const getClosedApePositions = async () => {
-  const timestamp = Math.floor(Date.now() / 1000); // Convert to seconds
-  const oneMonthAgo = timestamp - 30 * 24 * 60 * 60;
+  // Get the first day of the current month at 00:00:00 UTC
+  const now = new Date();
+  const firstDayOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+  const firstDayTimestamp = Math.floor(firstDayOfMonth.getTime() / 1000); // Convert to seconds
+  
   const result = await graphqlClient.request(closedApePositionsQuery, {
-    oneWeekAgo: oneMonthAgo,
+    startTimestamp: firstDayTimestamp,
   });
 
   return result as {

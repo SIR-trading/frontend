@@ -28,7 +28,7 @@ interface ActiveApePositionsTableProps {
 export const ActiveApePositionsTable: React.FC<
   ActiveApePositionsTableProps
 > = ({ data, isLoading }) => {
-  const [sortField, setSortField] = useState<SortField>("pnlUsd");
+  const [sortField, setSortField] = useState<SortField>("pnlUsdPercentage");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
   const { address: userAddress, isConnected } = useAccount();
@@ -142,27 +142,41 @@ export const ActiveApePositionsTable: React.FC<
   }, [data, sortField, sortDirection, isClient]);
 
   const dataWithUserOnTop = useMemo(() => {
-    if (!isConnected || !userAddress) return sortedData;
+    // If user is not connected, return sortedData with ranks
+    if (!isConnected || !userAddress) {
+      return sortedData.map(([key, item], index) => [key, item, index + 1] as [string, typeof item, number]);
+    }
 
-    // Find all user positions
-    const userPositions: Array<[string, (typeof sortedData)[0][1]]> = [];
-    const otherPositions: Array<[string, (typeof sortedData)[0][1]]> = [];
+    // Find all user positions and store their original ranks
+    const userPositions: Array<[string, (typeof sortedData)[0][1], number]> = [];
+    const otherPositions: Array<[string, (typeof sortedData)[0][1], number]> = [];
 
-    sortedData.forEach(([key, item]) => {
+    sortedData.forEach(([key, item], index) => {
       const position = item.positions[0];
+      const originalRank = index + 1;
+      
       if (
         position &&
         position.user.toLowerCase() === userAddress.toLowerCase()
       ) {
-        userPositions.push([key, item]);
+        userPositions.push([key, item, originalRank]);
       } else {
-        otherPositions.push([key, item]);
+        otherPositions.push([key, item, originalRank]);
       }
     });
 
-    // Return user positions first, then others
+    // Return user positions first (with original ranks), then others
     return [...userPositions, ...otherPositions];
   }, [sortedData, userAddress, isConnected]);
+
+  const hasUserPositions = useMemo(() => {
+    if (!isConnected || !userAddress) return false;
+    
+    return dataWithUserOnTop.some(([, item]) => {
+      const position = item.positions[0];
+      return position && position.user.toLowerCase() === userAddress.toLowerCase();
+    });
+  }, [dataWithUserOnTop, userAddress, isConnected]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -233,18 +247,6 @@ export const ActiveApePositionsTable: React.FC<
                   cellStyling,
                   " cursor-pointer hover:bg-foreground/5",
                 )}
-                onClick={() => handleSort("pnlUsd")}
-              >
-                <span className="flex items-center">
-                  Current PnL
-                  {getSortIcon("pnlUsd")}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  cellStyling,
-                  " cursor-pointer hover:bg-foreground/5",
-                )}
                 onClick={() => handleSort("pnlUsdPercentage")}
               >
                 <span className="flex items-center">
@@ -252,9 +254,24 @@ export const ActiveApePositionsTable: React.FC<
                   {getSortIcon("pnlUsdPercentage")}
                 </span>
               </div>
-              <div className={cn(cellStyling, "flex-none pr-0 md:pr-0")}>
-                <span className={"w-[45px]"}></span>
+              <div
+                className={cn(
+                  cellStyling,
+                  " cursor-pointer hover:bg-foreground/5",
+                  hasUserPositions ? "" : "flex-grow",
+                )}
+                onClick={() => handleSort("pnlUsd")}
+              >
+                <span className="flex items-center">
+                  Current PnL
+                  {getSortIcon("pnlUsd")}
+                </span>
               </div>
+              {hasUserPositions && (
+                <div className={cn(cellStyling, "flex-none pr-0 md:pr-0")}>
+                  <span className={"w-[45px]"}></span>
+                </div>
+              )}
             </div>
 
             {/* Table Body */}
@@ -265,7 +282,7 @@ export const ActiveApePositionsTable: React.FC<
                 </div>
               ) : dataWithUserOnTop.length > 0 ? (
                 <div className="w-full">
-                  {dataWithUserOnTop.map(([key, item]) => {
+                  {dataWithUserOnTop.map(([key, item, realRank]) => {
                     const position = item.positions[0]; // Each item now has a single position
                     if (!position) return null;
 
@@ -284,38 +301,67 @@ export const ActiveApePositionsTable: React.FC<
                             "bg-primary/5 hover:bg-foreground/15 dark:bg-primary",
                         )}
                       >
-                        {/* Rank */}
+                        {/* Rank - Shows real rank from sorted list */}
                         <div className={cn(cellStyling, "w-14 flex-none pl-2")}>
-                          {item.rank}
+                          {realRank}
                         </div>
 
                         {/* Vault */}
                         <div
                           className={cn(
                             cellStyling,
-                            "min-w-[80px] md:min-w-[160px]",
+                            "min-w-[80px] overflow-hidden md:min-w-[160px]",
                           )}
                         >
-                          <div className="relative flex items-center">
-                            <TokenImage
-                              address={vaultInfo.collateralToken}
-                              className="h-6 w-6 rounded-full"
-                              width={28}
-                              height={28}
-                              alt="Collateral token"
-                            />
-                            <TokenImage
-                              address={vaultInfo.debtToken}
-                              className="h-6 w-6 rounded-full"
-                              width={28}
-                              height={28}
-                              alt="Debt token"
-                            />
-                            <div className="px-1"></div>
-                            <span className="hidden text-xs font-normal md:block">
-                              {vaultInfo.collateralSymbol}/
-                              {vaultInfo.debtSymbol}
-                            </span>
+                          <div className="flex items-center overflow-hidden">
+                            {/* Mobile: Show only token logos with leverage */}
+                            <div className="flex items-center md:hidden">
+                              <TokenImage
+                                address={vaultInfo.collateralToken}
+                                className="h-6 w-6 flex-shrink-0 rounded-full"
+                                width={24}
+                                height={24}
+                                alt="Collateral token"
+                              />
+                              <TokenImage
+                                address={vaultInfo.debtToken}
+                                className="h-6 w-6 flex-shrink-0 rounded-full"
+                                width={24}
+                                height={24}
+                                alt="Debt token"
+                              />
+                              <sup className="ml-0.5 flex-shrink-0 text-[10px] font-semibold">
+                                {1 + Math.pow(2, position.leverageTier)}
+                              </sup>
+                            </div>
+                            
+                            {/* Desktop: Show logo+symbol for each token */}
+                            <div className="hidden items-center overflow-hidden md:flex">
+                              <TokenImage
+                                address={vaultInfo.collateralToken}
+                                className="h-5 w-5 flex-shrink-0 rounded-full"
+                                width={20}
+                                height={20}
+                                alt="Collateral token"
+                              />
+                              <span className="ml-1 truncate text-xs font-normal">
+                                {vaultInfo.collateralSymbol}
+                              </span>
+                              <span className="mx-1 flex-shrink-0 text-xs font-normal">/</span>
+                              <TokenImage
+                                address={vaultInfo.debtToken}
+                                className="h-5 w-5 flex-shrink-0 rounded-full"
+                                width={20}
+                                height={20}
+                                alt="Debt token"
+                              />
+                              <span className="ml-1 truncate text-xs font-normal">
+                                {vaultInfo.debtSymbol}
+                              </span>
+                              <sup className="ml-0.5 flex-shrink-0 text-[10px] font-semibold">
+                                {1 + Math.pow(2, position.leverageTier)}
+                              </sup>
+                            </div>
                           </div>
                         </div>
 
@@ -348,29 +394,6 @@ export const ActiveApePositionsTable: React.FC<
                           </div>
                         </div>
 
-                        {/* Current PnL */}
-                        <div className={cn(cellStyling, "")}>
-                          <div className="flex flex-col text-xs">
-                            <span
-                              className={
-                                position.pnlUsd >= 0
-                                  ? "text-green-500"
-                                  : "text-red-500"
-                              }
-                            >
-                              <DisplayFormattedNumber num={position.pnlUsd} />{" "}
-                              USD
-                            </span>
-                            <span className="text-foreground/60">
-                              (
-                              <DisplayFormattedNumber
-                                num={position.pnlCollateral}
-                              />{" "}
-                              {vaultInfo.collateralSymbol})
-                            </span>
-                          </div>
-                        </div>
-
                         {/* Current % PnL */}
                         <div className={cn(cellStyling, "")}>
                           <div className="flex flex-col text-xs">
@@ -396,33 +419,58 @@ export const ActiveApePositionsTable: React.FC<
                           </div>
                         </div>
 
-                        {/* User Action */}
-                        <div
-                          className={cn(
-                            cellStyling,
-                            "relative flex-none pr-0 md:pr-0",
-                          )}
-                        >
-                          <Show
-                            when={!!isUserPosition}
-                            fallback={<span className={"w-[45px]"}></span>}
-                          >
-                            <Button
-                              onClick={() =>
-                                setSelectedPosition({
-                                  vaultId: position.vaultId.toString(),
-                                  isApe: true,
-                                  isClaiming: false,
-                                  positionAddress: position.user,
-                                })
+                        {/* Current PnL */}
+                        <div className={cn(cellStyling, hasUserPositions ? "" : "flex-grow")}>
+                          <div className="flex flex-col text-xs">
+                            <span
+                              className={
+                                position.pnlUsd >= 0
+                                  ? "text-green-500"
+                                  : "text-red-500"
                               }
-                              type="button"
-                              className="h-7 w-[45px] -translate-x-2 rounded-full p-1 text-[12px] md:-translate-x-4"
                             >
-                              Burn
-                            </Button>
-                          </Show>
+                              <DisplayFormattedNumber num={position.pnlUsd} />{" "}
+                              USD
+                            </span>
+                            <span className="text-foreground/60">
+                              (
+                              <DisplayFormattedNumber
+                                num={position.pnlCollateral}
+                              />{" "}
+                              {vaultInfo.collateralSymbol})
+                            </span>
+                          </div>
                         </div>
+
+                        {/* User Action - Only show when user has positions */}
+                        {hasUserPositions && (
+                          <div
+                            className={cn(
+                              cellStyling,
+                              "relative flex-none pr-0 md:pr-0",
+                            )}
+                          >
+                            <Show
+                              when={!!isUserPosition}
+                              fallback={<span className={"w-[45px]"}></span>}
+                            >
+                              <Button
+                                onClick={() =>
+                                  setSelectedPosition({
+                                    vaultId: position.vaultId.toString(),
+                                    isApe: true,
+                                    isClaiming: false,
+                                    positionAddress: position.user,
+                                  })
+                                }
+                                type="button"
+                                className="h-7 w-[45px] -translate-x-2 rounded-full p-1 text-[12px] md:-translate-x-4"
+                              >
+                                Burn
+                              </Button>
+                            </Show>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
