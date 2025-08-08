@@ -155,12 +155,8 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
   const result: TCurrentApePositions = {};
   sortedPositions.forEach((position, index) => {
     result[`position-${index}`] = {
-      total: {
-        pnlUsd: position.pnlUsd,
-        pnlUsdPercentage: position.pnlUsdPercentage,
-      },
       rank: index + 1,
-      positions: [position], // Each entry now contains a single position
+      position, // Each entry now contains a single position
     };
   });
 
