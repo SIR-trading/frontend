@@ -30,12 +30,16 @@ interface LeaderboardTableProps<T, P> {
     vault: (_vaultId: `0x${string}`) => {
       vaultId: number;
       collateralSymbol: string;
+      debtSymbol?: string;
+      leverageTier?: number;
+      collateralToken?: `0x${string}`;
+      debtToken?: `0x${string}`;
     };
     userAddress?: `0x${string}` | undefined;
   }>;
   extractTotal: (item: T) => { pnlUsd: number; pnlUsdPercentage: number };
   extractPositions: (item: T) => P;
-  extractRank: (item: T) => number;
+  extractRank: (_item: T) => number;
 }
 
 function LeaderboardTable<T, P>({
@@ -47,7 +51,7 @@ function LeaderboardTable<T, P>({
   expandableComponent: ExpandableComponent,
   extractTotal,
   extractPositions,
-  extractRank,
+  extractRank: _extractRank,
 }: LeaderboardTableProps<T, P>) {
   const [sortField, setSortField] = useState<SortField>("pnlUsd");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -72,6 +76,10 @@ function LeaderboardTable<T, P>({
         return {
           vaultId,
           collateralSymbol: "Unknown",
+          debtSymbol: "Unknown",
+          leverageTier: 0,
+          collateralToken: undefined,
+          debtToken: undefined,
         };
       }
       const vaultData = vaults?.vaults[vaultId - 1];
@@ -79,12 +87,20 @@ function LeaderboardTable<T, P>({
         return {
           vaultId,
           collateralSymbol: "Unknown",
+          debtSymbol: "Unknown",
+          leverageTier: 0,
+          collateralToken: undefined,
+          debtToken: undefined,
         };
       }
-      const { collateralSymbol } = vaultData;
+      const { collateralSymbol, debtSymbol, leverageTier, collateralToken, debtToken } = vaultData;
       return {
         vaultId,
         collateralSymbol,
+        debtSymbol,
+        leverageTier,
+        collateralToken: collateralToken as `0x${string}` | undefined,
+        debtToken: debtToken as `0x${string}` | undefined,
       };
     },
     [vaults],
@@ -136,6 +152,18 @@ function LeaderboardTable<T, P>({
 
     return [userEntry, ...otherEntries];
   }, [sortedData, userAddress, isConnected]);
+
+  // Create a map of addresses to their dynamic ranks based on current sort
+  const dynamicRanks = useMemo(() => {
+    const rankMap = new Map<string, number>();
+    const totalCount = sortedData.length;
+    sortedData.forEach(([address], index) => {
+      // If ascending order (worst to best), reverse the ranking
+      const rank = sortDirection === "asc" ? totalCount - index : index + 1;
+      rankMap.set(address.toLowerCase(), rank);
+    });
+    return rankMap;
+  }, [sortedData, sortDirection]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -203,6 +231,7 @@ function LeaderboardTable<T, P>({
                   isConnected &&
                   userAddress &&
                   address.toLowerCase() === userAddress.toLowerCase();
+                const dynamicRank = dynamicRanks.get(address.toLowerCase()) ?? index + 1;
 
                 return (
                   <AccordionItem
@@ -219,7 +248,7 @@ function LeaderboardTable<T, P>({
                         )}
                       >
                         <div className={cn(cellStyling, "col-span-1")}>
-                          {extractRank(item)}
+                          {dynamicRank}
                         </div>
                         <div
                           className={cn(

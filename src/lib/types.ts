@@ -162,6 +162,8 @@ export type TClosedApePositions = Record<
       pnlCollateral: number;
       pnlUsdPercentage: number;
       pnlCollateralPercentage: number;
+      dollarDeposited: number;
+      collateralDeposited: number;
       timestamp: number;
       vaultId: `0x${string}`;
     }[];

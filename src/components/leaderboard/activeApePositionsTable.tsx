@@ -142,11 +142,16 @@ export const ActiveApePositionsTable: React.FC<
   }, [data, sortField, sortDirection, isClient]);
 
   const dataWithUserOnTop = useMemo(() => {
+    const totalCount = sortedData.length;
+    
     // If user is not connected, return sortedData with ranks
     if (!isConnected || !userAddress) {
       return sortedData.map(
-        ([key, item], index) =>
-          [key, item, index + 1] as [string, typeof item, number],
+        ([key, item], index) => {
+          // If ascending order (worst to best), reverse the ranking
+          const rank = sortDirection === "asc" ? totalCount - index : index + 1;
+          return [key, item, rank] as [string, typeof item, number];
+        },
       );
     }
 
@@ -158,7 +163,8 @@ export const ActiveApePositionsTable: React.FC<
 
     sortedData.forEach(([key, item], index) => {
       const { position } = item;
-      const originalRank = index + 1;
+      // If ascending order (worst to best), reverse the ranking
+      const originalRank = sortDirection === "asc" ? totalCount - index : index + 1;
 
       if (
         position &&
@@ -172,7 +178,7 @@ export const ActiveApePositionsTable: React.FC<
 
     // Return user positions first (with original ranks), then others
     return [...userPositions, ...otherPositions];
-  }, [sortedData, userAddress, isConnected]);
+  }, [sortedData, userAddress, isConnected, sortDirection]);
 
   const hasUserPositions = useMemo(() => {
     if (!isConnected || !userAddress) return false;

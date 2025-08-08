@@ -16,7 +16,7 @@ const ClosedApePositions = () => {
     >
       data={closedApePositions}
       isLoading={isLoading}
-      pnlLabel="PnL [USD]"
+      pnlLabel="PnL"
       pnlPercentageLabel="% PnL"
       emptyStateMessage="No APE positions closed in the last month."
       expandableComponent={ExpandablePositions}

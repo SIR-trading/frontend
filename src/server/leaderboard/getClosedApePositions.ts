@@ -54,6 +54,8 @@ export async function getClosedApePositions(): Promise<TClosedApePositions> {
             pnlCollateral,
             pnlUsdPercentage,
             pnlCollateralPercentage,
+            dollarDeposited,
+            collateralDeposited,
             timestamp: +position.timestamp,
             vaultId: position.vaultId,
           });
@@ -69,6 +71,8 @@ export async function getClosedApePositions(): Promise<TClosedApePositions> {
             pnlCollateral: number;
             pnlUsdPercentage: number;
             pnlCollateralPercentage: number;
+            dollarDeposited: number;
+            collateralDeposited: number;
             timestamp: number;
             vaultId: `0x${string}`;
           }[],
