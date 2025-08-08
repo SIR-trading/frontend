@@ -130,8 +130,8 @@ export const ActiveApePositionsTable: React.FC<
     }
 
     return entries.sort(([, a], [, b]) => {
-      const aValue = a.total[sortField];
-      const bValue = b.total[sortField];
+      const aValue = a.position[sortField];
+      const bValue = b.position[sortField];
 
       if (sortDirection === "desc") {
         return bValue - aValue;
@@ -144,17 +144,22 @@ export const ActiveApePositionsTable: React.FC<
   const dataWithUserOnTop = useMemo(() => {
     // If user is not connected, return sortedData with ranks
     if (!isConnected || !userAddress) {
-      return sortedData.map(([key, item], index) => [key, item, index + 1] as [string, typeof item, number]);
+      return sortedData.map(
+        ([key, item], index) =>
+          [key, item, index + 1] as [string, typeof item, number],
+      );
     }
 
     // Find all user positions and store their original ranks
-    const userPositions: Array<[string, (typeof sortedData)[0][1], number]> = [];
-    const otherPositions: Array<[string, (typeof sortedData)[0][1], number]> = [];
+    const userPositions: Array<[string, (typeof sortedData)[0][1], number]> =
+      [];
+    const otherPositions: Array<[string, (typeof sortedData)[0][1], number]> =
+      [];
 
     sortedData.forEach(([key, item], index) => {
-      const position = item.positions[0];
+      const { position } = item;
       const originalRank = index + 1;
-      
+
       if (
         position &&
         position.user.toLowerCase() === userAddress.toLowerCase()
@@ -171,10 +176,12 @@ export const ActiveApePositionsTable: React.FC<
 
   const hasUserPositions = useMemo(() => {
     if (!isConnected || !userAddress) return false;
-    
+
     return dataWithUserOnTop.some(([, item]) => {
-      const position = item.positions[0];
-      return position && position.user.toLowerCase() === userAddress.toLowerCase();
+      const { position } = item;
+      return (
+        position && position.user.toLowerCase() === userAddress.toLowerCase()
+      );
     });
   }, [dataWithUserOnTop, userAddress, isConnected]);
 
@@ -283,7 +290,7 @@ export const ActiveApePositionsTable: React.FC<
               ) : dataWithUserOnTop.length > 0 ? (
                 <div className="w-full">
                   {dataWithUserOnTop.map(([key, item, realRank]) => {
-                    const position = item.positions[0]; // Each item now has a single position
+                    const { position } = item;
                     if (!position) return null;
 
                     const vaultInfo = getVaultInfo(position.vaultId);
@@ -334,7 +341,7 @@ export const ActiveApePositionsTable: React.FC<
                                 {1 + Math.pow(2, position.leverageTier)}
                               </sup>
                             </div>
-                            
+
                             {/* Desktop: Show logo+symbol for each token */}
                             <div className="hidden items-center overflow-hidden md:flex">
                               <TokenImage
@@ -347,7 +354,9 @@ export const ActiveApePositionsTable: React.FC<
                               <span className="ml-1 truncate text-xs font-normal">
                                 {vaultInfo.collateralSymbol}
                               </span>
-                              <span className="mx-1 flex-shrink-0 text-xs font-normal">/</span>
+                              <span className="mx-1 flex-shrink-0 text-xs font-normal">
+                                /
+                              </span>
                               <TokenImage
                                 address={vaultInfo.debtToken}
                                 className="h-5 w-5 flex-shrink-0 rounded-full"
@@ -420,7 +429,12 @@ export const ActiveApePositionsTable: React.FC<
                         </div>
 
                         {/* Current PnL */}
-                        <div className={cn(cellStyling, hasUserPositions ? "" : "flex-grow")}>
+                        <div
+                          className={cn(
+                            cellStyling,
+                            hasUserPositions ? "" : "flex-grow",
+                          )}
+                        >
                           <div className="flex flex-col text-xs">
                             <span
                               className={

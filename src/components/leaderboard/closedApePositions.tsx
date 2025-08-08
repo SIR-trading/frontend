@@ -3,13 +3,11 @@ import React from "react";
 import ExpandablePositions from "@/components/leaderboard/expandablePositions";
 import LeaderboardTable from "@/components/leaderboard/leaderboardTable";
 import type { TClosedApePositions } from "@/lib/types";
-import useApePositions from "@/hooks/useApePositions";
+import { api } from "@/trpc/react";
 
 const ClosedApePositions = () => {
-  const {
-    data: { closedApePositions },
-    isLoading,
-  } = useApePositions();
+  const { data: closedApePositions, isLoading } =
+    api.leaderboard.getClosedApePositions.useQuery();
 
   return (
     <LeaderboardTable<

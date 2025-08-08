@@ -41,14 +41,15 @@ export async function GET() {
     }
 
     // Fetch fresh data
-    const [activeApePositions] = await Promise.all([getActiveApePositions()]);
-    const result = { activeApePositions };
+
+    const activeApePositions = await getActiveApePositions();
+
     console.log("Fetched new leaderboard positions");
 
     // Try to cache the result if Redis is available
     if (redisClient) {
       try {
-        await redisClient.set(CACHE_KEY, JSON.stringify(result), {
+        await redisClient.set(CACHE_KEY, JSON.stringify(activeApePositions), {
           EX: 60 * 30, // Cache for 30 minutes
         });
       } catch (cacheError) {
@@ -57,12 +58,12 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(activeApePositions);
   } catch (error) {
     console.error("Error in leaderboard API:", error);
     return NextResponse.json(
       { error: "Failed to fetch leaderboard data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

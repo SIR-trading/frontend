@@ -183,12 +183,8 @@ export type TPositionsResponse = {
 export type TCurrentApePositions = Record<
   string,
   {
-    total: {
-      pnlUsd: number;
-      pnlUsdPercentage: number;
-    };
     rank: number;
-    positions: {
+    position: {
       vaultId: `0x${string}`;
       user: `0x${string}`;
       apeBalance: string;
@@ -201,6 +197,6 @@ export type TCurrentApePositions = Record<
       netCollateralPosition: number;
       dollarTotal: number;
       collateralTotal: string;
-    }[];
+    };
   }
 >;
