@@ -197,11 +197,11 @@ function LeaderboardTable<T, P>({
   return (
     <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
       <div className="w-full">
-        <div className="grid grid-cols-9 text-left text-sm font-normal text-foreground/60">
+        <div className="grid grid-cols-8 md:grid-cols-9 text-left text-sm font-normal text-foreground/60">
           <div className={cn(cellStyling, "col-span-1")}>Rank</div>
-          <div className={cn(cellStyling, "col-span-4")}>Address</div>
+          <div className={cn(cellStyling, "col-span-3 md:col-span-4")}>Address</div>
           <div
-            className={cn(cellStyling, "cursor-pointer hover:bg-foreground/5")}
+            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
             onClick={() => handleSort("pnlUsd")}
           >
             <span className="flex items-center">
@@ -210,7 +210,7 @@ function LeaderboardTable<T, P>({
             </span>
           </div>
           <div
-            className={cn(cellStyling, "cursor-pointer hover:bg-foreground/5")}
+            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
             onClick={() => handleSort("pnlUsdPercentage")}
           >
             <span className="flex items-center">
@@ -242,7 +242,7 @@ function LeaderboardTable<T, P>({
                     <AccordionTrigger>
                       <div
                         className={cn(
-                          "grid w-full cursor-pointer grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5",
+                          "grid w-full cursor-pointer grid-cols-8 md:grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5",
                           isUserRow &&
                             "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
                         )}
@@ -253,7 +253,7 @@ function LeaderboardTable<T, P>({
                         <div
                           className={cn(
                             cellStyling,
-                            "pointer-events-none col-span-4",
+                            "pointer-events-none col-span-3 md:col-span-4",
                             isUserRow && "font-semibold",
                           )}
                         >
@@ -277,10 +277,10 @@ function LeaderboardTable<T, P>({
                             />
                           </div>
                         </div>
-                        <div className={cellStyling}>
+                        <div className={cn(cellStyling, "col-span-2")}>
                           <DisplayFormattedNumber num={total.pnlUsd} /> USD
                         </div>
-                        <div className={cellStyling}>
+                        <div className={cn(cellStyling, "col-span-2")}>
                           <DisplayFormattedNumber
                             num={total.pnlUsdPercentage}
                           />

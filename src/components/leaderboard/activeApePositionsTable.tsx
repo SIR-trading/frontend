@@ -254,7 +254,7 @@ export const ActiveApePositionsTable: React.FC<
                 Vault
               </div>
               <div className={cn(cellStyling, "min-w-[120px]")}>Address</div>
-              <div className={cn(cellStyling, "")}>Deposit</div>
+              <div className={cn(cellStyling, "hidden sm:flex")}>Deposit</div>
               <div
                 className={cn(
                   cellStyling,
@@ -391,7 +391,7 @@ export const ActiveApePositionsTable: React.FC<
                         </div>
 
                         {/* Deposit */}
-                        <div className={cn(cellStyling, "")}>
+                        <div className={cn(cellStyling, "hidden sm:flex")}>
                           <div className="flex flex-col text-xs">
                             <span>
                               <DisplayFormattedNumber

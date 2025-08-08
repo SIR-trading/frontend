@@ -21,9 +21,9 @@ const ExpandablePositions = ({
   return (
     <>
       <div className="flex bg-primary/10 text-left text-xs font-medium text-foreground/70 dark:bg-primary">
-        <div className={cn(cellStyling, "w-[180px] flex-none pl-2 md:pl-6")}>Vault</div>
+        <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>Vault</div>
         <div className={cn(cellStyling, "flex-1")}>Time it closed</div>
-        <div className={cn(cellStyling, "flex-1")}>Deposit</div>
+        <div className={cn(cellStyling, "flex-1 hidden sm:flex")}>Deposit</div>
         <div className={cn(cellStyling, "flex-1")}>% PnL</div>
         <div className={cn(cellStyling, "flex-1")}>PnL</div>
       </div>
@@ -36,7 +36,7 @@ const ExpandablePositions = ({
               className="flex bg-primary/5 text-left text-xs font-normal dark:bg-primary/50"
             >
               {/* Vault Column */}
-              <div className={cn(cellStyling, "w-[180px] flex-none pl-2 md:pl-6")}>
+              <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>
                 <div className="flex items-center overflow-hidden">
                   {vaultData.collateralToken && (
                     <TokenImage
@@ -87,7 +87,7 @@ const ExpandablePositions = ({
               </div>
               
               {/* Deposit */}
-              <div className={cn(cellStyling, "flex-1")}>
+              <div className={cn(cellStyling, "flex-1 hidden sm:flex")}>
                 <div className="flex flex-col">
                   <span>
                     <DisplayFormattedNumber num={position.dollarDeposited} /> USD
