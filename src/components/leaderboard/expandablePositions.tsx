@@ -101,11 +101,19 @@ const ExpandablePositions = ({
               {/* % PnL - Stacked */}
               <div className={cn(cellStyling, "flex-1")}>
                 <div className="flex flex-col">
-                  <span className={position.pnlUsdPercentage >= 0 ? "text-green-500" : "text-red-500"}>
+                  <span className={position.pnlUsdPercentage > 0 ? "text-accent-600 dark:text-accent-100" : ""}>
                     <DisplayFormattedNumber num={position.pnlUsdPercentage} />%
                   </span>
                   <span className="text-foreground/60">
-                    (<DisplayFormattedNumber num={position.pnlCollateralPercentage} />% in {vaultData.collateralSymbol})
+                    (
+                    <span className={
+                      position.pnlCollateralPercentage > 0
+                        ? "text-accent-600 dark:text-accent-100"
+                        : ""
+                    }>
+                      <DisplayFormattedNumber num={position.pnlCollateralPercentage} />%
+                    </span>
+                    {" in "}{vaultData.collateralSymbol})
                   </span>
                 </div>
               </div>
@@ -113,11 +121,20 @@ const ExpandablePositions = ({
               {/* PnL - Stacked */}
               <div className={cn(cellStyling, "flex-1")}>
                 <div className="flex flex-col">
-                  <span className={position.pnlUsd >= 0 ? "text-green-500" : "text-red-500"}>
+                  <span className={position.pnlUsd > 0 ? "text-accent-600 dark:text-accent-100" : ""}>
                     <DisplayFormattedNumber num={position.pnlUsd} /> USD
                   </span>
                   <span className="text-foreground/60">
-                    (<DisplayFormattedNumber num={position.pnlCollateral} /> {vaultData.collateralSymbol})
+                    (
+                    <span className={
+                      position.pnlCollateral > 0
+                        ? "text-accent-600 dark:text-accent-100"
+                        : ""
+                    }>
+                      <DisplayFormattedNumber num={position.pnlCollateral} />
+                      {" "}{vaultData.collateralSymbol}
+                    </span>
+                    )
                   </span>
                 </div>
               </div>

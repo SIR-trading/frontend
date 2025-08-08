@@ -14,7 +14,7 @@ const LeaderboardPage = () => {
           <div className="">
             <div className="flex flex-col gap-2 pb-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <h1 className="text-[18px] font-semibold md:text-[20px] lg:text-[28px]">
-                Closed Ape Positions
+                Closed Positions
               </h1>
               <MonthlyCountdown />
             </div>
@@ -23,7 +23,7 @@ const LeaderboardPage = () => {
 
           <div className="">
             <h1 className="pb-2 text-[18px] font-semibold md:text-[20px] lg:text-[28px]">
-              Active Ape Positions
+              Active Positions
             </h1>
             <ActiveApePositions />
           </div>

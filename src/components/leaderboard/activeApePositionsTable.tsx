@@ -414,9 +414,9 @@ export const ActiveApePositionsTable: React.FC<
                           <div className="flex flex-col text-xs">
                             <span
                               className={
-                                position.pnlUsdPercentage >= 0
-                                  ? "text-green-500"
-                                  : "text-red-500"
+                                position.pnlUsdPercentage > 0
+                                  ? "text-accent-600 dark:text-accent-100"
+                                  : ""
                               }
                             >
                               <DisplayFormattedNumber
@@ -426,10 +426,17 @@ export const ActiveApePositionsTable: React.FC<
                             </span>
                             <span className="text-foreground/60">
                               (
-                              <DisplayFormattedNumber
-                                num={position.pnlCollateralPercentage}
-                              />
-                              % in {vaultInfo.collateralSymbol})
+                              <span className={
+                                position.pnlCollateralPercentage > 0
+                                  ? "text-accent-600 dark:text-accent-100"
+                                  : ""
+                              }>
+                                <DisplayFormattedNumber
+                                  num={position.pnlCollateralPercentage}
+                                />
+                                %
+                              </span>
+                              {" in "}{vaultInfo.collateralSymbol})
                             </span>
                           </div>
                         </div>
@@ -444,9 +451,9 @@ export const ActiveApePositionsTable: React.FC<
                           <div className="flex flex-col text-xs">
                             <span
                               className={
-                                position.pnlUsd >= 0
-                                  ? "text-green-500"
-                                  : "text-red-500"
+                                position.pnlUsd > 0
+                                  ? "text-accent-600 dark:text-accent-100"
+                                  : ""
                               }
                             >
                               <DisplayFormattedNumber num={position.pnlUsd} />{" "}
@@ -454,10 +461,17 @@ export const ActiveApePositionsTable: React.FC<
                             </span>
                             <span className="text-foreground/60">
                               (
-                              <DisplayFormattedNumber
-                                num={position.pnlCollateral}
-                              />{" "}
-                              {vaultInfo.collateralSymbol})
+                              <span className={
+                                position.pnlCollateral > 0
+                                  ? "text-accent-600 dark:text-accent-100"
+                                  : ""
+                              }>
+                                <DisplayFormattedNumber
+                                  num={position.pnlCollateral}
+                                />
+                                {" "}{vaultInfo.collateralSymbol}
+                              </span>
+                              )
                             </span>
                           </div>
                         </div>
