@@ -4,10 +4,7 @@ import { ActiveApePositionsTable } from "@/components/leaderboard/activeApePosit
 import useApePositions from "@/hooks/useApePositions";
 
 const ActiveApePositions = () => {
-  const {
-    data: { activeApePositions: openApePositions },
-    isLoading,
-  } = useApePositions();
+  const { data: openApePositions, isLoading } = useApePositions();
 
   return (
     <ActiveApePositionsTable data={openApePositions} isLoading={isLoading} />

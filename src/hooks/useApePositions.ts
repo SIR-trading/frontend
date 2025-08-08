@@ -1,24 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
-import type { TPositionsResponse } from "@/lib/types";
+import type { TCurrentApePositions } from "@/lib/types";
 
 const useApePositions = () => {
   const { data, ...queryReturns } = useQuery({
     queryKey: ["apePositions"],
     queryFn: async () => {
-      const res = await fetch(`/api/leaderboard`);
-      return (await res.json()) as TPositionsResponse;
+      const res = await fetch(`/api/leaderboard`, {
+        cache: "no-cache",
+      });
+      return (await res.json()) as TCurrentApePositions;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: (previousData) => previousData,
   });
 
+  console.log({
+    data,
+  });
+
   return {
-    data:
-      data ??
-      ({
-        closedApePositions: {},
-        activeApePositions: {},
-      } as TPositionsResponse),
+    data: data ?? ({} as TCurrentApePositions),
     ...queryReturns,
   };
 };
