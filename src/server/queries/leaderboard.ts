@@ -48,9 +48,11 @@ const currentApePositionsQuery = gql`
 export const getClosedApePositions = async () => {
   // Get the first day of the current month at 00:00:00 UTC
   const now = new Date();
-  const firstDayOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
+  const firstDayOfMonth = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
+  );
   const firstDayTimestamp = Math.floor(firstDayOfMonth.getTime() / 1000); // Convert to seconds
-  
+
   const result = await graphqlClient.request(closedApePositionsQuery, {
     startTimestamp: firstDayTimestamp,
   });
@@ -61,7 +63,17 @@ export const getClosedApePositions = async () => {
 };
 
 export const getCurrentApePositions = async () => {
-  const result = await graphqlClient.request(currentApePositionsQuery);
+  const result = await graphqlClient.request(
+    currentApePositionsQuery,
+    {},
+    {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      // Add a timestamp to make each request unique
+      "X-Request-ID": `${Date.now()}-${Math.random()}`,
+    },
+  );
 
   return result as {
     apePositions: CurrentApePositionFragment[];
