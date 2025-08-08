@@ -47,7 +47,12 @@ export async function GET() {
           } else {
             // If cache is valid, return cached data
             console.log("Returning cached leaderboard positions");
-            return NextResponse.json(parsedCache);
+            return NextResponse.json(parsedCache, {
+              headers: {
+                'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
+                'X-Cache-Status': 'redis-hit',
+              },
+            });
           }
         }
       } catch (cacheError) {
@@ -74,7 +79,13 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json(activeApePositions);
+    // Add cache headers to help browser/CDN caching
+    return NextResponse.json(activeApePositions, {
+      headers: {
+        'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
+        'X-Cache-Status': redisClient ? 'redis-available' : 'redis-unavailable',
+      },
+    });
   } catch (error) {
     console.error("Error in leaderboard API:", error);
     return NextResponse.json(
