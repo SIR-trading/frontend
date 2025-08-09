@@ -20,39 +20,41 @@ async function getRedisClient() {
   return redis;
 }
 
-const CACHE_KEY = "leaderboard:closedPositions";
+const CACHE_KEY = "leaderboard:activePositions";
+const CACHE_TIMESTAMP_KEY = "leaderboard:activePositions:timestamp";
+const CACHE_TTL_SECONDS = 30 * 60; // 30 minutes
 
 export async function GET() {
   try {
     // Try to get Redis client but don't fail if it's not available
     const redisClient = await getRedisClient();
-    // Fetch current ape positions to allow faster invalidation of cache
-    const { apePositions } = await getCurrentApePositions();
-    const apePositionsLength = apePositions.length;
-
+    
     // Try to get cached data if Redis is available
     if (redisClient) {
       try {
-        const cached = await redisClient.get(CACHE_KEY);
-        if (cached) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const parsedCache = JSON.parse(cached);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const parsedCacheLength = Object.keys(parsedCache).length;
-          // Validate length to ensure there is no new comment at this point, This method is experimental and can be removed if it's not needed
-          if (parsedCacheLength !== apePositionsLength) {
-            console.log(
-              `Cache length mismatch: ${parsedCacheLength} vs ${apePositionsLength}. Fetching fresh data.`,
-            );
-          } else {
-            // If cache is valid, return cached data
-            console.log("Returning cached leaderboard positions");
+        const [cached, cachedTimestamp] = await Promise.all([
+          redisClient.get(CACHE_KEY),
+          redisClient.get(CACHE_TIMESTAMP_KEY),
+        ]);
+        
+        if (cached && cachedTimestamp) {
+          const cacheAge = Date.now() - parseInt(cachedTimestamp);
+          const maxCacheAge = CACHE_TTL_SECONDS * 1000; // Convert to milliseconds
+          
+          // Check if cache is still valid (not expired)
+          if (cacheAge < maxCacheAge) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const parsedCache = JSON.parse(cached);
+            console.log(`Returning cached leaderboard positions (age: ${Math.round(cacheAge / 1000)}s)`);
             return NextResponse.json(parsedCache, {
               headers: {
                 'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
                 'X-Cache-Status': 'redis-hit',
+                'X-Cache-Age': Math.round(cacheAge / 1000).toString(),
               },
             });
+          } else {
+            console.log(`Cache expired (age: ${Math.round(cacheAge / 1000)}s). Fetching fresh data.`);
           }
         }
       } catch (cacheError) {
@@ -70,9 +72,15 @@ export async function GET() {
     // Try to cache the result if Redis is available
     if (redisClient) {
       try {
-        await redisClient.set(CACHE_KEY, JSON.stringify(activeApePositions), {
-          EX: 60 * 30, // Cache for 30 minutes
-        });
+        await Promise.all([
+          redisClient.set(CACHE_KEY, JSON.stringify(activeApePositions), {
+            EX: CACHE_TTL_SECONDS, // Cache for 30 minutes
+          }),
+          redisClient.set(CACHE_TIMESTAMP_KEY, Date.now().toString(), {
+            EX: CACHE_TTL_SECONDS, // Same TTL for timestamp
+          }),
+        ]);
+        console.log("Cached new leaderboard positions");
       } catch (cacheError) {
         console.error("Error writing to cache:", cacheError);
         // Continue without caching
