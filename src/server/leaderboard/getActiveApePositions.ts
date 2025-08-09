@@ -7,6 +7,7 @@ import type { TCurrentApePositions } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { getCurrentApePositions } from "@/server/queries/leaderboard";
 import { formatUnits, fromHex, getAddress } from "viem";
+import buildData from "@/../public/build-data.json";
 export async function getActiveApePositions(): Promise<TCurrentApePositions> {
   const { apePositions } = await getCurrentApePositions();
   if (apePositions.length === 0) return {};
@@ -40,7 +41,7 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
     },
   );
 
-  const [priceResponse, apeTotalSupply, vaultReserves, systemParams] =
+  const [priceResponse, apeTotalSupply, vaultReserves] =
     await Promise.all([
       fetch(
         `https://api.g.alchemy.com/prices/v1/${env.ALCHEMY_BEARER}/tokens/by-address`,
@@ -59,10 +60,12 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         functionName: "getReserves",
         args: [vaultIds],
       }),
-      readContract({ ...VaultContract, functionName: "systemParams" }),
     ]);
 
-  const fBase = systemParams.baseFee.fee;
+  // Use base fee from build-data (already converted to basis points)
+  // buildData.systemParams.baseFee is in decimal (e.g., 0.1 for 10%)
+  // Convert to basis points for the calculation (multiply by 10000)
+  const baseFeeInBasisPoints = Math.round(buildData.systemParams.baseFee * 10000);
   const prices: Record<string, string> = {};
   if (priceResponse?.ok) {
     try {
@@ -102,47 +105,68 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
       },
       index,
     ) => {
-      const totalSupply = BigInt(apeTotalSupply[index]?.result ?? 0n);
-      const collateralApeVault = vaultReserves[index]?.reserveApes ?? 0n;
-      if (totalSupply === 0n || collateralApeVault === 0n) return;
-      const collateralPosition =
-        (BigInt(apeBalance) * collateralApeVault) / totalSupply;
-      const leverageMultiplier = BigInt(10000 + 2 ** leverageTier * fBase);
-      const netCollateralPosition =
-        (collateralPosition * 10000n) / leverageMultiplier;
-      const dollarValue = prices[collateralToken] ?? "0";
-      const netCollateralPositionUsd =
-        +formatUnits(netCollateralPosition, apeDecimals) * +dollarValue;
-      const dollarTotalUsd = +formatUnits(BigInt(dollarTotal), 6);
+      // Get vault state data
+      const apeTotalSupplyInVault = BigInt(apeTotalSupply[index]?.result ?? 0n);
+      const vaultCollateralReserves = vaultReserves[index]?.reserveApes ?? 0n;
+      
+      // Skip if vault has no supply or reserves
+      if (apeTotalSupplyInVault === 0n || vaultCollateralReserves === 0n) return;
+      
+      // Step 1: Calculate user's share of vault collateral
+      // User owns (apeBalance / totalSupply) of the vault's collateral
+      const userApeBalance = BigInt(apeBalance);
+      const userShareOfVaultCollateral =
+        (userApeBalance * vaultCollateralReserves) / apeTotalSupplyInVault;
+      
+      // Step 2: Apply leverage adjustment to get net position
+      // Higher leverage tiers have higher fees, reducing net collateral
+      // Formula: 10000 + (2^leverageTier * baseFeeInBasisPoints)
+      const leverageFeeMultiplier = BigInt(10000 + 2 ** leverageTier * baseFeeInBasisPoints);
+      const netCollateralAfterFees =
+        (userShareOfVaultCollateral * 10000n) / leverageFeeMultiplier;
+      
+      // Step 3: Convert positions to human-readable numbers
       const currentCollateralAmount = +formatUnits(
-        netCollateralPosition,
+        netCollateralAfterFees,
         apeDecimals,
       );
       const originalCollateralDeposited = +formatUnits(
         BigInt(collateralTotal),
         apeDecimals,
       );
-      const pnlUsd = netCollateralPositionUsd - dollarTotalUsd;
-      const pnlPercentage =
-        dollarTotalUsd > 0 ? (pnlUsd / dollarTotalUsd) * 100 : 0;
-      const pnlCollateral =
-        currentCollateralAmount - originalCollateralDeposited;
+      
+      // Step 4: Calculate USD values using current market prices
+      const currentTokenPrice = +(prices[collateralToken] ?? "0");
+      const currentPositionValueUsd = currentCollateralAmount * currentTokenPrice;
+      const originalDepositValueUsd = +formatUnits(BigInt(dollarTotal), 6);
+      
+      // Step 5: Calculate PnL (Profit and Loss)
+      // PnL in USD
+      const pnlUsd = currentPositionValueUsd - originalDepositValueUsd;
+      const pnlUsdPercentage =
+        originalDepositValueUsd > 0 
+          ? (pnlUsd / originalDepositValueUsd) * 100 
+          : 0;
+      
+      // PnL in collateral tokens
+      const pnlCollateral = currentCollateralAmount - originalCollateralDeposited;
       const pnlCollateralPercentage =
         originalCollateralDeposited > 0
           ? (pnlCollateral / originalCollateralDeposited) * 100
           : 0;
 
+      // Store calculated position data
       allPositions.push({
         vaultId,
-        apeBalance: formatUnits(BigInt(apeBalance), apeDecimals),
+        apeBalance: formatUnits(userApeBalance, apeDecimals),
         collateralToken,
         pnlUsd,
-        pnlUsdPercentage: pnlPercentage,
+        pnlUsdPercentage,
         pnlCollateral,
         pnlCollateralPercentage,
         leverageTier,
-        netCollateralPosition: netCollateralPositionUsd,
-        dollarTotal: dollarTotalUsd,
+        netCollateralPosition: currentPositionValueUsd,
+        dollarTotal: originalDepositValueUsd,
         collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
         user: getAddress(user),
       });
