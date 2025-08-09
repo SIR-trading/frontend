@@ -2,10 +2,17 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import {
   darkTheme,
-  getDefaultConfig,
   RainbowKitProvider,
+  connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
+import {
+  phantomWallet,
+  metaMaskWallet,
+  coinbaseWallet,
+  rainbowWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
+import { createConfig, WagmiProvider, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { env } from "@/env";
 const getChainId = () => {
@@ -16,28 +23,38 @@ const chainId = getChainId();
 
 const chain = {
   ...(chainId == mainnet.id ? mainnet : sepolia),
-  // NOTE MAYBE REMOVE THIS.
-  // All rpc calls are done through trpc
-  rpcUrls: { default: { http: ["/api/rpc"] } },
   id: chainId,
 };
 
-// const config = getDefaultConfig({
-//   appName: "RainbowKit App",
-//   projectId: "YOUR_PROJECT_ID",
-//   chains: [main],
-//   ssr: true,
-// });
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID ?? "934acc697f01fec33b75c19d9bb2e3c7";
 
-export const wagmiConfig = getDefaultConfig({
-  appName: "SIR",
-  projectId:
-    process.env.NEXT_PUBLIC_PROJECT_ID ?? "934acc697f01fec33b75c19d9bb2e3c7",
+// Configure wallets with Phantom included
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: "Popular",
+      wallets: [
+        metaMaskWallet,
+        phantomWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
+  {
+    appName: "SIR",
+    projectId,
+  }
+);
+
+export const wagmiConfig = createConfig({
   chains: [chain],
+  connectors,
+  transports: {
+    [chain.id]: http("/api/rpc"),
+  },
   ssr: true,
-  // storage: createStorage({
-  //   storage: cookieStorage,
-  // }),
 });
 
 function EvmProvider({ children }: { children: React.ReactNode }) {
