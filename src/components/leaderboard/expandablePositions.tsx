@@ -37,7 +37,35 @@ const ExpandablePositions = ({
             >
               {/* Vault Column */}
               <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>
-                <div className="flex items-center overflow-hidden">
+                {/* Mobile view - only images */}
+                <div className="flex items-center md:hidden">
+                  {vaultData.collateralToken && (
+                    <TokenImage
+                      address={vaultData.collateralToken}
+                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                      width={20}
+                      height={20}
+                      alt="Collateral token"
+                    />
+                  )}
+                  {vaultData.debtToken && (
+                    <TokenImage
+                      address={vaultData.debtToken}
+                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                      width={20}
+                      height={20}
+                      alt="Debt token"
+                    />
+                  )}
+                  {vaultData.leverageTier !== undefined && (
+                    <sup className="ml-0.5 flex-shrink-0 text-[10px] font-semibold">
+                      {1 + Math.pow(2, vaultData.leverageTier)}
+                    </sup>
+                  )}
+                </div>
+                
+                {/* Desktop view - images with symbols */}
+                <div className="hidden items-center overflow-hidden md:flex">
                   {vaultData.collateralToken && (
                     <TokenImage
                       address={vaultData.collateralToken}

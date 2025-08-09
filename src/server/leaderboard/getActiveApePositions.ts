@@ -1,6 +1,5 @@
 import { ApeContract } from "@/contracts/ape";
 import { AssistantContract } from "@/contracts/assistant";
-import { VaultContract } from "@/contracts/vault";
 import { env } from "@/env";
 import { ZTokenPrices } from "@/lib/schemas";
 import type { TCurrentApePositions } from "@/lib/types";
