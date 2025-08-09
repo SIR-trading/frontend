@@ -48,7 +48,7 @@ export async function GET() {
             console.log(`Returning cached leaderboard positions (age: ${Math.round(cacheAge / 1000)}s)`);
             return NextResponse.json(parsedCache, {
               headers: {
-                'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
+                'Cache-Control': 'private, no-cache, no-store, must-revalidate',
                 'X-Cache-Status': 'redis-hit',
                 'X-Cache-Age': Math.round(cacheAge / 1000).toString(),
               },
@@ -87,11 +87,11 @@ export async function GET() {
       }
     }
 
-    // Add cache headers to help browser/CDN caching
+    // Prevent Vercel Edge caching - let Redis handle caching
     return NextResponse.json(activeApePositions, {
       headers: {
-        'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
-        'X-Cache-Status': redisClient ? 'redis-available' : 'redis-unavailable',
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'X-Cache-Status': redisClient ? 'redis-miss' : 'redis-unavailable',
       },
     });
   } catch (error) {
