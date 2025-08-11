@@ -182,7 +182,7 @@ export function VaultTableRow({
                 <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
                     LPers of this vault are rewarded with{" "}
-                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={10} />{" "}
+                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
                     SIR/day.
                   </span>
                 </div>
@@ -254,7 +254,7 @@ export function VaultTableRow({
           </span>
         </div>
       </td>
-      <td className="flex items-center">
+      <td className="flex items-center pl-3">
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger>
