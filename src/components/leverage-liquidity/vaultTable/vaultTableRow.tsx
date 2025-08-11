@@ -29,6 +29,8 @@ import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
+import DuneChartPopup from "@/components/shared/duneChartPopup";
+import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 
 export function VaultTableRow({
   pool,
@@ -148,6 +150,9 @@ export function VaultTableRow({
   };
   const parsedRateAmount = parseUnits(String(pool.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
+  
+  // Get Dune chart configuration for this vault
+  const { embedUrl, hasChart } = useDuneCharts(pool.vaultId);
   return (
     <tr
       onClick={() => {
@@ -182,7 +187,7 @@ export function VaultTableRow({
                 <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                   <span>
                     LPers of this vault are rewarded with{" "}
-                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={10} />{" "}
+                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
                     SIR/day.
                   </span>
                 </div>
@@ -227,6 +232,11 @@ export function VaultTableRow({
               {showPercent() ? tvlPercent.toFixed(1) : getLeverageRatio(pool.leverageTier)}
             </sup>
           )}
+          {isApe && hasChart && embedUrl && (
+            <div onClick={(e) => e.stopPropagation()} className="ml-2">
+              <DuneChartPopup embedUrl={embedUrl} />
+            </div>
+          )}
         </div>
         
         {/* Desktop view - leaderboard format */}
@@ -252,9 +262,14 @@ export function VaultTableRow({
           <span className="ml-1 font-normal">
             {pool.debtSymbol}
           </span>
+          {isApe && hasChart && embedUrl && (
+            <div onClick={(e) => e.stopPropagation()} className="ml-2">
+              <DuneChartPopup embedUrl={embedUrl} />
+            </div>
+          )}
         </div>
       </td>
-      <td className="flex items-center">
+      <td className="flex items-center pl-3">
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger>

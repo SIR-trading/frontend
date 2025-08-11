@@ -44,7 +44,7 @@ yarn-error.log*
 *.tsbuildinfo
 
 # build data
-/public/build-data.json
+public/build-data.json
 .env*.local
 
 # Claude
