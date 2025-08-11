@@ -74,7 +74,14 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   return (
     <table className="w-full">
       <caption className="pb-6 text-left text-[20px] font-semibold leading-[24px]">
-        Popular Vaults
+        <div className="flex items-center gap-x-1">
+          Popular Vaults
+          <ToolTip iconSize={12}>
+            <div>
+              SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
+            </div>
+          </ToolTip>
+        </div>
       </caption>
 
       <tbody className="space-y-2">
@@ -120,39 +127,50 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
   return (
     <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
       <th className="font-medium">Id</th>
-      <th className="font-medium md:col-span-3">Vault</th>
+      <th className="font-medium md:col-span-3">
+        <div className="flex items-center gap-x-1">
+          <span>Vault</span>
+          <div className="md:hidden">
+            <ToolTip iconSize={12}>
+              <div>
+                SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
+              </div>
+            </ToolTip>
+          </div>
+        </div>
+      </th>
 
       {!isApe ? (
-        <th className="hidden items-center gap-x-1 font-medium md:flex">
+        <th className="flex items-center gap-x-1 font-medium">
           <span>APY</span>
           <ToolTip iconSize={12}>
             Annualized Percentage Yield including LP fees from the last 30 days and SIR token rewards.
           </ToolTip>
         </th>
       ) : (
-        <th className="hidden items-center gap-x-1 font-medium md:flex">
+        <th className="flex items-center gap-x-1 font-medium">
           <span>Pol</span>
           <ToolTip iconSize={12}>
             Protocol Owned Liquidity is liquidity that will never be withdrawn.
           </ToolTip>
         </th>
       )}
-      <th className="gap hidden items-center gap-x-1 font-medium md:flex">
+      <th className="hidden items-center gap-x-1 font-medium md:flex">
         Fees
         <ToolTip iconSize={12}>
           One-time APE minting fee. Half distributed to LPers at mint, and half
           at burn.
         </ToolTip>
       </th>
-      <th className="relative z-10  flex items-center gap-x-1 font-medium">
-        Leverage
+      <th className="hidden relative z-10 items-center gap-x-1 font-medium md:flex">
+        <span>Leverage</span>
         <ToolTip iconSize={12}>
           <div>
             SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
           </div>
         </ToolTip>
       </th>
-      <th className="relative  text-right font-medium md:col-span-2">TVL</th>
+      <th className="relative text-right font-medium md:col-span-2">TVL</th>
     </tr>
   );
 }

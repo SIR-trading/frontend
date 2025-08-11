@@ -37,7 +37,7 @@ const ExpandablePositions = ({
             >
               {/* Vault Column */}
               <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>
-                {/* Mobile view - only images */}
+                {/* Mobile view - images with separator */}
                 <div className="flex items-center md:hidden">
                   {vaultData.collateralToken && (
                     <TokenImage
@@ -48,6 +48,7 @@ const ExpandablePositions = ({
                       alt="Collateral token"
                     />
                   )}
+                  <span className="mx-1 flex-shrink-0 text-xs font-medium">/</span>
                   {vaultData.debtToken && (
                     <TokenImage
                       address={vaultData.debtToken}

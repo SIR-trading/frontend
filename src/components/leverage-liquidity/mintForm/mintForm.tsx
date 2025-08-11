@@ -134,9 +134,13 @@ export default function MintForm({ isApe }: Props) {
     taxAmount: selectedVault.result?.taxAmount ?? "0",
   });
   
-  const liquidityHookResult = useCalculateVaultHealth({
+  // Always calculate vault health to check for red status
+  const vaultHealthResult = useCalculateVaultHealth({
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
     isApe: true,
+    leverageTier: selectedVault.result?.leverageTier,
+    apeCollateral: selectedVault.result?.apeCollateral,
+    teaCollateral: selectedVault.result?.teaCollateral,
   });
   
   // Determine which results to use based on page type
@@ -145,9 +149,15 @@ export default function MintForm({ isApe }: Props) {
     : { 
         maxCollateralIn: undefined, 
         maxDebtIn: undefined, 
-        isLoading: liquidityHookResult.isLoading 
+        isLoading: vaultHealthResult.isLoading 
       };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
+  
+  // Check if vault is already in red status (only when vault is selected and data is loaded)
+  const isVaultRed = useMemo(() => {
+    if (!selectedVault.result?.vaultId || vaultHealthResult.isLoading) return false;
+    return vaultHealthResult.variant === "red";
+  }, [selectedVault.result?.vaultId, vaultHealthResult.variant, vaultHealthResult.isLoading]);
   
   // Check if user's input exceeds the optimal amount for constant leverage
   const isExceedingOptimal = useMemo(() => {
@@ -369,8 +379,23 @@ export default function MintForm({ isApe }: Props) {
           </DepositInputs.Inputs>
         </DepositInputs.Root>
         
-        {/* Warning when exceeding optimal amount for constant leverage */}
-        <Show when={isExceedingOptimal}>
+        {/* Warning when vault is already in red status */}
+        <Show when={isApe && isVaultRed}>
+          <div className="my-3 rounded-md border border-orange-500/50 bg-orange-500/10 p-3">
+            <div className="flex items-start gap-2">
+              <div className="text-orange-500">⚠️</div>
+              <div className="text-sm">
+                <strong className="text-orange-300">Leverage Variability Warning:</strong>
+                <span className="text-foreground/80 ml-1">
+                  This vault has limited liquidity. The non-constant leverage could impact your returns, especially in volatile markets.
+                </span>
+              </div>
+            </div>
+          </div>
+        </Show>
+        
+        {/* Warning when exceeding optimal amount for constant leverage (only show if vault is not red) */}
+        <Show when={isExceedingOptimal && !isVaultRed}>
           <div className="my-3 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3">
             <div className="flex items-start gap-2">
               <div className="text-yellow-500">⚠️</div>

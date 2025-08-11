@@ -38,7 +38,7 @@ const ToolTip: FC<TooltipsProps> = ({ children, iconSize, size }) => {
     >
       <HoverCardTrigger
         onClick={() => setOpen(true)}
-        className="text-foreground/60"
+        className="text-foreground/60 cursor-default"
       >
         <Info size={iconSize ?? 16} />
       </HoverCardTrigger>

@@ -192,30 +192,73 @@ export function VaultTableRow({
         </div>
       </td>
       <td className="relative flex items-center md:col-span-3">
-        <TokenImage
-          address={pool.collateralToken as TAddressString}
-          className="h-6 w-6 rounded-full"
-          width={28}
-          height={28}
-          alt="Collateral token"
-        />
-        <TokenImage
-          address={pool.debtToken as TAddressString}
-          className="h-6 w-6 rounded-full"
-          width={28}
-          height={28}
-          alt="Debt token"
-        />
-        <div className="px-1"></div>
-        <span className="hidden font-normal md:block">
-          {pool.collateralSymbol}/{pool.debtSymbol}
-        </span>
+        {/* Mobile view - logos with separator */}
+        <div className="flex items-center md:hidden">
+          <TokenImage
+            address={pool.collateralToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Collateral token"
+          />
+          <span className="mx-1 font-normal">/</span>
+          <TokenImage
+            address={pool.debtToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Debt token"
+          />
+          {variant.variant === "red" ? (
+            <HoverCard openDelay={0} closeDelay={20}>
+              <HoverCardTrigger asChild>
+                <sup className="ml-0.5 text-[10px] font-semibold text-red">
+                  {showPercent() ? tvlPercent.toFixed(1) : getLeverageRatio(pool.leverageTier)}
+                </sup>
+              </HoverCardTrigger>
+              <HoverCardContent side="top" alignOffset={4}>
+                <div className="max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
+                  Insufficient liquidity for constant ^{getLeverageRatio(pool.leverageTier)} leverage
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          ) : (
+            <sup className="ml-0.5 text-[10px] font-semibold">
+              {showPercent() ? tvlPercent.toFixed(1) : getLeverageRatio(pool.leverageTier)}
+            </sup>
+          )}
+        </div>
+        
+        {/* Desktop view - leaderboard format */}
+        <div className="hidden items-center md:flex">
+          <TokenImage
+            address={pool.collateralToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Collateral token"
+          />
+          <span className="ml-1 font-normal">
+            {pool.collateralSymbol}
+          </span>
+          <span className="mx-1 font-normal">/</span>
+          <TokenImage
+            address={pool.debtToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Debt token"
+          />
+          <span className="ml-1 font-normal">
+            {pool.debtSymbol}
+          </span>
+        </div>
       </td>
-      <td className="hidden items-center md:flex">
+      <td className="flex items-center">
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
-            <HoverCardTrigger asChild>
-              <h4 className="font-normal text-foreground/80">
+            <HoverCardTrigger>
+              <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : 'text-accent-600 dark:text-accent-100'}`}>
                 {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
               </h4>
             </HoverCardTrigger>
@@ -252,10 +295,10 @@ export function VaultTableRow({
           </h4>
         )}
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
-        {roundDown(fee, 0)}%{" "}
+      <td className="hidden items-center gap-x-1 text-[13px] font-normal md:flex" style={{ color: isApe ? '#e11d48' : undefined }}>
+        {roundDown(fee, 0)}%
       </td>
-      <td className="relative flex items-center">
+      <td className="relative hidden items-center md:flex">
         <HoverCard openDelay={0} closeDelay={20}>
           <HoverCardTrigger asChild>
             <motion.div
@@ -280,6 +323,7 @@ export function VaultTableRow({
               <DisplayBadgeInfo
                 variant={variant}
                 isApe={isApe}
+                leverageRatio={getLeverageRatio(pool.leverageTier).toString()}
               ></DisplayBadgeInfo>
             </div>
           </HoverCardContent>
@@ -334,9 +378,11 @@ export function VaultTableRow({
 function DisplayBadgeInfo({
   variant,
   isApe,
+  leverageRatio,
 }: {
   variant: VariantProps<typeof badgeVariants>;
   isApe: boolean;
+  leverageRatio?: string;
 }) {
   if (variant.variant === "green") {
     return isApe ? (
@@ -354,7 +400,7 @@ function DisplayBadgeInfo({
   }
   if (variant.variant === "red") {
     return isApe ? (
-      <span>Insufficient liquidity for constant leverage</span>
+      <span>Insufficient liquidity for constant ^{leverageRatio} leverage</span>
     ) : (
       <span>Minimally profitable</span>
     );

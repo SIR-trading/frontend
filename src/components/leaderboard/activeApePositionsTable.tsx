@@ -327,7 +327,7 @@ export const ActiveApePositionsTable: React.FC<
                           )}
                         >
                           <div className="flex items-center overflow-hidden">
-                            {/* Mobile: Show only token logos with leverage */}
+                            {/* Mobile: Show token logos with separator and leverage */}
                             <div className="flex items-center md:hidden">
                               <TokenImage
                                 address={vaultInfo.collateralToken}
@@ -336,6 +336,7 @@ export const ActiveApePositionsTable: React.FC<
                                 height={24}
                                 alt="Collateral token"
                               />
+                              <span className="mx-1 flex-shrink-0 text-xs font-normal">/</span>
                               <TokenImage
                                 address={vaultInfo.debtToken}
                                 className="h-6 w-6 flex-shrink-0 rounded-full"
