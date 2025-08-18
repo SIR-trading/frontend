@@ -125,9 +125,9 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
 
 function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
   return (
-    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
+    <tr className="grid grid-cols-5 sm:grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
       <th className="font-medium">Id</th>
-      <th className="font-medium md:col-span-3">
+      <th className="font-medium col-span-2 sm:col-span-1 md:col-span-3">
         <div className="flex items-center gap-x-1">
           <span>Vault</span>
           <div className="md:hidden">
@@ -141,14 +141,14 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
       </th>
 
       {!isApe ? (
-        <th className="flex items-center gap-x-1 font-medium pl-3">
+        <th className="flex items-center gap-x-1 font-medium pl-1 sm:pl-3">
           <span>APY</span>
           <ToolTip iconSize={12}>
             Annualized Percentage Yield including LP fees from the last 30 days and SIR token rewards.
           </ToolTip>
         </th>
       ) : (
-        <th className="flex items-center gap-x-1 font-medium pl-3">
+        <th className="flex items-center gap-x-1 font-medium pl-1 sm:pl-3">
           <span>Pol</span>
           <ToolTip iconSize={12}>
             Protocol Owned Liquidity is liquidity that will never be withdrawn.

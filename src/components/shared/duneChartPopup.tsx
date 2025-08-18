@@ -66,7 +66,7 @@ export default function DuneChartPopup({ embedUrl }: DuneChartPopupProps) {
               scale: 0.95
             }}
             transition={{ duration: 0.2 }}
-            className="fixed z-50 w-[600px] rounded-lg border border-foreground/20 bg-background shadow-2xl overflow-hidden"
+            className="fixed z-50 w-[90vw] max-w-[600px] rounded-lg border border-foreground/20 bg-background shadow-2xl overflow-hidden"
             style={{
               top: '50%',
               left: '50%',
@@ -90,9 +90,8 @@ export default function DuneChartPopup({ embedUrl }: DuneChartPopupProps) {
             <iframe
               src={embedUrl}
               width="100%"
-              height="450"
               frameBorder="0"
-              className="w-full"
+              className="w-full h-[60vh] max-h-[450px] min-h-[300px]"
               title="Dune Analytics Chart"
             />
           </motion.div>

@@ -165,7 +165,7 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="grid cursor-pointer grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary"
+      className="grid cursor-pointer grid-cols-5 sm:grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary"
     >
       <td className="h-full">
         <div className="flex h-full items-center gap-x-1">
@@ -196,7 +196,7 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="relative flex items-center md:col-span-3">
+      <td className="relative flex items-center col-span-2 sm:col-span-1 md:col-span-3">
         {/* Mobile view - logos with separator */}
         <div className="flex items-center md:hidden">
           <TokenImage
@@ -269,7 +269,7 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="flex items-center pl-3">
+      <td className="flex items-center pl-1 sm:pl-3">
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger>
