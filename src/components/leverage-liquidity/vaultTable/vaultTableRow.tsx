@@ -49,6 +49,29 @@ export function VaultTableRow({
 }) {
   const fee = calculateApeVaultFee(pool.leverageTier, BASE_FEE) * 100;
   
+  // Calculate fee color intensity (max fee is ~49% for tier 2)
+  const MAX_FEE = 49; // Maximum possible fee percentage
+  const feeIntensity = Math.min(fee / MAX_FEE, 1); // Normalize to 0-1
+  
+  // Generate RGB color from light pink to deep red
+  // At 0% fee: very light pink/white
+  // At 49% fee: full red (#e11d48)
+  const getFeeColor = () => {
+    if (!isApe) return undefined;
+    
+    // Base red color components (RGB for #e11d48)
+    const maxRed = 225;
+    const maxGreen = 29;
+    const maxBlue = 72;
+    
+    // Calculate interpolated color
+    const red = Math.round(255 - (255 - maxRed) * feeIntensity);
+    const green = Math.round(255 - (255 - maxGreen) * feeIntensity);
+    const blue = Math.round(255 - (255 - maxBlue) * feeIntensity);
+    
+    return `rgb(${red}, ${green}, ${blue})`;
+  };
+  
   // Calculate POL (Protocol Owned Liquidity)
   const POL = useMemo(() => {
     const totalLocked = parseUnits(pool.totalTea, 0);
@@ -75,6 +98,45 @@ export function VaultTableRow({
     if (isApe || (isApyLoading ?? false) || !apyData) return 0;
     return apyData.apy;
   }, [apyData, isApyLoading, isApe]);
+  
+  // Calculate APY color intensity for Liquidity page
+  const getApyColor = () => {
+    if (isApe || (isApyLoading ?? false) || !apyData) return undefined;
+    
+    // Use logarithmic scale for APY coloring since APY can be very high
+    // We'll use these thresholds:
+    // 0-50%: light green
+    // 50-200%: medium green  
+    // 200-1000%: deep green
+    // 1000%+: maximum green
+    
+    let apyIntensity: number;
+    if (APY <= 50) {
+      // Linear scale from 0 to 0.3 for 0-50% APY
+      apyIntensity = (APY / 50) * 0.3;
+    } else if (APY <= 200) {
+      // Linear scale from 0.3 to 0.6 for 50-200% APY
+      apyIntensity = 0.3 + ((APY - 50) / 150) * 0.3;
+    } else if (APY <= 1000) {
+      // Linear scale from 0.6 to 0.9 for 200-1000% APY
+      apyIntensity = 0.6 + ((APY - 200) / 800) * 0.3;
+    } else {
+      // Maximum intensity for 1000%+ APY
+      apyIntensity = 1;
+    }
+    
+    // Base green color components (RGB for a nice green like #10b981)
+    const maxRed = 16;
+    const maxGreen = 185;
+    const maxBlue = 129;
+    
+    // Calculate interpolated color from light green to deep green
+    const red = Math.round(255 - (255 - maxRed) * apyIntensity);
+    const green = Math.round(255 - (255 - maxGreen) * apyIntensity);
+    const blue = Math.round(255 - (255 - maxBlue) * apyIntensity);
+    
+    return `rgb(${red}, ${green}, ${blue})`;
+  };
   // // Add a query to retrieve collateral data
   // // Hydrate with server data
   // const { data: reservesData } = api.vault.getReserve.useQuery(
@@ -288,7 +350,7 @@ export function VaultTableRow({
         {!isApe ? (
           <HoverCard openDelay={0} closeDelay={20}>
             <HoverCardTrigger>
-              <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : 'text-accent-600 dark:text-accent-100'}`}>
+              <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : ''}`} style={{ color: getApyColor() ?? (isApyLoading ? undefined : 'inherit') }}>
                 {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
               </h4>
             </HoverCardTrigger>
@@ -325,7 +387,7 @@ export function VaultTableRow({
           </h4>
         )}
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal md:flex" style={{ color: isApe ? '#e11d48' : undefined }}>
+      <td className="hidden items-center gap-x-1 text-[13px] font-normal md:flex" style={{ color: getFeeColor() }}>
         {roundDown(fee, 0)}%
       </td>
       <td className="relative hidden items-center md:flex">
