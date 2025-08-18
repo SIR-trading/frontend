@@ -138,15 +138,30 @@ export function VaultTableRow({
     teaCollateral: reservesData[0]?.reserveLPers ?? 0n,
   });
 
+  const getRealLeverage = () => {
+    if (tvl === 0) {
+      return "1";
+    }
+    if (!isFinite(tvlPercent)) {
+      return "1";
+    }
+    return tvlPercent.toFixed(1);
+  };
+
   const showPercent = () => {
+    if (!isApe) {
+      return false;
+    }
+    if (tvl === 0) {
+      return true;
+    }
     if (!isFinite(tvlPercent)) {
       return false;
     }
-    if (isApe) {
-      if (variant.variant === "red") {
-        return true;
-      }
+    if (variant.variant === "red") {
+      return true;
     }
+    return false;
   };
   const parsedRateAmount = parseUnits(String(pool.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
@@ -218,7 +233,7 @@ export function VaultTableRow({
             <HoverCard openDelay={0} closeDelay={20}>
               <HoverCardTrigger asChild>
                 <sup className="ml-0.5 text-[10px] font-semibold text-red">
-                  {showPercent() ? tvlPercent.toFixed(1) : getLeverageRatio(pool.leverageTier)}
+                  {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
                 </sup>
               </HoverCardTrigger>
               <HoverCardContent side="top" alignOffset={4}>
@@ -229,7 +244,7 @@ export function VaultTableRow({
             </HoverCard>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
-              {showPercent() ? tvlPercent.toFixed(1) : getLeverageRatio(pool.leverageTier)}
+              {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
             </sup>
           )}
           {isApe && hasChart && embedUrl && (
@@ -326,7 +341,7 @@ export function VaultTableRow({
                 {showPercent() && (
                   <>
                     {" (^"}
-                    <DisplayFormattedNumber num={tvlPercent} significant={2} />
+                    {tvl === 0 ? "1" : <DisplayFormattedNumber num={tvlPercent} significant={2} />}
                     {")"}
                   </>
                 )}
