@@ -11,6 +11,7 @@ import type { TVault, TAddressString } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
+import { useTheme } from "next-themes";
 import {
   HoverCard,
   HoverCardContent,
@@ -47,29 +48,46 @@ export function VaultTableRow({
   apyData?: { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number };
   isApyLoading?: boolean;
 }) {
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
+  
   const fee = calculateApeVaultFee(pool.leverageTier, BASE_FEE) * 100;
   
   // Calculate fee color intensity (max fee is ~49% for tier 2)
   const MAX_FEE = 49; // Maximum possible fee percentage
   const feeIntensity = Math.min(fee / MAX_FEE, 1); // Normalize to 0-1
   
-  // Generate RGB color from light pink to deep red
-  // At 0% fee: very light pink/white
-  // At 49% fee: full red (#e11d48)
+  // Generate RGB color based on theme
   const getFeeColor = () => {
     if (!isApe) return undefined;
     
-    // Base red color components (RGB for #e11d48)
-    const maxRed = 225;
-    const maxGreen = 29;
-    const maxBlue = 72;
-    
-    // Calculate interpolated color
-    const red = Math.round(255 - (255 - maxRed) * feeIntensity);
-    const green = Math.round(255 - (255 - maxGreen) * feeIntensity);
-    const blue = Math.round(255 - (255 - maxBlue) * feeIntensity);
-    
-    return `rgb(${red}, ${green}, ${blue})`;
+    if (isDarkMode) {
+      // Dark theme: from light pink/white to deep red
+      const maxRed = 225;
+      const maxGreen = 29;
+      const maxBlue = 72;
+      
+      const red = Math.round(255 - (255 - maxRed) * feeIntensity);
+      const green = Math.round(255 - (255 - maxGreen) * feeIntensity);
+      const blue = Math.round(255 - (255 - maxBlue) * feeIntensity);
+      
+      return `rgb(${red}, ${green}, ${blue})`;
+    } else {
+      // Light theme: from black to intense red with faster intensity curve
+      const maxRed = 225;
+      const maxGreen = 29;
+      const maxBlue = 72;
+      
+      // Apply a power curve to make low values more visible
+      // Using sqrt to accelerate the intensity for low values
+      const adjustedIntensity = Math.sqrt(feeIntensity);
+      
+      const red = Math.round(maxRed * adjustedIntensity);
+      const green = Math.round(maxGreen * adjustedIntensity);
+      const blue = Math.round(maxBlue * adjustedIntensity);
+      
+      return `rgb(${red}, ${green}, ${blue})`;
+    }
   };
   
   // Calculate POL (Protocol Owned Liquidity)
@@ -105,10 +123,10 @@ export function VaultTableRow({
     
     // Use logarithmic scale for APY coloring since APY can be very high
     // We'll use these thresholds:
-    // 0-50%: light green
-    // 50-200%: medium green  
-    // 200-1000%: deep green
-    // 1000%+: maximum green
+    // 0-50%: light intensity
+    // 50-200%: medium intensity  
+    // 200-1000%: deep intensity
+    // 1000%+: maximum intensity
     
     let apyIntensity: number;
     if (APY <= 50) {
@@ -130,12 +148,25 @@ export function VaultTableRow({
     const maxGreen = 185;
     const maxBlue = 129;
     
-    // Calculate interpolated color from light green to deep green
-    const red = Math.round(255 - (255 - maxRed) * apyIntensity);
-    const green = Math.round(255 - (255 - maxGreen) * apyIntensity);
-    const blue = Math.round(255 - (255 - maxBlue) * apyIntensity);
-    
-    return `rgb(${red}, ${green}, ${blue})`;
+    if (isDarkMode) {
+      // Dark theme: from light green/white to deep green
+      const red = Math.round(255 - (255 - maxRed) * apyIntensity);
+      const green = Math.round(255 - (255 - maxGreen) * apyIntensity);
+      const blue = Math.round(255 - (255 - maxBlue) * apyIntensity);
+      
+      return `rgb(${red}, ${green}, ${blue})`;
+    } else {
+      // Light theme: from black to intense green with faster intensity curve
+      // Apply a power curve to make low values more visible
+      // Using sqrt to accelerate the intensity for low values
+      const adjustedIntensity = Math.sqrt(apyIntensity);
+      
+      const red = Math.round(maxRed * adjustedIntensity);
+      const green = Math.round(maxGreen * adjustedIntensity);
+      const blue = Math.round(maxBlue * adjustedIntensity);
+      
+      return `rgb(${red}, ${green}, ${blue})`;
+    }
   };
   // // Add a query to retrieve collateral data
   // // Hydrate with server data
