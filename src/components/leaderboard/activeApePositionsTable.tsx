@@ -429,7 +429,7 @@ export const ActiveApePositionsTable: React.FC<
                               (
                               <span className={
                                 position.pnlCollateralPercentage > 0
-                                  ? "text-accent-600 dark:text-accent-100"
+                                  ? "text-accent-600/70 dark:text-accent-100/70"
                                   : ""
                               }>
                                 <DisplayFormattedNumber
@@ -464,7 +464,7 @@ export const ActiveApePositionsTable: React.FC<
                               (
                               <span className={
                                 position.pnlCollateral > 0
-                                  ? "text-accent-600 dark:text-accent-100"
+                                  ? "text-accent-600/70 dark:text-accent-100/70"
                                   : ""
                               }>
                                 <DisplayFormattedNumber
