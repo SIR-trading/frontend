@@ -1851,5 +1851,21 @@
     "decimals": 6,
     "chainId": 1,
     "logoURI": "https://dd.dexscreener.com/ds-data/tokens/ethereum/0xed7fd16423bc19b9143313ac5e4b7f731d714e97.png"
+  },
+  {
+    "name": "Origami hOHM",
+    "address": "0x1DB1591540d7A6062Be0837ca3C808aDd28844F6",
+    "symbol": "hOHM",
+    "decimals": 18,
+    "chainId": 1,
+    "logoURI": "https://assets.coingecko.com/coins/images/66457/standard/hOHM_200px.png"
+  },
+  {
+    "name": "Savings USDS",
+    "address": "0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD",
+    "symbol": "sUSDS",
+    "decimals": 18,
+    "chainId": 1,
+    "logoURI": "https://assets.coingecko.com/coins/images/52721/standard/sUSDS_Coin.png"
   }
 ]
