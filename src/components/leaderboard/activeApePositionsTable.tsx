@@ -78,19 +78,10 @@ export const ActiveApePositionsTable: React.FC<
   const getVaultInfo = useCallback(
     (_vaultId: `0x${string}`) => {
       const vaultId = fromHex(_vaultId, "number");
-      const totalVaults = vaults?.vaults.length ?? 0;
-      if (vaultId <= 0 || vaultId > totalVaults) {
-        return {
-          vaultId,
-          collateralSymbol: "Unknown",
-          debtSymbol: "Unknown",
-          collateralToken:
-            "0x0000000000000000000000000000000000000000" as TAddressString,
-          debtToken:
-            "0x0000000000000000000000000000000000000000" as TAddressString,
-        };
-      }
-      const vaultData = vaults?.vaults[vaultId - 1];
+      
+      // Find the vault by its actual vaultId, not by array index
+      const vaultData = vaults?.vaults.find(v => parseInt(v.vaultId) === vaultId);
+      
       if (!vaultData) {
         return {
           vaultId,
@@ -102,6 +93,7 @@ export const ActiveApePositionsTable: React.FC<
             "0x0000000000000000000000000000000000000000" as TAddressString,
         };
       }
+      
       const { collateralSymbol, debtSymbol, collateralToken, debtToken } =
         vaultData;
       return {
