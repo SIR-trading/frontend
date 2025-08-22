@@ -152,6 +152,9 @@ export type CurrentApePositionFragment = {
   apeDecimals: number;
   leverageTier: number;
   collateralToken: `0x${string}`;
+  collateralSymbol?: string;
+  debtToken?: `0x${string}`;
+  debtSymbol?: string;
 };
 
 export type TClosedApePositions = Record<

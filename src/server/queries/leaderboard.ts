@@ -37,6 +37,9 @@ const currentApePositionsQuery = gql`
     leverageTier
     apeDecimals: decimals
     collateralToken
+    collateralSymbol
+    debtToken
+    debtSymbol
   }
   query CurrentApePositionsQuery {
     apePositions {

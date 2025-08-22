@@ -42,6 +42,7 @@ export const ActiveApePositionsTable: React.FC<
   const { data: vaults } = api.vault.getVaults.useQuery(
     {
       sortbyVaultId: true,
+      first: 1000, // Fetch more vaults to ensure all are included
     },
     {
       staleTime: 5 * 60 * 1000, // 5 minutes
@@ -76,13 +77,30 @@ export const ActiveApePositionsTable: React.FC<
     : null;
 
   const getVaultInfo = useCallback(
-    (_vaultId: `0x${string}`) => {
+    (_vaultId: `0x${string}`, position?: { 
+      collateralSymbol?: string; 
+      debtSymbol?: string; 
+      collateralToken?: string; 
+      debtToken?: string;
+    }) => {
       const vaultId = fromHex(_vaultId, "number");
+      
+      // First check if the position itself has the symbol information
+      if (position?.collateralSymbol && position?.debtSymbol) {
+        return {
+          vaultId,
+          collateralSymbol: position.collateralSymbol,
+          debtSymbol: position.debtSymbol,
+          collateralToken: (position.collateralToken ?? "0x0000000000000000000000000000000000000000") as TAddressString,
+          debtToken: (position.debtToken ?? "0x0000000000000000000000000000000000000000") as TAddressString,
+        };
+      }
       
       // Find the vault by its actual vaultId, not by array index
       const vaultData = vaults?.vaults.find(v => parseInt(v.vaultId) === vaultId);
       
       if (!vaultData) {
+        console.warn(`Vault not found for vaultId: ${vaultId}. Available vaults:`, vaults?.vaults?.map(v => v.vaultId));
         return {
           vaultId,
           collateralSymbol: "Unknown",
@@ -291,7 +309,7 @@ export const ActiveApePositionsTable: React.FC<
                     const { position } = item;
                     if (!position) return null;
 
-                    const vaultInfo = getVaultInfo(position.vaultId);
+                    const vaultInfo = getVaultInfo(position.vaultId, position);
                     const isUserPosition =
                       isConnected &&
                       userAddress &&

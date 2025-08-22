@@ -149,17 +149,17 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
         </th>
       ) : (
         <th className="flex items-center gap-x-1 font-medium pl-1 sm:pl-3">
-          <span>Pol</span>
+          <span>Fees</span>
           <ToolTip iconSize={12}>
-            Protocol Owned Liquidity is liquidity that will never be withdrawn.
+            One-time APE minting fee. Half distributed to LPers at mint, and half
+            at burn.
           </ToolTip>
         </th>
       )}
       <th className="hidden items-center gap-x-1 font-medium md:flex">
-        Fees
+        Pol
         <ToolTip iconSize={12}>
-          One-time APE minting fee. Half distributed to LPers at mint, and half
-          at burn.
+          Protocol Owned Liquidity is liquidity that will never be withdrawn.
         </ToolTip>
       </th>
       <th className="hidden relative z-10 items-center gap-x-1 font-medium md:flex">

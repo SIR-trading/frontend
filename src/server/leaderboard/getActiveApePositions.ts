@@ -80,6 +80,9 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
     user: `0x${string}`;
     apeBalance: string;
     collateralToken: string;
+    collateralSymbol?: string;
+    debtToken?: string;
+    debtSymbol?: string;
     pnlUsd: number;
     pnlUsdPercentage: number;
     pnlCollateral: number;
@@ -96,6 +99,9 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         apeBalance,
         user,
         collateralToken,
+        collateralSymbol,
+        debtToken,
+        debtSymbol,
         dollarTotal,
         collateralTotal,
         apeDecimals,
@@ -159,6 +165,9 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
         vaultId,
         apeBalance: formatUnits(userApeBalance, apeDecimals),
         collateralToken,
+        collateralSymbol,
+        debtToken,
+        debtSymbol,
         pnlUsd,
         pnlUsdPercentage,
         pnlCollateral,

@@ -413,13 +413,13 @@ export function VaultTableRow({
             </HoverCardContent>
           </HoverCard>
         ) : (
-          <h4 className="font-normal text-foreground/80">
-            <DisplayFormattedNumber num={POL} significant={2} />%
+          <h4 className="font-normal text-[13px]" style={{ color: getFeeColor() }}>
+            {roundDown(fee, 0)}%
           </h4>
         )}
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal md:flex" style={{ color: getFeeColor() }}>
-        {roundDown(fee, 0)}%
+      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-foreground/80 md:flex">
+        <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
       <td className="relative hidden items-center md:flex">
         <HoverCard openDelay={0} closeDelay={20}>
