@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Loader2 } from "lucide-react";
 import { SirContract } from "@/contracts/sir";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -26,6 +26,9 @@ import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import ExplorerLink from "@/components/shared/explorerLink";
 import ErrorMessage from "@/components/ui/error-message";
+import { VaultContract } from "@/contracts/vault";
+import { getCurrentTime } from "@/lib/utils/index";
+import { SirClaimModal } from "@/components/shared/SirClaimModal";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string): string => {
@@ -73,6 +76,11 @@ export default function BurnForm({
   });
   const formData = form.watch();
   const [claimAndStake, setClaimAndStake] = useState(false);
+  
+  // Check if deposit amount is valid before querying
+  const depositAmount = parseUnits(formData.deposit?.toString() ?? "0", row.decimals);
+  const isDepositValid = depositAmount > 0n && depositAmount <= (balance ?? 0n);
+  
   const { data: quoteBurn } = api.vault.quoteBurn.useQuery(
     {
       amount: formData.deposit ?? "0",
@@ -83,7 +91,7 @@ export default function BurnForm({
       decimals: row.decimals,
     },
     {
-      enabled: Boolean(formData.deposit),
+      enabled: Boolean(formData.deposit) && isDepositValid,
     },
   );
 
@@ -136,7 +144,7 @@ export default function BurnForm({
     utils.leaderboard.getClosedApePositions,
   ]);
 
-  const { data: burnData } = useBurnApe({
+  const { data: burnData, isFetching: isFetchingBurnData } = useBurnApe({
     isApe: isApe,
     data: {
       collateralToken: row.collateralToken,
@@ -147,6 +155,7 @@ export default function BurnForm({
       formData.deposit?.toString() ?? "0",
       row.decimals,
     ),
+    balance: balance,
   });
 
   const { claimRewardRequest } = useClaimTeaRewards({
@@ -167,6 +176,29 @@ export default function BurnForm({
   );
 
   const { tokenReceived } = useGetTxTokens({ logs: receiptData?.logs });
+  
+  // Check if we have a valid burn amount (greater than 0 and less than or equal to balance)
+  const parsedAmount = parseUnits(formData.deposit?.toString() ?? "0", row.decimals);
+  const hasValidBurnAmount = parsedAmount > 0n && parsedAmount <= (balance ?? 0n);
+  
+  // Debug logging to investigate simulation failures
+  useEffect(() => {
+    if (formData.deposit && balance) {
+      console.log("Burn Form Debug:", {
+        depositInput: formData.deposit,
+        parsedAmount: parsedAmount.toString(),
+        balance: balance.toString(),
+        decimals: row.decimals,
+        hasValidBurnAmount,
+        hasBurnData: Boolean(burnData?.request),
+        isFetchingBurnData,
+        quoteBurn: quoteBurn?.toString(),
+        isApe,
+        vaultId: row.vaultId,
+      });
+    }
+  }, [formData.deposit, parsedAmount, balance, row.decimals, hasValidBurnAmount, burnData, isFetchingBurnData, quoteBurn, isApe, row.vaultId]);
+  
   const onSubmit = () => {
     if (isConfirmed) {
       setOpen(false);
@@ -179,6 +211,22 @@ export default function BurnForm({
     }
     if (burnData?.request) {
       writeContract(burnData.request);
+    } else if (hasValidBurnAmount && !isClaimingRewards) {
+      // If simulation failed but we have a valid amount, try to burn directly
+      writeContract({
+        ...VaultContract,
+        functionName: "burn",
+        args: [
+          isApe,
+          {
+            debtToken: row.debtToken,
+            leverageTier: parseInt(row.leverageTier),
+            collateralToken: row.collateralToken,
+          },
+          parsedAmount,
+          getCurrentTime() + 10 * 60, // 10 minutes from now
+        ],
+      });
     }
   };
   const [open, setOpen] = useState(false);
@@ -196,52 +244,77 @@ export default function BurnForm({
 
   return (
     <FormProvider {...form}>
-      <TransactionModal.Root title="Burn" open={open} setOpen={setOpen}>
-        <TransactionModal.Close setOpen={setOpen} />
-        <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-          {!isConfirmed && (
-            <>
-              <TransactionStatus
-                action={isClaimingRewards ? "Claim Rewards" : "Burn"}
-                waitForSign={isPending}
-                showLoading={isConfirming}
-              />
-              {isClaimingRewards && (
-                <div className=" pt-4 ">
-                  <div className="space-x-1">
-                    <span className="text-lg">
-                      <DisplayFormattedNumber
-                        num={formatUnits(reward, 12)}
-                        significant={8}
-                      />
-                    </span>
-                    <span className="text-[14px] text-foreground/70">SIR</span>
-                  </div>
-                </div>
-              )}
-              {!isClaimingRewards && (
-                <TransactionEstimates
-                  decimals={row.decimals}
-                  inAssetName={
-                    isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`
-                  }
-                  outAssetName={row.collateralSymbol}
-                  collateralEstimate={quoteBurn}
-                  usingEth={false}
+      {isClaimingRewards ? (
+        <SirClaimModal
+          open={open}
+          setOpen={setOpen}
+          unclaimedAmount={reward}
+          isPending={isPending}
+          isConfirming={isConfirming}
+          isConfirmed={isConfirmed}
+          hash={hash}
+          claimAndStake={claimAndStake}
+          setClaimAndStake={setClaimAndStake}
+          onSubmit={onSubmit}
+          onClose={close}
+          title="Claim Rewards"
+        />
+      ) : (
+        <TransactionModal.Root 
+          title="Burn" 
+          open={open} 
+          setOpen={(value) => {
+            setOpen(value);
+            if (!value && !isConfirmed) {
+              close(); // Also close the burn form when closing the modal
+            }
+          }}
+        >
+          <TransactionModal.Close setOpen={(value) => {
+            setOpen(value);
+            if (!value && !isConfirmed) {
+              close(); // Also close the burn form when closing the modal
+            }
+          }} />
+          <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
+            {!isConfirmed && (
+              <>
+                <TransactionStatus
+                  action="Burn"
+                  waitForSign={isPending}
+                  showLoading={isConfirming}
                 />
+                {!isClaimingRewards && (
+                <>
+                  {quoteBurn ? (
+                    <TransactionEstimates
+                      decimals={row.decimals}
+                      inAssetName={
+                        isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`
+                      }
+                      outAssetName={row.collateralSymbol}
+                      collateralEstimate={quoteBurn}
+                      usingEth={false}
+                    />
+                  ) : (
+                    <div className="flex h-[40px] items-center gap-x-2 py-2">
+                      <h3 className="space-x-1">
+                        <span>{formData.deposit}</span>
+                        <span className="text-gray-300 text-sm">
+                          {isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`}
+                        </span>
+                      </h3>
+                      <span className="text-foreground/70">{"->"}</span>
+                      <h3 className="space-x-1 text-foreground/70">
+                        <span className="text-sm italic">Estimate unavailable</span>
+                      </h3>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
-          {isConfirmed && isClaimingRewards && (
-            <div className="space-y-2">
-              <div className="flex justify-center">
-                <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
-              </div>
-              <h2 className="text-center">Transaction Successful!</h2>
-              <ExplorerLink transactionHash={hash} />
-            </div>
-          )}
-          {isConfirmed && !isClaimingRewards && (
+          {isConfirmed && (
             <TransactionSuccess
               hash={hash}
               assetAddress={row.collateralToken}
@@ -252,14 +325,6 @@ export default function BurnForm({
         </TransactionModal.InfoContainer>
         {/*----*/}
         <TransactionModal.StatSubmitContainer>
-          {/* {!isClaimingRewards && !isConfirmed && ( */}
-          {/*   <TransactionModal.StatContainer> */}
-          {/*     <TransactionModal.StatRow */}
-          {/*       title="Fee" */}
-          {/*       value={fee + "%"} */}
-          {/*     ></TransactionModal.StatRow> */}
-          {/*   </TransactionModal.StatContainer> */}
-          {/* )} */}
           <TransactionModal.SubmitButton
             disabled={isPending || isConfirming}
             isPending={isPending}
@@ -267,10 +332,11 @@ export default function BurnForm({
             onClick={() => onSubmit()}
             isConfirmed={isConfirmed}
           >
-            {submitButtonText}
+            Confirm Burn
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
+      )}
       <form>
         <div className="w-[320px] space-y-2  p-2 md:w-full">
           <div className="flex justify-between">
@@ -317,6 +383,7 @@ export default function BurnForm({
 
               <DisplayCollateral
                 isClaiming={isClaimingRewards}
+                isLoading={!isClaimingRewards && isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
                 data={{
                   leverageTier: parseFloat(row.leverageTier),
                   collateralToken: isClaimingRewards
@@ -361,9 +428,7 @@ export default function BurnForm({
             <Button
               disabled={
                 !isValid ||
-                !Boolean(
-                  isClaimingRewards ? claimRewardRequest : burnData?.request,
-                )
+                (isClaimingRewards ? !claimRewardRequest : !hasValidBurnAmount)
               }
               variant="submit"
               onClick={() => setOpen(true)}

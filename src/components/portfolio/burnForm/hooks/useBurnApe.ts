@@ -5,9 +5,11 @@ export function useBurnApe({
   data,
   isApe,
   amount,
+  balance,
 }: {
   amount: bigint;
   isApe: boolean;
+  balance?: bigint;
   data:
     | {
         leverageTier: number | undefined;
@@ -29,6 +31,9 @@ export function useBurnApe({
       amount,
       getCurrentTime() + 10 * 60, // 10 minutes from now
     ],
+    query: {
+      enabled: amount > 0n && (!balance || amount <= balance), // Only simulate when amount is valid
+    },
   });
 
   return { data: burnData, isFetching };

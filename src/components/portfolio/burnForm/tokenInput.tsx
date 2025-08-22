@@ -63,8 +63,8 @@ export function TokenInput({
           )}
         />
 
-        <div className="flex items-center">
-          <h3 className="text-xl">
+        <div className="flex items-center ml-2">
+          <h3 className="text-xl whitespace-nowrap">
             {isApe ? "APE-" : "TEA-"}
             {getDisplayVaultId(vaultId)}
           </h3>

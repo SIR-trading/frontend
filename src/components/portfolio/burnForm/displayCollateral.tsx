@@ -1,15 +1,19 @@
 import { TokenImage } from "@/components/shared/TokenImage";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { Loader2 } from "lucide-react";
+
 export function DisplayCollateral({
   bg,
   data,
   amount,
   collateralSymbol,
   isClaiming,
+  isLoading,
 }: {
   bg: string;
   amount: string;
   isClaiming: boolean;
+  isLoading?: boolean;
   data:
     | {
         leverageTier: number | undefined;
@@ -24,7 +28,11 @@ export function DisplayCollateral({
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-[28px]">
-            <DisplayFormattedNumber num={amount} significant={4} />
+            {isLoading ? (
+              <Loader2 className="animate-spin" size={28} />
+            ) : (
+              <DisplayFormattedNumber num={amount} significant={4} />
+            )}
           </h2>
         </div>
         <div>
