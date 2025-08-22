@@ -399,10 +399,6 @@ export function VaultTableRow({
                         <span>SIR Rewards:</span>
                         <span className="ml-2"><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</span>
                       </div>
-                      <div className="border-t border-foreground/20 pt-1 flex justify-between font-semibold">
-                        <span>Total APY:</span>
-                        <span><DisplayFormattedNumber num={apyData.apy || 0} significant={2} />%</span>
-                      </div>
                     </>
                   )}
                   {!apyData && !isApyLoading && (
@@ -470,25 +466,34 @@ export function VaultTableRow({
               />
             </motion.div>
           </HoverCardTrigger>
-          <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-              <div className="grid grid-cols-3 gap-x-2">
-                <div className="text-left font-bold">Apes:</div>
-                <TokenDisplay
-                  amount={reservesData[0]?.reserveApes ?? 0n}
-                  amountSize="small"
-                  unitLabel=""
-                  decimals={pool.apeDecimals}
-                />
-                <div>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</div>
-                <div className="text-left font-bold">LPers:</div>
-                <TokenDisplay
-                  amount={reservesData[0]?.reserveLPers ?? 0n}
-                  amountSize="small"
-                  unitLabel=""
-                  decimals={pool.apeDecimals}
-                />
-                <div>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</div>
+          <HoverCardContent side="top" alignOffset={10}>
+            <div className="mb-2 max-w-[250px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
+              <div className="space-y-1">
+                <div className="font-semibold text-left">TVL Breakdown:</div>
+                <div className="flex justify-between gap-x-4">
+                  <span>Apes:</span>
+                  <span className="flex items-center gap-x-1">
+                    <TokenDisplay
+                      amount={reservesData[0]?.reserveApes ?? 0n}
+                      amountSize="small"
+                      unitLabel=""
+                      decimals={pool.apeDecimals}
+                    />
+                    <span>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+                  </span>
+                </div>
+                <div className="flex justify-between gap-x-4">
+                  <span>LPers:</span>
+                  <span className="flex items-center gap-x-1">
+                    <TokenDisplay
+                      amount={reservesData[0]?.reserveLPers ?? 0n}
+                      amountSize="small"
+                      unitLabel=""
+                      decimals={pool.apeDecimals}
+                    />
+                    <span>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+                  </span>
+                </div>
               </div>
             </div>
           </HoverCardContent>
