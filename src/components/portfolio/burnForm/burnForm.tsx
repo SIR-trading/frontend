@@ -28,7 +28,7 @@ import ExplorerLink from "@/components/shared/explorerLink";
 import ErrorMessage from "@/components/ui/error-message";
 import { VaultContract } from "@/contracts/vault";
 import { getCurrentTime } from "@/lib/utils/index";
-import { SirClaimModal } from "@/components/shared/SirClaimModal";
+import { SirRewardsClaimModal } from "@/components/shared/SirRewardsClaimModal";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string): string => {
@@ -245,7 +245,7 @@ export default function BurnForm({
   return (
     <FormProvider {...form}>
       {isClaimingRewards ? (
-        <SirClaimModal
+        <SirRewardsClaimModal
           open={open}
           setOpen={setOpen}
           unclaimedAmount={reward}
@@ -258,6 +258,7 @@ export default function BurnForm({
           onSubmit={onSubmit}
           onClose={close}
           title="Claim Rewards"
+          checkboxLabel="Mint and stake"
         />
       ) : (
         <TransactionModal.Root 
@@ -361,68 +362,74 @@ export default function BurnForm({
           </div>
 
           {!isClaimingRewards && (
-            <TokenInput
-              positionDecimals={row.decimals}
-              balance={balance}
-              form={form}
-              vaultId={row.vaultId}
-              isApe={isApe}
-            />
-          )}
-          <div
-            data-state={isClaimingRewards ? "claiming" : ""}
-            className=" my-2 rounded-md px-4 py-2 data-[state=claiming]:bg-foreground/30"
-          >
-            <div className="pt-2"></div>
-            <div>
-              <div>
-                <label htmlFor="a" className="">
-                  {isClaimingRewards ? "Amount" : "Into"}
-                </label>
-              </div>
-
-              <DisplayCollateral
-                isClaiming={isClaimingRewards}
-                isLoading={!isClaimingRewards && isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
-                data={{
-                  leverageTier: parseFloat(row.leverageTier),
-                  collateralToken: isClaimingRewards
-                    ? SirContract.address
-                    : row.collateralToken,
-                  debtToken: row.debtToken,
-                }}
-                amount={
-                  isClaimingRewards
-                    ? formatUnits(reward, 12)
-                    : formatUnits(quoteBurn ?? 0n, row.decimals)
-                }
-                collateralSymbol={
-                  isClaimingRewards ? "SIR" : row.collateralSymbol
-                }
-                bg=""
+            <>
+              <TokenInput
+                positionDecimals={row.decimals}
+                balance={balance}
+                form={form}
+                vaultId={row.vaultId}
+                isApe={isApe}
               />
-            </div>
+              <div className="my-2 rounded-md px-4 py-2">
+                <div className="pt-2"></div>
+                <div>
+                  <div>
+                    <label htmlFor="a" className="">
+                      Into
+                    </label>
+                  </div>
 
-            {isClaimingRewards && (
+                  <DisplayCollateral
+                    isClaiming={false}
+                    isLoading={isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
+                    data={{
+                      leverageTier: parseFloat(row.leverageTier),
+                      collateralToken: row.collateralToken,
+                      debtToken: row.debtToken,
+                    }}
+                    amount={formatUnits(quoteBurn ?? 0n, row.decimals)}
+                    collateralSymbol={row.collateralSymbol}
+                    bg=""
+                  />
+                </div>
+                <div className="pt-2"></div>
+              </div>
+            </>
+          )}
+          
+          {isClaimingRewards && (
+            <div className="my-2 rounded-md px-4 py-2">
+              <div className="pt-2"></div>
+              <div>
+                <div>
+                  <label htmlFor="a" className="">
+                    Amount
+                  </label>
+                </div>
+                <DisplayCollateral
+                  isClaiming={true}
+                  data={{
+                    leverageTier: parseFloat(row.leverageTier),
+                    collateralToken: SirContract.address,
+                    debtToken: row.debtToken,
+                  }}
+                  amount={formatUnits(reward, 12)}
+                  collateralSymbol="SIR"
+                  bg=""
+                />
+              </div>
               <div className="flex items-center justify-end gap-x-2 py-2">
                 <h3 className="text-[14px] text-foreground/80">
-                  Claim and Stake
+                  Mint and stake
                 </h3>
-
                 <ClaimAndStakeToggle
                   onChange={setClaimAndStake}
                   value={claimAndStake}
                 />
               </div>
-            )}
-            <div className="pt-2"></div>
-            <div className="flex justify-center">
-              {/* <h4 className="w-[400px] text-center text-sm italic text-gray-400"> */}
-              {/*   With leveraging you risk losing up to 100% of your deposit, you */}
-              {/*   can not lose more than your deposit. */}
-              {/* </h4> */}
+              <div className="pt-2"></div>
             </div>
-          </div>
+          )}
           <div className="pt-1"></div>
           <div>
             <Button

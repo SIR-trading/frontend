@@ -9,7 +9,7 @@ import ExplorerLink from "./explorerLink";
 import { TokenImage } from "./TokenImage";
 import { SirContract } from "@/contracts/sir";
 
-interface SirClaimModalProps {
+interface SirRewardsClaimModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   unclaimedAmount: bigint | undefined;
@@ -22,9 +22,10 @@ interface SirClaimModalProps {
   onSubmit: () => void;
   onClose?: () => void;
   title?: string;
+  checkboxLabel?: string;
 }
 
-export function SirClaimModal({
+export function SirRewardsClaimModal({
   open,
   setOpen,
   unclaimedAmount,
@@ -37,10 +38,11 @@ export function SirClaimModal({
   onSubmit,
   onClose,
   title = "Claim Rewards",
-}: SirClaimModalProps) {
-  const handleClose = (value: boolean) => {
+  checkboxLabel = "Mint and stake",
+}: SirRewardsClaimModalProps) {
+  const handleSetOpen = (value: boolean) => {
     setOpen(value);
-    if (!value && onClose) {
+    if (!value && !isConfirmed && onClose) {
       onClose();
     }
   };
@@ -48,32 +50,46 @@ export function SirClaimModal({
   return (
     <TransactionModal.Root
       title={title}
-      setOpen={handleClose}
+      setOpen={handleSetOpen}
       open={open}
     >
-      <TransactionModal.Close setOpen={handleClose} />
+      <TransactionModal.Close setOpen={handleSetOpen} />
       <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-        <TransactionStatus
-          action="Claim"
-          waitForSign={isPending}
-          showLoading={isConfirming}
-          isConfirmed={isConfirmed}
-        />
+        <h2 className="text-center text-xl font-semibold mb-4">{title}</h2>
         {!isConfirmed && (
-          <div className="flex items-center justify-center gap-x-2 pt-2">
-            <TokenImage
-              address={SirContract.address}
-              width={24}
-              height={24}
-              alt="SIR"
-            />
-            <TokenDisplay
-              disableRounding
-              amount={unclaimedAmount}
-              decimals={12}
-              unitLabel="SIR"
-            />
-          </div>
+          <>
+            {(isPending || isConfirming) && (
+              <TransactionStatus
+                action="Claim"
+                waitForSign={isPending}
+                showLoading={isConfirming}
+                isConfirmed={isConfirmed}
+              />
+            )}
+            <div className="pt-2">
+              <div className="mb-2">
+                <label className="text-sm text-foreground/70">Amount</label>
+              </div>
+              <div className="flex items-center justify-between">
+                <TokenDisplay
+                  disableRounding
+                  amount={unclaimedAmount}
+                  decimals={12}
+                  unitLabel={""}
+                  amountSize="large"
+                />
+                <div className="flex items-center gap-x-2">
+                  <span className="text-foreground/70">SIR</span>
+                  <TokenImage
+                    address={SirContract.address}
+                    width={24}
+                    height={24}
+                    alt="SIR"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         )}
         {isConfirmed && (
           <div className="space-y-2">
@@ -88,9 +104,9 @@ export function SirClaimModal({
 
       <TransactionModal.StatSubmitContainer>
         <Show when={!isConfirmed}>
-          <div className="flex w-full items-center justify-end gap-x-2 py-2">
+          <div className="flex w-full items-center justify-end gap-x-2 py-2 ">
             <label htmlFor="stake" className="text-sm text-foreground/80">
-              Mint and stake
+              {checkboxLabel}
             </label>
             <Checkbox
               className="border border-foreground bg-foreground/5"
@@ -99,7 +115,7 @@ export function SirClaimModal({
               onCheckedChange={(value) => {
                 setClaimAndStake(Boolean(value));
               }}
-            />
+            ></Checkbox>
           </div>
         </Show>
         <TransactionModal.SubmitButton

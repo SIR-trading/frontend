@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import TransactionModal from "../shared/transactionModal";
-import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
 import {
   useAccount,
   useSimulateContract,
@@ -9,12 +7,8 @@ import {
 } from "wagmi";
 import { api } from "@/trpc/react";
 import { SirContract } from "@/contracts/sir";
-import { CircleCheck } from "lucide-react";
 import { Button } from "../ui/button";
-import { TokenDisplay } from "../ui/token-display";
-import { Checkbox } from "../ui/checkbox";
-import Show from "../shared/show";
-import ExplorerLink from "../shared/explorerLink";
+import { SirRewardsClaimModal } from "../shared/SirRewardsClaimModal";
 
 export default function ContributorClaim() {
   const { isConnected, address } = useAccount();
@@ -73,67 +67,20 @@ export default function ContributorClaim() {
   const unclaimedRewards = unclaimedData ?? 0n;
   return (
     <div>
-      <TransactionModal.Root
-        title="Claim Rewards"
-        setOpen={setOpen}
+      <SirRewardsClaimModal
         open={open}
-      >
-        <TransactionModal.Close setOpen={setOpen} />
-        <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-          <TransactionStatus
-            action="Claim"
-            waitForSign={isPending}
-            showLoading={isConfirming}
-            isConfirmed={isConfirmed}
-          />
-          {!isConfirmed && (
-            <div className="space-x-0.5 pt-2">
-              <TokenDisplay
-                disableRounding
-                amount={unclaimedData}
-                decimals={12}
-                unitLabel={"SIR"}
-              />
-            </div>
-          )}
-          {isConfirmed && (
-            <div className="space-y-2">
-              <div className="flex justify-center">
-                <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
-              </div>
-              <h2 className="text-center">Transaction Successful!</h2>
-              <ExplorerLink transactionHash={hash} />
-            </div>
-          )}
-        </TransactionModal.InfoContainer>
-
-        <TransactionModal.StatSubmitContainer>
-          <Show when={!isConfirmed}>
-            <div className="flex w-full items-center justify-end gap-x-2 py-2 ">
-              <label htmlFor="stake" className="text-sm text-foreground/80">
-                Mint and Stake
-              </label>
-              <Checkbox
-                className="border border-foreground bg-foreground/5"
-                id="stake"
-                checked={checked}
-                onCheckedChange={(value) => {
-                  setChecked(Boolean(value)); // Call onChange to update the state in UnstakeForm
-                }}
-              ></Checkbox>
-            </div>
-          </Show>
-          <TransactionModal.SubmitButton
-            isConfirmed={isConfirmed}
-            loading={isConfirming}
-            isPending={isPending}
-            disabled={isPending || isConfirming}
-            onClick={() => onSubmit()}
-          >
-            Claim
-          </TransactionModal.SubmitButton>
-        </TransactionModal.StatSubmitContainer>
-      </TransactionModal.Root>
+        setOpen={setOpen}
+        unclaimedAmount={unclaimedData}
+        isPending={isPending}
+        isConfirming={isConfirming}
+        isConfirmed={isConfirmed}
+        hash={hash}
+        claimAndStake={checked}
+        setClaimAndStake={setChecked}
+        onSubmit={onSubmit}
+        title="Claim"
+        checkboxLabel="Mint and stake"
+      />
 
       <div className="flex  ">
         {data?.request && unclaimedRewards > 0n && (
