@@ -39,15 +39,15 @@ export function DisplayCollateral({
           <div className={"flex  gap-x-2 "}>
             <div
               data-state={!isClaiming ? "claiming" : ""}
-              className="flex h-[45px] w-[134px] items-center  gap-x-2 rounded-md bg-secondary-800 px-2 data-[state=claiming]:justify-end "
+              className="flex h-[45px] w-[134px] items-center justify-end gap-x-2 rounded-md bg-secondary-800"
             >
+              <h3>{collateralSymbol}</h3>
               <TokenImage
                 address={data?.collateralToken}
                 alt="collateral"
                 width={28}
                 height={28}
               />
-              <h3>{collateralSymbol}</h3>
             </div>
           </div>
         </div>

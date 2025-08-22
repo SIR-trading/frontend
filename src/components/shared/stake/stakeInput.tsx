@@ -61,10 +61,10 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
           <div
             className={`flex items-center justify-center gap-x-2 rounded-md py-1`}
           >
-            <Image src={logo} alt="sir-logo" width={25} height={25} />
             <span className="text-nowrap font-medium">
               {isStaking ? "Unstaked SIR" : "Staked SIR"}
             </span>
+            <Image src={logo} alt="sir-logo" width={25} height={25} />
           </div>
           <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
             Balance{" "}

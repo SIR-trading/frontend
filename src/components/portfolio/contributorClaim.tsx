@@ -90,31 +90,10 @@ export default function ContributorClaim() {
               className="w-full space-x-1 bg-gold px-4 py-2 font-bold text-white hover:bg-gold/90"
             >
               <span>Claim Contributor Rewards</span>
-              {
-                //<span className="">
-                //   {formatNumber(formatUnits(unclaimedData ?? 0n, 12), 6)}
-                // </span>
-              }
-
-              {/* <Image */}
-              {/*   height={18} */}
-              {/*   width={18} */}
-              {/*   src={sirIcon as StaticImageData} */}
-              {/*   alt="Sir Icon" */}
-              {/* /> */}
             </Button>
           </div>
         )}
       </div>
     </div>
   );
-}
-{
-  /* <h4 className="px-4 text-center text-[14px] text-gray-300"> */
-}
-{
-  /*   Claim Contributor Rewards */
-}
-{
-  /* </h4> */
 }

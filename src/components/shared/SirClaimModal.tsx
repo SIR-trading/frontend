@@ -40,7 +40,7 @@ export function SirClaimModal({
 }: SirClaimModalProps) {
   const handleClose = (value: boolean) => {
     setOpen(value);
-    if (!value && onClose) {
+    if (!value && !isConfirmed && onClose) {
       onClose();
     }
   };
@@ -53,27 +53,41 @@ export function SirClaimModal({
     >
       <TransactionModal.Close setOpen={handleClose} />
       <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-        <TransactionStatus
-          action="Claim"
-          waitForSign={isPending}
-          showLoading={isConfirming}
-          isConfirmed={isConfirmed}
-        />
+        <h2 className="text-center text-xl font-semibold mb-4">{title}</h2>
         {!isConfirmed && (
-          <div className="flex items-center justify-center gap-x-2 pt-2">
-            <TokenImage
-              address={SirContract.address}
-              width={24}
-              height={24}
-              alt="SIR"
-            />
-            <TokenDisplay
-              disableRounding
-              amount={unclaimedAmount}
-              decimals={12}
-              unitLabel="SIR"
-            />
-          </div>
+          <>
+            {(isPending || isConfirming) && (
+              <TransactionStatus
+                action="Claim"
+                waitForSign={isPending}
+                showLoading={isConfirming}
+                isConfirmed={isConfirmed}
+              />
+            )}
+            <div className="pt-2">
+              <div className="mb-2">
+                <label className="text-sm text-foreground/70">Amount</label>
+              </div>
+              <div className="flex items-center justify-between">
+                <TokenDisplay
+                  disableRounding
+                  amount={unclaimedAmount}
+                  decimals={12}
+                  unitLabel=""
+                  amountSize="large"
+                />
+                <div className="flex items-center gap-x-2">
+                  <span className="text-foreground/70">SIR</span>
+                  <TokenImage
+                    address={SirContract.address}
+                    width={24}
+                    height={24}
+                    alt="SIR"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         )}
         {isConfirmed && (
           <div className="space-y-2">

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CircleCheck, Loader2 } from "lucide-react";
-import { SirContract } from "@/contracts/sir";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,17 +16,14 @@ import { useGetTxTokens } from "./hooks/useGetTxTokens";
 import { X } from "lucide-react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import { useClaimTeaRewards } from "./hooks/useClaimTeaRewards";
-import ClaimAndStakeToggle from "./claimAndStakeToggle";
 import { DisplayCollateral } from "./displayCollateral";
 import { TokenInput } from "./tokenInput";
 import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
-import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import ExplorerLink from "@/components/shared/explorerLink";
 import ErrorMessage from "@/components/ui/error-message";
 import { VaultContract } from "@/contracts/vault";
 import { getCurrentTime } from "@/lib/utils/index";
-import { SirRewardsClaimModal } from "@/components/shared/SirRewardsClaimModal";
+import { SirClaimModal } from "@/components/shared/SirClaimModal";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string): string => {
@@ -237,15 +232,16 @@ export default function BurnForm({
     }
   }, [isConfirmed, reset, open]);
 
-  const submitButtonText = isClaimingRewards ? "Confirm Claim" : "Confirm Burn";
+  useEffect(() => {
+    if (isClaimingRewards) {
+      setOpen(true);
+    }
+  }, [isClaimingRewards]);
 
-  // let fee = useGetFee({ isApe, levTier });
-  // fee = fee ?? "";
-
-  return (
-    <FormProvider {...form}>
-      {isClaimingRewards ? (
-        <SirRewardsClaimModal
+  if (isClaimingRewards) {
+    return (
+      <>
+        <SirClaimModal
           open={open}
           setOpen={setOpen}
           unclaimedAmount={reward}
@@ -258,19 +254,23 @@ export default function BurnForm({
           onSubmit={onSubmit}
           onClose={close}
           title="Claim Rewards"
-          checkboxLabel="Mint and stake"
         />
-      ) : (
-        <TransactionModal.Root 
-          title="Burn" 
-          open={open} 
-          setOpen={(value) => {
-            setOpen(value);
-            if (!value && !isConfirmed) {
-              close(); // Also close the burn form when closing the modal
-            }
-          }}
-        >
+      </>
+    );
+  }
+
+  return (
+    <FormProvider {...form}>
+      <TransactionModal.Root 
+        title="Burn" 
+        open={open} 
+        setOpen={(value) => {
+          setOpen(value);
+          if (!value && !isConfirmed) {
+            close(); // Also close the burn form when closing the modal
+          }
+        }}
+      >
           <TransactionModal.Close setOpen={(value) => {
             setOpen(value);
             if (!value && !isConfirmed) {
@@ -337,20 +337,12 @@ export default function BurnForm({
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      )}
       <form>
         <div className="w-[320px] space-y-2  p-2 md:w-full">
           <div className="flex justify-between">
-            {isClaimingRewards && (
-              <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
-                Claim
-              </h2>
-            )}
-            {!isClaimingRewards && (
-              <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
-                Burn
-              </h2>
-            )}
+            <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
+              Burn
+            </h2>
 
             <button
               type="button"
@@ -361,89 +353,48 @@ export default function BurnForm({
             </button>
           </div>
 
-          {!isClaimingRewards && (
-            <>
-              <TokenInput
-                positionDecimals={row.decimals}
-                balance={balance}
-                form={form}
-                vaultId={row.vaultId}
-                isApe={isApe}
-              />
-              <div className="my-2 rounded-md px-4 py-2">
-                <div className="pt-2"></div>
-                <div>
-                  <div>
-                    <label htmlFor="a" className="">
-                      Into
-                    </label>
-                  </div>
-
-                  <DisplayCollateral
-                    isClaiming={false}
-                    isLoading={isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
-                    data={{
-                      leverageTier: parseFloat(row.leverageTier),
-                      collateralToken: row.collateralToken,
-                      debtToken: row.debtToken,
-                    }}
-                    amount={formatUnits(quoteBurn ?? 0n, row.decimals)}
-                    collateralSymbol={row.collateralSymbol}
-                    bg=""
-                  />
-                </div>
-                <div className="pt-2"></div>
-              </div>
-            </>
-          )}
-          
-          {isClaimingRewards && (
-            <div className="my-2 rounded-md px-4 py-2">
-              <div className="pt-2"></div>
+          <TokenInput
+            positionDecimals={row.decimals}
+            balance={balance}
+            form={form}
+            vaultId={row.vaultId}
+            isApe={isApe}
+          />
+          <div className="my-2 rounded-md px-4 py-2">
+            <div className="pt-2"></div>
+            <div>
               <div>
-                <div>
-                  <label htmlFor="a" className="">
-                    Amount
-                  </label>
-                </div>
-                <DisplayCollateral
-                  isClaiming={true}
-                  data={{
-                    leverageTier: parseFloat(row.leverageTier),
-                    collateralToken: SirContract.address,
-                    debtToken: row.debtToken,
-                  }}
-                  amount={formatUnits(reward, 12)}
-                  collateralSymbol="SIR"
-                  bg=""
-                />
+                <label htmlFor="a" className="">
+                  Into
+                </label>
               </div>
-              <div className="flex items-center justify-end gap-x-2 py-2">
-                <h3 className="text-[14px] text-foreground/80">
-                  Mint and stake
-                </h3>
-                <ClaimAndStakeToggle
-                  onChange={setClaimAndStake}
-                  value={claimAndStake}
-                />
-              </div>
-              <div className="pt-2"></div>
+
+              <DisplayCollateral
+                isClaiming={false}
+                isLoading={isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
+                data={{
+                  leverageTier: parseFloat(row.leverageTier),
+                  collateralToken: row.collateralToken,
+                  debtToken: row.debtToken,
+                }}
+                amount={formatUnits(quoteBurn ?? 0n, row.decimals)}
+                collateralSymbol={row.collateralSymbol}
+                bg=""
+              />
             </div>
-          )}
+            <div className="pt-2"></div>
+          </div>
+          
           <div className="pt-1"></div>
           <div>
             <Button
-              disabled={
-                !isValid ||
-                (isClaimingRewards ? !claimRewardRequest : !hasValidBurnAmount)
-              }
+              disabled={!isValid || !hasValidBurnAmount}
               variant="submit"
               onClick={() => setOpen(true)}
               className="w-full"
               type="button"
             >
-              {isClaimingRewards && "Claim Rewards"}
-              {!isClaimingRewards && `Burn ${isApe ? "APE" : "TEA"}`}
+              {`Burn ${isApe ? "APE" : "TEA"}`}
             </Button>
             {<ErrorMessage>{error}</ErrorMessage>}
           </div>
