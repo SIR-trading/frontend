@@ -298,6 +298,24 @@ async function calculateSirRewardsApyWithCachedPrices(
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
     
+    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
+    const vaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
+    
+    if (vaultCollateral === 0) {
+      return 0; // No collateral, can't calculate APY
+    }
+
+    // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
+    if (vault.collateralToken.toLowerCase() === SirContract.address.toLowerCase()) {
+      // For SIR collateral vaults, no price conversion needed
+      // APY is simply: (annual SIR rewards / SIR collateral) * 100
+      // Note: SIR has 12 decimals, so we need to adjust the collateral scaling
+      const sirVaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, 12);
+      const apy = (annualSirRewards / sirVaultCollateral) * 100;
+      return apy;
+    }
+
+    // For non-SIR collateral vaults, need price conversion
     if (sirPriceInWeth === 0) {
       return 0;
     }
@@ -311,13 +329,6 @@ async function calculateSirRewardsApyWithCachedPrices(
 
     if (sirPriceInCollateral === 0) {
       return 0;
-    }
-
-    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
-    const vaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
-    
-    if (vaultCollateral === 0) {
-      return 0; // No collateral, can't calculate APY
     }
 
     // Calculate annual SIR rewards value in collateral token
