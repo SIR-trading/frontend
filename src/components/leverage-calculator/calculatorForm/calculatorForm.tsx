@@ -190,7 +190,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
           <PriceInputs.EntryPrice disabled={disabledPriceInputs} />
           <PriceInputs.ExitPrice disabled={disabledPriceInputs} />
         </PriceInputs.Root>
-        <Calculations disabled={false} />
+        <Calculations disabled={false} currentPrice={collateralInDebtToken} />
       </form>
       {selectedVault.result && (
         <div className="mt-6 flex justify-center text-center text-sm text-foreground/70">

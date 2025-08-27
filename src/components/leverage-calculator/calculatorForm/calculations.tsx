@@ -4,8 +4,18 @@ import type { TCalculatorFormFields } from "@/components/providers/calculatorFor
 import useFormFee from "@/components/leverage-calculator/calculatorForm/hooks/useFormFee";
 import useIsDebtToken from "@/components/leverage-calculator/calculatorForm/hooks/useIsDebtToken";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { calculateCollateralGainWithLiquidity} from "@/lib/utils/calculations";
+import { useFindVault } from "./hooks/useFindVault";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useVaultProvider } from "@/components/providers/vaultProvider";
 
-export default function Calculations({ disabled }: { disabled: boolean }) {
+export default function Calculations({ 
+  disabled,
+  currentPrice 
+}: { 
+  disabled: boolean;
+  currentPrice?: number;
+}) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
 
@@ -15,6 +25,25 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
   }, [formData.depositToken, formData.versus, formData.leverageTier]);
 
   const isDebtToken = useIsDebtToken();
+  
+  // Get vaults from provider
+  const { vaults: vaultsQuery } = useVaultProvider();
+  
+  // Get the selected vault to fetch reserve data
+  const selectedVault = useFindVault(vaultsQuery);
+  
+  // Use reserve data directly from the vault object
+  const apeReserve = selectedVault.result?.apeCollateral ?? 0n;
+  const teaReserve = selectedVault.result?.teaCollateral ?? 0n;
+  
+  // Use the currentPrice passed from parent component (calculatorForm.tsx)
+  const marketPrice = currentPrice ?? 0;
+  
+  console.log("considerLiquidity:", formData.considerLiquidity);
+  console.log("apeReserve:", apeReserve.toString());
+  console.log("teaReserve:", teaReserve.toString());
+  console.log("selectedVault:", selectedVault.result?.vaultId);
+  console.log("currentPrice (collateral/debt):", marketPrice);
 
   // Extract fee
   const strFee = useFormFee({
@@ -37,9 +66,30 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
   const exitPrice = Number(formData.exitPrice);
 
   // Calculate positions using the provided values.
-  const collateralGain: number =
-    (1 - fee / 100) *
-    (exitPrice / entryPrice) ** (2 ** parseFloat(formData.leverageTier));
+  // Use liquidity-aware calculation if considerLiquidity is checked
+  console.log("Calling calculateCollateralGainWithLiquidity with:", {
+    entryPrice,
+    exitPrice,
+    marketPrice,
+    leverageTier: parseFloat(formData.leverageTier),
+    apeReserve: apeReserve.toString(),
+    teaReserve: teaReserve.toString(),
+    considerLiquidity: formData.considerLiquidity ?? true
+  });
+  
+  const rawCollateralGain = calculateCollateralGainWithLiquidity(
+    entryPrice,
+    exitPrice,
+    marketPrice,
+    parseFloat(formData.leverageTier),
+    apeReserve,
+    teaReserve,
+    formData.considerLiquidity ?? true
+  );
+  
+  console.log("Raw collateral gain:", rawCollateralGain);
+  
+  const collateralGain: number = (1 - fee / 100) * rawCollateralGain;
 
   const debtTokenGain: number = collateralGain * (exitPrice / entryPrice);
 
@@ -81,7 +131,25 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
 
   return (
     <div className={`mt-4 ${disabled ? "opacity-50" : ""}`}>
-      <h2 className="text-md font-bold">Expected returns</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-md font-bold">Expected returns</h2>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="considerLiquidity"
+            checked={formData.considerLiquidity ?? true}
+            onCheckedChange={(checked) => {
+              form.setValue("considerLiquidity", checked === true);
+            }}
+            className="border-foreground/50"
+          />
+          <label 
+            htmlFor="considerLiquidity" 
+            className="text-sm text-foreground/80 cursor-pointer"
+          >
+            Consider current liquidity
+          </label>
+        </div>
+      </div>
       <div className="pt-1"></div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between rounded-md">

@@ -15,6 +15,7 @@ const CalculatorSchema = z.object({
   deposit: z.string().optional(),
   entryPrice: z.string().optional(),
   exitPrice: z.string().optional(),
+  considerLiquidity: z.boolean().optional(),
 });
 
 export type TCalculatorFormFields = z.infer<typeof CalculatorSchema>;
@@ -40,6 +41,7 @@ export default function CalculatorFormProvider({
       depositToken: depositToken || "",
       entryPrice: "",
       exitPrice: "",
+      considerLiquidity: true,
     },
   });
   
