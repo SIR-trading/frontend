@@ -6,7 +6,7 @@ import { getLeverageRatio } from "@/lib/utils/calculations";
 import SelectWithSearch from "./selectWithSearch";
 import { useMemo } from "react";
 import Show from "@/components/shared/show";
-import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
 interface Props {
   long: VaultFieldFragment[];
@@ -19,17 +19,26 @@ export default function VaultParamsInputSelects({
   leverageTiers,
 }: Props) {
   const setLeverage = useVaultFilterStore((store) => store.setLeverageTier);
-  const { watch, reset } = useFormContext<TCalculatorFormFields>();
+  const { watch, reset } = useFormContext<TMintFormFields>();
   const { tokenlist } = useTokenlistContext();
   
   const formData = watch();
+  const storeLong = useVaultFilterStore((state) => state.long);
+  const storeVersus = useVaultFilterStore((state) => state.versus);
+  const storeLeverageTier = useVaultFilterStore((state) => state.leverageTier);
+  
   const allSelected = useMemo(() => {
-    if (formData.long || formData.versus || formData.leverageTier) {
-      return true;
-    } else {
-      return false;
-    }
-  }, [formData.leverageTier, formData.long, formData.versus]);
+    // Check if any field has a non-empty value
+    return Boolean(
+      formData.long || 
+      formData.versus || 
+      formData.leverageTier ||
+      storeLong ||
+      storeVersus ||
+      storeLeverageTier
+    );
+  }, [formData.leverageTier, formData.long, formData.versus, 
+      storeLong, storeVersus, storeLeverageTier]);
 
   // Helper function to get logo with fallback from tokenlist
   const getLogoWithFallback = (address: string) => {
@@ -50,7 +59,14 @@ export default function VaultParamsInputSelects({
         <button
           type="button"
           onClick={() => {
-            reset();
+            reset({
+              long: "",
+              versus: "",
+              leverageTier: "",
+              deposit: "",
+              slippage: "0.5",
+              depositToken: "",
+            });
             resetStore();
           }}
           className="absolute bottom-0 right-0 z-10 rounded-md bg-red p-[4px] text-sm  leading-none text-white"

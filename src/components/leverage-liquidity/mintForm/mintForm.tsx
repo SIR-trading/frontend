@@ -42,6 +42,7 @@ import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
 import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
 import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
+import useVaultFilterStore from "@/lib/store";
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -62,11 +63,12 @@ export default function MintForm({ isApe }: Props) {
     depositDecimals,
   } = useGetFormTokensInfo();
   const isWeth = useIsWeth();
+  const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
 
   // Ensure use eth toggle is not used on non-weth tokens
   const { setError, formState, watch, handleSubmit, setValue } =
     useFormContext<TMintFormFields>();
-  const { deposit, leverageTier, long: longInput } = watch();
+  const { deposit, leverageTier, long: longInput, versus: versusInput } = watch();
   const useEth = useMemo(() => {
     return isWeth ? useEthRaw : false;
   }, [isWeth, useEthRaw]);
@@ -78,6 +80,7 @@ export default function MintForm({ isApe }: Props) {
 
   const selectedVault = useFindVault();
   const [maxApprove, setMaxApprove] = useState(false);
+  
   const {
     requests,
     isApproveFetching,
@@ -97,6 +100,17 @@ export default function MintForm({ isApe }: Props) {
   const { versus, leverageTiers, long } = useFilterVaults({
     vaultsQuery,
   });
+  
+  // Parse token info safely
+  const longTokenAddress = longInput ? longInput.split(",")[0] : "";
+  const longTokenSymbol = longInput ? longInput.split(",")[1] : "";
+  const versusTokenAddress = versusInput ? versusInput.split(",")[0] : "";
+  const versusTokenSymbol = versusInput ? versusInput.split(",")[1] : "";
+  
+  // Check if we have enough info to show deposit token options
+  const hasVaultInfo = Boolean(
+    selectedVault.result ?? (longInput && versusInput && leverageTier)
+  );
 
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
   const {
@@ -359,20 +373,21 @@ export default function MintForm({ isApe }: Props) {
               colorScheme="dark"
               name="depositToken"
               title=""
-              disabled={!Boolean(selectedVault.result)}
+              disabled={!hasVaultInfo}
+              onChange={setDepositToken}
             >
-              <Show when={Boolean(selectedVault.result)}>
+              <Show when={hasVaultInfo}>
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.collateralToken ?? ""}
-                  value={selectedVault.result?.collateralToken ?? ""}
+                  tokenAddress={selectedVault.result?.collateralToken ?? longTokenAddress ?? ""}
+                  value={selectedVault.result?.collateralToken ?? longTokenAddress ?? ""}
                 >
-                  {selectedVault.result?.collateralSymbol}
+                  {selectedVault.result?.collateralSymbol ?? longTokenSymbol ?? ""}
                 </Dropdown.Item>
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.debtToken ?? ""}
-                  value={selectedVault.result?.debtToken ?? ""}
+                  tokenAddress={selectedVault.result?.debtToken ?? versusTokenAddress ?? ""}
+                  value={selectedVault.result?.debtToken ?? versusTokenAddress ?? ""}
                 >
-                  {selectedVault.result?.debtSymbol}
+                  {selectedVault.result?.debtSymbol ?? versusTokenSymbol ?? ""}
                 </Dropdown.Item>
               </Show>
             </Dropdown.Root>
@@ -409,10 +424,12 @@ export default function MintForm({ isApe }: Props) {
                   }}
                   className="font-bold text-yellow-100 underline hover:text-white transition-colors"
                 >
-                  <DisplayFormattedNumber 
-                    num={formatUnits(maxIn ?? 0n, depositDecimals ?? 18)} 
-                  />
-                  {" "}{depositTokenSymbol}
+                  <span>
+                    <DisplayFormattedNumber 
+                      num={formatUnits(maxIn ?? 0n, depositDecimals ?? 18)} 
+                    />
+                    {" "}{depositTokenSymbol}
+                  </span>
                 </button>. 
                 Beyond this point, your leverage ratio may not remain constant and could vary with market conditions.
               </div>

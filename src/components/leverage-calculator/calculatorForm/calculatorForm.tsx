@@ -8,7 +8,6 @@ import DepositInputs from "./deposit-inputs";
 import PriceInputs from "./price-inputs";
 import VaultParamsInputSelects from "./vaultParamsInputSelects";
 import Dropdown from "@/components/shared/dropDown";
-import Show from "@/components/shared/show";
 import { useFilterVaults } from "./hooks/useFilterVaults";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
 import { useFindVault } from "./hooks/useFindVault";
@@ -17,6 +16,7 @@ import Calculations from "@/components/leverage-calculator/calculatorForm/calcul
 import { api } from "@/trpc/react";
 import type { TVaults } from "@/lib/types";
 import useCalculateVaultHealth from "@/components/leverage-liquidity/vaultTable/hooks/useCalculateVaultHealth";
+import useVaultFilterStore from "@/lib/store";
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed
@@ -43,6 +43,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   const { collateralDecimals } = useGetFormTokensInfo();
   const { versus, long, leverageTiers } = useFilterVaults({ vaultsQuery });
   const { setValue, watch } = useFormContext<TCalculatorFormFields>();
+  const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
 
   const selectedVault = useFindVault(vaultsQuery);
 
@@ -58,7 +59,6 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     { debtToken, collateralToken, chain: "eth-mainnet" },
     { enabled: Boolean(selectedVault.result) },
   );
-  console.log("VAULT_PRICES__", tokens)
   // Calculate the prices for both conversion directions.
   const collateralPrice = tokens?.data[0]?.prices[0]?.value
     ? Number(tokens.data[0].prices[0].value)
@@ -74,33 +74,49 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
 
   // Watch the depositToken so that if it changes, the form values recalc.
   const depositToken = watch("depositToken");
+  
+  // Watch form values to get token addresses
+  const formLong = watch("long");
+  const formVersus = watch("versus");
+  const longTokenAddress = formLong?.split(",")[0];
+  const longTokenSymbol = formLong?.split(",")[1];
+  const versusTokenAddress = formVersus?.split(",")[0];
+  const versusTokenSymbol = formVersus?.split(",")[1];
 
   // Update entryPrice and exitPrice when the vault, depositToken, or token prices change
   React.useEffect(() => {
-    let entryPriceValue: string | undefined;
-    if (
-      depositToken &&
-      selectedVault.result &&
-      depositToken === selectedVault.result.debtToken &&
-      debtInCollateralToken
-    ) {
-      // If deposit token is the debt token, use converted debtInCollateralToken value
-      entryPriceValue = formatPriceForInput(debtInCollateralToken);
-    } else if (collateralInDebtToken) {
-      // Otherwise, default to collateralInDebtToken
-      entryPriceValue = formatPriceForInput(collateralInDebtToken);
-    }
-
-    if (entryPriceValue) {
-      const entryPrice = Number(entryPriceValue);
-      const exitPrice = formatPriceForInput(entryPrice * 2);
-      setValue("entryPrice", entryPriceValue);
-      setValue("exitPrice", exitPrice);
+    // Always set deposit to 1 when vault is selected
+    if (selectedVault.result) {
       setValue("deposit", "1");
+      
+      let entryPriceValue: string | undefined;
+      if (
+        depositToken &&
+        depositToken === selectedVault.result.debtToken &&
+        debtInCollateralToken
+      ) {
+        // If deposit token is the debt token, use converted debtInCollateralToken value
+        entryPriceValue = formatPriceForInput(debtInCollateralToken);
+      } else if (collateralInDebtToken) {
+        // Otherwise, default to collateralInDebtToken
+        entryPriceValue = formatPriceForInput(collateralInDebtToken);
+      }
+
+      if (entryPriceValue) {
+        const entryPrice = Number(entryPriceValue);
+        const exitPrice = formatPriceForInput(entryPrice * 2);
+        setValue("entryPrice", entryPriceValue);
+        setValue("exitPrice", exitPrice);
+      } else {
+        // Use default values if no price data available
+        setValue("entryPrice", "1");
+        setValue("exitPrice", "2");
+      }
     } else {
-      // Reset values if we don't have a proper price yet.
+      // Reset values if no vault selected
       setValue("entryPrice", "");
       setValue("exitPrice", "");
+      setValue("deposit", "");
     }
   }, [
     selectedVault.result,
@@ -137,22 +153,25 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
               colorScheme="dark"
               name="depositToken"
               title=""
-              disabled={!Boolean(selectedVault.result)}
+              disabled={!Boolean(longTokenAddress && versusTokenAddress)}
+              onChange={setDepositToken}
             >
-              <Show when={Boolean(selectedVault.result)}>
+              {longTokenAddress && (
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.collateralToken ?? ""}
-                  value={selectedVault.result?.collateralToken ?? ""}
+                  tokenAddress={longTokenAddress}
+                  value={longTokenAddress}
                 >
-                  {selectedVault.result?.collateralSymbol}
+                  {selectedVault.result?.collateralSymbol ?? longTokenSymbol ?? ""}
                 </Dropdown.Item>
+              )}
+              {versusTokenAddress && (
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.debtToken ?? ""}
-                  value={selectedVault.result?.debtToken ?? ""}
+                  tokenAddress={versusTokenAddress}
+                  value={versusTokenAddress}
                 >
-                  {selectedVault.result?.debtSymbol}
+                  {selectedVault.result?.debtSymbol ?? versusTokenSymbol ?? ""}
                 </Dropdown.Item>
-              </Show>
+              )}
             </Dropdown.Root>
           </DepositInputs.Inputs>
         </DepositInputs.Root>

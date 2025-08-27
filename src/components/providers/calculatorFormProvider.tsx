@@ -25,6 +25,9 @@ export default function CalculatorFormProvider({
 }: {
   children: React.ReactNode;
 }) {
+  // Get values from store to persist selection across pages
+  const { long, versus, leverageTier, depositToken } = useVaultFilterStore();
+  
   const form = useForm<z.infer<typeof CalculatorSchema>>({
     resolver: zodResolver(CalculatorSchema),
     mode: "onChange",
@@ -39,11 +42,14 @@ export default function CalculatorFormProvider({
       exitPrice: "",
     },
   });
-  // Store doesn't get reset on page changes
-  // Need to ensure store is blank when MintFormProvider first renders (again)
-  const resetStore = useVaultFilterStore((state) => state.resetStore);
+  
+  // Update form values from store on mount
   useEffect(() => {
-    resetStore();
-  }, [resetStore]);
+    if (long) form.setValue("long", long);
+    if (versus) form.setValue("versus", versus);
+    if (leverageTier) form.setValue("leverageTier", leverageTier);
+    if (depositToken) form.setValue("depositToken", depositToken);
+  }, [long, versus, leverageTier, depositToken, form]);
+  
   return <FormProvider {...form}>{children}</FormProvider>;
 }

@@ -74,14 +74,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   return (
     <table className="w-full">
       <caption className="pb-6 text-left text-[20px] font-semibold leading-[24px]">
-        <div className="flex items-center gap-x-1">
-          Popular Vaults
-          <ToolTip iconSize={12}>
-            <div>
-              SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
-            </div>
-          </ToolTip>
-        </div>
+        Popular Vaults
       </caption>
 
       <tbody className="space-y-2">
@@ -149,7 +142,7 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
         </th>
       ) : (
         <th className="flex items-center gap-x-1 font-medium pl-1 sm:pl-3">
-          <span>Fees</span>
+          <span>Fee</span>
           <ToolTip iconSize={12}>
             One-time APE minting fee. Half distributed to LPers at mint, and half
             at burn.

@@ -16,6 +16,7 @@ import {
 import type { TAddressString } from "@/lib/types";
 import { TokenImage } from "./TokenImage";
 import type { TMintFormFields } from "../providers/mintFormProvider";
+import type { TCalculatorFormFields } from "../providers/calculatorFormProvider";
 import { useFormContext } from "react-hook-form";
 //retrive FormField props
 function Item({
@@ -51,6 +52,7 @@ function Root({
   children,
   className,
   disabled,
+  onChange,
 }: {
   title: string;
   clear?: boolean;
@@ -60,22 +62,29 @@ function Root({
   children: ReactNode;
   className?: string;
   disabled?: boolean;
+  onChange?: (value: string) => void;
 }) {
-  const { control } = useFormContext<TMintFormFields>();
+  const { control } = useFormContext<TMintFormFields | TCalculatorFormFields>();
   return (
     <div className={"flex w-full gap-x-2  " + className}>
       <div className="flex-grow">
         <FormField
           disabled={disabled}
           control={control}
-          defaultValue="a"
           name={name}
           render={({ field }) => (
             <FormItem>
               <FormLabel>{title}</FormLabel>
               <Select
                 disabled={disabled}
-                onValueChange={field.onChange}
+                onValueChange={(value) => {
+                  // Only update if value is not empty or undefined
+                  // This prevents the dropdown from clearing when re-rendering
+                  if (value !== undefined && value !== "") {
+                    field.onChange(value);
+                    onChange?.(value);
+                  }
+                }}
                 value={field.value}
               >
                 <FormControl>

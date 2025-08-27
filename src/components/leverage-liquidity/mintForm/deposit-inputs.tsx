@@ -108,13 +108,13 @@ function Inputs({
 
       <div className="flex flex-col items-end gap-2">
         <div
-          className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
+          className={`flex h-[40px] w-[150px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
           {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
           {children}
         </div>
-        <h2 className="font-geist-mono pt-1 text-right  text-on-bg-subdued">
+        <h2 className="font-geist-mono pt-1 text-right text-on-bg-subdued whitespace-nowrap">
           Balance: <DisplayFormattedNumber num={balance ?? "0"} />
         </h2>
         <BalancePercent
