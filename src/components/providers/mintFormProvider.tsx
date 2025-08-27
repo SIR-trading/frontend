@@ -33,20 +33,22 @@ export default function MintFormProvider({
     defaultValues: {
       deposit: "",
       slippage: "0.5",
-      leverageTier: "",
-      long: "",
-      versus: "",
-      depositToken: "",
+      leverageTier: leverageTier || "",
+      long: long || "",
+      versus: versus || "",
+      depositToken: depositToken || "",
     },
   });
   
-  // Update form values from store on mount
+  // Sync form with store values whenever they change
   useEffect(() => {
-    if (long) form.setValue("long", long);
-    if (versus) form.setValue("versus", versus);
-    if (leverageTier) form.setValue("leverageTier", leverageTier);
-    if (depositToken) form.setValue("depositToken", depositToken);
-  }, [long, versus, leverageTier, depositToken, form]);
+    // Update form values to match store values
+    // This ensures values persist when switching between tabs
+    if (long !== undefined) form.setValue("long", long);
+    if (versus !== undefined) form.setValue("versus", versus);
+    if (leverageTier !== undefined) form.setValue("leverageTier", leverageTier);
+    if (depositToken !== undefined) form.setValue("depositToken", depositToken);
+  }, [long, versus, leverageTier, depositToken, form]); // Run whenever store values change
   
   return (
     <FormProvider {...form}>

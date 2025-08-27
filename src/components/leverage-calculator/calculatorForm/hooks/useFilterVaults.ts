@@ -13,10 +13,16 @@ interface Props {
 export function useFilterVaults({ vaultsQuery }: Props) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
+  
+  // Skip query if fields are not selected
+  const skipQuery = !formData.versus && !formData.long && !formData.leverageTier;
+  
   const { data, isFetching } = api.vault.getVaults.useQuery({
-    filterDebtToken: formData.versus.split(",")[0],
-    filterCollateralToken: formData.long.split(",")[0],
-    filterLeverage: formData.leverageTier,
+    filterDebtToken: formData.versus?.split(",")[0] ?? "",
+    filterCollateralToken: formData.long?.split(",")[0] ?? "",
+    filterLeverage: formData.leverageTier || "",
+  }, {
+    enabled: !skipQuery
   });
   const [filters, setFilters] = useState<{
     versus: VaultFieldFragment[];
@@ -33,10 +39,15 @@ export function useFilterVaults({ vaultsQuery }: Props) {
   // all unique values
 
   useEffect(() => {
-    if (!data?.vaults) {
+    // When no fields are selected, use all vaults from vaultsQuery
+    // Otherwise use the filtered data from the query
+    const vaultsToUse = skipQuery ? vaultsQuery?.vaults : data?.vaults;
+    
+    if (!vaultsToUse) {
       return;
     }
-    const matchingFetchPools = data?.vaults;
+    
+    const matchingFetchPools = vaultsToUse;
     const long = [
       ...new Map(
         matchingFetchPools?.map((item) => [item.collateralToken, item]),
@@ -53,7 +64,7 @@ export function useFilterVaults({ vaultsQuery }: Props) {
 
     setFilters({ long, versus, leverageTiers });
     // return { leverageTiers, long, versus };
-  }, [data?.vaults, isFetching, vaultsQuery?.vaults]);
+  }, [data?.vaults, isFetching, vaultsQuery?.vaults, skipQuery]);
   const { versus, leverageTiers, long } = filters;
   return { versus, leverageTiers, long };
 }

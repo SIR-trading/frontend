@@ -7,8 +7,13 @@ export function useFindVault(vaultQuery: TVaults) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
 
-  const debtToken = formData.versus.split(",")[0] ?? "", //value formatted : address,symbol
-    collateralToken = formData.long.split(",")[0] ?? ""; //value formatted : address,symbol
+  // Don't search if any field is missing
+  if (!formData.versus || !formData.long || !formData.leverageTier) {
+    return { result: undefined };
+  }
+
+  const debtToken = formData.versus.split(",")[0] ?? ""; //value formatted : address,symbol
+  const collateralToken = formData.long.split(",")[0] ?? ""; //value formatted : address,symbol
   const safeLeverageTier = z.coerce.number().safeParse(formData.leverageTier);
   const leverageTier = safeLeverageTier.success ? safeLeverageTier.data : -1;
 
@@ -23,5 +28,6 @@ export function useFindVault(vaultQuery: TVaults) {
       return false;
     }
   });
+  
   return { result };
 }

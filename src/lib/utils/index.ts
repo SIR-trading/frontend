@@ -21,7 +21,8 @@ export function add(n: number, a: number) {
  * This function parses the address from them.
  */
 export function parseAddress(s: string) {
-  return s.split(",")[0];
+  if (!s) return "";
+  return s.split(",")[0] ?? "";
 }
 export function mapLeverage(key: string): string | undefined {
   if (key === "2") {

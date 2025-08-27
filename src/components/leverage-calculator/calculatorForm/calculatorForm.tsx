@@ -75,6 +75,9 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   // Watch the depositToken so that if it changes, the form values recalc.
   const depositToken = watch("depositToken");
   
+  // Watch all form data
+  const formData = watch();
+  
   // Watch form values to get token addresses
   const formLong = watch("long");
   const formVersus = watch("versus");
@@ -85,8 +88,10 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
 
   // Update entryPrice and exitPrice when the vault, depositToken, or token prices change
   React.useEffect(() => {
-    // Always set deposit to 1 when vault is selected
-    if (selectedVault.result) {
+    // Only run if all form fields are selected (prevent running during partial deselection)
+    const hasAllFields = formData.versus && formData.long && formData.leverageTier;
+    
+    if (selectedVault.result && hasAllFields) {
       setValue("deposit", "1");
       
       let entryPriceValue: string | undefined;
@@ -112,11 +117,14 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         setValue("entryPrice", "1");
         setValue("exitPrice", "2");
       }
-    } else {
-      // Reset values if no vault selected
-      setValue("entryPrice", "");
-      setValue("exitPrice", "");
-      setValue("deposit", "");
+    } else if (!hasAllFields) {
+      // Only clear values when NO fields are selected at all (initial state)
+      // Don't clear when user is in process of selecting/deselecting
+      if (!formData.versus && !formData.long && !formData.leverageTier) {
+        setValue("entryPrice", "");
+        setValue("exitPrice", "");
+        setValue("deposit", "");
+      }
     }
   }, [
     selectedVault.result,
@@ -125,6 +133,9 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     collateralInDebtToken,
     debtInCollateralToken,
     setValue,
+    formData.versus,
+    formData.long,
+    formData.leverageTier,
   ]);
 
   const { isLoading } = useCalculateVaultHealth({

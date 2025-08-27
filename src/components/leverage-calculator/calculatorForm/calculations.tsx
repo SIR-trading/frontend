@@ -15,7 +15,6 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
   }, [formData.depositToken, formData.versus, formData.leverageTier]);
 
   const isDebtToken = useIsDebtToken();
-  console.log({ isDebtToken });
 
   // Extract fee
   const strFee = useFormFee({
