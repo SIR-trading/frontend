@@ -223,7 +223,7 @@ export function VaultTableRow({
     formatUnits(reservesData[0]?.reserveApes ?? 0n, 18),
   );
   const tvl = apeCollateral + teaCollateral;
-  const tvlPercent = tvl / apeCollateral;
+  const realLeverage = tvl / apeCollateral;
   const variant = useCalculateVaultHealth({
     isApe,
     leverageTier: pool.leverageTier,
@@ -235,10 +235,29 @@ export function VaultTableRow({
     if (tvl === 0) {
       return "1";
     }
-    if (!isFinite(tvlPercent)) {
+    if (!isFinite(realLeverage)) {
       return "1";
     }
-    return tvlPercent.toFixed(1);
+    
+    // Custom rounding: show 2 significant digits after the "1."
+    // e.g., 1.5232 -> 1.52, 1.00889 -> 1.0089
+    const fractionalPart = realLeverage - 1;
+    
+    if (fractionalPart === 0) {
+      return "1";
+    }
+    
+    // Find how many decimal places we need to show 2 significant digits
+    const absValue = Math.abs(fractionalPart);
+    let decimals = 2;
+    
+    // Count leading zeros after decimal point
+    if (absValue < 0.1) {
+      const log = Math.floor(Math.log10(absValue));
+      decimals = 2 - log - 1;
+    }
+    
+    return realLeverage.toFixed(decimals);
   };
 
   const showPercent = () => {
@@ -248,7 +267,7 @@ export function VaultTableRow({
     if (tvl === 0) {
       return true;
     }
-    if (!isFinite(tvlPercent)) {
+    if (!isFinite(realLeverage)) {
       return false;
     }
     if (variant.variant === "red") {
@@ -430,7 +449,7 @@ export function VaultTableRow({
                 {showPercent() && (
                   <>
                     {" (^"}
-                    {tvl === 0 ? "1" : <DisplayFormattedNumber num={tvlPercent} significant={2} />}
+                    {getRealLeverage()}
                     {")"}
                   </>
                 )}
