@@ -39,6 +39,12 @@ export default function useSetDepositTokenDefault({
         setValue("depositToken", collToken);
       }
       previousCollToken.current = collToken;
+    } else {
+      // Even if vault hasn't changed, ensure deposit token is set
+      // This handles edge cases where the component re-renders but deposit token is empty
+      if (!currentDepositToken) {
+        setValue("depositToken", collToken);
+      }
     }
   }, [collToken, setValue, currentDepositToken, debtToken, storeDepositToken]);
 }

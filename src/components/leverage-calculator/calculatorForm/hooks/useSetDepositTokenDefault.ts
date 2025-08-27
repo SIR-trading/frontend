@@ -18,7 +18,6 @@ export default function useSetDepositTokenDefault({
   const hasSetFromStore = useRef(false);
   
   useEffect(() => {
-    
     // Use longToken as fallback collateral token when vault not found yet
     const effectiveCollToken = collToken ?? longToken;
     
@@ -52,6 +51,12 @@ export default function useSetDepositTokenDefault({
       }
       previousCollToken.current = effectiveCollToken;
       hasSetFromStore.current = false;
+    } else {
+      // Even if vault hasn't changed, ensure deposit token is set
+      // This handles edge cases where the component re-renders but deposit token is empty
+      if (!currentDepositToken) {
+        setValue("depositToken", effectiveCollToken);
+      }
     }
   }, [collToken, setValue, currentDepositToken, debtToken, longToken, storeDepositToken]);
 }
