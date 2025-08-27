@@ -36,58 +36,44 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
   // Make sure entryPrice and exitPrice are provided to avoid calculation errors.
   const entryPrice = Number(formData.entryPrice);
   const exitPrice = Number(formData.exitPrice);
-  // if (!entryPrice || !exitPrice) {
-  //   return (
-  //     <div className="flex h-40 items-center justify-center">
-  //       Please provide both entry and exit prices.
-  //     </div>
-  //   );
-  // }
 
   // Calculate positions using the provided values.
-  const longTokenPosition: number =
+  const collateralGain: number =
     (1 - fee / 100) *
     (exitPrice / entryPrice) ** (2 ** parseFloat(formData.leverageTier));
 
-  const debtTokenPosition: number =
-    (1 - fee / 100) *
-    (exitPrice / entryPrice) ** (1 + 2 ** parseFloat(formData.leverageTier));
+  const debtTokenGain: number = collateralGain * (exitPrice / entryPrice);
 
-  const positionGain = (longTokenPosition - 1) * 100;
-  const collateralGain = (debtTokenPosition - 1) * 100;
+  const collateralGainPerc = (collateralGain - 1) * 100;
+  const debtTokenGainPerc = (debtTokenGain - 1) * 100;
 
   interface IAmounts {
-    long: string;
-    longGain: string | number;
-    debt: string;
-    debtGain: number | string;
+    collateralGain: number;
+    collateralGainPerc: number;
+    debtTokenGain: number;
+    debtTokenGainPerc: number;
   }
 
   const amounts = (): IAmounts => {
     if (isNaN(Number(formData.deposit)))
-      return { long: "0", longGain: "0", debt: "0", debtGain: "0" };
+      return { collateralGain: 0, collateralGainPerc: 0, debtTokenGain: 0, debtTokenGainPerc: 0 };
     if (Number(formData.deposit) === 0 || (entryPrice === 0 && exitPrice === 0))
-      return { long: "0", longGain: "0", debt: "0", debtGain: "0" };
+      return { collateralGain: 0, collateralGainPerc: 0, debtTokenGain: 0, debtTokenGainPerc: 0 };
     else if (entryPrice === 0 && exitPrice !== 0)
-      return { long: "∞", longGain: "∞", debt: "∞", debtGain: "∞" };
+      return { collateralGain: Infinity, collateralGainPerc: Infinity, debtTokenGain: Infinity, debtTokenGainPerc: Infinity };
     else if (entryPrice !== 0 && exitPrice === 0)
-      return { long: "0", longGain: "-100", debt: "0", debtGain: "-100" };
+      return { collateralGain: 0, collateralGainPerc: -100, debtTokenGain: 0, debtTokenGainPerc: -100 };
     return {
-      long: (
+      collateralGain: 
         Number(formData.deposit) *
-        (isDebtToken ? Number(entryPrice) : 1) *
-        longTokenPosition
-      )
-        .toFixed(2)
-        .toString(),
-      longGain: positionGain.toFixed(2).toString(),
-      debt: (
+        (isDebtToken ? entryPrice : 1) *
+        collateralGain,
+      collateralGainPerc: collateralGainPerc,
+      debtTokenGain: 
         Number(formData.deposit) *
-        ((isDebtToken ? 1 : entryPrice) * debtTokenPosition)
-      )
-        .toFixed(2)
-        .toString(),
-      debtGain: collateralGain.toFixed(2).toString(),
+        (isDebtToken ? 1 : 1/entryPrice) *
+        debtTokenGain,
+      debtTokenGainPerc: debtTokenGainPerc,
     };
   };
 
@@ -96,42 +82,42 @@ export default function Calculations({ disabled }: { disabled: boolean }) {
 
   return (
     <div className={`mt-4 ${disabled ? "opacity-50" : ""}`}>
-      <h2 className="text-md font-bold">Project return:</h2>
+      <h2 className="text-md font-bold">Expected returns</h2>
       <div className="pt-1"></div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between rounded-md">
           <h3 className="text-md">
             <span className="text-gray-300 text-sm">
-              Returns in <span>{ticker(formData.long)}</span>
+              Returns in <span>{ticker(formData.long)}</span>:
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span><DisplayFormattedNumber num={amounts().long} significant={4} /></span>
+            <span><DisplayFormattedNumber num={amounts().collateralGain} significant={4} /></span>
             <span
               className={
-                Number(amounts().longGain) < 0 ? "text-red" : "text-accent"
+                amounts().collateralGainPerc < 0 ? "text-red" : "text-accent"
               }
             >
-              ({Number(amounts().longGain) > 0 ? "+" : ""}
-              {amounts().longGain}%)
+              ({amounts().collateralGainPerc > 0 ? "+" : ""}
+              <DisplayFormattedNumber num={amounts().collateralGainPerc} significant={2} />%)
             </span>
           </div>
         </div>
         <div className="flex items-center justify-between rounded-md">
           <h3 className="text-md">
             <span className="text-gray-300 text-sm">
-              Returns in <span>{ticker(formData.versus)}</span>
+              Returns in <span>{ticker(formData.versus)}</span>:
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span><DisplayFormattedNumber num={amounts().debt} significant={4} /></span>
+            <span><DisplayFormattedNumber num={amounts().debtTokenGain} significant={4} /></span>
             <span
               className={
-                Number(amounts().debtGain) < 0 ? "text-red" : "text-accent"
+                amounts().debtTokenGainPerc < 0 ? "text-red" : "text-accent"
               }
             >
-              ({Number(amounts().debtGain) > 0 ? "+" : ""}
-              {amounts().debtGain}%)
+              ({amounts().debtTokenGainPerc > 0 ? "+" : ""}
+              <DisplayFormattedNumber num={amounts().debtTokenGainPerc} significant={2} />%)
             </span>
           </div>
         </div>
