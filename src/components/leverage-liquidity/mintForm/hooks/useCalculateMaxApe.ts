@@ -81,7 +81,7 @@ export function useCalculateMaxApe({
   // Determine if vault health is bad (red or yellow status)
   const badHealth = healthVariant === "red" || healthVariant === "yellow";
 
-  // Fetch maximum debt token amount (only when using debt token)
+  // Fetch maximum debt token amount (only when using debt token and vault is valid)
   const { data: maxDebtIn, isLoading: isLoadingDebtMax } = api.vault.getDebtTokenMax.useQuery(
     {
       debtToken: parseAddress(formData.versus) ?? "0x",
@@ -89,7 +89,7 @@ export function useCalculateMaxApe({
       maxCollateralIn: formatUnits(maxCollateralIn ?? 0n, collateralDecimals),
       decimals: collateralDecimals,
     },
-    { enabled: usingDebtToken },
+    { enabled: usingDebtToken && vaultId !== -1 && Number.isFinite(vaultId) },
   );
 
   const isLoading = isLoadingReserves || (usingDebtToken && isLoadingDebtMax);

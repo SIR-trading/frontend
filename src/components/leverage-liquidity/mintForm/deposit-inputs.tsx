@@ -115,7 +115,11 @@ function Inputs({
           {children}
         </div>
         <h2 className="font-geist-mono pt-1 text-right text-on-bg-subdued whitespace-nowrap">
-          Balance: <DisplayFormattedNumber num={balance ?? "0"} />
+          Balance: {balance !== undefined ? (
+            <DisplayFormattedNumber num={balance} />
+          ) : (
+            <span className="inline-block w-12 h-4 animate-pulse bg-foreground/30 rounded"></span>
+          )}
         </h2>
         <BalancePercent
           settings={<MintFormSettings />}

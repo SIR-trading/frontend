@@ -140,14 +140,6 @@ export default function MintForm({ isApe }: Props) {
   });
   const usingDebtToken = useIsDebtToken();
   
-  // Use different hooks based on whether this is leverage (isApe=true) or liquidity (isApe=false)
-  const leverageHookResult = useCalculateMaxApe({
-    usingDebtToken,
-    collateralDecimals: collateralDecimals ?? 18,
-    vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
-    taxAmount: selectedVault.result?.taxAmount ?? "0",
-  });
-  
   // Always calculate vault health to check for red status
   const vaultHealthResult = useCalculateVaultHealth({
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
@@ -157,21 +149,32 @@ export default function MintForm({ isApe }: Props) {
     teaCollateral: selectedVault.result?.teaCollateral,
   });
   
-  // Determine which results to use based on page type
-  const { maxCollateralIn, maxDebtIn, isLoading } = isApe 
-    ? leverageHookResult 
-    : { 
-        maxCollateralIn: undefined, 
-        maxDebtIn: undefined, 
-        isLoading: vaultHealthResult.isLoading 
-      };
-  const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
-  
   // Check if vault is already in red status (only when vault is selected and data is loaded)
   const isVaultRed = useMemo(() => {
     if (!selectedVault.result?.vaultId || vaultHealthResult.isLoading) return false;
     return vaultHealthResult.variant === "red";
   }, [selectedVault.result?.vaultId, vaultHealthResult.variant, vaultHealthResult.isLoading]);
+  
+  // Only calculate max amounts for leverage page when vault is not red
+  // For red vaults, we don't need these calculations as the vault already has insufficient liquidity
+  const shouldCalculateMax = isApe && !isVaultRed;
+  
+  const leverageHookResult = useCalculateMaxApe({
+    usingDebtToken,
+    collateralDecimals: collateralDecimals ?? 18,
+    vaultId: shouldCalculateMax ? Number.parseInt(selectedVault.result?.vaultId ?? "-1") : -1,
+    taxAmount: selectedVault.result?.taxAmount ?? "0",
+  });
+  
+  // Determine which results to use based on page type and vault status
+  const { maxCollateralIn, maxDebtIn, isLoading } = shouldCalculateMax 
+    ? leverageHookResult 
+    : { 
+        maxCollateralIn: undefined, 
+        maxDebtIn: undefined, 
+        isLoading: false 
+      };
+  const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
   
   // Check if user's input exceeds the optimal amount for constant leverage
   const isExceedingOptimal = useMemo(() => {
@@ -360,7 +363,7 @@ export default function MintForm({ isApe }: Props) {
         />
         <DepositInputs.Root>
           <DepositInputs.Inputs
-            inputLoading={isLoading ?? false}
+            inputLoading={false}
             disabled={false}
             decimals={collateralDecimals ?? 18}
             useEth={useEth}

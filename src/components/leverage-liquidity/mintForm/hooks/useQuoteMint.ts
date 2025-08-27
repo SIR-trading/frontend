@@ -21,6 +21,7 @@ export function useQuoteMint({
 
   const allSelected = Boolean(
     depositDebounce &&
+      parseFloat(depositDebounce) > 0 &&
       formData.long !== "" &&
       formData.versus !== "" &&
       formData.leverageTier !== "",
