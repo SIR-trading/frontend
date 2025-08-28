@@ -130,10 +130,10 @@ interface SaturationPriceProps {
 }
 
 function SaturationPrice({ disabled, saturationPrice, inPowerZone, isInverted }: SaturationPriceProps) {
-  const displayValue = saturationPrice && saturationPrice > 0 && Number.isFinite(saturationPrice) 
-    ? formatPriceForInput(saturationPrice) 
-    : saturationPrice === Infinity 
-    ? "∞" 
+  const displayValue = saturationPrice && saturationPrice > 0 
+    ? saturationPrice >= 1e10 
+      ? "∞"  // Display as infinity for very large values
+      : formatPriceForInput(saturationPrice) 
     : "";
   
   return (
@@ -141,12 +141,12 @@ function SaturationPrice({ disabled, saturationPrice, inPowerZone, isInverted }:
       <div className="flex items-start gap-2">
         <FormLabel htmlFor="saturationPrice">Saturation price</FormLabel>
         <ToolTip size="300">
-          <div className="text-left text-xs">
+          <div>
             <p className="mb-2 font-semibold">Saturation Price Explained</p>
             <p className="mb-2">
               The saturation price is the threshold where the vault transitions between power and saturation zones.
             </p>
-            {saturationPrice === 0 || saturationPrice === Infinity ? (
+            {saturationPrice === 0 || (saturationPrice !== undefined && saturationPrice >= 1e10) ? (
               <React.Fragment>
                 <p className="mb-2">
                   <strong>This vault has no liquidity: </strong>All new positions will be effectively 1x leverage, i.e., like holding spot.
@@ -155,10 +155,10 @@ function SaturationPrice({ disabled, saturationPrice, inPowerZone, isInverted }:
             ) : saturationPrice ? (
               <React.Fragment>
                 <p className="mb-2">
-                  <strong>Power Zone {isInverted ? "(price > " : "(price < "}<DisplayFormattedNumber num={saturationPrice} />):</strong> Gains follow the constant leverage formula (price ratio)<sup>leverage</sup>.
+                  <strong>Power Zone {isInverted ? "(price > " : "(price < "}{saturationPrice >= 1e10 ? "∞" : <><DisplayFormattedNumber num={saturationPrice} /></>}):</strong> Gains follow the constant leverage formula (price ratio)<sup>leverage</sup>.
                 </p>
                 <p>
-                  <strong>Saturation Zone {isInverted ? "(price < " : "(price > "}<DisplayFormattedNumber num={saturationPrice} />):</strong> Gains are limited by available liquidity and follow the formula (real leverage) × (price ratio).
+                  <strong>Saturation Zone {isInverted ? "(price < " : "(price > "}{saturationPrice >= 1e10 ? "∞" : <><DisplayFormattedNumber num={saturationPrice} /></>}):</strong> Gains are limited by available liquidity and follow the formula (real leverage) × (price ratio).
                 </p>
               </React.Fragment>
             ) : (
@@ -173,7 +173,7 @@ function SaturationPrice({ disabled, saturationPrice, inPowerZone, isInverted }:
             )}
             {inPowerZone !== undefined && saturationPrice !== undefined && saturationPrice !== null && (
               <>
-                {saturationPrice === 0 || saturationPrice === Infinity ? (
+                {saturationPrice === 0 || (saturationPrice !== undefined && saturationPrice >= 1e10) ? (
                   <p className="mt-2" style={{ color: '#fb923c' }}>
                     Current: Empty Vault (1x leverage) ⚠️
                   </p>

@@ -16,6 +16,7 @@ const CalculatorSchema = z.object({
   entryPrice: z.string().optional(),
   exitPrice: z.string().optional(),
   considerLiquidity: z.boolean().optional(),
+  liquidityMultiplier: z.number().optional(),
 });
 
 export type TCalculatorFormFields = z.infer<typeof CalculatorSchema>;
@@ -42,6 +43,7 @@ export default function CalculatorFormProvider({
       entryPrice: "",
       exitPrice: "",
       considerLiquidity: true,
+      liquidityMultiplier: 1,
     },
   });
   

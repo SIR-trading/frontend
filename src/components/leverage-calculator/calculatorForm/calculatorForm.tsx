@@ -1,7 +1,7 @@
 // In CalculatorForm.tsx
 "use client";
 import React from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import { Card } from "@/components/ui/card";
 import DepositInputs from "./deposit-inputs";
@@ -44,7 +44,8 @@ export function formatPriceForInput(price: number): string {
 export default function CalculatorForm({ vaultsQuery }: Props) {
   const { collateralDecimals, debtDecimals } = useGetFormTokensInfo();
   const { versus, long, leverageTiers } = useFilterVaults({ vaultsQuery });
-  const { setValue, watch } = useFormContext<TCalculatorFormFields>();
+  const form = useFormContext<TCalculatorFormFields>();
+  const { setValue, watch, control } = form;
   const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
 
   const selectedVault = useFindVault(vaultsQuery);
@@ -146,11 +147,22 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
 
   const disabledPriceInputs = !Boolean(selectedVault.result);
   
-  // Calculate saturation price and check if vault is in power zone
-  const leverageTier = watch("leverageTier");
-  const considerLiquidity = watch("considerLiquidity");
-  const apeReserve = selectedVault.result?.apeCollateral ?? 0n;
-  const teaReserve = selectedVault.result?.teaCollateral ?? 0n;
+  // Get form values for calculations
+  const leverageTier = formData.leverageTier;
+  const considerLiquidity = formData.considerLiquidity ?? true;
+  const liquidityMultiplier = formData.liquidityMultiplier ?? 1;
+  
+  // Get base reserves from vault
+  const baseApeReserve = selectedVault.result?.apeCollateral ?? 0n;
+  const baseTeaReserve = selectedVault.result?.teaCollateral ?? 0n;
+  
+  // When liquidityMultiplier is 0, simulate an empty vault (both reserves = 0)
+  // Otherwise, scale the TEA/LP reserve by the multiplier
+  const apeReserve = considerLiquidity && liquidityMultiplier === 0 ? 0n : baseApeReserve;
+  const teaReserve = considerLiquidity 
+    ? BigInt(Math.floor(Number(baseTeaReserve) * liquidityMultiplier))
+    : baseTeaReserve;
+  
   
   const leverageRatio = useMemo(() => {
     return getLeverageRatio(parseFloat(leverageTier || "0"));
@@ -160,11 +172,11 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     // No vault selected
     if (!selectedVault.result || !collateralInDebtToken) return undefined;
     
-    // Check for 0 TVL (empty vault)
+    // Check for 0 TVL (empty vault) or 0x liquidity multiplier
     if (apeReserve === 0n && teaReserve === 0n) {
       const isDebtTokenSelected = depositToken && selectedVault.result && 
                                   depositToken === selectedVault.result.debtToken;
-      // For empty vaults: 0 for collateral, Infinity for debt token
+      // For empty vaults: 0 for collateral, infinity for debt token
       return isDebtTokenSelected ? Infinity : 0;
     }
     
@@ -242,7 +254,12 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
             isInverted={Boolean(depositToken && selectedVault.result && depositToken === selectedVault.result.debtToken)}
           />
         </PriceInputs.Root>
-        <Calculations disabled={false} currentPrice={collateralInDebtToken} />
+        <Calculations 
+          disabled={false} 
+          currentPrice={collateralInDebtToken}
+          apeReserve={apeReserve}
+          teaReserve={teaReserve}
+        />
       </form>
     </Card>
   );

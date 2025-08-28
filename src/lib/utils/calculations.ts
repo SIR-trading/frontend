@@ -129,6 +129,12 @@ export function calculateSaturationPrice(
   
   const rApe = Number(reserveApes);
   const rLPer = Number(reserveLPers);
+  
+  // Handle extreme liquidity values
+  if (rLPer === 0 || !Number.isFinite(rLPer) || !Number.isFinite(rApe)) {
+    return 0;
+  }
+  
   const rTotal = rApe + rLPer;
   const lMinus1 = l - 1;
   
@@ -138,10 +144,30 @@ export function calculateSaturationPrice(
   if (inPowerZone) {
     // Power zone: pSat = p * (rTotal / (l * rApe))^(1/(l-1))
     const ratio = rTotal / (l * rApe);
-    return currentPrice * Math.pow(ratio, 1 / lMinus1);
+    
+    // Prevent infinity by capping extremely large ratios
+    if (ratio > 1e10) {
+      return currentPrice * 1e10; // Cap at a very large but finite number
+    }
+    
+    const result = currentPrice * Math.pow(ratio, 1 / lMinus1);
+    
+    // Ensure result is finite
+    if (!Number.isFinite(result)) {
+      return currentPrice * 1e10; // Return a very large but finite number
+    }
+    
+    return result;
   } else {
     // Saturation zone: pSat = (l/(l-1)) * p * (rLPer/rTotal)
-    return (l / lMinus1) * currentPrice * (rLPer / rTotal);
+    const result = (l / lMinus1) * currentPrice * (rLPer / rTotal);
+    
+    // Ensure result is finite
+    if (!Number.isFinite(result)) {
+      return currentPrice * 1e10; // Return a very large but finite number
+    }
+    
+    return result;
   }
 }
 

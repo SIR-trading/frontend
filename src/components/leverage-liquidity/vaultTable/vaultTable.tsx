@@ -125,9 +125,7 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
           <span>Vault</span>
           <div className="md:hidden">
             <ToolTip iconSize={12}>
-              <div>
-                SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
-              </div>
+              SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
             </ToolTip>
           </div>
         </div>
@@ -158,9 +156,7 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
       <th className="hidden relative z-10 items-center gap-x-1 font-medium md:flex">
         <span>Leverage</span>
         <ToolTip iconSize={12}>
-          <div>
-            SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
-          </div>
+          SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
         </ToolTip>
       </th>
       <th className="relative text-right font-medium md:col-span-2">TVL</th>
