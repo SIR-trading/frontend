@@ -11,8 +11,6 @@ import Show from "@/components/shared/show";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
-import { useVaultPrices } from "@/components/leverage-calculator/calculatorForm/hooks/useVaultPrices";
-import { api } from "@/trpc/react";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (

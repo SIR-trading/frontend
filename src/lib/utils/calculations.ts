@@ -173,18 +173,12 @@ export function calculateCollateralGainWithLiquidity(
     return (exitPrice / entryPrice) ** lMinus1;
   }
   
-  // Check current vault zone status
-  const vaultInPowerZone = isVaultInPowerZone(reserveApes, reserveLPers, l);
-  console.log("Vault currently in power zone:", vaultInPowerZone);
-  
   // Calculate saturation price based on current market price
   const pSat = calculateSaturationPrice(currentPrice, reserveApes, reserveLPers, l);
-  console.log("Saturation Price (using current price", currentPrice, "):", pSat);
   
   // Determine which zone each price is in
   const entryInPower = entryPrice < pSat;
   const exitInPower = exitPrice < pSat;
-  console.log("Entry in power zone:", entryInPower, "Exit in power zone:", exitInPower);
   
   // Case 1: Both in power zone - use standard power formula
   if (entryInPower && exitInPower) {

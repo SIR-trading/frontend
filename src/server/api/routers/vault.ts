@@ -14,7 +14,6 @@ import { erc20Abi, formatUnits } from "viem";
 import { parseUnits } from "viem";
 import { z } from "zod";
 import { VaultContract } from "@/contracts/vault";
-import { UniswapQuoterV2 } from "@/contracts/uniswap-quoterv2";
 import { SirContract } from "@/contracts/sir";
 import { WethContract } from "@/contracts/weth";
 
@@ -124,26 +123,18 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
  */
 async function getSirPriceInWeth(): Promise<number> {
   try {
-    // Quote 1 SIR in WETH using Uniswap V3 Quoter
-    const result = await rpcViemClient.simulateContract({
-      ...UniswapQuoterV2,
-      functionName: "quoteExactInputSingle",
-      args: [
-        {
-          tokenIn: SirContract.address,
-          tokenOut: WethContract.address,
-          fee: 10000,
-          amountIn: parseUnits("1", 12), // 1 SIR (12 decimals)
-          sqrtPriceLimitX96: 0n,
-        },
-      ],
-    });
-
-    // Result is [amountOut, sqrtPriceX96, initializedTicksCrossed, gasEstimate]
-    const [amountOut] = result.result;
+    // Import the direct pool reading function
+    const { getMostLiquidPoolPrice } = await import("./quote");
     
-    // Convert to number (WETH has 18 decimals)
-    return Number(formatUnits(amountOut, 18));
+    // Get the most liquid pool price for SIR/WETH
+    const poolData = await getMostLiquidPoolPrice({
+      tokenA: SirContract.address,
+      tokenB: WethContract.address,
+      decimalsA: 12, // SIR has 12 decimals
+      decimalsB: 18, // WETH has 18 decimals
+    });
+    
+    return poolData.price;
   } catch (error) {
     console.error("Error fetching SIR price from Uniswap:", error);
     return 0;
@@ -210,14 +201,11 @@ async function convertWethPriceToCollateral(
       throw new Error("Collateral price is zero");
     }
 
-    console.log(`Eth USD price:`, wethUsdPrice);
-    console.log(`Collateral USD price for ${collateralTokenAddress}:`, collateralUsdPrice);
 
     // Convert: SIR -> WETH -> USD -> Collateral
     const sirUsdPrice = wethPrice * wethUsdPrice;
     const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
 
-    console.log(`SIR price in ${collateralTokenAddress}:`, sirCollateralPrice);
 
     return sirCollateralPrice;
   } catch (error) {

@@ -38,12 +38,6 @@ export default function Calculations({
   
   // Use the currentPrice passed from parent component (calculatorForm.tsx)
   const marketPrice = currentPrice ?? 0;
-  
-  console.log("considerLiquidity:", formData.considerLiquidity);
-  console.log("apeReserve:", apeReserve.toString());
-  console.log("teaReserve:", teaReserve.toString());
-  console.log("selectedVault:", selectedVault.result?.vaultId);
-  console.log("currentPrice (collateral/debt):", marketPrice);
 
   // Extract fee
   const strFee = useFormFee({
@@ -67,16 +61,6 @@ export default function Calculations({
 
   // Calculate positions using the provided values.
   // Use liquidity-aware calculation if considerLiquidity is checked
-  console.log("Calling calculateCollateralGainWithLiquidity with:", {
-    entryPrice,
-    exitPrice,
-    marketPrice,
-    leverageTier: parseFloat(formData.leverageTier),
-    apeReserve: apeReserve.toString(),
-    teaReserve: teaReserve.toString(),
-    considerLiquidity: formData.considerLiquidity ?? true
-  });
-  
   const rawCollateralGain = calculateCollateralGainWithLiquidity(
     entryPrice,
     exitPrice,
@@ -86,8 +70,6 @@ export default function Calculations({
     teaReserve,
     formData.considerLiquidity ?? true
   );
-  
-  console.log("Raw collateral gain:", rawCollateralGain);
   
   const collateralGain: number = (1 - fee / 100) * rawCollateralGain;
 

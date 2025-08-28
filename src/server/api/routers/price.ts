@@ -14,12 +14,6 @@ export const priceRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const { collateralToken, debtToken, chain } = input;
-      console.log(
-        "-_".repeat(100),
-        "Fetching vault prices for:",
-        collateralToken,
-        debtToken,
-      );
 
       const options = {
         method: "POST",
@@ -48,7 +42,6 @@ export const priceRouter = createTRPCRouter({
     .input(z.object({ chain: z.string(), contractAddress: z.string() }))
     .query(async ({ input }) => {
       const { chain, contractAddress } = input;
-      console.log("-_".repeat(100), "fetching price for", contractAddress);
 
       const options = {
         method: "POST",
@@ -78,11 +71,6 @@ export const priceRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const { addresses, chain } = input;
-      console.log(
-        "-_".repeat(100),
-        "Fetching prices for addresses:",
-        addresses,
-      );
 
       const options = {
         method: "POST",

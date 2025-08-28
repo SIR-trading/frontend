@@ -40,7 +40,7 @@ function formatPriceForInput(price: number): string {
 }
 
 export default function CalculatorForm({ vaultsQuery }: Props) {
-  const { collateralDecimals } = useGetFormTokensInfo();
+  const { collateralDecimals, debtDecimals } = useGetFormTokensInfo();
   const { versus, long, leverageTiers } = useFilterVaults({ vaultsQuery });
   const { setValue, watch } = useFormContext<TCalculatorFormFields>();
   const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
@@ -52,25 +52,24 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     collToken: selectedVault.result?.collateralToken,
   });
 
-  // Fetch token prices using the vault's symbols.
+  // Fetch token pair price from Uniswap pools
   const debtToken: string = selectedVault.result?.debtToken ?? "";
   const collateralToken: string = selectedVault.result?.collateralToken ?? "";
-  const { data: tokens } = api.price.getVaultPrices.useQuery(
-    { debtToken, collateralToken, chain: "eth-mainnet" },
-    { enabled: Boolean(selectedVault.result) },
+  
+  // Get the direct pool price for the token pair
+  const { data: poolPrice } = api.quote.getMostLiquidPoolPrice.useQuery(
+    { 
+      tokenA: collateralToken,
+      tokenB: debtToken,
+      decimalsA: collateralDecimals,
+      decimalsB: debtDecimals,
+    },
+    { enabled: Boolean(selectedVault.result && collateralToken && debtToken && collateralDecimals && debtDecimals) },
   );
-  // Calculate the prices for both conversion directions.
-  const collateralPrice = tokens?.data[0]?.prices[0]?.value
-    ? Number(tokens.data[0].prices[0].value)
-    : undefined;
-  const debtPrice = tokens?.data[1]?.prices[0]?.value
-    ? Number(tokens.data[1].prices[0].value)
-    : undefined;
-
-  const collateralInDebtToken =
-    collateralPrice && debtPrice ? collateralPrice / debtPrice : undefined;
-  const debtInCollateralToken =
-    collateralPrice && debtPrice ? debtPrice / collateralPrice : undefined;
+  
+  // The pool price gives us collateral price in terms of debt token
+  const collateralInDebtToken = poolPrice?.price;
+  const debtInCollateralToken = collateralInDebtToken ? 1 / collateralInDebtToken : undefined;
 
   // Watch the depositToken so that if it changes, the form values recalc.
   const depositToken = watch("depositToken");
@@ -112,10 +111,6 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         const exitPrice = formatPriceForInput(entryPrice * 2);
         setValue("entryPrice", entryPriceValue);
         setValue("exitPrice", exitPrice);
-      } else {
-        // Use default values if no price data available
-        setValue("entryPrice", "1");
-        setValue("exitPrice", "2");
       }
     } else if (!hasAllFields) {
       // Only clear values when NO fields are selected at all (initial state)
@@ -128,7 +123,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     }
   }, [
     selectedVault.result,
-    tokens,
+    poolPrice,
     depositToken,
     collateralInDebtToken,
     debtInCollateralToken,
@@ -192,12 +187,6 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         </PriceInputs.Root>
         <Calculations disabled={false} currentPrice={collateralInDebtToken} />
       </form>
-      {selectedVault.result && (
-        <div className="mt-6 flex justify-center text-center text-sm text-foreground/70">
-          This calculator assumes sufficient liquidity from LPs to support the
-          shown price increases.
-        </div>
-      )}
     </Card>
   );
 }
