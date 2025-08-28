@@ -4,7 +4,7 @@ import type { TCalculatorFormFields } from "@/components/providers/calculatorFor
 import useFormFee from "@/components/leverage-calculator/calculatorForm/hooks/useFormFee";
 import useIsDebtToken from "@/components/leverage-calculator/calculatorForm/hooks/useIsDebtToken";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import { calculateCollateralGainWithLiquidity} from "@/lib/utils/calculations";
+import { calculateCollateralGainWithLiquidity } from "@/lib/utils/calculations";
 import { useFindVault } from "./hooks/useFindVault";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
@@ -59,18 +59,24 @@ export default function Calculations({
   const entryPrice = isDebtToken ? 1 / Number(formData.entryPrice) : Number(formData.entryPrice);
   const exitPrice = isDebtToken ? 1 / Number(formData.exitPrice) : Number(formData.exitPrice);
 
+  // Check if vault has 0 TVL
+  const isEmptyVault = apeReserve === 0n && teaReserve === 0n;
+  
   // Calculate positions using the provided values.
   // Use liquidity-aware calculation if considerLiquidity is checked
   // Note: The form already provides inverted prices for debt tokens, so we use them as-is
-  const rawCollateralGain = calculateCollateralGainWithLiquidity(
-    entryPrice,
-    exitPrice,
-    marketPrice,
-    parseFloat(formData.leverageTier),
-    apeReserve,
-    teaReserve,
-    formData.considerLiquidity ?? true
-  );
+  // For empty vaults with considerLiquidity on, gains should be 0
+  const rawCollateralGain = isEmptyVault && (formData.considerLiquidity ?? true)
+    ? 1 // Return 1 which means 0% gain (1 - 1 = 0)
+    : calculateCollateralGainWithLiquidity(
+        entryPrice,
+        exitPrice,
+        marketPrice,
+        parseFloat(formData.leverageTier),
+        apeReserve,
+        teaReserve,
+        formData.considerLiquidity ?? true
+      );
   
   const collateralGain: number = (1 - fee / 100) * rawCollateralGain;
 
@@ -115,7 +121,6 @@ export default function Calculations({
   return (
     <div className={`mt-4 ${disabled ? "opacity-50" : ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-md font-bold">Expected returns</h2>
         <div className="flex items-center gap-2">
           <Checkbox
             id="considerLiquidity"
@@ -133,7 +138,7 @@ export default function Calculations({
           </label>
         </div>
       </div>
-      <div className="pt-1"></div>
+      <div className="pt-3"></div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between rounded-md">
           <h3 className="text-md">
@@ -142,14 +147,14 @@ export default function Calculations({
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span><DisplayFormattedNumber num={amounts().collateralGain} significant={4} /></span>
+            <span><DisplayFormattedNumber num={amounts().collateralGain}/></span>
             <span
               className={
                 amounts().collateralGainPerc < 0 ? "text-red" : "text-accent"
               }
             >
               ({amounts().collateralGainPerc > 0 ? "+" : ""}
-              <DisplayFormattedNumber num={amounts().collateralGainPerc} significant={2} />%)
+              <DisplayFormattedNumber num={amounts().collateralGainPerc}/>%)
             </span>
           </div>
         </div>
@@ -160,14 +165,14 @@ export default function Calculations({
             </span>
           </h3>
           <div className="text-md space-x-1">
-            <span><DisplayFormattedNumber num={amounts().debtTokenGain} significant={4} /></span>
+            <span><DisplayFormattedNumber num={amounts().debtTokenGain}/></span>
             <span
               className={
                 amounts().debtTokenGainPerc < 0 ? "text-red" : "text-accent"
               }
             >
               ({amounts().debtTokenGainPerc > 0 ? "+" : ""}
-              <DisplayFormattedNumber num={amounts().debtTokenGainPerc} significant={2} />%)
+              <DisplayFormattedNumber num={amounts().debtTokenGainPerc}/>%)
             </span>
           </div>
         </div>

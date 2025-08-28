@@ -17,6 +17,8 @@ import { api } from "@/trpc/react";
 import type { TVaults } from "@/lib/types";
 import useCalculateVaultHealth from "@/components/leverage-liquidity/vaultTable/hooks/useCalculateVaultHealth";
 import useVaultFilterStore from "@/lib/store";
+import { calculateSaturationPrice, getLeverageRatio, isVaultInPowerZone } from "@/lib/utils/calculations";
+import { useMemo } from "react";
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed
@@ -27,7 +29,7 @@ interface Props {
  * Formats a price value for display in entry/exit price inputs.
  * Uses normal decimal notation rounded to 3 significant digits.
  */
-function formatPriceForInput(price: number): string {
+export function formatPriceForInput(price: number): string {
   if (!Number.isFinite(price) || Number.isNaN(price) || price === 0) {
     return "0";
   }
@@ -143,6 +145,51 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   });
 
   const disabledPriceInputs = !Boolean(selectedVault.result);
+  
+  // Calculate saturation price and check if vault is in power zone
+  const leverageTier = watch("leverageTier");
+  const considerLiquidity = watch("considerLiquidity");
+  const apeReserve = selectedVault.result?.apeCollateral ?? 0n;
+  const teaReserve = selectedVault.result?.teaCollateral ?? 0n;
+  
+  const leverageRatio = useMemo(() => {
+    return getLeverageRatio(parseFloat(leverageTier || "0"));
+  }, [leverageTier]);
+  
+  const saturationPrice = useMemo(() => {
+    // No vault selected
+    if (!selectedVault.result || !collateralInDebtToken) return undefined;
+    
+    // Check for 0 TVL (empty vault)
+    if (apeReserve === 0n && teaReserve === 0n) {
+      const isDebtTokenSelected = depositToken && selectedVault.result && 
+                                  depositToken === selectedVault.result.debtToken;
+      // For empty vaults: 0 for collateral, Infinity for debt token
+      return isDebtTokenSelected ? Infinity : 0;
+    }
+    
+    if (!apeReserve || !teaReserve) return undefined;
+    const baseSaturationPrice = calculateSaturationPrice(collateralInDebtToken, apeReserve, teaReserve, leverageRatio);
+    
+    // Invert the saturation price if debt token is selected as deposit token
+    const isDebtTokenSelected = depositToken && selectedVault.result && 
+                                depositToken === selectedVault.result.debtToken;
+    
+    return isDebtTokenSelected && baseSaturationPrice > 0 ? 1 / baseSaturationPrice : baseSaturationPrice;
+  }, [collateralInDebtToken, apeReserve, teaReserve, leverageRatio, depositToken, selectedVault.result]);
+  
+  const inPowerZone = useMemo(() => {
+    // No vault selected
+    if (!selectedVault.result) return undefined;
+    
+    // Empty vaults (0 TVL) are always in saturation zone
+    if (apeReserve === 0n && teaReserve === 0n) return false;
+    
+    if (!apeReserve || !teaReserve) return undefined;
+    
+    // Zone is a property of the vault, not affected by which token is selected
+    return isVaultInPowerZone(apeReserve, teaReserve, leverageRatio);
+  }, [apeReserve, teaReserve, leverageRatio, selectedVault.result]);
 
   return (
     <Card>
@@ -188,6 +235,12 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
         <PriceInputs.Root>
           <PriceInputs.EntryPrice disabled={disabledPriceInputs} />
           <PriceInputs.ExitPrice disabled={disabledPriceInputs} />
+          <PriceInputs.SaturationPrice 
+            disabled={disabledPriceInputs}
+            saturationPrice={saturationPrice}
+            inPowerZone={inPowerZone}
+            isInverted={Boolean(depositToken && selectedVault.result && depositToken === selectedVault.result.debtToken)}
+          />
         </PriceInputs.Root>
         <Calculations disabled={false} currentPrice={collateralInDebtToken} />
       </form>

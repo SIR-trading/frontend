@@ -72,9 +72,9 @@ export default function VaultParamsInputSelects({
             });
             resetStore();
           }}
-          className="absolute bottom-0 right-0 z-10 rounded-md bg-red p-[4px] text-sm  leading-none text-white"
+          className="absolute bottom-0 right-0 rounded-md bg-red px-2 py-1 text-sm leading-none text-white hover:bg-red/90 transition-colors"
         >
-          clear
+          Clear all
         </button>
       </Show>
 
