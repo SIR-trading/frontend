@@ -56,11 +56,12 @@ export default function Calculations({
   }
 
   // Make sure entryPrice and exitPrice are provided to avoid calculation errors.
-  const entryPrice = Number(formData.entryPrice);
-  const exitPrice = Number(formData.exitPrice);
+  const entryPrice = isDebtToken ? 1 / Number(formData.entryPrice) : Number(formData.entryPrice);
+  const exitPrice = isDebtToken ? 1 / Number(formData.exitPrice) : Number(formData.exitPrice);
 
   // Calculate positions using the provided values.
   // Use liquidity-aware calculation if considerLiquidity is checked
+  // Note: The form already provides inverted prices for debt tokens, so we use them as-is
   const rawCollateralGain = calculateCollateralGainWithLiquidity(
     entryPrice,
     exitPrice,
@@ -97,12 +98,12 @@ export default function Calculations({
     return {
       collateralGain: 
         Number(formData.deposit) *
-        (isDebtToken ? entryPrice : 1) *
+        (isDebtToken ? (1 / entryPrice) : 1) *
         collateralGain,
       collateralGainPerc: collateralGainPerc,
       debtTokenGain: 
         Number(formData.deposit) *
-        (isDebtToken ? 1 : 1/entryPrice) *
+        (isDebtToken ? 1 : entryPrice) *
         debtTokenGain,
       debtTokenGainPerc: debtTokenGainPerc,
     };

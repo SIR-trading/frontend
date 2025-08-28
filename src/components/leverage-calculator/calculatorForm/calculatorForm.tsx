@@ -94,13 +94,15 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
       setValue("deposit", "1");
       
       let entryPriceValue: string | undefined;
+      let isDebtToken = false;
       if (
         depositToken &&
         depositToken === selectedVault.result.debtToken &&
-        debtInCollateralToken
+        collateralInDebtToken
       ) {
-        // If deposit token is the debt token, use converted debtInCollateralToken value
-        entryPriceValue = formatPriceForInput(debtInCollateralToken);
+        // If deposit token is the debt token, use inverted price (1/collateralInDebtToken)
+        entryPriceValue = formatPriceForInput(1 / collateralInDebtToken);
+        isDebtToken = true;
       } else if (collateralInDebtToken) {
         // Otherwise, default to collateralInDebtToken
         entryPriceValue = formatPriceForInput(collateralInDebtToken);
@@ -108,7 +110,9 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
 
       if (entryPriceValue) {
         const entryPrice = Number(entryPriceValue);
-        const exitPrice = formatPriceForInput(entryPrice * 2);
+        // For debt tokens: exit = entry / 2 (price goes down as underlying goes up)
+        // For collateral tokens: exit = entry * 2 (price goes up)
+        const exitPrice = formatPriceForInput(isDebtToken ? entryPrice / 2 : entryPrice * 2);
         setValue("entryPrice", entryPriceValue);
         setValue("exitPrice", exitPrice);
       }
