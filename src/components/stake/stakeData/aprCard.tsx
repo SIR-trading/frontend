@@ -8,7 +8,7 @@ import Show from "@/components/shared/show";
 
 export default function AprCard() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const { data: apr, isLoading } = api.user.getWeeklyApr.useQuery();
+  const { data: apr, isLoading } = api.user.getMonthlyApr.useQuery();
 
   return (
     <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
@@ -17,7 +17,7 @@ export default function AprCard() {
         <ToolTip size="300">
           <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
             <span>
-              The APR is estimated using the past week&apos;s dividend data.
+              The APR is estimated using the past 30 days&apos; dividend data.
             </span>
           </div>
         </ToolTip>

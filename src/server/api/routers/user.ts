@@ -275,4 +275,9 @@ export const userRouter = createTRPCRouter({
     const { getWeeklyApr } = await import("@/lib/apr");
     return await getWeeklyApr();
   }),
+
+  getMonthlyApr: publicProcedure.query(async () => {
+    const { getMonthlyApr } = await import("@/lib/apr");
+    return await getMonthlyApr();
+  }),
 });
