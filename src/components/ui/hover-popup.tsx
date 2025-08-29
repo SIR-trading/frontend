@@ -55,6 +55,7 @@ const HoverPopup: FC<HoverPopupProps> = ({
       <HoverCardContent side={side} alignOffset={alignOffset}>
         <div className={hoverPopupVariants({ size })}>{children}</div>
         <HoverCardArrow
+          className="fill-black/20 dark:fill-white/10"
           height={15}
           width={14}
         />
