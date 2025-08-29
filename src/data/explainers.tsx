@@ -8,21 +8,16 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          APE tokens lock in{" "}
+          APE tokens provide{" "}
           <a
             href="https://x.com/leveragesir/status/1903585913189421304"
             className="underline"
             target="_blank"
           >
-            perfect constant leverage
+            constant leverage
           </a>
-          . No funding fees, no periodic rebalancing, no margin calls. You pay
-          one fee at mint, and thereafter your position is free to hold.
-        </p>
-        <p>
-          As long as the vault has sufficient liquidity, routine swings
-          don&apos;t erode returns. Your leveraged gains can compound unhindered
-          over time.
+          {" "}with no funding fees or margin calls. Pay once at mint, then hold 
+          as long as you want while gains compound.
         </p>
       </>
     ),
@@ -31,25 +26,16 @@ export const Explainers: Partial<ExplainersMap> = {
     title: "Provide liquidity, collect fees",
     description: (
       <>
-        <p>Pay a one-time entry fee to mint TEA and join a vault.</p>
         <p>
-          As an LPer, if the &lsquo;long&rsquo; token climbs you lose value when
-          measured in that token but gain when measured in the
-          &lsquo;versus&rsquo; token; and if the &lsquo;long&rsquo; token falls,
-          the effect reverses. This balance makes TEA a good fit when you are
-          undecided about going long or short.
-        </p>
-        <p>
-          You collect the fees leverage traders pay whenever they mint or burn
-          APE, and selected vaults add{" "}
+          Mint TEA tokens to provide liquidity and earn fees from APE traders. Selected vaults also reward{" "}
           <a
             href="https://docs.sir.trading/protocol-overview/sir-a-dividend-paying-token"
             className="underline"
             target="_blank"
           >
-            SIR token
-          </a>{" "}
-          rewards on top. Burn TEA at any time to withdraw your funds.
+            SIR tokens
+          </a>
+          . TEA maintains balanced exposure between paired assets.
         </p>
       </>
     ),
@@ -59,12 +45,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          See all your positions in one place. Burn APE to close trades, burn
-          TEA to withdraw liquidity, and claim SIR rewards earned from liquidity
-          vaults.
-        </p>
-        <p>
-          You can also stake or unstake SIR here to collect your ETH dividends.
+          View and manage all positions: close APE trades, withdraw TEA liquidity, claim SIR rewards, and stake SIR for ETH dividends.
         </p>
       </>
     ),
@@ -74,13 +55,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Stake SIR to receive a share of all protocol fees, which are
-          automatically converted to ETH before distribution. Your dividends can
-          be claimed at any moment.
-        </p>
-        <p>
-          Upon staking, your SIR is locked but unlocks continuously, with
-          &frac12; of the balance becoming withdrawable every 30 days.
+          Stake SIR to earn ETH dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
         </p>
       </>
     ),
@@ -90,12 +65,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Select the &lsquo;long&rsquo; token, &lsquo;versus&rsquo; token, and
-          leverage.
-        </p>
-        <p>
-          Lower exponents need little liquidity, while higher exponents cost
-          more to mint APE and work best when liquidity is plentiful.
+          Choose token pairs and leverage level. Higher leverage requires more liquidity but offers greater potential returns for traders.
         </p>
       </>
     ),
@@ -105,12 +75,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Choose the &lsquo;long&rsquo; and &lsquo;versus&rsquo; tokens, pick a
-          leverage, then enter your deposit, entry price, and target exit price.
-        </p>
-        <p>
-          The calculator shows what your APE position would return after mint
-          and fee, so you can size trades before committing real funds.
+          Calculate potential APE returns by entering token pairs, leverage, deposit amount, and price targets. Results include all fees.
         </p>
       </>
     ),
@@ -120,13 +85,8 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Here the protocol&apos;s surplus tokens are swapped for ETH. Anyone
-          can start a new auction, place a bid, or out-bid the current leader.
-        </p>
-        <p>
-          When an auction starts it runs for 24 hours; when the timer ends, the
-          highest bidder receives the tokens and the ETH moves to the dividend
-          pool for SIR stakers.
+          Protocol fees are auctioned for ETH that goes to SIR stakers. Auctions run 
+          for 24 hours with the highest bidder winning the tokens.
         </p>
       </>
     ),
@@ -136,10 +96,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Close any APE position within the current month to enter. The board tracks two scores: total USD profit and relative USD gain (%).
-        </p>
-        <p>
-          On the 1st of each month, the top performers in both categories will receive 1M SIR tokens as rewards.
+          Close APE positions to compete for 1M SIR monthly prizes. Winners are determined by highest USD profit and best percentage gain.
         </p>
       </>
     ),

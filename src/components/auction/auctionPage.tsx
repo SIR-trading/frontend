@@ -9,6 +9,7 @@ import PastAuction from "@/components/auction/pastAuction";
 import NewAuction from "@/components/auction/newAuction";
 import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
+import { Badge } from "@/components/ui/badge";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -16,14 +17,10 @@ export type TUniqueAuctionCollection = {
   collateralDecimalsMap: Map<string, number>;
 };
 
-const tabsItems = [
-  ["new", "Start new"],
-  ["ongoing", "Ongoing"],
-  ["past", "Past"],
-] as const;
-
 const AuctionPage = () => {
   const { data: vaults } = api.vault.getVaults.useQuery();
+  const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
+  const { data: expiredAuctions } = api.auction.getExpiredAuctions.useQuery({});
 
   const uniqueAuctionCollection = useMemo<TUniqueAuctionCollection>(() => {
     const uniqueCollateralToken = new Set<string>();
@@ -54,26 +51,62 @@ const AuctionPage = () => {
     };
   }, [vaults]);
 
+  const ongoingCount = ongoingAuctions?.length ?? 0;
+  const pastCount = expiredAuctions?.length ?? 0;
+
   return (
     <div>
       <PageHeadingSpace />
       <Container className="max-w-[904px] lg:w-[904px]">
         <Explainer page={EPage.AUCTIONS} />
-        <Tabs defaultValue="new">
+        <Tabs defaultValue="active">
           <TabsList className="mx-auto w-max">
-            {tabsItems.map(([value, text]) => (
-              <TabsTrigger value={value} key={value}>
-                {text}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="create">
+              <span className="flex items-center gap-1.5">
+                <span>➕</span>
+                <span>Start</span>
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="active">
+              <span className="flex items-center gap-1.5">
+                <span>🟢</span>
+                <span>Active</span>
+                {ongoingCount > 0 && (
+                  <Badge variant="outline" className="ml-1 h-5 w-auto px-1.5 text-xs">
+                    {ongoingCount}
+                  </Badge>
+                )}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <span className="flex items-center gap-1.5">
+                <span>📋</span>
+                <span>History</span>
+                {pastCount > 0 && (
+                  <Badge variant="outline" className="ml-1 h-5 w-auto px-1.5 text-xs">
+                    {pastCount}
+                  </Badge>
+                )}
+              </span>
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="new" className="mt-10">
+
+          <TabsContent value="create" className="mt-10">
+            <div className="mb-6 text-center text-sm text-muted-foreground">
+              Auction protocol fees to convert them to ETH for SIR stakers
+            </div>
             <NewAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>
-          <TabsContent value="ongoing" className="mt-10">
+          <TabsContent value="active" className="mt-10">
+            <div className="mb-6 text-center text-sm text-muted-foreground">
+              Bid on active auctions to acquire tokens below market price
+            </div>
             <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>
-          <TabsContent value="past" className="mt-10">
+          <TabsContent value="history" className="mt-10">
+            <div className="mb-6 text-center text-sm text-muted-foreground">
+              View completed auctions and results
+            </div>
             <PastAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>
         </Tabs>
