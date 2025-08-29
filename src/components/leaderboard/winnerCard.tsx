@@ -2,6 +2,8 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
+import ShareToX from "@/components/shared/shareToX";
+import { useAccount } from "wagmi";
 
 interface WinnerCardProps {
   pnlLeader: {
@@ -20,16 +22,21 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
   percentageLeader,
   isLoading,
 }) => {
+  const { address: userAddress } = useAccount();
+  
   if (isLoading || (!pnlLeader && !percentageLeader)) {
     return null;
   }
+  
+  const isUserPercentageLeader = userAddress && percentageLeader?.address.toLowerCase() === userAddress.toLowerCase();
+  const isUserPnlLeader = userAddress && pnlLeader?.address.toLowerCase() === userAddress.toLowerCase();
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:gap-3 mb-4">
       {percentageLeader && (
-        <Card className="flex-1 p-4 bg-gradient-to-r from-green-500/5 to-green-500/10 border-foreground/10">
+        <Card className="flex-1 p-4 bg-gradient-to-r from-green-500/5 to-green-500/10 border-foreground/10 relative">
           <div className="flex items-center justify-center gap-3">
-            <span className="text-2xl">🎖️</span>
+            <span className="text-3xl">🎖️</span>
             <div className="text-center">
               <p className="text-xs text-muted-foreground mb-1">% PnL Leader</p>
               <div className="flex items-center gap-2">
@@ -43,14 +50,22 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
                 </span>
               </div>
             </div>
+            {isUserPercentageLeader && (
+              <ShareToX
+                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n📈 +${percentageLeader.percentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                hashtags={[]}
+                variant="outline"
+                className="ml-2"
+              />
+            )}
           </div>
         </Card>
       )}
       
       {pnlLeader && (
-        <Card className="flex-1 p-4 bg-gradient-to-r from-yellow-500/5 to-yellow-500/10 border-foreground/10">
+        <Card className="flex-1 p-4 bg-gradient-to-r from-yellow-500/5 to-yellow-500/10 border-foreground/10 relative">
           <div className="flex items-center justify-center gap-3">
-            <span className="text-2xl">🏆</span>
+            <span className="text-3xl">🏆</span>
             <div className="text-center">
               <p className="text-xs text-muted-foreground mb-1">PnL Leader</p>
               <div className="flex items-center gap-2">
@@ -64,6 +79,14 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
                 </span>
               </div>
             </div>
+            {isUserPnlLeader && (
+              <ShareToX
+                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n💰 +$${pnlLeader.amount.toFixed(0)} profit\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                hashtags={[]}
+                variant="outline"
+                className="ml-2"
+              />
+            )}
           </div>
         </Card>
       )}

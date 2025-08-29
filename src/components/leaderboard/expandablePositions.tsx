@@ -21,7 +21,7 @@ const ExpandablePositions = ({
   return (
     <>
       <div className="flex bg-primary/10 text-left text-xs font-medium text-foreground/70 dark:bg-primary">
-        <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>Vault</div>
+        <div className={cn(cellStyling, "w-[80px] sm:w-[180px] flex-none pl-2 md:pl-6")}>Vault</div>
         <div className={cn(cellStyling, "flex-1")}>Time it closed</div>
         <div className={cn(cellStyling, "flex-1 hidden sm:flex")}>Deposit</div>
         <div className={cn(cellStyling, "flex-1")}>% PnL</div>
@@ -36,7 +36,7 @@ const ExpandablePositions = ({
               className="flex bg-primary/5 text-left text-xs font-normal dark:bg-primary/50"
             >
               {/* Vault Column */}
-              <div className={cn(cellStyling, "w-[140px] sm:w-[180px] flex-none pl-2 md:pl-6")}>
+              <div className={cn(cellStyling, "w-[80px] sm:w-[180px] flex-none pl-2 md:pl-6")}>
                 {/* Mobile view - images with separator */}
                 <div className="flex items-center md:hidden">
                   {vaultData.collateralToken && (

@@ -5,6 +5,7 @@ import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import WinnerCard from "@/components/leaderboard/winnerCard";
+import ShareToX from "@/components/shared/shareToX";
 import {
   AccordionItem,
   AccordionContent,
@@ -247,11 +248,11 @@ function LeaderboardTable<T, P>({
       />
       <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
         <div className="w-full">
-        <div className="grid grid-cols-8 md:grid-cols-9 text-left text-sm font-normal text-foreground/60">
+        <div className="grid grid-cols-7 text-left text-sm font-normal text-foreground/60">
           <div className={cn(cellStyling, "col-span-1")}>Rank</div>
-          <div className={cn(cellStyling, "col-span-3 md:col-span-4")}>Address</div>
+          <div className={cn(cellStyling, "col-span-3")}>Address</div>
           <div
-            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
+            className={cn(cellStyling, "col-span-1 cursor-pointer hover:bg-foreground/5")}
             onClick={() => handleSort("pnlUsdPercentage")}
           >
             <span className="flex items-center">
@@ -260,7 +261,7 @@ function LeaderboardTable<T, P>({
             </span>
           </div>
           <div
-            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
+            className={cn(cellStyling, "col-span-1 cursor-pointer hover:bg-foreground/5")}
             onClick={() => handleSort("pnlUsd")}
           >
             <span className="flex items-center">
@@ -268,6 +269,7 @@ function LeaderboardTable<T, P>({
               {getSortIcon("pnlUsd")}
             </span>
           </div>
+          <div className={cn(cellStyling, "col-span-1")}></div>
         </div>
         <div className="min-h-10 w-full">
           {isLoading ? (
@@ -293,7 +295,7 @@ function LeaderboardTable<T, P>({
                     <AccordionTrigger>
                       <div
                         className={cn(
-                          "grid w-full cursor-pointer grid-cols-8 md:grid-cols-9 font-geist text-sm font-medium hover:bg-foreground/5",
+                          "grid w-full cursor-pointer grid-cols-7 font-geist text-sm font-medium hover:bg-foreground/5",
                           isUserRow &&
                             "bg-primary/5 hover:bg-foreground/15 dark:bg-primary/50",
                         )}
@@ -319,7 +321,7 @@ function LeaderboardTable<T, P>({
                         <div
                           className={cn(
                             cellStyling,
-                            "pointer-events-none col-span-3 md:col-span-4",
+                            "pointer-events-none col-span-3",
                             isUserRow && "font-semibold",
                           )}
                         >
@@ -343,7 +345,7 @@ function LeaderboardTable<T, P>({
                             />
                           </div>
                         </div>
-                        <div className={cn(cellStyling, "col-span-2")}>
+                        <div className={cn(cellStyling, "col-span-1")}>
                           <span className={
                             total.pnlUsdPercentage > 0
                               ? "text-accent-600 dark:text-accent-100"
@@ -355,7 +357,7 @@ function LeaderboardTable<T, P>({
                             %
                           </span>
                         </div>
-                        <div className={cn(cellStyling, "col-span-2")}>
+                        <div className={cn(cellStyling, "col-span-1")}>
                           <span className={
                             total.pnlUsd > 0
                               ? "text-accent-600 dark:text-accent-100"
@@ -363,6 +365,27 @@ function LeaderboardTable<T, P>({
                           }>
                             <DisplayFormattedNumber num={total.pnlUsd} /> USD
                           </span>
+                        </div>
+                        <div className={cn(cellStyling, "col-span-1 justify-center")}>
+                          {isUserRow && (
+                            <div onClick={(e) => e.stopPropagation()} className="ml-2 mr-6">
+                              <ShareToX
+                                text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
+                                  total.pnlUsdPercentage > 0 ? "📈" : "📉"
+                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                                hashtags={[]}
+                                iconOnly={true}
+                                className="md:hidden"
+                              />
+                              <ShareToX
+                                text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
+                                  total.pnlUsdPercentage > 0 ? "📈" : "📉"
+                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                                hashtags={[]}
+                                className="hidden md:inline-flex"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </AccordionTrigger>
