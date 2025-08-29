@@ -30,8 +30,8 @@ const LeaderboardPage = () => {
         
         <Tabs defaultValue="closed">
           <TabsList className="mx-auto w-max mb-8 gap-2">
-            <TabsTrigger value="closed" className="whitespace-nowrap min-w-[120px]">
-              <div className="flex items-center justify-center gap-1.5 px-3">
+            <TabsTrigger value="closed" className="whitespace-nowrap px-5">
+              <div className="flex items-center justify-center gap-1.5">
                 <span>🏁</span>
                 <span>Closed</span>
                 {closedCount > 0 && (
@@ -41,8 +41,8 @@ const LeaderboardPage = () => {
                 )}
               </div>
             </TabsTrigger>
-            <TabsTrigger value="active" className="whitespace-nowrap min-w-[120px]">
-              <div className="flex items-center justify-center gap-1.5 px-3">
+            <TabsTrigger value="active" className="whitespace-nowrap px-5">
+              <div className="flex items-center justify-center gap-1.5">
                 <span>🟢</span>
                 <span>Active</span>
                 {activeCount > 0 && (

@@ -60,13 +60,13 @@ const AuctionPage = () => {
         <Explainer page={EPage.AUCTIONS} />
         <Tabs defaultValue="active">
           <TabsList className="mx-auto w-max gap-2">
-            <TabsTrigger value="create" className="whitespace-nowrap min-w-[100px]">
+            <TabsTrigger value="create" className="whitespace-nowrap px-3">
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>➕</span>
                 <span>Start</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="active" className="whitespace-nowrap min-w-[100px]">
+            <TabsTrigger value="active" className="whitespace-nowrap px-3">
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>🟢</span>
                 <span>Active</span>
@@ -77,7 +77,7 @@ const AuctionPage = () => {
                 )}
               </div>
             </TabsTrigger>
-            <TabsTrigger value="history" className="whitespace-nowrap min-w-[160px]">
+            <TabsTrigger value="history" className="whitespace-nowrap px-3">
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>📋</span>
                 <span>History</span>
