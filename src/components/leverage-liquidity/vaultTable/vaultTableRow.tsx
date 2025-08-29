@@ -12,11 +12,7 @@ import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import { useTheme } from "next-themes";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import HoverPopup from "@/components/ui/hover-popup";
 import { TokenDisplay } from "@/components/ui/token-display";
 import {
   calculateApeVaultFee,
@@ -298,8 +294,10 @@ export function VaultTableRow({
         <div className="flex h-full items-center gap-x-1">
           <span className="w-5">{pool.vaultId}</span>
           {parsedRateAmount > 0n && (
-            <HoverCard openDelay={0} closeDelay={20}>
-              <HoverCardTrigger asChild>
+            <HoverPopup
+              size="200"
+              asChild
+              trigger={
                 <div className="flex h-full items-center">
                   <Image
                     src={boostIcon as StaticImageData}
@@ -309,17 +307,14 @@ export function VaultTableRow({
                     alt="Boost Icon"
                   />
                 </div>
-              </HoverCardTrigger>
-              <HoverCardContent side="top" alignOffset={10}>
-                <div className="mb-2 max-w-[200px] rounded-sm  bg-primary/5  px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-                  <span>
-                    LPers of this vault are rewarded with{" "}
-                    <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
-                    SIR/day.
-                  </span>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+              }
+            >
+              <span className="text-[13px] font-medium">
+                LPers of this vault are rewarded with{" "}
+                <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
+                SIR/day.
+              </span>
+            </HoverPopup>
           )}
         </div>
       </td>
@@ -342,18 +337,20 @@ export function VaultTableRow({
             alt="Debt token"
           />
           {variant.variant === "red" ? (
-            <HoverCard openDelay={0} closeDelay={20}>
-              <HoverCardTrigger asChild>
+            <HoverPopup
+              size="200"
+              alignOffset={4}
+              asChild
+              trigger={
                 <sup className="ml-0.5 text-[10px] font-semibold text-red">
                   {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
                 </sup>
-              </HoverCardTrigger>
-              <HoverCardContent side="top" alignOffset={4}>
-                <div className="max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-                  Insufficient liquidity for constant ^{getLeverageRatio(pool.leverageTier)} leverage
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+              }
+            >
+              <div className="text-[13px] font-medium">
+                Insufficient liquidity for constant ^{getLeverageRatio(pool.leverageTier)} leverage
+              </div>
+            </HoverPopup>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
               {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
@@ -398,35 +395,33 @@ export function VaultTableRow({
       </td>
       <td className="flex items-center pl-1 sm:pl-3">
         {!isApe ? (
-          <HoverCard openDelay={0} closeDelay={20}>
-            <HoverCardTrigger>
+          <HoverPopup
+            size="250"
+            trigger={
               <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : ''}`} style={{ color: getApyColor() ?? (isApyLoading ? undefined : 'inherit') }}>
                 {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
               </h4>
-            </HoverCardTrigger>
-            <HoverCardContent side="top" alignOffset={10}>
-              <div className="mb-2 max-w-[250px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-                <div className="space-y-1">
-                  <div className="font-semibold">APY Breakdown:</div>
-                  {apyData && (
-                    <>
-                      <div className="flex justify-between">
-                        <span>LP Fees:</span>
-                        <span><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>SIR Rewards:</span>
-                        <span className="ml-2"><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</span>
-                      </div>
-                    </>
-                  )}
-                  {!apyData && !isApyLoading && (
-                    <div className="text-foreground/60">No data available</div>
-                  )}
-                </div>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
+            }
+          >
+            <div className="space-y-1 text-[13px] font-medium">
+              <div className="font-semibold">APY Breakdown:</div>
+              {apyData && (
+                <>
+                  <div className="flex justify-between">
+                    <span>LP Fees:</span>
+                    <span><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>SIR Rewards:</span>
+                    <span className="ml-2"><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</span>
+                  </div>
+                </>
+              )}
+              {!apyData && !isApyLoading && (
+                <div className="text-foreground/60">No data available</div>
+              )}
+            </div>
+          </HoverPopup>
         ) : (
           <h4 className="font-normal text-[13px]" style={{ color: getFeeColor() }}>
             {roundDown(fee, 0)}%
@@ -437,8 +432,11 @@ export function VaultTableRow({
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
       <td className="relative hidden items-center md:flex">
-        <HoverCard openDelay={0} closeDelay={20}>
-          <HoverCardTrigger asChild>
+        <HoverPopup
+          size="200"
+          alignOffset={4}
+          asChild
+          trigger={
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -455,22 +453,23 @@ export function VaultTableRow({
                 )}
               </Badge>
             </motion.div>
-          </HoverCardTrigger>
-          <HoverCardContent side="top" alignOffset={4}>
-            <div className="mb-3 max-w-[200px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-              <DisplayBadgeInfo
-                variant={variant}
-                isApe={isApe}
-                leverageRatio={getLeverageRatio(pool.leverageTier).toString()}
-              ></DisplayBadgeInfo>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
+          }
+        >
+          <div className="text-[13px] font-medium">
+            <DisplayBadgeInfo
+              variant={variant}
+              isApe={isApe}
+              leverageRatio={getLeverageRatio(pool.leverageTier).toString()}
+            ></DisplayBadgeInfo>
+          </div>
+        </HoverPopup>
       </td>
 
       <td className="relative flex items-center justify-end gap-x-1 text-right md:col-span-2">
-        <HoverCard openDelay={0} closeDelay={20}>
-          <HoverCardTrigger asChild>
+        <HoverPopup
+          size="250"
+          asChild
+          trigger={
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -484,39 +483,36 @@ export function VaultTableRow({
                 unitLabel={pool.collateralSymbol}
               />
             </motion.div>
-          </HoverCardTrigger>
-          <HoverCardContent side="top" alignOffset={10}>
-            <div className="mb-2 max-w-[250px] rounded-sm bg-primary/5 px-2 py-2 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-              <div className="space-y-1">
-                <div className="font-semibold text-left">TVL Breakdown:</div>
-                <div className="flex justify-between gap-x-4">
-                  <span>Apes:</span>
-                  <span className="flex items-center gap-x-1">
-                    <TokenDisplay
-                      amount={reservesData[0]?.reserveApes ?? 0n}
-                      amountSize="small"
-                      unitLabel=""
-                      decimals={pool.apeDecimals}
-                    />
-                    <span>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
-                  </span>
-                </div>
-                <div className="flex justify-between gap-x-4">
-                  <span>LPers:</span>
-                  <span className="flex items-center gap-x-1">
-                    <TokenDisplay
-                      amount={reservesData[0]?.reserveLPers ?? 0n}
-                      amountSize="small"
-                      unitLabel=""
-                      decimals={pool.apeDecimals}
-                    />
-                    <span>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
-                  </span>
-                </div>
-              </div>
+          }
+        >
+          <div className="space-y-1 text-[13px] font-medium">
+            <div className="font-semibold text-left">TVL Breakdown:</div>
+            <div className="flex justify-between gap-x-4">
+              <span>Apes:</span>
+              <span className="flex items-center gap-x-1">
+                <TokenDisplay
+                  amount={reservesData[0]?.reserveApes ?? 0n}
+                  amountSize="small"
+                  unitLabel=""
+                  decimals={pool.apeDecimals}
+                />
+                <span>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+              </span>
             </div>
-          </HoverCardContent>
-        </HoverCard>
+            <div className="flex justify-between gap-x-4">
+              <span>LPers:</span>
+              <span className="flex items-center gap-x-1">
+                <TokenDisplay
+                  amount={reservesData[0]?.reserveLPers ?? 0n}
+                  amountSize="small"
+                  unitLabel=""
+                  decimals={pool.apeDecimals}
+                />
+                <span>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+              </span>
+            </div>
+          </div>
+        </HoverPopup>
       </td>
     </tr>
   );
