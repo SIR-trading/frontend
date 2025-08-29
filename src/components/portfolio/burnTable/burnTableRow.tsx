@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { api } from "@/trpc/react";
 
 interface Props {
   row: TUserPosition;
@@ -52,18 +53,40 @@ export function BurnTableRow({
   const teaBalance = formatUnits(teaBal ?? 0n, row.decimals);
   const apeBalance = formatUnits(apeBal ?? 0n, row.decimals);
   const rewards = formatUnits(teaRewards ?? 0n, 12);
+  const amount = isApe ? apeBalance : teaBalance;
+  
+  // Get collateral amount from quoteBurn
+  const { data: quoteBurn } = api.vault.quoteBurn.useQuery(
+    {
+      amount: amount ?? "0",
+      isApe,
+      debtToken: row.debtToken,
+      leverageTier: parseInt(row.leverageTier),
+      collateralToken: row.collateralToken,
+      decimals: row.decimals,
+    },
+    {
+      enabled: Boolean(amount),
+    },
+  );
+  
+  const collateralAmount = formatUnits(quoteBurn ?? 0n, row.decimals);
+  
   const positionValue = useTeaAndApePrice({
     isApe,
-    amount: isApe ? apeBalance : teaBalance,
+    amount,
     row,
   });
   
   return (
-    <div className="grid grid-cols-4 items-center gap-x-4 py-2 text-left text-foreground">
+    <div className="grid grid-cols-[0.8fr_1.5fr_1.2fr_1fr] lg:grid-cols-[0.6fr_0.6fr_1.2fr_1fr_1fr] items-center gap-x-4 py-2 text-left text-foreground">
       <div className="flex items-center gap-x-1 font-normal">
         <span className="">{isApe ? "APE" : "TEA"}</span>
         <span className="text-foreground/70">-</span>
         <span className="text-xl text-accent-100">{getDisplayVaultId(row.vaultId)}</span>
+      </div>
+      <div className="hidden font-normal lg:block">
+        <DisplayFormattedNumber num={isApe ? apeBalance : teaBalance} />
       </div>
       <div className="flex items-center font-normal text-foreground/80">
         {/* Mobile: Show only icons */}
@@ -85,7 +108,7 @@ export function BurnTableRow({
           />
           <sup className="ml-0.5 text-[10px] font-semibold">{getLeverageRatio(Number.parseInt(row.leverageTier))}</sup>
         </div>
-        {/* Desktop: Show icons with text */}
+        {/* Medium and Large screens: Show icons with text */}
         <div className="hidden items-center sm:flex">
           <TokenImage
             className="rounded-full bg-transparent"
@@ -108,16 +131,16 @@ export function BurnTableRow({
         </div>
       </div>
       <div className="font-normal">
-        <span>
-          <DisplayFormattedNumber
-            num={isApe ? apeBalance : teaBalance}
-          />
-          <span className="ml-1 italic text-foreground/70">
-            ($<DisplayFormattedNumber num={positionValue} />)
+        <div className="flex flex-col">
+          <span>
+            <DisplayFormattedNumber num={collateralAmount} significant={3} /> {row.collateralSymbol}
           </span>
-        </span>
+          <span className="text-[12px] text-foreground/60">
+            (<DisplayFormattedNumber num={positionValue} /> USD)
+          </span>
+        </div>
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-center">
         {/* Mobile: Dropdown menu */}
         <div className="sm:hidden">
           <DropdownMenu>
@@ -166,11 +189,11 @@ export function BurnTableRow({
               }}
               type="button"
               disabled={!Number(teaRewards)}
-              className="h-7 rounded-full px-3 text-[12px]"
+              className="h-7 rounded-md px-3 text-[12px]"
             >
-              <div>
+              <div className="flex items-center">
                 <span>Claim</span>
-                <span className="pl-1 text-[10px] text-gray-300">
+                <span className="hidden pl-1 text-[10px] text-gray-300 lg:inline">
                   <span><DisplayFormattedNumber num={rewards} significant={2} /></span>
                   <span className="pl-[2px]">SIR</span>
                 </span>
@@ -187,7 +210,7 @@ export function BurnTableRow({
                 : parseFloat(teaBalance) === 0
             }
             type="button"
-            className="h-7 rounded-full px-4 text-[12px]"
+            className="h-7 rounded-md px-4 text-[12px]"
           >
             Burn
           </Button>
