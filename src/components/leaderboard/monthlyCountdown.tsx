@@ -40,7 +40,7 @@ const MonthlyCountdown = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="flex items-baseline gap-2 text-sm text-muted-foreground">
       <span>Restarts in:</span>
       <span className="font-mono font-medium text-foreground">{timeRemaining || "Calculating..."}</span>
     </div>

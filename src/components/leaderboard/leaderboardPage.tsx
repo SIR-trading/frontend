@@ -57,16 +57,16 @@ const LeaderboardPage = () => {
           <TabsContent value="closed" className="space-y-12">
             {/* Current Month Competition */}
             <div className="">
-              <div className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <div>
+              <div className="pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2">
                   <h1 className="text-[18px] font-semibold md:text-[20px] lg:text-[28px]">
                     {currentMonth} Competition
                   </h1>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Positions closed this month count regardless of open date • Partial burns included
-                  </p>
+                  <MonthlyCountdown />
                 </div>
-                <MonthlyCountdown />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Positions closed this month count regardless of open date • Partial burns included
+                </p>
               </div>
               <ClosedApePositions />
             </div>
