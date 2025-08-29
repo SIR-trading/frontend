@@ -372,7 +372,7 @@ function LeaderboardTable<T, P>({
                               <ShareToX
                                 text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
                                   total.pnlUsdPercentage > 0 ? "📈" : "📉"
-                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
                                 hashtags={[]}
                                 iconOnly={true}
                                 className="md:hidden"
@@ -380,7 +380,7 @@ function LeaderboardTable<T, P>({
                               <ShareToX
                                 text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
                                   total.pnlUsdPercentage > 0 ? "📈" : "📉"
-                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
                                 hashtags={[]}
                                 className="hidden md:inline-flex"
                               />

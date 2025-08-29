@@ -52,7 +52,7 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
             </div>
             {isUserPercentageLeader && (
               <ShareToX
-                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n📈 +${percentageLeader.percentage.toFixed(1)}% gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
+                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n📈 +${percentageLeader.percentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
                 hashtags={[]}
                 variant="outline"
                 className="ml-2"
