@@ -182,8 +182,8 @@ export function BurnTableRowMobile({
           <span className="text-accent-100  ">{getDisplayVaultId(row.vaultId)} </span>
         </div>
       </td>
-      <MobileTh title={"Long"}>{row.debtSymbol}</MobileTh>
-      <MobileTh title={"Versus"}>{row.collateralSymbol}</MobileTh>
+      <MobileTh title={"Long"}>{row.collateralSymbol}</MobileTh>
+      <MobileTh title={"Versus"}>{row.debtSymbol}</MobileTh>
       <MobileTh title={"Leverage"}>
         {getLeverageRatio(parseInt(row.leverageTier))}
       </MobileTh>
