@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import WinnerCard from "@/components/leaderboard/winnerCard";
 import {
   AccordionItem,
   AccordionContent,
@@ -146,17 +147,67 @@ function LeaderboardTable<T, P>({
     return [userEntry, ...otherEntries];
   }, [sortedData, userAddress, isConnected]);
 
-  // Create a map of addresses to their dynamic ranks based on current sort
-  const dynamicRanks = useMemo(() => {
-    const rankMap = new Map<string, number>();
-    const totalCount = sortedData.length;
-    sortedData.forEach(([address], index) => {
-      // If ascending order (worst to best), reverse the ranking
-      const rank = sortDirection === "asc" ? totalCount - index : index + 1;
-      rankMap.set(address.toLowerCase(), rank);
+  // Identify PnL and % PnL leaders
+  const { pnlLeader, percentageLeader } = useMemo(() => {
+    if (!data || Object.keys(data).length === 0) {
+      return { pnlLeader: null, percentageLeader: null };
+    }
+
+    let maxPnl = { address: "", amount: -Infinity };
+    let maxPercentage = { address: "", percentage: -Infinity };
+
+    Object.entries(data).forEach(([address, item]) => {
+      const total = extractTotal(item);
+      if (total.pnlUsd > maxPnl.amount) {
+        maxPnl = { address, amount: total.pnlUsd };
+      }
+      if (total.pnlUsdPercentage > maxPercentage.percentage) {
+        maxPercentage = { address, percentage: total.pnlUsdPercentage };
+      }
     });
-    return rankMap;
-  }, [sortedData, sortDirection]);
+
+    return {
+      pnlLeader: maxPnl.amount > -Infinity ? maxPnl : null,
+      percentageLeader: maxPercentage.percentage > -Infinity ? maxPercentage : null,
+    };
+  }, [data, extractTotal]);
+
+  // Create maps for both PnL and % PnL rankings
+  const { pnlRanks, percentageRanks } = useMemo((): {
+    pnlRanks: Map<string, number>;
+    percentageRanks: Map<string, number>;
+  } => {
+    if (!data || Object.keys(data).length === 0) {
+      return { pnlRanks: new Map<string, number>(), percentageRanks: new Map<string, number>() };
+    }
+
+    // Sort by PnL
+    const pnlSorted = Object.entries(data).sort(([, a], [, b]) => {
+      const aTotal = extractTotal(a);
+      const bTotal = extractTotal(b);
+      return bTotal.pnlUsd - aTotal.pnlUsd;
+    });
+
+    // Sort by % PnL
+    const percentageSorted = Object.entries(data).sort(([, a], [, b]) => {
+      const aTotal = extractTotal(a);
+      const bTotal = extractTotal(b);
+      return bTotal.pnlUsdPercentage - aTotal.pnlUsdPercentage;
+    });
+
+    const pnlRankMap = new Map<string, number>();
+    const percentageRankMap = new Map<string, number>();
+
+    pnlSorted.forEach(([address], index) => {
+      pnlRankMap.set(address.toLowerCase(), index + 1);
+    });
+
+    percentageSorted.forEach(([address], index) => {
+      percentageRankMap.set(address.toLowerCase(), index + 1);
+    });
+
+    return { pnlRanks: pnlRankMap, percentageRanks: percentageRankMap };
+  }, [data, extractTotal]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -188,20 +239,17 @@ function LeaderboardTable<T, P>({
   }
 
   return (
-    <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
-      <div className="w-full">
+    <>
+      <WinnerCard
+        pnlLeader={pnlLeader}
+        percentageLeader={percentageLeader}
+        isLoading={isLoading}
+      />
+      <Card className={"mx-auto w-full p-0 md:px-0 md:py-2"}>
+        <div className="w-full">
         <div className="grid grid-cols-8 md:grid-cols-9 text-left text-sm font-normal text-foreground/60">
           <div className={cn(cellStyling, "col-span-1")}>Rank</div>
           <div className={cn(cellStyling, "col-span-3 md:col-span-4")}>Address</div>
-          <div
-            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
-            onClick={() => handleSort("pnlUsd")}
-          >
-            <span className="flex items-center">
-              {pnlLabel}
-              {getSortIcon("pnlUsd")}
-            </span>
-          </div>
           <div
             className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
             onClick={() => handleSort("pnlUsdPercentage")}
@@ -209,6 +257,15 @@ function LeaderboardTable<T, P>({
             <span className="flex items-center">
               {pnlPercentageLabel}
               {getSortIcon("pnlUsdPercentage")}
+            </span>
+          </div>
+          <div
+            className={cn(cellStyling, "col-span-2 cursor-pointer hover:bg-foreground/5")}
+            onClick={() => handleSort("pnlUsd")}
+          >
+            <span className="flex items-center">
+              {pnlLabel}
+              {getSortIcon("pnlUsd")}
             </span>
           </div>
         </div>
@@ -224,7 +281,8 @@ function LeaderboardTable<T, P>({
                   isConnected &&
                   userAddress &&
                   address.toLowerCase() === userAddress.toLowerCase();
-                const dynamicRank = dynamicRanks.get(address.toLowerCase()) ?? index + 1;
+                const pnlRank = pnlRanks.get(address.toLowerCase()) ?? 0;
+                const percentageRank = percentageRanks.get(address.toLowerCase()) ?? 0;
 
                 return (
                   <AccordionItem
@@ -241,7 +299,22 @@ function LeaderboardTable<T, P>({
                         )}
                       >
                         <div className={cn(cellStyling, "col-span-1")}>
-                          {dynamicRank}
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">%:</span>
+                              <span className="text-sm font-medium">{percentageRank}</span>
+                              {percentageLeader?.address.toLowerCase() === address.toLowerCase() && (
+                                <span className="text-sm">🎖️</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">$:</span>
+                              <span className="text-sm font-medium">{pnlRank}</span>
+                              {pnlLeader?.address.toLowerCase() === address.toLowerCase() && (
+                                <span className="text-sm">🏆</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         <div
                           className={cn(
@@ -271,13 +344,25 @@ function LeaderboardTable<T, P>({
                           </div>
                         </div>
                         <div className={cn(cellStyling, "col-span-2")}>
-                          <DisplayFormattedNumber num={total.pnlUsd} /> USD
+                          <span className={
+                            total.pnlUsdPercentage > 0
+                              ? "text-accent-600 dark:text-accent-100"
+                              : ""
+                          }>
+                            <DisplayFormattedNumber
+                              num={total.pnlUsdPercentage}
+                            />
+                            %
+                          </span>
                         </div>
                         <div className={cn(cellStyling, "col-span-2")}>
-                          <DisplayFormattedNumber
-                            num={total.pnlUsdPercentage}
-                          />
-                          %
+                          <span className={
+                            total.pnlUsd > 0
+                              ? "text-accent-600 dark:text-accent-100"
+                              : ""
+                          }>
+                            <DisplayFormattedNumber num={total.pnlUsd} /> USD
+                          </span>
                         </div>
                       </div>
                     </AccordionTrigger>
@@ -298,6 +383,7 @@ function LeaderboardTable<T, P>({
         </div>
       </div>
     </Card>
+    </>
   );
 }
 
