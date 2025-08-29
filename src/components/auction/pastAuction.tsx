@@ -291,7 +291,7 @@ const PastAuction = ({
           </>
         ) : (
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-lg">No Auctions available</p>
+            <p className="text-lg">No auctions available</p>
           </div>
         )}
       </Show>

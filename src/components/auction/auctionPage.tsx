@@ -9,7 +9,6 @@ import PastAuction from "@/components/auction/pastAuction";
 import NewAuction from "@/components/auction/newAuction";
 import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
-import { Badge } from "@/components/ui/badge";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -60,34 +59,34 @@ const AuctionPage = () => {
       <Container className="max-w-[904px] lg:w-[904px]">
         <Explainer page={EPage.AUCTIONS} />
         <Tabs defaultValue="active">
-          <TabsList className="mx-auto w-max">
-            <TabsTrigger value="create">
-              <span className="flex items-center gap-1.5">
+          <TabsList className="mx-auto w-max gap-2">
+            <TabsTrigger value="create" className="whitespace-nowrap min-w-[100px]">
+              <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>➕</span>
                 <span>Start</span>
-              </span>
+              </div>
             </TabsTrigger>
-            <TabsTrigger value="active">
-              <span className="flex items-center gap-1.5">
+            <TabsTrigger value="active" className="whitespace-nowrap min-w-[100px]">
+              <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>🟢</span>
                 <span>Active</span>
                 {ongoingCount > 0 && (
-                  <Badge variant="outline" className="ml-1 h-5 w-auto px-1.5 text-xs">
+                  <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
                     {ongoingCount}
-                  </Badge>
+                  </span>
                 )}
-              </span>
+              </div>
             </TabsTrigger>
-            <TabsTrigger value="history">
-              <span className="flex items-center gap-1.5">
+            <TabsTrigger value="history" className="whitespace-nowrap min-w-[160px]">
+              <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>📋</span>
                 <span>History</span>
                 {pastCount > 0 && (
-                  <Badge variant="outline" className="ml-1 h-5 w-auto px-1.5 text-xs">
+                  <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
                     {pastCount}
-                  </Badge>
+                  </span>
                 )}
-              </span>
+              </div>
             </TabsTrigger>
           </TabsList>
 

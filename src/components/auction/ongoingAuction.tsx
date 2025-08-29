@@ -333,7 +333,7 @@ const OngoingAuction = ({
         )}
         {userAuction.length === 0 && otherAuction.length === 0 && (
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-lg">No Auctions available</p>
+            <p className="text-lg">No active auctions</p>
           </div>
         )}
       </Show>
