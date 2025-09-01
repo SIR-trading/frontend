@@ -1,5 +1,6 @@
 import type { TAddressString } from "@/lib/types";
 import BurnForm from "../burnForm/burnForm";
+import TransferForm from "../transferForm/transferForm";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { useEffect } from "react";
 import { BurnFormModal } from "./burnFormModal";
@@ -8,15 +9,16 @@ export default function SelectedRow({
   params,
   close,
   isApe,
-  isClaiming,
+  mode,
   teaBal,
   apeBal,
   teaRewards,
+  apeAddress,
 }: {
   params: TUserPosition;
   apeAddress?: TAddressString;
   isApe: boolean;
-  isClaiming: boolean;
+  mode: "burn" | "claim" | "transfer";
   close: () => void;
   teaBal: bigint | undefined;
   apeBal: bigint | undefined;
@@ -34,19 +36,22 @@ export default function SelectedRow({
   //   { enabled: Boolean(address) && !isApe },
   // );
   const atBal = isApe ? apeBal : teaBal;
-  if (!params) {
-    <div>
-      <h1>Hello</h1>
-    </div>;
-  }
+  
   useEffect(() => {
     if (atBal === undefined) {
       close();
     }
   }, [atBal, close]);
+  
+  // Check if params is undefined (should not happen but safety check)
+  if (!params) {
+    console.error("SelectedRow: params is undefined");
+    close();
+    return null;
+  }
 
   if (atBal === undefined) {
-    return;
+    return null;
   }
   // const balance = isClaiming
   //   ? formatUnits(teaRewards ?? 0n, 12)
@@ -54,15 +59,25 @@ export default function SelectedRow({
   //
   return (
     <BurnFormModal reset={close}>
-      <BurnForm
-        isClaiming={isClaiming}
-        teaRewardBalance={teaRewards}
-        levTier={params.leverageTier}
-        close={close}
-        isApe={isApe}
-        balance={atBal}
-        row={params}
-      />
+      {mode === "transfer" ? (
+        <TransferForm
+          close={close}
+          isApe={isApe}
+          balance={atBal}
+          row={params}
+          apeAddress={apeAddress}
+        />
+      ) : (
+        <BurnForm
+          isClaiming={mode === "claim"}
+          teaRewardBalance={teaRewards}
+          levTier={params.leverageTier}
+          close={close}
+          isApe={isApe}
+          balance={atBal}
+          row={params}
+        />
+      )}
     </BurnFormModal>
     // <div className="animate-fade-in">
     //   <div className="hidden flex-col  gap-y-4 pb-4 md:flex">

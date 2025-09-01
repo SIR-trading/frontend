@@ -26,7 +26,8 @@ import { getCurrentTime } from "@/lib/utils/index";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
 
 // Helper function to convert vaultId to consistent decimal format
-const getDisplayVaultId = (vaultId: string): string => {
+const getDisplayVaultId = (vaultId: string | undefined): string => {
+  if (!vaultId) return "";
   // If vaultId starts with '0x', it's hexadecimal and needs conversion
   if (vaultId.startsWith('0x')) {
     try {
@@ -347,7 +348,7 @@ export default function BurnForm({
             <button
               type="button"
               onClick={() => close()}
-              className="cursor-pointer text-foreground/80 transition-transform hover:scale-105 hover:text-foreground"
+              className="cursor-pointer text-foreground/80 transition-transform hover:scale-105 hover:text-foreground focus:outline-none"
             >
               <X />
             </button>

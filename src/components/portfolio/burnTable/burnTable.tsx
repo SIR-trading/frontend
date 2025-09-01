@@ -18,7 +18,7 @@ export default function BurnTable({
     | {
         vaultId: string;
         isApe: boolean;
-        isClaiming: boolean;
+        mode: "burn" | "claim" | "transfer";
       }
     | undefined
   >();
@@ -53,16 +53,16 @@ export default function BurnTable({
   }, [selectedRow?.vaultId]);
   const loading = ape.isLoading || tea.isLoading;
 
-  const apePosition = ape.data?.apePositions.map((r) => (
+  const apePosition = ape.data?.apePositions.map((r, index) => (
     <BurnTableRow
-      setSelectedRow={(isClaiming: boolean) =>
+      setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
         setSelectedRow({
           vaultId: r.vaultId,
           isApe: true,
-          isClaiming,
+          mode,
         })
       }
-      key={r.vaultId + "ape"}
+      key={(r.vaultId || index) + "ape"}
       row={{
         id: r.vaultId,
         balance: r.balance,
@@ -89,7 +89,7 @@ export default function BurnTable({
     showTea = (
       <SelectedRow
         isApe={false}
-        isClaiming={selectedRow.isClaiming}
+        mode={selectedRow.mode}
         params={selectedRowParamsTea}
         close={() => {
           setSelectedRow(undefined);
@@ -117,7 +117,7 @@ export default function BurnTable({
     <div className="relative">
       {selectedRowParamsApe && selectedRow && (
         <SelectedRow
-          isClaiming={selectedRow?.isClaiming}
+          mode={selectedRow.mode}
           isApe
           params={selectedRowParamsApe}
           apeAddress={selectedRowParamsApe?.ape}
@@ -170,39 +170,37 @@ export default function BurnTable({
                   {apePosition}
                 </Show>
                 <Show when={filter === "tea" || filter === "all"}>
-                  {tea.data?.teaPositions.map((r) => {
+                  {tea.data?.teaPositions.map((r, index) => {
                     return (
-                      <>
-                        <BurnTableRow
-                          row={{
-                            ...r,
-                          }}
-                          key={r.id + "tea"}
-                          isApe={false}
-                          setSelectedRow={(isClaiming: boolean) =>
-                            setSelectedRow({
-                              vaultId: r.vaultId,
-                              isApe: false,
-                              isClaiming,
-                            })
-                          }
-                          apeBal={
-                            userBalancesInVaults?.apeBalances[
-                              Number(r.vaultId) - 1
-                            ]
-                          }
-                          teaBal={
-                            userBalancesInVaults?.teaBalances[
-                              Number(r.vaultId) - 1
-                            ]
-                          }
-                          teaRewards={
-                            userBalancesInVaults?.unclaimedSirRewards[
-                              Number(r.vaultId) - 1
-                            ]
-                          }
-                        />
-                      </>
+                      <BurnTableRow
+                        key={(r.vaultId || index) + "tea"}
+                        row={{
+                          ...r,
+                        }}
+                        isApe={false}
+                        setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
+                          setSelectedRow({
+                            vaultId: r.vaultId,
+                            isApe: false,
+                            mode,
+                          })
+                        }
+                        apeBal={
+                          userBalancesInVaults?.apeBalances[
+                            Number(r.vaultId) - 1
+                          ]
+                        }
+                        teaBal={
+                          userBalancesInVaults?.teaBalances[
+                            Number(r.vaultId) - 1
+                          ]
+                        }
+                        teaRewards={
+                          userBalancesInVaults?.unclaimedSirRewards[
+                            Number(r.vaultId) - 1
+                          ]
+                        }
+                      />
                     );
                   })}
                 </Show>

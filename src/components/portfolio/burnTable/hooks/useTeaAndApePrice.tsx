@@ -24,7 +24,6 @@ export function useTeaAndApePrice({
       enabled: Boolean(amount),
     },
   );
-  console.log("QUOTE__BURN__", quoteBurn);
   const formatted = formatUnits(quoteBurn ?? 0n, row.decimals);
   const contractAddress: string = row.collateralToken ?? "";
   const { data: tokens } = api.price.getTokenPrice.useQuery(
@@ -36,8 +35,6 @@ export function useTeaAndApePrice({
       enabled: Boolean(contractAddress)
     }
   )
-  console.log("TOKEN", row.collateralToken)
-  console.log("PRICE___", tokens)
   // Calculate the prices for both conversion directions.
   const collateralPrice = tokens?.data[0]?.prices[0]?.value
     ? Number(tokens.data[0].prices[0].value)
