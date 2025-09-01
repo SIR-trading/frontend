@@ -152,7 +152,7 @@ export function BurnTableRow({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-8 w-8 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0"
+                className="h-8 w-8 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -222,7 +222,7 @@ export function BurnTableRow({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-7 w-7 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0"
+                className="h-7 w-7 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
               >
                 <MoreVertical className="h-3 w-3" />
               </Button>
