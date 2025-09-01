@@ -30,7 +30,7 @@ const auctions = (type: TAuctionType, first = 100) => {
     query AuctionQuery($user: Bytes, $skip: Int) {
       auctions (
          orderBy: startTime
-         orderDirection: asc
+         orderDirection: desc
          skip: $skip
          first: ${first}
          ${whereClause}
