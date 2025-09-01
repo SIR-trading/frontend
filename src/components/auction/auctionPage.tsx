@@ -9,6 +9,7 @@ import PastAuction from "@/components/auction/pastAuction";
 import NewAuction from "@/components/auction/newAuction";
 import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
+import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -20,6 +21,7 @@ const AuctionPage = () => {
   const { data: vaults } = api.vault.getVaults.useQuery();
   const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
   const { data: expiredAuctions } = api.auction.getExpiredAuctions.useQuery({});
+  const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery();
 
   const uniqueAuctionCollection = useMemo<TUniqueAuctionCollection>(() => {
     const uniqueCollateralToken = new Set<string>();
@@ -50,6 +52,44 @@ const AuctionPage = () => {
     };
   }, [vaults]);
 
+  const { data: tokenWithFeesMap } = api.vault.getTotalCollateralFeesInVault.useQuery(
+    Array.from(uniqueAuctionCollection.uniqueCollateralToken),
+    {
+      enabled: uniqueAuctionCollection.uniqueCollateralToken.size > 0,
+    },
+  );
+
+  // Calculate ready to start count
+  const readyToStartCount = useMemo(() => {
+    if (!tokenWithFeesMap || !allExistingAuctions) return 0;
+    
+    let count = 0;
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    // Check existing auctions that can be restarted
+    allExistingAuctions.forEach((auction) => {
+      const amount = tokenWithFeesMap.get(auction.token);
+      if (amount && amount > BigInt(0)) {
+        const timeToStart = +auction.startTime + AUCTION_COOLDOWN;
+        if (timeToStart <= currentTime) {
+          count++;
+        }
+      }
+    });
+
+    // Check new tokens that have never had an auction
+    uniqueAuctionCollection.uniqueCollateralToken.forEach((token) => {
+      if (!allExistingAuctions.some((auction) => auction.token === token)) {
+        const amount = tokenWithFeesMap.get(token);
+        if (amount && amount > BigInt(0)) {
+          count++;
+        }
+      }
+    });
+
+    return count;
+  }, [allExistingAuctions, tokenWithFeesMap, uniqueAuctionCollection.uniqueCollateralToken]);
+
   const ongoingCount = ongoingAuctions?.length ?? 0;
   const pastCount = expiredAuctions?.length ?? 0;
 
@@ -64,17 +104,18 @@ const AuctionPage = () => {
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>➕</span>
                 <span>Start</span>
+                <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
+                  {readyToStartCount}
+                </span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="active" className="whitespace-nowrap px-3">
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>🟢</span>
                 <span>Active</span>
-                {ongoingCount > 0 && (
-                  <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
-                    {ongoingCount}
-                  </span>
-                )}
+                <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
+                  {ongoingCount}
+                </span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="history" className="whitespace-nowrap px-3">
