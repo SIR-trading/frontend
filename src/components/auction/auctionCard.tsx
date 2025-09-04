@@ -18,6 +18,8 @@ export enum AuctionCardTitle {
   TOKEN = "Token",
   ENDED = "Ended",
   WINNING_BID = "Winning Bid",
+  // Alternative label for active auctions
+  CLOSES_IN = "Closes in",
 }
 
 interface TAuctionDataContent {

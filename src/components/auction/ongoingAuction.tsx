@@ -184,7 +184,7 @@ const OngoingAuction = ({
                       ],
                       [
                         {
-                          title: AuctionCardTitle.CLOSING_TIME,
+                          title: AuctionCardTitle.CLOSES_IN,
                           content: (
                             <Countdown
                               date={(+startTime + AUCTION_DURATION) * 1000}
@@ -226,7 +226,7 @@ const OngoingAuction = ({
         )}
 
         {otherAuction.length > 0 && (
-          <AuctionContentWrapper header={"Ongoing auctions"}>
+          <AuctionContentWrapper>
             {otherAuction.map(
               ({ startTime, highestBid, token, amount, highestBidder }) => (
                 <AuctionCard
@@ -293,7 +293,7 @@ const OngoingAuction = ({
                     ],
                     [
                       {
-                        title: AuctionCardTitle.CLOSING_TIME,
+                        title: AuctionCardTitle.CLOSES_IN,
                         content: (
                           <Countdown
                             date={(+startTime + AUCTION_DURATION) * 1000}
