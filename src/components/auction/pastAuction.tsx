@@ -20,8 +20,9 @@ import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton"
 import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 import Pagination from "@/components/shared/pagination";
+import { AUCTION_DURATION } from "@/components/auction/__constants";
 
-const length = 10; // Number of auctions per page
+const length = 4; // Number of auctions per page
 
 const PastAuction = ({
   uniqueAuctionCollection,
@@ -169,15 +170,15 @@ const PastAuction = ({
                   highestBid,
                   highestBidder,
                   token,
-                  isParticipant,
                   isClaimed,
+                  startTime,
                 }) => (
                   <AuctionCard
                     auctionType="past"
                     data={[
                       [
                         {
-                          title: AuctionCardTitle.AUCTION_DETAILS,
+                          title: AuctionCardTitle.TOKEN,
                           content: (
                             <AddressExplorerLink
                               address={token}
@@ -217,20 +218,7 @@ const PastAuction = ({
                       ],
                       [
                         {
-                          title: AuctionCardTitle.YOUR_BID,
-                          content: (
-                            <TokenDisplay
-                              amount={BigInt(isParticipant[0]?.bid ?? "0")}
-                              labelSize="small"
-                              amountSize="large"
-                              decimals={18}
-                              unitLabel={"ETH"}
-                              className={"text-lg"}
-                            />
-                          ),
-                        },
-                        {
-                          title: AuctionCardTitle.HIGHEST_BID,
+                          title: AuctionCardTitle.WINNING_BID,
                           content: (
                             <TokenDisplay
                               amount={BigInt(highestBid)}
@@ -242,22 +230,29 @@ const PastAuction = ({
                             />
                           ),
                         },
-                      ],
-                      [
-                        {
-                          title: AuctionCardTitle.CLOSING_TIME,
-                          content: "Closed",
-                        },
                         {
                           title: AuctionCardTitle.Winner,
                           content: compareAddress(highestBidder, address) ? (
                             "YOU WON"
                           ) : hexToBigInt(highestBidder as Address) ===
                             BigInt(0) ? (
-                            "N/A"
+                            <span className="italic text-muted-foreground">Passed</span>
                           ) : (
                             <AddressExplorerLink address={highestBidder} />
                           ),
+                        },
+                      ],
+                      [
+                        {
+                          title: AuctionCardTitle.ENDED,
+                          content: new Date(
+                            (+startTime + AUCTION_DURATION) * 1000
+                          ).toLocaleString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }),
                         },
                       ],
                     ]}

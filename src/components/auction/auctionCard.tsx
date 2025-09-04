@@ -14,6 +14,10 @@ export enum AuctionCardTitle {
   LEADER = "Leader",
   Winner = "Winner",
   AMOUNT = "Amount",
+  // Alternative labels for past auctions
+  TOKEN = "Token",
+  ENDED = "Ended",
+  WINNING_BID = "Winning Bid",
 }
 
 interface TAuctionDataContent {
@@ -60,7 +64,7 @@ const AuctionCard = ({
         <div key={index} className="grid grid-cols-2 gap-6">
           {item.map((subItem, subIndex) => (
             <div key={subIndex}>
-              <p className="mb-2 font-geist text-sm">{subItem.title}</p>
+              <p className="mb-2 font-geist text-sm text-muted-foreground">{subItem.title}</p>
               <div
                 className={cn(
                   subItem.variant

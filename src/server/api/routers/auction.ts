@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
-import { getOngoingAuctions } from "@/server/queries/auctions";
+import { getAuctions } from "@/server/queries/auctions";
 import { multicall } from "@/lib/viemClient";
 import { SirContract } from "@/contracts/sir";
 import type { Address } from "viem";
@@ -10,7 +10,7 @@ export const auctionRouter = createTRPCRouter({
   getOngoingAuctions: publicProcedure
     .input(z.string().startsWith("0x").length(42).optional())
     .query(async ({ input: user }) => {
-      const auctions = await getOngoingAuctions(user, "ongoing");
+      const auctions = await getAuctions(user, "ongoing");
       return auctions.auctions;
     }),
 
@@ -23,14 +23,14 @@ export const auctionRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input: { user, skip, first } }) => {
-      const auctions = await getOngoingAuctions(user, "expired", skip, first);
+      const auctions = await getAuctions(user, "expired", skip, first);
       return auctions.auctions;
     }),
 
   getallAuctions: publicProcedure
     .input(z.string().startsWith("0x").length(42).optional())
     .query(async ({ input: user }) => {
-      const auctions = await getOngoingAuctions(user);
+      const auctions = await getAuctions(user);
       return auctions.auctions;
     }),
 
