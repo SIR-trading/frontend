@@ -19,6 +19,8 @@ import { WETH_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
+import { TokenImage } from "@/components/shared/TokenImage";
+import type { Address } from "viem";
 
 type TNewAuctionData = {
   amount: bigint;
@@ -191,11 +193,17 @@ const NewAuction = ({
                       {
                         title: AuctionCardTitle.AUCTION_DETAILS,
                         content: (
-                          <AddressExplorerLink
-                            address={auction.token}
-                            fontSize={20}
-                            shortenLength={4}
-                          />
+                          <div className="flex items-center gap-2">
+                            <TokenImage
+                              address={auction.token as Address}
+                              width={24}
+                              height={24}
+                            />
+                            <AddressExplorerLink
+                              address={auction.token}
+                              shortenLength={4}
+                            />
+                          </div>
                         ),
                       },
                       {
@@ -252,11 +260,17 @@ const NewAuction = ({
                     {
                       title: AuctionCardTitle.AUCTION_DETAILS,
                       content: (
-                        <AddressExplorerLink
-                          address={auction.token}
-                          fontSize={20}
-                          shortenLength={4}
-                        />
+                        <div className="flex items-center gap-2">
+                          <TokenImage
+                            address={auction.token as Address}
+                            width={24}
+                            height={24}
+                          />
+                          <AddressExplorerLink
+                            address={auction.token}
+                            shortenLength={4}
+                          />
+                        </div>
                       ),
                     },
                     {

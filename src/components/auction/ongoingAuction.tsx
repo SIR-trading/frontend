@@ -20,6 +20,7 @@ import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton"
 import Show from "@/components/shared/show";
 import type { Address } from "viem";
 import { hexToBigInt } from "viem";
+import { TokenImage } from "@/components/shared/TokenImage";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -118,11 +119,17 @@ const OngoingAuction = ({
                         {
                           title: AuctionCardTitle.AUCTION_DETAILS,
                           content: (
-                            <AddressExplorerLink
-                              address={token}
-                              fontSize={20}
-                              shortenLength={4}
-                            />
+                            <div className="flex items-center gap-2">
+                              <TokenImage
+                                address={token as Address}
+                                width={24}
+                                height={24}
+                              />
+                              <AddressExplorerLink
+                                address={token}
+                                shortenLength={4}
+                              />
+                            </div>
                           ),
                         },
                         {
@@ -236,11 +243,17 @@ const OngoingAuction = ({
                       {
                         title: AuctionCardTitle.AUCTION_DETAILS,
                         content: (
-                          <AddressExplorerLink
-                            address={token}
-                            fontSize={20}
-                            shortenLength={4}
-                          />
+                          <div className="flex items-center gap-2">
+                            <TokenImage
+                              address={token as Address}
+                              width={24}
+                              height={24}
+                            />
+                            <AddressExplorerLink
+                              address={token}
+                              shortenLength={4}
+                            />
+                          </div>
                         ),
                       },
                       {

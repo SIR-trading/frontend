@@ -21,6 +21,7 @@ import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 import Pagination from "@/components/shared/pagination";
 import { AUCTION_DURATION } from "@/components/auction/__constants";
+import { TokenImage } from "@/components/shared/TokenImage";
 
 const length = 4; // Number of auctions per page
 
@@ -180,11 +181,17 @@ const PastAuction = ({
                         {
                           title: AuctionCardTitle.TOKEN,
                           content: (
-                            <AddressExplorerLink
-                              address={token}
-                              fontSize={20}
-                              shortenLength={4}
-                            />
+                            <div className="flex items-center gap-2">
+                              <TokenImage
+                                address={token as Address}
+                                width={24}
+                                height={24}
+                              />
+                              <AddressExplorerLink
+                                address={token}
+                                shortenLength={4}
+                              />
+                            </div>
                           ),
                         },
                         {

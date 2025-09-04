@@ -14,7 +14,7 @@ const AmountVariants = classVarianceAuthority.cva("", {
   defaultVariants: { amountSize: "large" },
 });
 
-const LabelVariants = classVarianceAuthority.cva("text-foreground/70", {
+const LabelVariants = classVarianceAuthority.cva("", {
   variants: {
     labelSize: {
       small: "",
@@ -48,6 +48,8 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
     ref,
   ) => {
     const tokenAmount = formatUnits(amount ?? 0n, decimals ?? 18);
+    // For large amount size, keep number large but symbol normal
+    const isLargeAmount = amountSize === "large";
     return (
       <h3
         ref={ref}
@@ -58,7 +60,10 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
           num={tokenAmount} 
           significant={disableRounding ? undefined : round} 
         />
-        <span className={cn(LabelVariants({ labelSize }))}> {unitLabel}</span>
+        <span className={cn(
+          LabelVariants({ labelSize }), 
+          isLargeAmount ? "text-base" : ""
+        )}> {unitLabel}</span>
       </h3>
     );
   },
