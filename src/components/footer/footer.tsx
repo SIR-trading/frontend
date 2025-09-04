@@ -35,6 +35,13 @@ export default function Footer() {
           >
             Contract addresses
           </a>
+          <a
+            className="hover:text-foreground"
+            href="https://docs.sir.trading/protocol-overview/user-risks/bug-bounty"
+            target="_blank"
+          >
+            Bug Bounty
+          </a>
         </nav>
         <nav className="flex items-center gap-x-4 text-[14px] text-muted-foreground ">
           <a
