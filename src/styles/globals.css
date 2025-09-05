@@ -62,7 +62,7 @@ html {
     --red: 4, 86%, 58%;
     --red-200: 4, 86%, 48%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 240, 15%, 70%, 1;
+    --muted-foreground: 240, 15%, 50%, 1;
 
     --background: 0, 0%, 100%;  /* When changing this, change the last color of `.gradient-bg` too */
     --foreground: 240, 15%, 13%;
@@ -76,7 +76,7 @@ html {
   }
   html.dark {
     --muted: 240, 15%, 20%;
-    --muted-foreground: 240, 15%, 60%;
+    --muted-foreground: 240, 15%, 70%;
 
     --background: 236, 37%, 8%; /* When changing this, change the last color of `.gradient-bg` too */
     --foreground: 0, 0%, 100%;

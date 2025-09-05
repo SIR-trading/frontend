@@ -19,7 +19,7 @@ export function SirCard() {
         <div className="flex gap-x-2 ">
           <div className="flex w-full justify-between">
             <div>
-              <h2 className="pb-1 text-sm">
+              <h2 className="pb-1 text-sm text-muted-foreground">
                 Your Unstaked SIR
               </h2>
               <div className="flex justify-between text-3xl   ">
