@@ -1,0 +1,110 @@
+"use client";
+import type { FC } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "./hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { HoverCardArrow } from "@radix-ui/react-hover-card";
+import { PopoverArrow } from "@radix-ui/react-popover";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const hoverPopupVariants = cva(
+  "rounded-md bg-zinc-950/80 dark:bg-zinc-950/80 backdrop-blur-xl px-2 py-2 text-foreground text-left text-xs border border-black/20 dark:border-white/10 shadow-lg",
+  {
+    variants: {
+      size: { 
+        "200": "max-w-[200px]", 
+        "250": "max-w-[250px]",
+        "300": "max-w-[300px]" 
+      },
+    },
+    defaultVariants: { size: "250" },
+  },
+);
+
+interface HoverPopupMobileProps extends VariantProps<typeof hoverPopupVariants> {
+  trigger: React.ReactNode;
+  children: React.ReactNode;
+  side?: "top" | "right" | "bottom" | "left";
+  alignOffset?: number;
+  openDelay?: number;
+  closeDelay?: number;
+  asChild?: boolean;
+  className?: string;
+}
+
+const HoverPopupMobile: FC<HoverPopupMobileProps> = ({ 
+  trigger, 
+  children, 
+  size,
+  side = "top",
+  alignOffset = 10,
+  openDelay = 0,
+  closeDelay = 20,
+  asChild = false,
+  className
+}) => {
+  const [hasHover, setHasHover] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if device supports hover
+    const checkHover = () => {
+      setHasHover(window.matchMedia('(hover: hover)').matches);
+    };
+    
+    checkHover();
+    
+    const mediaQuery = window.matchMedia('(hover: hover)');
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', checkHover);
+      return () => mediaQuery.removeEventListener('change', checkHover);
+    }
+  }, []);
+
+  // Desktop with hover support
+  if (hasHover) {
+    return (
+      <HoverCard
+        openDelay={openDelay}
+        closeDelay={closeDelay}
+      >
+        <HoverCardTrigger asChild={asChild} className={className}>
+          {trigger}
+        </HoverCardTrigger>
+        <HoverCardContent side={side} alignOffset={alignOffset}>
+          <div className={hoverPopupVariants({ size })}>{children}</div>
+          <HoverCardArrow
+            className="fill-black/20 dark:fill-white/10"
+            height={15}
+            width={14}
+          />
+        </HoverCardContent>
+      </HoverCard>
+    );
+  }
+
+  // Mobile without hover support - use Popover for click/tap
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild={asChild} className={cn(className, "touch-underline")}>
+        {trigger}
+      </PopoverTrigger>
+      <PopoverContent side={side} alignOffset={alignOffset} className="p-0 border-0 bg-transparent">
+        <div className={hoverPopupVariants({ size })}>{children}</div>
+        <PopoverArrow
+          className="fill-black/20 dark:fill-white/10"
+          height={15}
+          width={14}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+export default HoverPopupMobile;

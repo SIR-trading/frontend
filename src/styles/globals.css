@@ -98,6 +98,17 @@ html {
   }
 }
 
+/* Dotted underline for touch devices */
+@media (hover: none) {
+  .touch-underline {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 1px;
+    cursor: pointer;
+  }
+}
+
 @keyframes scaleUp {
   0% {
     transform: scale(0.9); /* 50% scale */

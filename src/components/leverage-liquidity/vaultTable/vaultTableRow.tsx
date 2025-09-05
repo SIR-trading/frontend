@@ -12,7 +12,7 @@ import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import { useTheme } from "next-themes";
-import HoverPopup from "@/components/ui/hover-popup";
+import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import { TokenDisplay } from "@/components/ui/token-display";
 import {
   calculateApeVaultFee,
@@ -294,7 +294,7 @@ export function VaultTableRow({
         <div className="flex h-full items-center gap-x-1">
           <span className="w-5">{pool.vaultId}</span>
           {parsedRateAmount > 0n && (
-            <HoverPopup
+            <HoverPopupMobile
               size="200"
               asChild
               trigger={
@@ -314,7 +314,7 @@ export function VaultTableRow({
                 <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
                 SIR/day.
               </span>
-            </HoverPopup>
+            </HoverPopupMobile>
           )}
         </div>
       </td>
@@ -337,7 +337,7 @@ export function VaultTableRow({
             alt="Debt token"
           />
           {variant.variant === "red" ? (
-            <HoverPopup
+            <HoverPopupMobile
               size="200"
               alignOffset={4}
               asChild
@@ -350,7 +350,7 @@ export function VaultTableRow({
               <div className="text-[13px] font-medium">
                 Insufficient liquidity for constant ^{getLeverageRatio(pool.leverageTier)} leverage
               </div>
-            </HoverPopup>
+            </HoverPopupMobile>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
               {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
@@ -395,7 +395,7 @@ export function VaultTableRow({
       </td>
       <td className="flex items-center pl-1 sm:pl-3">
         {!isApe ? (
-          <HoverPopup
+          <HoverPopupMobile
             size="250"
             trigger={
               <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : ''}`} style={{ color: getApyColor() ?? (isApyLoading ? undefined : 'inherit') }}>
@@ -404,24 +404,17 @@ export function VaultTableRow({
             }
           >
             <div className="space-y-1 text-[13px] font-medium">
-              <div className="font-semibold">APY Breakdown:</div>
-              {apyData && (
-                <>
-                  <div className="flex justify-between">
-                    <span>LP Fees:</span>
-                    <span><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>SIR Rewards:</span>
-                    <span className="ml-2"><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</span>
-                  </div>
-                </>
-              )}
-              {!apyData && !isApyLoading && (
-                <div className="text-foreground/60">No data available</div>
-              )}
+              <div className="font-semibold text-left">APY Breakdown:</div>
+              <div className="flex justify-between gap-x-4">
+                <span>LP Fees:</span>
+                <span>{apyData ? <><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</> : '-'}</span>
+              </div>
+              <div className="flex justify-between gap-x-4">
+                <span>SIR Rewards:</span>
+                <span>{apyData ? <><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</> : '-'}</span>
+              </div>
             </div>
-          </HoverPopup>
+          </HoverPopupMobile>
         ) : (
           <h4 className="font-normal text-[13px]" style={{ color: getFeeColor() }}>
             {roundDown(fee, 0)}%
@@ -432,7 +425,7 @@ export function VaultTableRow({
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
       <td className="relative hidden items-center md:flex">
-        <HoverPopup
+        <HoverPopupMobile
           size="200"
           alignOffset={4}
           asChild
@@ -462,11 +455,11 @@ export function VaultTableRow({
               leverageRatio={getLeverageRatio(pool.leverageTier).toString()}
             ></DisplayBadgeInfo>
           </div>
-        </HoverPopup>
+        </HoverPopupMobile>
       </td>
 
       <td className="relative flex items-center justify-end gap-x-1 text-right md:col-span-2">
-        <HoverPopup
+        <HoverPopupMobile
           size="250"
           asChild
           trigger={
@@ -493,10 +486,10 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveApes ?? 0n}
                   amountSize="small"
-                  unitLabel=""
+                  unitLabel={pool.collateralSymbol}
                   decimals={pool.apeDecimals}
                 />
-                <span>({((apeCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+                <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>
             </div>
             <div className="flex justify-between gap-x-4">
@@ -505,14 +498,14 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveLPers ?? 0n}
                   amountSize="small"
-                  unitLabel=""
+                  unitLabel={pool.collateralSymbol}
                   decimals={pool.apeDecimals}
                 />
-                <span>({((teaCollateral * 100) / (tvl ?? 1)).toFixed(2)}%)</span>
+                <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>
             </div>
           </div>
-        </HoverPopup>
+        </HoverPopupMobile>
       </td>
     </tr>
   );
