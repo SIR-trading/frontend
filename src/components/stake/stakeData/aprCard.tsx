@@ -13,7 +13,7 @@ export default function AprCard() {
   return (
     <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
       <div className="flex w-full flex-row items-center justify-center">
-        <div className="text-gray-300 px-2 text-sm">Staking APR</div>
+        <div className="text-muted-foreground px-2 text-sm">Staking APR</div>
         <ToolTip size="300">
           <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
             <span>

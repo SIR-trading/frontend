@@ -26,7 +26,7 @@ export default function StakeCard() {
         <div className="flex gap-x-2">
           <div className="flex w-full justify-between">
             <div>
-              <h2 className="pb-1 text-sm">
+              <h2 className="pb-1 text-sm text-muted-foreground">
                 Your Unstaked SIR
               </h2>
               <div className="flex justify-between text-3xl">
@@ -37,8 +37,8 @@ export default function StakeCard() {
                       isConnected ? (
                         <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
                       ) : (
-                        <div className="text-sm text-foreground/60">
-                          Connect wallet to view
+                        <div className="text-sm text-foreground italic">
+                          Connect to start staking
                         </div>
                       )
                     }

@@ -30,8 +30,8 @@ export function SirCard() {
                       isConnected ? (
                         <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
                       ) : (
-                        <div className="text-sm text-foreground/60">
-                          Connect wallet to view
+                        <div className="text-sm text-foreground italic">
+                          Connect to stake
                         </div>
                       )
                     }

@@ -162,7 +162,7 @@ export default function BurnTable({
                 when={hasPositions}
                 fallback={
                   <IdleContainer>
-                    {isConnected ? "No Positions." : "Connect wallet to view"}
+                    {isConnected ? "No Positions." : "Connect to see portfolio"}
                   </IdleContainer>
                 }
               >
@@ -216,7 +216,7 @@ export default function BurnTable({
 function IdleContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex justify-center py-6">
-      <h1 className="text-gray-300">{children}</h1>
+      <h1 className="text-foreground italic">{children}</h1>
     </div>
   );
 }

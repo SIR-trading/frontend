@@ -39,7 +39,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
   return (
     <div className="mx-auto grid gap-4 font-normal md:grid-cols-3  ">
       <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
-        <div className="text-sm font-normal text-gray-300">
+        <div className="text-sm font-normal text-muted-foreground">
           Total Staked SIR
         </div>
         {/* <div className="text-2xl font-semibold ">
@@ -63,7 +63,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
 
       <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
-          <div className="px-2 text-sm text-gray-300">Your Staked SIR</div>
+          <div className="px-2 text-sm text-muted-foreground">Your Staked SIR</div>
         </div>
         <div className=" text-2xl ">
           <Show 
@@ -75,8 +75,8 @@ const StakeData = ({ children }: { children: ReactNode }) => {
                   <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
                 </div>
               ) : (
-                <div className="text-sm text-foreground/60 text-center">
-                  Connect wallet to view
+                <div className="text-sm text-foreground italic text-center">
+                  Connect to see your stake
                 </div>
               )
             }

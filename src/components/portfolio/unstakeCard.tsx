@@ -41,8 +41,8 @@ export function UnstakeCard() {
                             <div className="h-6 w-24 bg-foreground/10 rounded animate-pulse"></div>
                           </div>
                         ) : (
-                          <div className="text-sm text-foreground/60">
-                            Connect wallet to view
+                          <div className="text-sm text-foreground italic">
+                            Connect to unstake
                           </div>
                         )
                       }
