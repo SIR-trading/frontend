@@ -106,6 +106,9 @@ html {
     text-decoration-color: currentColor;
     text-decoration-thickness: 1px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
 }
 

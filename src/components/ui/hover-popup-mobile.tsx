@@ -90,10 +90,25 @@ const HoverPopupMobile: FC<HoverPopupMobileProps> = ({
   }
 
   // Mobile without hover support - use Popover for click/tap
+  // Wrap trigger to prevent event propagation
+  const mobileWrapper = (
+    <div 
+      onClick={(e: React.MouseEvent) => {
+        e.stopPropagation();
+      }}
+      className="inline-block"
+    >
+      {trigger}
+    </div>
+  );
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild={asChild} className={cn(className, "touch-underline")}>
-        {trigger}
+      <PopoverTrigger 
+        asChild={true} 
+        className={cn(className, "touch-underline")}
+      >
+        {mobileWrapper}
       </PopoverTrigger>
       <PopoverContent side={side} alignOffset={alignOffset} className="p-0 border-0 bg-transparent">
         <div className={hoverPopupVariants({ size })}>{children}</div>
