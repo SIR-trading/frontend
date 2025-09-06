@@ -11,7 +11,7 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils/index";
 
 const navItemVariants = cva(
-  "whitespace-nowrap cursor-pointer rounded-md px-2 py-1 hover:text-foreground text-foreground/50 data-[active=true]:text-foreground transition-all duration-200 hover:bg-accent/50",
+  "whitespace-nowrap cursor-pointer rounded-md px-2 py-1 hover:text-foreground text-foreground/50 data-[active=true]:text-foreground",
   {
     variants: {
       theme: {

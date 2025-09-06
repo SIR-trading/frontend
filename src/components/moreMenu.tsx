@@ -40,8 +40,7 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger className={cn(
         "flex items-center gap-1 whitespace-nowrap cursor-pointer rounded-md px-2 py-1",
-        "hover:text-foreground text-foreground/50 outline-none transition-all duration-200",
-        "hover:bg-accent/50",
+        "hover:text-foreground text-foreground/50 outline-none",
         isActiveInDropdown && "text-foreground"
       )}>
         More
@@ -54,12 +53,13 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <DropdownMenuItem key={item.url} asChild>
+            <DropdownMenuItem key={item.url} asChild className="focus:bg-transparent">
               <Link
                 href={item.url}
                 className={cn(
-                  "flex items-center gap-2 w-full cursor-pointer text-foreground/60 hover:text-foreground",
-                  pathname === item.url && "text-foreground"
+                  "flex items-center gap-2 w-full cursor-pointer text-foreground/60",
+                  "hover:text-foreground dark:hover:text-white",
+                  pathname === item.url && "text-foreground dark:text-white"
                 )}
               >
                 <Icon className="h-4 w-4" />
