@@ -5,6 +5,7 @@ import Image from "next/image";
 import SideNav from "./sideNav";
 import { CustomConnectButton } from "./customConnectButton";
 import MoreMenu from "./moreMenu";
+import { TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
@@ -13,7 +14,7 @@ const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
 export function Header() {
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
-      <div className="flex gap-x-6">
+      <div className="flex gap-x-8 lg:gap-x-10">
         <Link href={"/"} className="flex items-center gap-x-2">
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
           <div className="flex gap-x-1">
@@ -32,29 +33,31 @@ export function Header() {
               className="rounded-full dark:hidden"
             />
             <div className="flex items-center">
-              <h1 className="ml-1 font-geist text-[20px] font-semibold leading-[20px]">
+              <h1 className="ml-1 font-geist text-[20px] font-semibold leading-[20px] whitespace-nowrap">
                 Sir trading
               </h1>
             </div>
           </div>
         </Link>
         <div className="flex items-center">
-          <nav className=" hidden items-center md:flex">
-            <div className=" flex gap-x-[16px] rounded-md px-[12px] text-sm">
+          <nav className="hidden md:flex items-center mt-[7px]">
+            <div className="flex gap-x-[16px] rounded-md pl-[12px] pr-[24px] lg:pr-[12px] text-sm items-center">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-3 rounded-md"
               >
-                <NavItem url={"/"}>Leverage</NavItem>
-                <NavItem url={"/liquidity"}>Liquidity</NavItem>
-                <NavItem url={"/portfolio"}>Portfolio</NavItem>
+                <NavItem url={"/"} icon={TrendingUp}>Leverage</NavItem>
+                <NavItem url={"/liquidity"} icon={Droplets}>Liquidity</NavItem>
+                <NavItem url={"/portfolio"} icon={Briefcase}>Portfolio</NavItem>
               </ul>
               {/* Show secondary nav items only on large screens */}
-              <div className="hidden items-center lg:flex">|</div>
+              <div className="hidden items-center lg:flex">
+                <div className="mx-3 h-5 w-[2px] bg-foreground/25 rounded-full"></div>
+              </div>
               <ul className="hidden lg:flex gap-x-3" aria-label="Secondary Navigation">
-                <NavItem url={"/stake"}>Stake</NavItem>
-                <NavItem url={"/leaderboard"}>Leaderboard</NavItem>
-                <NavItem url={"/auctions"}>Auctions</NavItem>
+                <NavItem url={"/stake"} icon={Coins}>Stake</NavItem>
+                <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
+                <NavItem url={"/auctions"} icon={Gavel}>Auctions</NavItem>
               </ul>
               {/* More menu for medium screens (shows all secondary items) */}
               <div className="flex lg:hidden">

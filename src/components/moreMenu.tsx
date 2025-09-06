@@ -1,6 +1,6 @@
 "use client";
-import { ChevronDown } from "lucide-react";
-import React from "react";
+import { ChevronDown, Coins, Trophy, Gavel, Plus, Calculator } from "lucide-react";
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +17,19 @@ interface MoreMenuProps {
 
 export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   const mediumItems = [
-    { url: "/stake", label: "Stake" },
-    { url: "/leaderboard", label: "Leaderboard" },
-    { url: "/auctions", label: "Auctions" },
-    { url: "/create-vault", label: "Create Vault" },
-    { url: "/leverage-calculator", label: "Calculator" },
+    { url: "/stake", label: "Stake", icon: Coins },
+    { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { url: "/auctions", label: "Auctions", icon: Gavel },
+    { url: "/create-vault", label: "Create Vault", icon: Plus },
+    { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
 
   const largeItems = [
-    { url: "/create-vault", label: "Create Vault" },
-    { url: "/leverage-calculator", label: "Calculator" },
+    { url: "/create-vault", label: "Create Vault", icon: Plus },
+    { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
 
   const items = variant === "medium" ? mediumItems : largeItems;
@@ -36,28 +37,37 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const isActiveInDropdown = items.some(item => pathname === item.url);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger className={cn(
-        "flex items-center gap-1 whitespace-nowrap cursor-pointer rounded-md px-2 hover:text-foreground text-foreground/50 outline-none",
+        "flex items-center gap-1 whitespace-nowrap cursor-pointer rounded-md px-2 py-1",
+        "hover:text-foreground text-foreground/50 outline-none transition-all duration-200",
+        "hover:bg-accent/50",
         isActiveInDropdown && "text-foreground"
       )}>
         More
-        <ChevronDown className="h-4 w-4" />
+        <ChevronDown className={cn(
+          "h-4 w-4 transition-transform duration-200",
+          open && "rotate-180"
+        )} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 bg-background border border-border">
-        {items.map((item) => (
-          <DropdownMenuItem key={item.url} asChild>
-            <Link
-              href={item.url}
-              className={cn(
-                "w-full cursor-pointer",
-                pathname === item.url && "font-semibold"
-              )}
-            >
-              {item.label}
-            </Link>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-md border border-border">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <DropdownMenuItem key={item.url} asChild>
+              <Link
+                href={item.url}
+                className={cn(
+                  "flex items-center gap-2 w-full cursor-pointer text-foreground/60 hover:text-foreground",
+                  pathname === item.url && "font-semibold text-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
