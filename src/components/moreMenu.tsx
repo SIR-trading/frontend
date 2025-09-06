@@ -59,7 +59,7 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
                 href={item.url}
                 className={cn(
                   "flex items-center gap-2 w-full cursor-pointer text-foreground/60 hover:text-foreground",
-                  pathname === item.url && "font-semibold text-foreground"
+                  pathname === item.url && "text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
