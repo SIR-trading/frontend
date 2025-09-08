@@ -1,6 +1,7 @@
 // import FeedBackForm from "./feedbackForm";
 import { Fa6BrandsXTwitter } from "@/components/ui/icons/x-dot-com-icon";
 import { Fa6BrandsDiscord } from "../ui/icons/discord-icon";
+import { Fa6BrandsTelegram } from "../ui/icons/telegram-icon";
 import { Fa6BrandsGithub } from "../ui/icons/github-icon";
 export default function Footer() {
   return (
@@ -33,7 +34,7 @@ export default function Footer() {
             href="https://docs.sir.trading/protocol-overview/contract-addresses"
             target="_blank"
           >
-            Contract addresses
+            Contracts
           </a>
           <a
             className="hover:text-foreground"
@@ -57,6 +58,13 @@ export default function Footer() {
             target="_blank"
           >
             <Fa6BrandsDiscord width={24} height={24} />
+          </a>
+          <a
+            className="p-2 hover:text-foreground"
+            href="https://t.me/leveragesir"
+            target="_blank"
+          >
+            <Fa6BrandsTelegram width={24} height={24} />
           </a>
           <a
             className="p-2 hover:text-foreground"
