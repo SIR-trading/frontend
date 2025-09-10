@@ -31,21 +31,15 @@ export function getAddress(contract: EContracts): TAddressString {
         return buildData.contractAddresses.systemControl;
     }
   } catch (error) {
-    // Fallback to environment variables (for backward compatibility during migration)
-    console.warn('Failed to load build-time data, falling back to env vars:', error);
+    // No fallbacks - if we can't get addresses from Assistant contract, something is wrong
+    console.error('Failed to load build-time data from Assistant contract:', error);
     
-    switch (contract) {
-      case EContracts.SIR:
-        return (env.NEXT_PUBLIC_SIR_ADDRESS ?? '') as TAddressString;
-      case EContracts.ORACLE:
-        return (env.NEXT_PUBLIC_ORACLE_ADDRESS ?? '') as TAddressString;
-      case EContracts.ASSISTANT:
-        return env.NEXT_PUBLIC_ASSISTANT_ADDRESS as TAddressString;
-      case EContracts.VAULT:
-        return (env.NEXT_PUBLIC_VAULT_ADDRESS ?? '') as TAddressString;
-      case EContracts.SYSTEM_CONTROL:
-        return '' as TAddressString;
+    // Only Assistant address comes from env, all others must come from the contract
+    if (contract === EContracts.ASSISTANT) {
+      return env.NEXT_PUBLIC_ASSISTANT_ADDRESS as TAddressString;
     }
+    
+    throw new Error(`Failed to get address for ${EContracts[contract]} - build-time data from Assistant contract is required`);
   }
 }
 

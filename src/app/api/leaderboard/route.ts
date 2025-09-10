@@ -24,8 +24,9 @@ async function getRedisClient() {
   return redis;
 }
 
-const CACHE_KEY = "leaderboard:activePositions";
-const CACHE_TIMESTAMP_KEY = "leaderboard:activePositions:timestamp";
+const chainId = env.NEXT_PUBLIC_CHAIN_ID;
+const CACHE_KEY = `leaderboard:${chainId}:activePositions`;
+const CACHE_TIMESTAMP_KEY = `leaderboard:${chainId}:activePositions:timestamp`;
 const CACHE_TTL_SECONDS = 30 * 60; // 30 minutes
 
 export async function GET() {
