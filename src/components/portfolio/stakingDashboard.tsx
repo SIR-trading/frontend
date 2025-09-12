@@ -18,6 +18,7 @@ import { useEffect, useMemo } from "react";
 import { Coins, TrendingDown, Wallet } from "lucide-react";
 import ToolTip from "../ui/tooltip";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 export default function StakingDashboard() {
   const [stakeModal, setStakeModal] = useState(false);
@@ -252,7 +253,7 @@ export default function StakingDashboard() {
                     <TokenDisplay
                       amount={dividends}
                       decimals={18}
-                      unitLabel="ETH"
+                      unitLabel={getNativeCurrencySymbol()}
                     />
                   </div>
                 </Show>
@@ -293,12 +294,12 @@ export default function StakingDashboard() {
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
             <div className="space-y-2">
-              <h3 className="font-medium">Claiming ETH Rewards</h3>
+              <h3 className="font-medium">Claiming {getNativeCurrencySymbol()} Rewards</h3>
               <div className="text-2xl font-semibold">
                 <TokenDisplay
                   disableRounding
                   amount={dividends}
-                  unitLabel="ETH"
+                  unitLabel={getNativeCurrencySymbol()}
                 />
               </div>
             </div>

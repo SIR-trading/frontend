@@ -1,6 +1,7 @@
 "use client";
 import { EPage } from "@/lib/types";
 import type  { ExplainersMap } from "@/lib/types";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 export const Explainers: Partial<ExplainersMap> = {
   [EPage.LEVERAGE]: {
@@ -45,17 +46,17 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          View and manage all positions: close APE trades, withdraw TEA liquidity, claim SIR rewards, and stake SIR for ETH dividends.
+          View and manage all positions: close APE trades, withdraw TEA liquidity, claim SIR rewards, and stake SIR for {getNativeCurrencySymbol()} dividends.
         </p>
       </>
     ),
   },
   [EPage.STAKE]: {
-    title: "Stake SIR, earn ETH",
+    title: <>Stake SIR, earn {getNativeCurrencySymbol()}</>,
     description: (
       <>
         <p>
-          Stake SIR to earn ETH dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
+          Stake SIR to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
         </p>
       </>
     ),
@@ -85,7 +86,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Protocol fees are auctioned for ETH that goes to SIR stakers. Auctions run 
+          Protocol fees are auctioned for {getNativeCurrencySymbol()} that goes to SIR stakers. Auctions run 
           for 24 hours with the highest bidder winning the tokens.
         </p>
       </>

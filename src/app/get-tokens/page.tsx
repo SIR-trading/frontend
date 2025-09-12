@@ -7,6 +7,8 @@ import { TarpContract, USDTContract } from "@/contracts/tarp";
 import { Copy } from "lucide-react";
 import React from "react";
 import { useAccount, useSimulateContract, useWriteContract } from "wagmi";
+import { getNativeCurrencySymbol } from "@/lib/chains";
+import { env } from "@/env";
 
 export default function Page() {
   const { address } = useAccount();
@@ -38,7 +40,7 @@ export default function Page() {
   return (
     <Container className="pt-[44px]">
       <Card className="bg-secondary-700  flex flex-col items-center justify-center p-4 ">
-        <h1 className="mb-6 text-2xl  ">Sepolia Utilities</h1>
+        <h1 className="mb-6 text-2xl  ">{env.NEXT_PUBLIC_CHAIN_ID === "11155111" ? "Sepolia" : "Testnet"} Utilities</h1>
 
         <div className="flex gap-x-3 text-accent-100">
           <a
@@ -46,7 +48,7 @@ export default function Page() {
             target="_blank"
             className="rounded px-4 py-2"
           >
-            Mint ETH
+            Mint {getNativeCurrencySymbol()}
           </a>
           <a
             href="https://faucets.chain.link/sepolia"

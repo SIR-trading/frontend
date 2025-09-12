@@ -7,11 +7,33 @@ import { CustomConnectButton } from "./customConnectButton";
 import MoreMenu from "./moreMenu";
 import { TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel } from "lucide-react";
 import dynamic from "next/dynamic";
+import { env } from "@/env";
+import { useMemo } from "react";
 
 const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
   ssr: false,
 });
 export function Header() {
+  // Determine if we're on a HyperEVM chain
+  const isHyperEVM = useMemo(() => {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    return chainId === 998 || chainId === 999;
+  }, []);
+
+  // Determine which logos to use based on chain
+  const logos = useMemo(() => {
+    if (isHyperEVM) {
+      return {
+        dark: "/SIR+HyperLiquid_outline_white.svg",
+        light: "/SIR+HyperLiquid_outline_black.svg"
+      };
+    }
+    return {
+      dark: "/SIR_outline_white.svg",
+      light: "/SIR_outline_black.svg"
+    };
+  }, [isHyperEVM]);
+
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
       <div className="flex gap-x-8 lg:gap-x-10">
@@ -19,16 +41,16 @@ export function Header() {
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
           <div className="flex gap-x-1">
             <Image
-              height={32}
-              width={32}
-              src="/SIR_no_bg.svg"
+              height={40}
+              width={40}
+              src={logos.dark}
               alt="Sir Icon"
               className="hidden rounded-full dark:block"
             />
             <Image
-              height={32}
-              width={32}
-              src="/SIR_outline2.svg"
+              height={40}
+              width={40}
+              src={logos.light}
               alt="Sir Icon"
               className="rounded-full dark:hidden"
             />

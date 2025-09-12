@@ -1,15 +1,36 @@
 "use client";
 import { Menu, TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel, Plus, Calculator } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "./ui/sheet";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
+import { env } from "@/env";
 
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   const pathname = usePathname();
+
+  // Determine if we're on a HyperEVM chain
+  const isHyperEVM = useMemo(() => {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    return chainId === 998 || chainId === 999;
+  }, []);
+
+  // Determine which logos to use based on chain
+  const logos = useMemo(() => {
+    if (isHyperEVM) {
+      return {
+        dark: "/SIR+HyperLiquid_outline_white.svg",
+        light: "/SIR+HyperLiquid_outline_black.svg"
+      };
+    }
+    return {
+      dark: "/SIR_outline_white.svg",
+      light: "/SIR_outline_black.svg"
+    };
+  }, [isHyperEVM]);
 
   const menuItems = [
     { 
@@ -47,16 +68,16 @@ export default function SideNav() {
           <SheetHeader className="mb-6">
             <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
               <Image
-                height={28}
-                width={28}
-                src="/SIR_no_bg.svg"
+                height={36}
+                width={36}
+                src={logos.dark}
                 alt="Sir Icon"
                 className="hidden rounded-full dark:block"
               />
               <Image
-                height={28}
-                width={28}
-                src="/SIR_outline2.svg"
+                height={36}
+                width={36}
+                src={logos.light}
                 alt="Sir Icon"
                 className="rounded-full dark:hidden"
               />

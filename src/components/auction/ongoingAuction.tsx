@@ -21,6 +21,7 @@ import Show from "@/components/shared/show";
 import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 import { TokenImage } from "@/components/shared/TokenImage";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -170,7 +171,7 @@ const OngoingAuction = ({
                               labelSize="small"
                               amountSize="large"
                               decimals={18}
-                              unitLabel={"ETH"}
+                              unitLabel={getNativeCurrencySymbol()}
                               className={"text-lg"}
                             />
                           ),
@@ -183,7 +184,7 @@ const OngoingAuction = ({
                               labelSize="small"
                               amountSize="large"
                               decimals={18}
-                              unitLabel={"ETH"}
+                              unitLabel={getNativeCurrencySymbol()}
                               className={"text-lg"}
                             />
                           ),

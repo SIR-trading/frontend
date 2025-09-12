@@ -1,4 +1,5 @@
 import { EPage } from "@/lib/types";
+import { getNativeCurrencySymbol, getWrappedTokenSymbol } from "@/lib/chains";
 
 export const Explainers = {
   [EPage.LEVERAGE]: {
@@ -17,18 +18,18 @@ No lock-ups —withdraw anytime.`.trim(),
     title: "All Assets in One Place",
     description:
       `Track and manage your APE (leveraged) and TEA (liquidity) tokens here. Burn tokens to close positions or exit liquidity provision.
-Liquidity providers in eligible vaults can claim SIR tokens and stake them to earn ETH rewards.`.trim(),
+Liquidity providers in eligible vaults can claim SIR tokens and stake them to earn ${getNativeCurrencySymbol()} rewards.`.trim(),
   },
   [EPage.STAKE]: {
     title: "Stake Your SIR",
     description:
-      `Stake SIR to earn a share of protocol fees (paid in ETH). Your rewards depend on trading volume and total SIR staked.
+      `Stake SIR to earn a share of protocol fees (paid in ${getNativeCurrencySymbol()}). Your rewards depend on trading volume and total SIR staked.
 Your staked SIR unlocks gradually—half of your locked amount becomes available every 30 days.`.trim(),
   },
   [EPage.AUCTIONS]: {
     title: "Bid for Token Lots",
     description:
-      `Help convert staker fees to ETH by bidding on token lots with WETH. Snap up underpriced tokens and profit from the difference. Auctions run daily, and a new auction for the same token can be started after a 1-week cooldown.`.trim(),
+      `Help convert staker fees to ${getNativeCurrencySymbol()} by bidding on token lots with ${getWrappedTokenSymbol()}. Snap up underpriced tokens and profit from the difference. Auctions run daily, and a new auction for the same token can be started after a 1-week cooldown.`.trim(),
   },
   [EPage.CREATE_VAULT]: {
     title: "Create New Vaults",

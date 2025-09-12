@@ -11,6 +11,11 @@ export interface ChainConfig {
     symbol: string;
     decimals: number;
   };
+  wrappedToken: {
+    symbol: string;
+    name: string;
+  };
+  auctionBidIncreasePercentage: number; // e.g., 1 for 1%, 5 for 5%
 }
 
 export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
@@ -25,6 +30,11 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
+    wrappedToken: {
+      symbol: "WETH",
+      name: "Wrapped Ether",
+    },
+    auctionBidIncreasePercentage: 1, // 1% for mainnet
   },
   11155111: {
     id: 11155111,
@@ -37,6 +47,11 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
       symbol: "ETH",
       decimals: 18,
     },
+    wrappedToken: {
+      symbol: "WETH",
+      name: "Wrapped Ether",
+    },
+    auctionBidIncreasePercentage: 1, // 1% for sepolia
   },
   998: {
     id: 998,
@@ -48,6 +63,11 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
       symbol: "HYPE",
       decimals: 18,
     },
+    wrappedToken: {
+      symbol: "WHYPE",
+      name: "Wrapped HYPE",
+    },
+    auctionBidIncreasePercentage: 5, // 5% for testnet
   },
   999: {
     id: 999,
@@ -59,6 +79,11 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
       symbol: "HYPE",
       decimals: 18,
     },
+    wrappedToken: {
+      symbol: "WHYPE",
+      name: "Wrapped HYPE",
+    },
+    auctionBidIncreasePercentage: 5, // 5% for non-mainnet
   },
 };
 
@@ -93,4 +118,32 @@ export function getChainName(chainId?: number): string {
   const config = CHAIN_CONFIGS[targetChainId];
   
   return config?.name ?? `Chain ${targetChainId}`;
+}
+
+export function getWrappedTokenSymbol(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const config = CHAIN_CONFIGS[targetChainId];
+  
+  return config?.wrappedToken.symbol ?? "WETH";
+}
+
+export function getWrappedTokenName(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const config = CHAIN_CONFIGS[targetChainId];
+  
+  return config?.wrappedToken.name ?? "Wrapped Ether";
+}
+
+export function getNativeCurrencySymbol(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const config = CHAIN_CONFIGS[targetChainId];
+  
+  return config?.nativeCurrency.symbol ?? "ETH";
+}
+
+export function getAuctionBidIncreasePercentage(chainId?: number): number {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const config = CHAIN_CONFIGS[targetChainId];
+  
+  return config?.auctionBidIncreasePercentage ?? 1;
 }

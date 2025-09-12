@@ -18,6 +18,7 @@ import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctio
 import Show from "@/components/shared/show";
 import ToolTip from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getAuctionBidIncreasePercentage, getWrappedTokenSymbol } from "@/lib/chains";
 
 export type TAuctionBidModalState = {
   open: boolean;
@@ -55,9 +56,13 @@ export function AuctionBidModal({ open, setOpen }: Props) {
 
   const balance = userBalance?.tokenBalance?.result;
 
+  const bidIncreasePercentage = getAuctionBidIncreasePercentage();
+  const wrappedTokenSymbol = getWrappedTokenSymbol();
+  const bidIncreaseMultiplier = BigInt(100 + bidIncreasePercentage);
+
   const nextBid = useMemo(
-    () => ((currentBid ?? BigInt(0)) * BigInt(101)) / BigInt(100),
-    [currentBid],
+    () => ((currentBid ?? BigInt(0)) * bidIncreaseMultiplier) / BigInt(100),
+    [currentBid, bidIncreaseMultiplier],
   );
 
   const { writeContract, reset, data: hash, isPending } = useWriteContract();
@@ -118,20 +123,20 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     if (!isConfirmed) {
       if (!userBalanceFetching) {
         if (!balance)
-          return `You don't have enough WETH to ${isTopUp ? "top up" : "place"} this bid.`;
+          return `You don't have enough ${wrappedTokenSymbol} to ${isTopUp ? "top up" : "place"} this bid.`;
         if (parseEther(formData.bid) > balance) {
-          return "Bid exceeds your WETH balance.";
+          return `Bid exceeds your ${wrappedTokenSymbol} balance.`;
         }
         if (Number(formData.bid) > 0) {
           if (!isTopUp && Number(formData.bid) <= +formatEther(nextBid)) {
-            return `Bid must be 1% higher than the current bid`;
+            return `Bid must be ${bidIncreasePercentage}% higher than the current bid`;
           }
           if (
             isTopUp &&
             Number(formData.bid) <=
               +formatEther(nextBid - (currentBid ?? BigInt(0)))
           ) {
-            return `Top up must be 1% higher than the current bid.`;
+            return `Top up must be ${bidIncreasePercentage}% higher than the current bid.`;
           }
         }
       }
@@ -172,7 +177,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 width={25}
                 height={25}
               />
-              <p>WETH</p>
+              <p>{wrappedTokenSymbol}</p>
             </AuctionBidInputs.Inputs>
 
             <div className="flex flex-col items-center justify-center gap-2 p-4">

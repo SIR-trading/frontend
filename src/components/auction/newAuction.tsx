@@ -21,6 +21,7 @@ import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton"
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { TokenImage } from "@/components/shared/TokenImage";
 import type { Address } from "viem";
+import { getWrappedTokenSymbol } from "@/lib/chains";
 
 type TNewAuctionData = {
   amount: bigint;
@@ -147,7 +148,7 @@ const NewAuction = ({
           <div className="grid gap-4">
             <h4 className="text-lg font-bold">
               {compareAddress(id, WETH_ADDRESS)
-                ? `${isPending || isConfirming ? "Collecting" : "Collect"} WETH Fees`
+                ? `${isPending || isConfirming ? "Collecting" : "Collect"} ${getWrappedTokenSymbol()} Fees`
                 : `${isPending || isConfirming ? "Starting" : "Start"} Auction for
               ${uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")} `}
             </h4>

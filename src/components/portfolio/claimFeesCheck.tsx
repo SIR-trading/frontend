@@ -2,6 +2,7 @@ import { FormLabel } from "@/components/ui/form";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 interface Props {
   dividends?: string;
@@ -19,7 +20,7 @@ const ClaimFeesCheckbox = ({ dividends, value, onChange }: Props) => {
             num={dividends ?? "0"}
             significant={6}
           />{" "}
-          ETH
+          {getNativeCurrencySymbol()}
         </span>
       </div>
       <div className="flex items-center justify-end gap-x-2 pb-2">

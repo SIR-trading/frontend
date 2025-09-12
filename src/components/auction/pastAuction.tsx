@@ -22,6 +22,7 @@ import { hexToBigInt } from "viem";
 import Pagination from "@/components/shared/pagination";
 import { AUCTION_DURATION } from "@/components/auction/__constants";
 import { TokenImage } from "@/components/shared/TokenImage";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 const length = 4; // Number of auctions per page
 
@@ -232,7 +233,7 @@ const PastAuction = ({
                               labelSize="small"
                               amountSize="large"
                               decimals={18}
-                              unitLabel={"ETH"}
+                              unitLabel={getNativeCurrencySymbol()}
                               className={"text-lg"}
                             />
                           ),

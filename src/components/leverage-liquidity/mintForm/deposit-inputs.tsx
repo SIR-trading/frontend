@@ -16,6 +16,7 @@ import { useFormContext } from "react-hook-form";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import MintFormSettings from "./MintFormSettings";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -93,7 +94,7 @@ function Inputs({
         <div className="space-y-2">
           {formData.depositToken === WETH_ADDRESS && (
             <div className="flex items-center gap-x-2 pt-1">
-              <h3 className="text-[12px] text-foreground">Use ETH</h3>
+              <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
               <Switch
                 checked={useEth}
                 onCheckedChange={() => {

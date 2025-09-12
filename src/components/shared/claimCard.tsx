@@ -12,6 +12,7 @@ import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "./show";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -68,7 +69,7 @@ export default function ClaimCard() {
               <TokenDisplay
                 disableRounding
                 amount={dividends}
-                unitLabel="ETH"
+                unitLabel={getNativeCurrencySymbol()}
               />
               {/* <span>{formatUnits(dividends ?? 0n, 18)} Eth</span> */}
             </div>
@@ -116,7 +117,7 @@ export default function ClaimCard() {
                         )
                       }
                     >
-                      <TokenDisplay amount={dividends ?? 0n} unitLabel={"ETH"} />
+                      <TokenDisplay amount={dividends ?? 0n} unitLabel={getNativeCurrencySymbol()} />
                     </Show>
                   </div>
                 </div>

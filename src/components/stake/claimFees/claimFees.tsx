@@ -16,6 +16,7 @@ import { useState } from "react";
 
 import { api } from "@/trpc/react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 interface Props {
   ethBalance?: string;
@@ -106,7 +107,7 @@ const ClaimFees = ({
                     width={25}
                     height={25}
                   />
-                  <span className="font-medium">ETH</span>
+                  <span className="font-medium">{getNativeCurrencySymbol()}</span>
                 </div>
                 <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
                   Balance:{" "}

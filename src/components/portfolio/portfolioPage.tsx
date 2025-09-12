@@ -14,6 +14,7 @@ import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
 import ClaimCard from "../shared/claimCard";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 export default function PortfolioPage() {
   const [value, setValue] = useState<"ape" | "tea" | "all">("all");
   return (
@@ -31,7 +32,7 @@ export default function PortfolioPage() {
                     <div className="flex w-full justify-between">
                       <div>
                         <div className="text-sm">
-                          <p>Stake your SIR to earn ETH dividends.</p>
+                          <p>Stake your SIR to earn {getNativeCurrencySymbol()} dividends.</p>
                         </div>
                         <div className="pt-2">
                           <ContributorClaim />
