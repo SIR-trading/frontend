@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm run generate:build-data && next build",
+    "build": "pnpm run generate:build-data && pnpm run fetch:tokens && next build",
     "generate:build-data": "tsx scripts/generate-build-data.ts",
-    "dev": "pnpm run generate:build-data && next dev --turbo",
+    "fetch:tokens": "tsx scripts/fetch-token-lists.ts",
+    "dev": "pnpm run generate:build-data && pnpm run fetch:tokens && next dev --turbo",
     "lint": "next lint",
     "start": "next start",
     "test": "vitest",

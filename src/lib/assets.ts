@@ -13,12 +13,13 @@ import { assetSchema } from "./schemas";
  * Get SIR token metadata dynamically based on build-time data
  */
 export function getSirTokenMetadata() {
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   return {
     name: "Synthetics Implemented Right",
     address: SIR_ADDRESS,
-    symbol: "SIR",
+    symbol: chainId === 999 || chainId === 998 ? "HyperSIR" : "SIR",
     decimals: 12,
-    chainId: parseInt(env.NEXT_PUBLIC_CHAIN_ID),
+    chainId,
     logoURI: "https://app.sir.trading/images/white-logo.svg",
   };
 }
@@ -29,7 +30,7 @@ export function getSirTokenMetadata() {
  */
 export function getLogoAssetWithFallback(
   address: TAddressString | undefined,
-  tokenList?: Array<{ address: string; logoURI: string }>,
+  tokenList?: Array<{ address: string; logoURI?: string }>,
   chainId?: string,
 ): { primary: string | StaticImageData; fallback?: string } {
   if (!address) {

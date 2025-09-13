@@ -16,15 +16,21 @@ export function TokenlistContextProvider({
 }: {
   children: React.ReactNode;
 }) {
+  // Load token list from assets.json - fail if not available
   const { data } = useQuery({
     queryKey: ["tokenlist"],
     queryFn: async () => {
-      const tokensResp = (await fetch("/assets.json").then((r) =>
-        r.json(),
-      )) as unknown;
-      const tokensList = tokenListSchema.parse(tokensResp);
-      return tokensList;
+      const response = await fetch('/assets.json');
+      
+      if (!response.ok) {
+        throw new Error('Token list not found. Run "pnpm run fetch:tokens" to generate token list.');
+      }
+      
+      const tokens = await response.json() as unknown;
+      return tokenListSchema.parse(tokens);
     },
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
+    retry: false, // Don't retry on failure - fail immediately
   });
   
   // Add SIR token dynamically to the tokenlist
@@ -60,7 +66,14 @@ const tokenSchema = z.object({
   symbol: z.string(),
   decimals: z.number(),
   chainId: z.number(),
-  logoURI: z.string(),
+  logoURI: z.string().optional(),
+  // Market data from CoinGecko (optional)
+  marketCap: z.number().optional(),
+  currentPrice: z.number().optional(),
+  priceChange24h: z.number().optional(),
+  volume24h: z.number().optional(),
+  rank: z.number().optional(),
+  // Legacy extensions field
   extensions: z
     .object({
       bridgeInfo: z
