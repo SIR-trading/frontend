@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import type { TUnstakeForm } from "@/lib/types";
 import { BalancePercent } from "@/components/shared/balancePercent";
 
-import sir_logo from "@/../public/images/white-logo.svg";
+import sir_logo from "@/../public/images/sir-logo.svg";
 import Image, { type StaticImageData } from "next/image";
 import { inputPatternMatch } from "@/lib/utils/index";
 import DisplayFormattedNumber from "../displayFormattedNumber";
@@ -64,7 +64,7 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
             <span className="text-nowrap font-medium">
               {isStaking ? "Unstaked SIR" : "Staked SIR"}
             </span>
-            <Image src={logo} alt="sir-logo" width={25} height={25} />
+            <Image src={logo} alt="gorilla-logo" width={25} height={25} />
           </div>
           <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
             Balance{" "}

@@ -2,7 +2,7 @@ import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { roundDown } from "@/lib/utils";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
-import boostIcon from "@/../public/images/white-logo.svg";
+import boostIcon from "@/../public/images/sir-logo.svg";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
@@ -41,51 +41,56 @@ export function VaultTableRow({
   number: string;
   pool: TVault;
   isApe: boolean;
-  apyData?: { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number };
+  apyData?: {
+    apy: number;
+    feesApy: number;
+    sirRewardsApy: number;
+    feesCount: number;
+  };
   isApyLoading?: boolean;
 }) {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
-  
+
   const fee = calculateApeVaultFee(pool.leverageTier, BASE_FEE) * 100;
-  
+
   // Calculate fee color intensity (max fee is ~49% for tier 2)
   const MAX_FEE = 49; // Maximum possible fee percentage
   const feeIntensity = Math.min(fee / MAX_FEE, 1); // Normalize to 0-1
-  
+
   // Generate RGB color based on theme
   const getFeeColor = () => {
     if (!isApe) return undefined;
-    
+
     if (isDarkMode) {
       // Dark theme: from light pink/white to deep red
       const maxRed = 225;
       const maxGreen = 29;
       const maxBlue = 72;
-      
+
       const red = Math.round(255 - (255 - maxRed) * feeIntensity);
       const green = Math.round(255 - (255 - maxGreen) * feeIntensity);
       const blue = Math.round(255 - (255 - maxBlue) * feeIntensity);
-      
+
       return `rgb(${red}, ${green}, ${blue})`;
     } else {
       // Light theme: from black to intense red with faster intensity curve
       const maxRed = 225;
       const maxGreen = 29;
       const maxBlue = 72;
-      
+
       // Apply a power curve to make low values more visible
       // Using sqrt to accelerate the intensity for low values
       const adjustedIntensity = Math.sqrt(feeIntensity);
-      
+
       const red = Math.round(maxRed * adjustedIntensity);
       const green = Math.round(maxGreen * adjustedIntensity);
       const blue = Math.round(maxBlue * adjustedIntensity);
-      
+
       return `rgb(${red}, ${green}, ${blue})`;
     }
   };
-  
+
   // Calculate POL (Protocol Owned Liquidity)
   const POL = useMemo(() => {
     const totalLocked = parseUnits(pool.totalTea, 0);
@@ -97,7 +102,7 @@ export function VaultTableRow({
       return 0;
     }
   }, [pool.lockedLiquidity, pool.totalTea]);
-  
+
   // Remove individual APY query since we get it from props now
   // const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
   //   { vaultId: pool.vaultId },
@@ -107,23 +112,23 @@ export function VaultTableRow({
   //     staleTime: 5 * 60 * 1000, // 5 minutes
   //   }
   // );
-  
+
   const APY = useMemo(() => {
     if (isApe || (isApyLoading ?? false) || !apyData) return 0;
     return apyData.apy;
   }, [apyData, isApyLoading, isApe]);
-  
+
   // Calculate APY color intensity for Liquidity page
   const getApyColor = () => {
     if (isApe || (isApyLoading ?? false) || !apyData) return undefined;
-    
+
     // Use logarithmic scale for APY coloring since APY can be very high
     // We'll use these thresholds:
     // 0-50%: light intensity
-    // 50-200%: medium intensity  
+    // 50-200%: medium intensity
     // 200-1000%: deep intensity
     // 1000%+: maximum intensity
-    
+
     let apyIntensity: number;
     if (APY <= 50) {
       // Linear scale from 0 to 0.3 for 0-50% APY
@@ -138,29 +143,29 @@ export function VaultTableRow({
       // Maximum intensity for 1000%+ APY
       apyIntensity = 1;
     }
-    
+
     // Base green color components (RGB for a nice green like #10b981)
     const maxRed = 16;
     const maxGreen = 185;
     const maxBlue = 129;
-    
+
     if (isDarkMode) {
       // Dark theme: from light green/white to deep green
       const red = Math.round(255 - (255 - maxRed) * apyIntensity);
       const green = Math.round(255 - (255 - maxGreen) * apyIntensity);
       const blue = Math.round(255 - (255 - maxBlue) * apyIntensity);
-      
+
       return `rgb(${red}, ${green}, ${blue})`;
     } else {
       // Light theme: from black to intense green with faster intensity curve
       // Apply a power curve to make low values more visible
       // Using sqrt to accelerate the intensity for low values
       const adjustedIntensity = Math.sqrt(apyIntensity);
-      
+
       const red = Math.round(maxRed * adjustedIntensity);
       const green = Math.round(maxGreen * adjustedIntensity);
       const blue = Math.round(maxBlue * adjustedIntensity);
-      
+
       return `rgb(${red}, ${green}, ${blue})`;
     }
   };
@@ -194,10 +199,10 @@ export function VaultTableRow({
     ];
     return a;
   }, [pool.apeCollateral, pool.teaCollateral]);
-  
+
   // Get both form contexts - one might be null depending on which page we're on
   const { setValue: setMintValue } = useMintFormProviderApi();
-  
+
   // For Calculator page - create a wrapper function
   let calculatorSetValue: ((name: string, value: string) => void) | null = null;
   try {
@@ -208,10 +213,10 @@ export function VaultTableRow({
   } catch {
     // Calculator form context not available, we're probably on Leverage/Liquidity page
   }
-  
+
   // Use calculator form if available, otherwise use mint form
   const setValue = calculatorSetValue ?? setMintValue;
-  
+
   const teaCollateral = parseFloat(
     formatUnits(reservesData[0]?.reserveLPers ?? 0n, 18),
   );
@@ -234,25 +239,25 @@ export function VaultTableRow({
     if (!isFinite(realLeverage)) {
       return "1";
     }
-    
+
     // Custom rounding: show 2 significant digits after the "1."
     // e.g., 1.5232 -> 1.52, 1.00889 -> 1.0089
     const fractionalPart = realLeverage - 1;
-    
+
     if (fractionalPart === 0) {
       return "1";
     }
-    
+
     // Find how many decimal places we need to show 2 significant digits
     const absValue = Math.abs(fractionalPart);
     let decimals = 2;
-    
+
     // Count leading zeros after decimal point
     if (absValue < 0.1) {
       const log = Math.floor(Math.log10(absValue));
       decimals = 2 - log - 1;
     }
-    
+
     return realLeverage.toFixed(decimals);
   };
 
@@ -273,7 +278,7 @@ export function VaultTableRow({
   };
   const parsedRateAmount = parseUnits(String(pool.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
-  
+
   // Get Dune chart configuration for this vault
   const { embedUrl, hasChart } = useDuneCharts(pool.vaultId);
   return (
@@ -288,7 +293,7 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="grid cursor-pointer grid-cols-5 sm:grid-cols-4 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary"
+      className="grid cursor-pointer grid-cols-5 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20  sm:grid-cols-4 md:grid-cols-9 dark:hover:bg-primary"
     >
       <td className="h-full">
         <div className="flex h-full items-center gap-x-1">
@@ -311,14 +316,17 @@ export function VaultTableRow({
             >
               <span className="text-[13px] font-medium">
                 LPers of this vault are rewarded with{" "}
-                <DisplayFormattedNumber num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)} significant={3} />{" "}
+                <DisplayFormattedNumber
+                  num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)}
+                  significant={3}
+                />{" "}
                 SIR/day.
               </span>
             </HoverPopupMobile>
           )}
         </div>
       </td>
-      <td className="relative flex items-center col-span-2 sm:col-span-1 md:col-span-3">
+      <td className="relative col-span-2 flex items-center sm:col-span-1 md:col-span-3">
         {/* Mobile view - logos with separator */}
         <div className="flex items-center md:hidden">
           <TokenImage
@@ -343,17 +351,22 @@ export function VaultTableRow({
               asChild
               trigger={
                 <sup className="ml-0.5 text-[10px] font-semibold text-red">
-                  {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
+                  {showPercent()
+                    ? getRealLeverage()
+                    : getLeverageRatio(pool.leverageTier)}
                 </sup>
               }
             >
               <div className="text-[13px] font-medium">
-                Insufficient liquidity for constant ^{getLeverageRatio(pool.leverageTier)} leverage
+                Insufficient liquidity for constant ^
+                {getLeverageRatio(pool.leverageTier)} leverage
               </div>
             </HoverPopupMobile>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
-              {showPercent() ? getRealLeverage() : getLeverageRatio(pool.leverageTier)}
+              {showPercent()
+                ? getRealLeverage()
+                : getLeverageRatio(pool.leverageTier)}
             </sup>
           )}
           {isApe && hasChart && embedUrl && (
@@ -362,7 +375,7 @@ export function VaultTableRow({
             </div>
           )}
         </div>
-        
+
         {/* Desktop view - leaderboard format */}
         <div className="hidden items-center md:flex">
           <TokenImage
@@ -372,9 +385,7 @@ export function VaultTableRow({
             height={28}
             alt="Collateral token"
           />
-          <span className="ml-1 font-normal">
-            {pool.collateralSymbol}
-          </span>
+          <span className="ml-1 font-normal">{pool.collateralSymbol}</span>
           <span className="mx-1 font-normal">/</span>
           <TokenImage
             address={pool.debtToken as TAddressString}
@@ -383,9 +394,7 @@ export function VaultTableRow({
             height={28}
             alt="Debt token"
           />
-          <span className="ml-1 font-normal">
-            {pool.debtSymbol}
-          </span>
+          <span className="ml-1 font-normal">{pool.debtSymbol}</span>
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
               <DuneChartPopup embedUrl={embedUrl} />
@@ -398,25 +407,64 @@ export function VaultTableRow({
           <HoverPopupMobile
             size="250"
             trigger={
-              <h4 className={`font-normal cursor-pointer ${isApyLoading ? 'text-foreground/80' : ''}`} style={{ color: getApyColor() ?? (isApyLoading ? undefined : 'inherit') }}>
-                {isApyLoading ? "..." : <><DisplayFormattedNumber num={APY} significant={2} />%</>}
+              <h4
+                className={`cursor-pointer font-normal ${isApyLoading ? "text-foreground/80" : ""}`}
+                style={{
+                  color:
+                    getApyColor() ?? (isApyLoading ? undefined : "inherit"),
+                }}
+              >
+                {isApyLoading ? (
+                  "..."
+                ) : (
+                  <>
+                    <DisplayFormattedNumber num={APY} significant={2} />%
+                  </>
+                )}
               </h4>
             }
           >
             <div className="space-y-1 text-[13px] font-medium">
-              <div className="font-semibold text-left">APY Breakdown:</div>
+              <div className="text-left font-semibold">APY Breakdown:</div>
               <div className="flex justify-between gap-x-4">
                 <span>LP Fees:</span>
-                <span>{apyData ? <><DisplayFormattedNumber num={apyData.feesApy || 0} significant={2} />%</> : '-'}</span>
+                <span>
+                  {apyData ? (
+                    <>
+                      <DisplayFormattedNumber
+                        num={apyData.feesApy || 0}
+                        significant={2}
+                      />
+                      %
+                    </>
+                  ) : (
+                    "-"
+                  )}
+                </span>
               </div>
               <div className="flex justify-between gap-x-4">
                 <span>SIR Rewards:</span>
-                <span>{apyData ? <><DisplayFormattedNumber num={apyData.sirRewardsApy || 0} significant={2} />%</> : '-'}</span>
+                <span>
+                  {apyData ? (
+                    <>
+                      <DisplayFormattedNumber
+                        num={apyData.sirRewardsApy || 0}
+                        significant={2}
+                      />
+                      %
+                    </>
+                  ) : (
+                    "-"
+                  )}
+                </span>
               </div>
             </div>
           </HoverPopupMobile>
         ) : (
-          <h4 className="font-normal text-[13px]" style={{ color: getFeeColor() }}>
+          <h4
+            className="text-[13px] font-normal"
+            style={{ color: getFeeColor() }}
+          >
             {roundDown(fee, 0)}%
           </h4>
         )}
@@ -435,7 +483,10 @@ export function VaultTableRow({
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
             >
-              <Badge variant={variant.variant} className="text-nowrap text-[10px]">
+              <Badge
+                variant={variant.variant}
+                className="text-nowrap text-[10px]"
+              >
                 ^{getLeverageRatio(pool.leverageTier)}
                 {showPercent() && (
                   <>
@@ -479,7 +530,7 @@ export function VaultTableRow({
           }
         >
           <div className="space-y-1 text-[13px] font-medium">
-            <div className="font-semibold text-left">TVL Breakdown:</div>
+            <div className="text-left font-semibold">TVL Breakdown:</div>
             <div className="flex justify-between gap-x-4">
               <span>Apes:</span>
               <span className="flex items-center gap-x-1">

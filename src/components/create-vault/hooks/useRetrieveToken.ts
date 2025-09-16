@@ -33,7 +33,6 @@ export default function useRetrieveToken({
       enabled: !!address,
     },
   });
-  console.log({ data, error });
   const symbol = data?.[0].result;
   const name = data?.[1].result;
   return { symbol, name, address, isLoading };

@@ -248,9 +248,10 @@ function loadAssetsExtra(chainId: number): PlatformToken[] {
 
       // Get tokens for the specific chain, add chainId if missing
       const tokens = tokensByChain[chainId.toString()] ?? [];
-      return tokens.map(token => ({
+      return tokens.map((token) => ({
         ...token,
-        chainId: token.chainId ?? chainId
+        symbol: token.symbol.toUpperCase(),
+        chainId: token.chainId ?? chainId,
       }));
     }
   } catch (error) {
@@ -277,7 +278,9 @@ async function main(): Promise<void> {
   if (config.isTestnet) {
     console.log(`  Using testnet mode`);
     platformTokens = loadAssetsExtra(config.chainId);
-    console.log(`  Added ${platformTokens.length} tokens from assetsExtra.json`);
+    console.log(
+      `  Added ${platformTokens.length} tokens from assetsExtra.json`,
+    );
   } else {
     // For non-testnets, fetch from CoinGecko
     const platformId = config.platformId;
@@ -327,7 +330,7 @@ async function main(): Promise<void> {
           const decimals = decimalsByAddr.get(address.toLowerCase());
 
           platformTokens.push({
-            symbol: c.symbol,
+            symbol: c.symbol.toUpperCase(),
             name: c.name,
             marketCap: c.marketCap,
             address,
@@ -364,7 +367,9 @@ async function main(): Promise<void> {
     platformTokens.push(...additionalTokens);
 
     console.log(`  Added ${coingeckoCount} tokens from CoinGecko`);
-    console.log(`  Added ${additionalTokens.length} tokens from assetsExtra.json`);
+    console.log(
+      `  Added ${additionalTokens.length} tokens from assetsExtra.json`,
+    );
   }
 
   // sort by market cap desc before writing

@@ -3,7 +3,7 @@ import { env } from "@/env";
 import buildData from "@/../public/build-data.json";
 
 const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
-import sirIcon from "../../public/images/white-logo.svg";
+import sirIcon from "../../public/images/sir-logo.svg";
 import type { StaticImageData } from "next/image";
 import { getAddress } from "viem";
 import type { TAddressString } from "./types";
@@ -13,7 +13,10 @@ import { assetSchema } from "./schemas";
  * Get SIR token symbol based on chain ID
  */
 export function getSirSymbol(chainId?: string | number): string {
-  const id = typeof chainId === 'string' ? parseInt(chainId) : (chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID));
+  const id =
+    typeof chainId === "string"
+      ? parseInt(chainId)
+      : chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   return id === 999 || id === 998 ? "HyperSIR" : "SIR";
 }
 
@@ -28,7 +31,7 @@ export function getSirTokenMetadata() {
     symbol: getSirSymbol(chainId),
     decimals: 12,
     chainId,
-    logoURI: "https://app.sir.trading/images/white-logo.svg",
+    logoURI: "https://app.sir.trading/images/sir-logo.svg",
   };
 }
 
@@ -44,15 +47,15 @@ export function getLogoAssetWithFallback(
   if (!address) {
     return { primary: "" };
   }
-  
+
   // Handle SIR token dynamically based on build-time data
   if (address.toLowerCase() === SIR_ADDRESS.toLowerCase()) {
     return {
       primary: sirIcon as StaticImageData,
-      fallback: "https://app.sir.trading/images/white-logo.svg",
+      fallback: "https://app.sir.trading/images/sir-logo.svg",
     };
   }
-  
+
   // Build Trust Wallet logo URL
   const getChainName = () => {
     let chainIdEnv = env.NEXT_PUBLIC_CHAIN_ID;
@@ -68,22 +71,25 @@ export function getLogoAssetWithFallback(
     if (chainIdEnv === "17000") {
       return "holesky";
     }
+    if (chainIdEnv === "998" || chainIdEnv === "999") {
+      return "ethereum"; // Use ethereum assets for HyperEVM
+    }
   };
-  
+
   const chainName = getChainName();
   let primaryLogo: string | StaticImageData = "";
-  
+
   try {
     primaryLogo = `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/logo.png`;
   } catch {
     primaryLogo = "";
   }
-  
+
   // Find fallback from tokenlist
   const token = tokenList?.find(
-    (t) => t.address.toLowerCase() === address.toLowerCase()
+    (t) => t.address.toLowerCase() === address.toLowerCase(),
   );
-  
+
   return {
     primary: primaryLogo,
     fallback: token?.logoURI,
@@ -116,6 +122,9 @@ export function getLogoJson(address: TAddressString | undefined) {
     }
     if (chainId === "17000") {
       return "holesky";
+    }
+    if (chainId === "998" || chainId === "999") {
+      return "ethereum"; // Use ethereum assets for HyperEVM
     }
   };
 

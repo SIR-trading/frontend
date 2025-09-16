@@ -97,7 +97,7 @@ export default function SearchTokensModal({
                     <div className="h-10 w-10">
                       <ImageWithFallback
                         width={35}
-                        className="h-full w-full"
+                        className="h-full w-full rounded-full"
                         height={35}
                         src={manualTokenLogo}
                         secondaryFallbackUrl={manualTokenFallback}

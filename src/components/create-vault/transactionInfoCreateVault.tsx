@@ -77,6 +77,7 @@ export default function TransactionInfoCreateVault({
                 alt={longTokenData?.success ? longTokenData.data.symbol : ""}
                 width={20}
                 height={20}
+                className="rounded-full"
               />
             </div>
           )}
@@ -97,6 +98,7 @@ export default function TransactionInfoCreateVault({
                 alt={versusTokenData?.success ? versusTokenData.data.symbol : ""}
                 width={20}
                 height={20}
+                className="rounded-full"
               />
             </div>
           )}

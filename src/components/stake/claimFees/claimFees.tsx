@@ -103,13 +103,15 @@ const ClaimFees = ({
                     src={
                       "https://raw.githubusercontent.com/fusionxx23/assets/master/blockchains/ethereum/info/logo.png"
                     }
-                    alt="sir-logo"
+                    alt="gorilla-logo"
                     width={25}
                     height={25}
                   />
-                  <span className="font-medium">{getNativeCurrencySymbol()}</span>
+                  <span className="font-medium">
+                    {getNativeCurrencySymbol()}
+                  </span>
                 </div>
-                <h2 className="font-geist-mono pt-1 text-right text-sm text-on-bg-subdued">
+                <h2 className="pt-1 text-right font-geist-mono text-sm text-on-bg-subdued">
                   Balance:{" "}
                   <DisplayFormattedNumber
                     num={ethBalance ?? "0"}
