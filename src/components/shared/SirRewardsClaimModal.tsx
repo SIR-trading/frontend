@@ -8,6 +8,7 @@ import Show from "./show";
 import ExplorerLink from "./explorerLink";
 import { TokenImage } from "./TokenImage";
 import { SirContract } from "@/contracts/sir";
+import { getSirSymbol } from "@/lib/assets";
 
 interface SirRewardsClaimModalProps {
   open: boolean;
@@ -79,12 +80,12 @@ export function SirRewardsClaimModal({
                   amountSize="large"
                 />
                 <div className="flex items-center gap-x-2">
-                  <span className="text-foreground/70">SIR</span>
+                  <span className="text-foreground/70">{getSirSymbol()}</span>
                   <TokenImage
                     address={SirContract.address}
                     width={24}
                     height={24}
-                    alt="SIR"
+                    alt={getSirSymbol()}
                   />
                 </div>
               </div>

@@ -15,6 +15,8 @@ import {
 import { createConfig, WagmiProvider, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { env } from "@/env";
+import { CHAIN_CONFIGS } from "@/lib/chains";
+
 const getChainId = () => {
   const result = env.NEXT_PUBLIC_CHAIN_ID;
   return parseInt(result);
@@ -24,9 +26,11 @@ const chainId = getChainId();
 const chain = {
   ...(chainId == mainnet.id ? mainnet : sepolia),
   id: chainId,
+  name: CHAIN_CONFIGS[chainId]?.name,
 };
 
-const projectId = process.env.NEXT_PUBLIC_PROJECT_ID ?? "934acc697f01fec33b75c19d9bb2e3c7";
+const projectId =
+  process.env.NEXT_PUBLIC_PROJECT_ID ?? "934acc697f01fec33b75c19d9bb2e3c7";
 
 // Configure wallets with Phantom included
 const connectors = connectorsForWallets(
@@ -45,7 +49,7 @@ const connectors = connectorsForWallets(
   {
     appName: "SIR",
     projectId,
-  }
+  },
 );
 
 export const wagmiConfig = createConfig({

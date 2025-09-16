@@ -7,6 +7,7 @@ import { TokenDisplay } from "@/components/ui/token-display";
 import { Card } from "@/components/ui/card";
 import Show from "@/components/shared/show";
 import { useAccount } from "wagmi";
+import { getSirSymbol } from "@/lib/assets";
 
 const StakeData = ({ children }: { children: ReactNode }) => {
   const { 
@@ -40,7 +41,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
     <div className="mx-auto grid gap-4 font-normal md:grid-cols-3  ">
       <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="text-sm font-normal text-muted-foreground">
-          Total Staked SIR
+          Total Staked {getSirSymbol()}
         </div>
         {/* <div className="text-2xl font-semibold ">
           {parseFloat(formatUnits(totalValueLocked ?? 0n, 12)).toFixed(4)}
@@ -55,7 +56,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
             <TokenDisplay
               amount={totalValueLocked}
               decimals={12}
-              unitLabel="SIR"
+              unitLabel={getSirSymbol()}
             />
           </Show>
         </div>
@@ -63,7 +64,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
 
       <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
-          <div className="px-2 text-sm text-muted-foreground">Your Staked SIR</div>
+          <div className="px-2 text-sm text-muted-foreground">Your Staked {getSirSymbol()}</div>
         </div>
         <div className=" text-2xl ">
           <Show 
@@ -84,12 +85,12 @@ const StakeData = ({ children }: { children: ReactNode }) => {
             <TokenDisplay
               amount={stakedPosition?.unlockedStake}
               decimals={12}
-              unitLabel={"SIR Unlocked"}
+              unitLabel={`${getSirSymbol()} Unlocked`}
             />
             <TokenDisplay
               amount={stakedPosition?.lockedStake}
               decimals={12}
-              unitLabel={"SIR Locked"}
+              unitLabel={`${getSirSymbol()} Locked`}
             />
           </Show>
         </div>

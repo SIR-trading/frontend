@@ -1,5 +1,6 @@
 import { EPage } from "@/lib/types";
 import { getNativeCurrencySymbol, getWrappedTokenSymbol } from "@/lib/chains";
+import { getSirSymbol } from "@/lib/assets";
 
 export const Explainers = {
   [EPage.LEVERAGE]: {
@@ -11,20 +12,20 @@ As long as the vault maintains sufficient liquidity, routine price swings do not
   [EPage.LIQUIDITY]: {
     title: "Provide Liquidity",
     description:
-      `Deposit assets into vaults to mint TEA, our liquidity token (requires a one-time fee to prevent system abuse), and earn fees from users taking on leverage. The protocol’s permanent liquidity mining program rewards LPers in eligible vaults with SIR tokens.
+      `Deposit assets into vaults to mint TEA, our liquidity token (requires a one-time fee to prevent system abuse), and earn fees from users taking on leverage. The protocol's permanent liquidity mining program rewards LPers in eligible vaults with ${getSirSymbol()} tokens.
 No lock-ups —withdraw anytime.`.trim(),
   },
   [EPage.PORTFOLIO]: {
     title: "All Assets in One Place",
     description:
       `Track and manage your APE (leveraged) and TEA (liquidity) tokens here. Burn tokens to close positions or exit liquidity provision.
-Liquidity providers in eligible vaults can claim SIR tokens and stake them to earn ${getNativeCurrencySymbol()} rewards.`.trim(),
+Liquidity providers in eligible vaults can claim ${getSirSymbol()} tokens and stake them to earn ${getNativeCurrencySymbol()} rewards.`.trim(),
   },
   [EPage.STAKE]: {
-    title: "Stake Your SIR",
+    title: `Stake Your ${getSirSymbol()}`,
     description:
-      `Stake SIR to earn a share of protocol fees (paid in ${getNativeCurrencySymbol()}). Your rewards depend on trading volume and total SIR staked.
-Your staked SIR unlocks gradually—half of your locked amount becomes available every 30 days.`.trim(),
+      `Stake ${getSirSymbol()} to earn a share of protocol fees (paid in ${getNativeCurrencySymbol()}). Your rewards depend on trading volume and total ${getSirSymbol()} staked.
+Your staked ${getSirSymbol()} unlocks gradually—half of your locked amount becomes available every 30 days.`.trim(),
   },
   [EPage.AUCTIONS]: {
     title: "Bid for Token Lots",
@@ -38,6 +39,6 @@ Your staked SIR unlocks gradually—half of your locked amount becomes available
   [EPage.LEADERBOARD]: {
     title: "Leaderboard",
     description:
-      `See who’s winning in the SIR ecosystem. View top traders, liquidity providers, and stakers. Compare your performance against others and get inspired to improve your strategies.`.trim(),
+      `See who's winning in the ${getSirSymbol()} ecosystem. View top traders, liquidity providers, and stakers. Compare your performance against others and get inspired to improve your strategies.`.trim(),
   },
 };

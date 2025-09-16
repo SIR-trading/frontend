@@ -2,6 +2,7 @@
 import { EPage } from "@/lib/types";
 import type  { ExplainersMap } from "@/lib/types";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { getSirSymbol } from "@/lib/assets";
 
 export const Explainers: Partial<ExplainersMap> = {
   [EPage.LEVERAGE]: {
@@ -34,7 +35,7 @@ export const Explainers: Partial<ExplainersMap> = {
             className="underline"
             target="_blank"
           >
-            SIR tokens
+            {getSirSymbol()} tokens
           </a>
           . TEA maintains balanced exposure between paired assets.
         </p>
@@ -46,17 +47,17 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          View and manage all positions: close APE trades, withdraw TEA liquidity, claim SIR rewards, and stake SIR for {getNativeCurrencySymbol()} dividends.
+          View and manage all positions: close APE trades, withdraw TEA liquidity, claim {getSirSymbol()} rewards, and stake {getSirSymbol()} for {getNativeCurrencySymbol()} dividends.
         </p>
       </>
     ),
   },
   [EPage.STAKE]: {
-    title: <>Stake SIR, earn {getNativeCurrencySymbol()}</>,
+    title: <>Stake {getSirSymbol()}, earn {getNativeCurrencySymbol()}</>,
     description: (
       <>
         <p>
-          Stake SIR to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
+          Stake {getSirSymbol()} to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
         </p>
       </>
     ),
@@ -86,7 +87,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Protocol fees are auctioned for {getNativeCurrencySymbol()} that goes to SIR stakers. Auctions run 
+          Protocol fees are auctioned for {getNativeCurrencySymbol()} that goes to {getSirSymbol()} stakers. Auctions run 
           for 24 hours with the highest bidder winning the tokens.
         </p>
       </>
@@ -97,7 +98,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Close APE positions to compete for 1M SIR monthly prizes. Winners are determined by highest USD profit and best percentage gain.
+          Close APE positions to compete for 1M {getSirSymbol()} monthly prizes. Winners are determined by highest USD profit and best percentage gain.
         </p>
       </>
     ),

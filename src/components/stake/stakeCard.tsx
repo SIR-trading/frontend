@@ -6,6 +6,7 @@ import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
+import { getSirSymbol } from "@/lib/assets";
 
 export default function StakeCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -27,7 +28,7 @@ export default function StakeCard() {
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked SIR
+                Your Unstaked {getSirSymbol()}
               </h2>
               <div className="flex justify-between text-3xl">
                 <div className="flex items-end gap-x-1">
@@ -46,7 +47,7 @@ export default function StakeCard() {
                     <TokenDisplay
                       amount={userUnstakedSir}
                       decimals={12}
-                      unitLabel={"SIR"}
+                      unitLabel={getSirSymbol()}
                     />
                   </Show>
                 </div>

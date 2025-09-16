@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import StakeCard from "./stakeCard";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
+import { getSirSymbol } from "@/lib/assets";
 
 export function SirCard() {
   const { isConnected, address } = useAccount();
@@ -20,7 +21,7 @@ export function SirCard() {
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked SIR
+                Your Unstaked {getSirSymbol()}
               </h2>
               <div className="flex justify-between text-3xl   ">
                 <div className="flex items-end gap-x-1">
@@ -39,7 +40,7 @@ export function SirCard() {
                     <TokenDisplay
                       amount={totalBalance}
                       decimals={12}
-                      unitLabel={"SIR"}
+                      unitLabel={getSirSymbol()}
                     />
                   </Show>
                 </div>

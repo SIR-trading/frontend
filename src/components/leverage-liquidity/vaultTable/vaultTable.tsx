@@ -6,6 +6,7 @@ import { useVaultProvider } from "@/components/providers/vaultProvider";
 import VaultRowSkeleton from "./vaultRowSkeleton";
 import Show from "@/components/shared/show";
 import { api } from "@/trpc/react";
+import { getSirSymbol } from "@/lib/assets";
 
 export default function VaultTable({ isApe }: { isApe: boolean }) {
   const [pagination, setPagination] = useState(1);
@@ -135,7 +136,7 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
         <th className="flex items-center gap-x-1 font-medium pl-1 sm:pl-3">
           <span>APY</span>
           <ToolTip iconSize={12}>
-            Annualized Percentage Yield including LP fees from the last 30 days and SIR token rewards.
+            Annualized Percentage Yield including LP fees from the last 30 days and {getSirSymbol()} token rewards.
           </ToolTip>
         </th>
       ) : (

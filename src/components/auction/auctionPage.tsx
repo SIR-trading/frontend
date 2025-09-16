@@ -11,6 +11,7 @@ import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
 import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { getSirSymbol } from "@/lib/assets";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -134,7 +135,7 @@ const AuctionPage = () => {
 
           <TabsContent value="create" className="mt-10">
             <div className="mb-6 text-center text-sm text-muted-foreground">
-              Auction protocol fees to convert them to {getNativeCurrencySymbol()} for SIR stakers
+              Auction protocol fees to convert them to {getNativeCurrencySymbol()} for {getSirSymbol()} stakers
             </div>
             <NewAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>

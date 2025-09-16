@@ -19,6 +19,7 @@ import { Coins, TrendingDown, Wallet } from "lucide-react";
 import ToolTip from "../ui/tooltip";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { getSirSymbol } from "@/lib/assets";
 
 export default function StakingDashboard() {
   const [stakeModal, setStakeModal] = useState(false);
@@ -92,7 +93,7 @@ export default function StakingDashboard() {
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Protocol Statistics</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-background/50 dark:bg-background/30 p-4">
-              <div className="text-sm text-muted-foreground mb-1">Total Staked SIR</div>
+              <div className="text-sm text-muted-foreground mb-1">Total Staked {getSirSymbol()}</div>
               {unstakedSupplyLoading || totalSupplyLoading ? (
                 <div className="h-8 w-32 bg-foreground/10 rounded animate-pulse"></div>
               ) : (
@@ -100,7 +101,7 @@ export default function StakingDashboard() {
                   <TokenDisplay
                     amount={totalValueLocked}
                     decimals={12}
-                    unitLabel="SIR"
+                    unitLabel={getSirSymbol()}
                     amountSize="small"
                   />
                 </div>
@@ -159,7 +160,7 @@ export default function StakingDashboard() {
                     <TokenDisplay
                       amount={unstakedBalance}
                       decimals={12}
-                      unitLabel="SIR"
+                      unitLabel={getSirSymbol()}
                     />
                   </div>
                 </Show>
@@ -197,7 +198,7 @@ export default function StakingDashboard() {
                           <TokenDisplay
                             amount={stakedSir.lockedStake}
                             decimals={12}
-                            unitLabel="SIR locked"
+                            unitLabel={`${getSirSymbol()} locked`}
                           />
                         </div>
                       )}
@@ -206,7 +207,7 @@ export default function StakingDashboard() {
                           <TokenDisplay
                             amount={stakedSir.unlockedStake}
                             decimals={12}
-                            unitLabel="SIR unlocked"
+                            unitLabel={`${getSirSymbol()} unlocked`}
                           />
                         </div>
                       )}
@@ -216,7 +217,7 @@ export default function StakingDashboard() {
                       <TokenDisplay
                         amount={0n}
                         decimals={12}
-                        unitLabel="SIR"
+                        unitLabel={getSirSymbol()}
                       />
                     </div>
                   )}

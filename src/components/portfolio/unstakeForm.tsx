@@ -23,6 +23,7 @@ import { TokenDisplay } from "../ui/token-display";
 import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
+import { getSirSymbol } from "@/lib/assets";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -132,7 +133,7 @@ const UnstakeForm = ({
                   <h3 className="text-xl">
                     <TokenDisplay
                       amount={parseUnits(form.getValues("amount") ?? "0", 12)}
-                      unitLabel="SIR"
+                      unitLabel={getSirSymbol()}
                       decimals={12}
                       disableRounding
                     />
@@ -144,7 +145,7 @@ const UnstakeForm = ({
               <TransactionSuccess
                 hash={hash}
                 amountReceived={tokenReceived}
-                assetReceived="SIR"
+                assetReceived={getSirSymbol()}
                 assetAddress={SirContract.address}
                 decimals={12}
               />

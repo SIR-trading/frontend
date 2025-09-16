@@ -10,6 +10,14 @@ import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
 
 /**
+ * Get SIR token symbol based on chain ID
+ */
+export function getSirSymbol(chainId?: string | number): string {
+  const id = typeof chainId === 'string' ? parseInt(chainId) : (chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID));
+  return id === 999 || id === 998 ? "HyperSIR" : "SIR";
+}
+
+/**
  * Get SIR token metadata dynamically based on build-time data
  */
 export function getSirTokenMetadata() {
@@ -17,7 +25,7 @@ export function getSirTokenMetadata() {
   return {
     name: "Synthetics Implemented Right",
     address: SIR_ADDRESS,
-    symbol: chainId === 999 || chainId === 998 ? "HyperSIR" : "SIR",
+    symbol: getSirSymbol(chainId),
     decimals: 12,
     chainId,
     logoURI: "https://app.sir.trading/images/white-logo.svg",

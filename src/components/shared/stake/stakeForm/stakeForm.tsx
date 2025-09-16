@@ -25,6 +25,7 @@ import { useGetReceivedSir } from "@/components/portfolio/hooks/useGetReceivedSi
 import { useCheckStakeValidity } from "./useCheckStakeValidity";
 import SubmitButton from "../../submitButton";
 import ErrorMessage from "@/components/ui/error-message";
+import { getSirSymbol } from "@/lib/assets";
 
 type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
@@ -126,7 +127,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                   <h3 className="text-xl">
                     {form.getValues("amount")}
                     <span className="pl-[2px] text-[12px] text-gray-400">
-                      SIR
+                      {getSirSymbol()}
                     </span>
                   </h3>
                 </div>
@@ -137,7 +138,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                 hash={hash}
                 decimals={12}
                 amountReceived={tokenReceived}
-                assetReceived="SIR"
+                assetReceived={getSirSymbol()}
                 assetAddress={SirContract.address}
               />
             )}
