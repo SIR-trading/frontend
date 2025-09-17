@@ -1,8 +1,7 @@
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { roundDown } from "@/lib/utils";
-import type { StaticImageData } from "next/image";
 import Image from "next/image";
-import boostIcon from "@/../public/images/sir-logo.svg";
+import { getSirLogo } from "@/lib/assets";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
@@ -305,7 +304,7 @@ export function VaultTableRow({
               trigger={
                 <div className="flex h-full items-center">
                   <Image
-                    src={boostIcon as StaticImageData}
+                    src={getSirLogo()}
                     height={24}
                     width={24}
                     className=" "

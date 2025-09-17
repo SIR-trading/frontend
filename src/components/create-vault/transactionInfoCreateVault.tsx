@@ -2,9 +2,6 @@ import React from "react";
 import { TokenImage } from "../shared/TokenImage";
 import { mapLeverage } from "@/lib/utils/index";
 import type { TAddressString } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
-import { tokenSchema } from "@/lib/schemas";
-import { getLogoJson } from "@/lib/assets";
 import { useReadContracts } from "wagmi";
 import { erc20Abi } from "viem";
 
@@ -17,32 +14,7 @@ export default function TransactionInfoCreateVault({
   longToken: string;
   versusToken: string;
 }) {
-  const { data: versusTokenData, isFetching } = useQuery({
-    queryKey: ["versus"],
-    queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const resp = await fetch(getLogoJson(versusToken as TAddressString)).then(
-        (r) => r.json(),
-      );
-      const result = tokenSchema.safeParse(resp);
-      console.log(result, "RESULT");
-      return result;
-    },
-  });
-
-  const { data: longTokenData, isFetching: isFetchingLong } = useQuery({
-    queryKey: ["longtoken"],
-    queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const resp = await fetch(getLogoJson(longToken as TAddressString)).then(
-        (r) => r.json(),
-      );
-      const result = tokenSchema.safeParse(resp);
-      return result;
-    },
-  });
-
-  const { data: symbols } = useReadContracts({
+  const { data: symbols, isLoading } = useReadContracts({
     contracts: [
       {
         address: longToken as TAddressString,
@@ -63,18 +35,16 @@ export default function TransactionInfoCreateVault({
         <div className=" flex  justify-between gap-y-1">
           <span className="text-gray-300 text-[12px]">Long</span>
 
-          {isFetchingLong && <TextSkele />}
-          {!isFetchingLong && (
+          {isLoading && <TextSkele />}
+          {!isLoading && (
             <div className="flex items-center gap-x-1">
               <span className="text-[14px] text-foreground/80">
-                {longTokenData?.success
-                  ? longTokenData.data.symbol
-                  : symbols?.[0].result ?? "Unknown"}
+                {symbols?.[0]?.result ?? "Unknown"}
               </span>
 
               <TokenImage
                 address={longToken as TAddressString}
-                alt={longTokenData?.success ? longTokenData.data.symbol : ""}
+                alt={symbols?.[0]?.result ?? ""}
                 width={20}
                 height={20}
                 className="rounded-full"
@@ -84,18 +54,16 @@ export default function TransactionInfoCreateVault({
         </div>
         <div className=" flex  justify-between gap-y-1">
           <span className="text-gray-300 text-[12px]">Versus</span>
-          {isFetching && <TextSkele />}
-          {!isFetching && (
+          {isLoading && <TextSkele />}
+          {!isLoading && (
             <div className="flex items-center gap-x-1">
               <span className="text-[14px] text-foreground/80">
-                {versusTokenData?.success
-                  ? versusTokenData.data.symbol
-                  : symbols?.[1].result ?? "unknown"}
+                {symbols?.[1]?.result ?? "Unknown"}
               </span>
 
               <TokenImage
                 address={versusToken as TAddressString}
-                alt={versusTokenData?.success ? versusTokenData.data.symbol : ""}
+                alt={symbols?.[1]?.result ?? ""}
                 width={20}
                 height={20}
                 className="rounded-full"
@@ -106,7 +74,7 @@ export default function TransactionInfoCreateVault({
         <div className="flex justify-between gap-y-1">
           <span className="text-gray-300 text-[12px]">Leverage</span>
           <span className="leading-0 text-center text-[14px] ">
-            {mapLeverage(leverageTier)}x
+            ^{mapLeverage(leverageTier)}
           </span>
         </div>
       </div>

@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import type { TUnstakeForm } from "@/lib/types";
 import { BalancePercent } from "@/components/shared/balancePercent";
 
-import sir_logo from "@/../public/images/sir-logo.svg";
-import Image, { type StaticImageData } from "next/image";
+import { getSirLogo } from "@/lib/assets";
+import Image from "next/image";
 import { inputPatternMatch } from "@/lib/utils/index";
 import DisplayFormattedNumber from "../displayFormattedNumber";
 
@@ -20,7 +20,7 @@ interface Props {
 }
 
 const StakeInput = ({ form, balance, isStaking }: Props) => {
-  const logo = sir_logo as StaticImageData;
+  const logo = getSirLogo();
 
   return (
     <div className="rounded-md bg-primary/5 px-3 py-2 dark:bg-primary">

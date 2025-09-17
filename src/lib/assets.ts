@@ -3,8 +3,9 @@ import { env } from "@/env";
 import buildData from "@/../public/build-data.json";
 
 const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
-import sirIcon from "../../public/images/sir-logo.svg";
 import type { StaticImageData } from "next/image";
+import sirIcon from "../../public/images/sir-logo.svg";
+import sirIconHyperEVM from "../../public/images/sir-logo-hyperevm.svg";
 import { getAddress } from "viem";
 import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
@@ -21,17 +22,33 @@ export function getSirSymbol(chainId?: string | number): string {
 }
 
 /**
+ * Get SIR logo based on chain ID
+ */
+export function getSirLogo(chainId?: string | number): StaticImageData {
+  const id =
+    typeof chainId === "string"
+      ? parseInt(chainId)
+      : chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  return id === 999 || id === 998
+    ? (sirIconHyperEVM as StaticImageData)
+    : (sirIcon as StaticImageData);
+}
+
+/**
  * Get SIR token metadata dynamically based on build-time data
  */
 export function getSirTokenMetadata() {
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const isHyperEVM = chainId === 999 || chainId === 998;
   return {
     name: "Synthetics Implemented Right",
     address: SIR_ADDRESS,
     symbol: getSirSymbol(chainId),
     decimals: 12,
     chainId,
-    logoURI: "https://app.sir.trading/images/sir-logo.svg",
+    logoURI: isHyperEVM
+      ? "https://app.sir.trading/images/sir-logo-hyperevm.svg"
+      : "https://app.sir.trading/images/sir-logo.svg",
   };
 }
 
@@ -50,9 +67,13 @@ export function getLogoAssetWithFallback(
 
   // Handle SIR token dynamically based on build-time data
   if (address.toLowerCase() === SIR_ADDRESS.toLowerCase()) {
+    const chainIdNum = chainId ? parseInt(chainId) : parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    const isHyperEVM = chainIdNum === 999 || chainIdNum === 998;
     return {
-      primary: sirIcon as StaticImageData,
-      fallback: "https://app.sir.trading/images/sir-logo.svg",
+      primary: getSirLogo(chainIdNum),
+      fallback: isHyperEVM
+        ? "https://app.sir.trading/images/sir-logo-hyperevm.svg"
+        : "https://app.sir.trading/images/sir-logo.svg",
     };
   }
 

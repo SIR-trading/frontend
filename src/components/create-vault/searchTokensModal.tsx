@@ -16,6 +16,7 @@ import { ArrowLeft, LoaderIcon } from "lucide-react";
 import useRetrieveToken from "./hooks/useRetrieveToken";
 import { Button } from "../ui/button";
 import { useDebounce } from "../shared/hooks/useDebounce";
+import { env } from "@/env";
 
 export default function SearchTokensModal({
   open,
@@ -56,7 +57,7 @@ export default function SearchTokensModal({
   const { name, symbol, address, isLoading } = useRetrieveToken({
     tokenAddress: manualAddress,
   });
-  const { primary: manualTokenLogo, fallback: manualTokenFallback } = useTokenLogo(address as Address | undefined, "1");
+  const { primary: manualTokenLogo, fallback: manualTokenFallback } = useTokenLogo(address as Address | undefined, env.NEXT_PUBLIC_CHAIN_ID);
   return (
     <Dialog open={open} onOpenChange={onOpen}>
       <DialogContent
@@ -209,7 +210,8 @@ function TokenItem({
   token: TToken;
   selectToken: (token: TToken) => void;
 }) {
-  const { primary, fallback } = useTokenLogo(token.address as Address, "1");
+  const chainId = env.NEXT_PUBLIC_CHAIN_ID;
+  const { primary, fallback } = useTokenLogo(token.address as Address, chainId);
   
   return (
     <button
