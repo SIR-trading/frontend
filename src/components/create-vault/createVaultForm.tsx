@@ -77,7 +77,7 @@ export default function CreateVaultForm() {
     }
     return false;
   }, [formData.longToken, formData.versusToken, formData.leverageTier]);
-  const { data: vaultData } = api.vault.getVaultExists.useQuery(
+  const { data: vaultData, isLoading: isCheckingOracle, error: oracleError } = api.vault.getVaultExists.useQuery(
     {
       debtToken: formData.versusToken,
       collateralToken: formData.longToken,
@@ -91,6 +91,7 @@ export default function CreateVaultForm() {
   const isValid = useCheckValidityCreactVault({
     vaultSimulation: Boolean(data?.request),
     vaultData,
+    isCheckingOracle,
   });
   const [openModal, setOpenModal] = useState(false);
 
@@ -235,11 +236,15 @@ export default function CreateVaultForm() {
               } else {
               }
             }}
-            disabled={!isValid.isValid}
+            disabled={!isValid.isValid || isCheckingOracle}
           >
-            Create Vault
+            {isCheckingOracle ? "Checking Uniswap Oracle..." : "Create Vault"}
           </SubmitButton>
-          <ErrorMessage>{isValid.error}</ErrorMessage>
+          <ErrorMessage>
+            {isCheckingOracle && enabled && "Verifying Uniswap v3 price oracle availability..."}
+            {oracleError && "Failed to check oracle status. Please try again."}
+            {!isCheckingOracle && !oracleError && isValid.error}
+          </ErrorMessage>
         </div>
       </form>
     </FormProvider>
