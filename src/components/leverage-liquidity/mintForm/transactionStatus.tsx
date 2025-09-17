@@ -28,10 +28,11 @@ export function TransactionStatus({
     if (showLoading) {
       return { message: <Spinner></Spinner> };
     }
-    return { message: action ?? "Mint" };
+    // For Create Vault, show "Create Vault" as the title
+    return { message: action === "Create" ? "Create Vault" : (action ?? "Mint") };
   }, [waitForSign, showLoading, action]);
   if (isConfirmed) {
     return undefined;
   }
-  return <h2 className="  text-left text-lg">{data.message}</h2>;
+  return <h2 className="text-center font-geist text-2xl">{data.message}</h2>;
 }

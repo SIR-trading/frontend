@@ -123,13 +123,13 @@ export default function CreateVaultForm() {
         >
           <TransactionModal.Close setOpen={setOpenModal} />
           <TransactionModal.InfoContainer
-            isConfirming={isConfirming}
+            isConfirming={isConfirming || isConfirmed}
             hash={hash}
           >
             <Show
               fallback={
                 <div>
-                  <h1>Succesfully created Vault!</h1>
+                  <h1 className="text-center font-geist text-lg">Successfully created vault!</h1>
                 </div>
               }
               when={!isConfirmed}

@@ -1,9 +1,7 @@
-import { env } from "@/env";
+import { getExplorerUrl } from "@/lib/chains";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-
-const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
 export default function ExplorerLink({
   transactionHash,
@@ -12,6 +10,8 @@ export default function ExplorerLink({
   transactionHash: string | undefined;
   align?: "center" | "left";
 }) {
+  const explorerUrl = getExplorerUrl();
+
   return (
     <>
       {transactionHash && (
@@ -22,7 +22,7 @@ export default function ExplorerLink({
           <Link
             className="flex items-center gap-x-1 text-sm text-foreground hover:text-foreground/80"
             target="_blank"
-            href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/tx/${transactionHash}`}
+            href={`${explorerUrl}/tx/${transactionHash}`}
           >
             <ExternalLink size={15} />
             <div className="flex items-center gap-x-1">

@@ -30,50 +30,48 @@ export default function TransactionInfoCreateVault({
   });
 
   return (
-    <div className="py-3 ">
-      <div className="flex flex-col gap-y-2">
-        <div className=" flex  justify-between gap-y-1">
-          <span className="text-gray-300 text-[12px]">Long</span>
+    <div className="py-3">
+      <div className="flex flex-col gap-y-3">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-foreground/70">Long</span>
 
           {isLoading && <TextSkele />}
           {!isLoading && (
-            <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-foreground/80">
-                {symbols?.[0]?.result ?? "Unknown"}
-              </span>
-
+            <div className="flex items-center gap-x-2">
               <TokenImage
                 address={longToken as TAddressString}
                 alt={symbols?.[0]?.result ?? ""}
-                width={20}
-                height={20}
+                width={25}
+                height={25}
                 className="rounded-full"
               />
+              <span className="text-base font-medium text-foreground">
+                {symbols?.[0]?.result ?? "Unknown"}
+              </span>
             </div>
           )}
         </div>
-        <div className=" flex  justify-between gap-y-1">
-          <span className="text-gray-300 text-[12px]">Versus</span>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-foreground/70">Versus</span>
           {isLoading && <TextSkele />}
           {!isLoading && (
-            <div className="flex items-center gap-x-1">
-              <span className="text-[14px] text-foreground/80">
-                {symbols?.[1]?.result ?? "Unknown"}
-              </span>
-
+            <div className="flex items-center gap-x-2">
               <TokenImage
                 address={versusToken as TAddressString}
                 alt={symbols?.[1]?.result ?? ""}
-                width={20}
-                height={20}
+                width={25}
+                height={25}
                 className="rounded-full"
               />
+              <span className="text-base font-medium text-foreground">
+                {symbols?.[1]?.result ?? "Unknown"}
+              </span>
             </div>
           )}
         </div>
-        <div className="flex justify-between gap-y-1">
-          <span className="text-gray-300 text-[12px]">Leverage</span>
-          <span className="leading-0 text-center text-[14px] ">
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-foreground/70">Leverage</span>
+          <span className="text-base font-medium text-foreground">
             ^{mapLeverage(leverageTier)}
           </span>
         </div>

@@ -57,7 +57,7 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
     id: 998,
     name: "HyperEVM Testnet",
     alchemyPrefix: "", // HyperEVM doesn't use Alchemy - RPC_URL must be provided
-    explorerUrl: "https://testnet.explorer.hyperliquid.xyz",
+    explorerUrl: "https://testnet.purrsec.com",
     nativeCurrency: {
       name: "HYPE",
       symbol: "HYPE",
@@ -73,7 +73,7 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
     id: 999,
     name: "HyperEVM",
     alchemyPrefix: "", // HyperEVM doesn't use Alchemy - RPC_URL must be provided
-    explorerUrl: "https://explorer.hyperliquid.xyz",
+    explorerUrl: "https://hyperevmscan.io",
     nativeCurrency: {
       name: "HYPE",
       symbol: "HYPE",

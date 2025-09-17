@@ -54,7 +54,7 @@ function InfoContainer({
   isConfirming: boolean;
 }) {
   return (
-    <div className="space-y-2 rounded-t-xl px-6 pb-6 pt-5">
+    <div className="space-y-4 rounded-t-xl px-6 pb-6 pt-6">
       {children}
       {isConfirming && (
         <div className="">
