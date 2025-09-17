@@ -1,21 +1,40 @@
 import { useMemo } from "react";
+import { useAccount } from "wagmi";
 
-type VaultChartConfigs = Record<string, string>;
+type VaultChartConfigs = Record<number, Record<string, string>>;
 
-// Configuration for Dune Analytics charts per vault ID
+// Configuration for Dune Analytics charts per chain and vault ID
 const VAULT_CHARTS: VaultChartConfigs = {
-  // Example configurations - replace with your actual Dune embed URLs
-  "1": "https://dune.com/embeds/5640030/9172204",
-  "2": "https://dune.com/embeds/5648390/9177434",
-  "9": "https://dune.com/embeds/5648413/9177463"
-  // Add more vault IDs and their embed URLs as needed
+  // Mainnet (chain ID 1)
+  1: {
+    "1": "https://dune.com/embeds/5640030/9172204",
+    "2": "https://dune.com/embeds/5648390/9177434",
+    "9": "https://dune.com/embeds/5648413/9177463"
+    // Add more vault IDs and their embed URLs as needed
+  },
+  // Sepolia (chain ID 11155111)
+  11155111: {
+    // Add Sepolia vault charts here
+  },
+  // HyperEVM (chain ID 998)
+  998: {
+    // Add HyperEVM testnet vault charts here
+  },
+  // HyperEVM Mainnet (chain ID 999)
+  999: {
+    // Add HyperEVM mainnet vault charts here
+  }
 };
 
 export function useDuneCharts(vaultId?: string) {
+  const { chainId } = useAccount();
+
   const embedUrl = useMemo(() => {
-    if (!vaultId) return null;
-    return VAULT_CHARTS[vaultId] ?? null;
-  }, [vaultId]);
+    if (!vaultId || !chainId) return null;
+    const chainCharts = VAULT_CHARTS[chainId];
+    if (!chainCharts) return null;
+    return chainCharts[vaultId] ?? null;
+  }, [vaultId, chainId]);
 
   const hasChart = Boolean(embedUrl);
 

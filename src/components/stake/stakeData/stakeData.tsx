@@ -9,6 +9,7 @@ import Show from "@/components/shared/show";
 import { useAccount } from "wagmi";
 import { getSirSymbol } from "@/lib/assets";
 import { Lock, LockOpen } from "lucide-react";
+import HoverPopup from "@/components/ui/hover-popup";
 
 const StakeData = ({ children }: { children: ReactNode }) => {
   const { 
@@ -59,6 +60,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
               amount={totalValueLocked}
               decimals={12}
               unitLabel={getSirSymbol()}
+              amountSize="medium"
             />
           </Show>
         </div>
@@ -85,28 +87,42 @@ const StakeData = ({ children }: { children: ReactNode }) => {
             }
           >
             <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1 justify-center group relative">
-                <LockOpen className="h-4 w-4 text-muted-foreground" />
-                <TokenDisplay
-                  amount={stakedPosition?.unlockedStake ?? 0n}
-                  decimals={12}
-                  unitLabel={getSirSymbol()}
-                />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <HoverPopup
+                trigger={
+                  <div className="flex items-center gap-1 justify-center cursor-default">
+                    <LockOpen className="h-4 w-4 text-muted-foreground" />
+                    <TokenDisplay
+                      amount={stakedPosition?.unlockedStake ?? 0n}
+                      decimals={12}
+                      unitLabel={getSirSymbol()}
+                      amountSize="medium"
+                    />
+                  </div>
+                }
+                size="200"
+              >
+                <div className="text-xs font-normal">
                   Available to withdraw anytime
                 </div>
-              </div>
-              <div className="flex items-center gap-1 justify-center group relative">
-                <Lock className="h-4 w-4 text-muted-foreground" />
-                <TokenDisplay
-                  amount={stakedPosition?.lockedStake ?? 0n}
-                  decimals={12}
-                  unitLabel={getSirSymbol()}
-                />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              </HoverPopup>
+              <HoverPopup
+                trigger={
+                  <div className="flex items-center gap-1 justify-center cursor-default">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    <TokenDisplay
+                      amount={stakedPosition?.lockedStake ?? 0n}
+                      decimals={12}
+                      unitLabel={getSirSymbol()}
+                      amountSize="medium"
+                    />
+                  </div>
+                }
+                size="200"
+              >
+                <div className="text-xs font-normal">
                   Locked stake cannot be withdrawn yet
                 </div>
-              </div>
+              </HoverPopup>
             </div>
           </Show>
         </div>

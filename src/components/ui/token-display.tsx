@@ -7,12 +7,12 @@ import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 const AmountVariants = classVarianceAuthority.cva("", {
   variants: {
     amountSize: {
-      small: "text-base",
+      small: "",
       medium: "text-lg",
       large: "text-xl",
     },
   },
-  defaultVariants: { amountSize: "medium" },
+  defaultVariants: { amountSize: "large" },
 });
 
 const LabelVariants = classVarianceAuthority.cva("", {
