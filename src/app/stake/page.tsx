@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import StakePage from "@/components/stake/stakePage";
 
@@ -7,4 +8,4 @@ export default function StakeHome() {
       <StakePage />
     </main>
   );
-};
+}

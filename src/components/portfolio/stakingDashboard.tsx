@@ -15,7 +15,7 @@ import { api } from "@/trpc/react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useClaim } from "../stake/hooks/useClaim";
 import { useEffect, useMemo } from "react";
-import { Coins, TrendingDown, Wallet } from "lucide-react";
+import { Coins, TrendingDown, Wallet, Lock, LockOpen } from "lucide-react";
 import ToolTip from "../ui/tooltip";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 import { getNativeCurrencySymbol } from "@/lib/chains";
@@ -93,8 +93,8 @@ export default function StakingDashboard() {
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Protocol Statistics</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-background/50 dark:bg-background/30 p-4">
-              <div className="text-sm text-muted-foreground mb-1">Total Staked {getSirSymbol()}</div>
-              {unstakedSupplyLoading || totalSupplyLoading ? (
+              <div className="text-sm text-muted-foreground mb-1">Total Staked</div>
+              {(unstakedSupplyLoading || totalSupplyLoading) && (totalSupply === undefined || unstakedSupply === undefined) ? (
                 <div className="h-8 w-32 bg-foreground/10 rounded animate-pulse"></div>
               ) : (
                 <div className="text-xl font-semibold">
@@ -191,36 +191,30 @@ export default function StakingDashboard() {
                     )
                   }
                 >
-                  {totalStaked > 0n ? (
-                    <div className="space-y-1 mb-3">
-                      {stakedSir.lockedStake > 0n && (
-                        <div className="text-2xl font-semibold">
-                          <TokenDisplay
-                            amount={stakedSir.lockedStake}
-                            decimals={12}
-                            unitLabel={`${getSirSymbol()} locked`}
-                          />
-                        </div>
-                      )}
-                      {stakedSir.unlockedStake > 0n && (
-                        <div className="text-2xl font-semibold">
-                          <TokenDisplay
-                            amount={stakedSir.unlockedStake}
-                            decimals={12}
-                            unitLabel={`${getSirSymbol()} unlocked`}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-2xl font-semibold mb-3">
+                  <div className="space-y-1 mb-3">
+                    <div className="text-2xl font-semibold flex items-center gap-1 group relative">
+                      <LockOpen className="h-4 w-4 text-muted-foreground" />
                       <TokenDisplay
-                        amount={0n}
+                        amount={stakedSir.unlockedStake}
                         decimals={12}
                         unitLabel={getSirSymbol()}
                       />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        Available to withdraw anytime
+                      </div>
                     </div>
-                  )}
+                    <div className="text-2xl font-semibold flex items-center gap-1 group relative">
+                      <Lock className="h-4 w-4 text-muted-foreground" />
+                      <TokenDisplay
+                        amount={stakedSir.lockedStake}
+                        decimals={12}
+                        unitLabel={getSirSymbol()}
+                      />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        Locked stake cannot be withdrawn yet
+                      </div>
+                    </div>
+                  </div>
                 </Show>
               </div>
               <Button

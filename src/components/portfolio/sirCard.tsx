@@ -8,12 +8,13 @@ import { getSirSymbol } from "@/lib/assets";
 
 export function SirCard() {
   const { isConnected, address } = useAccount();
-  const { data: totalBalance, isLoading: balanceLoading } = api.user.getUnstakedSirBalance.useQuery(
-    {
-      user: address,
-    },
-    { enabled: isConnected },
-  );
+  const { data: totalBalance, isLoading: balanceLoading } =
+    api.user.getUnstakedSirBalance.useQuery(
+      {
+        user: address,
+      },
+      { enabled: isConnected },
+    );
   return (
     <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
       <div className=" flex justify-between rounded-md text-2xl">
@@ -21,17 +22,17 @@ export function SirCard() {
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked {getSirSymbol()}
+                Your Unstaked Balance
               </h2>
               <div className="flex justify-between text-3xl   ">
                 <div className="flex items-end gap-x-1">
-                  <Show 
-                    when={isConnected && !balanceLoading} 
+                  <Show
+                    when={isConnected && !balanceLoading}
                     fallback={
                       isConnected ? (
-                        <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+                        <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
                       ) : (
-                        <div className="text-sm text-foreground italic">
+                        <div className="text-sm italic text-foreground">
                           Connect to stake
                         </div>
                       )

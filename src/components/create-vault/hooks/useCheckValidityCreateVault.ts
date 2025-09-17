@@ -13,7 +13,7 @@ export function useCheckValidityCreactVault({
       return { isValid: false, error: "Invalid token address(es)" };
     }
     if (vaultData === 1) {
-      return { isValid: false, error: "No Uniswap Pool." };
+      return { isValid: false, error: "No Uniswap v3 Pool." };
     }
     if (vaultData === 3) {
       return { isValid: false, error: "Vault Already Exists" };

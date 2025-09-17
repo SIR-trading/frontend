@@ -7,11 +7,12 @@ import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 const AmountVariants = classVarianceAuthority.cva("", {
   variants: {
     amountSize: {
-      small: "",
+      small: "text-base",
+      medium: "text-lg",
       large: "text-xl",
     },
   },
-  defaultVariants: { amountSize: "large" },
+  defaultVariants: { amountSize: "medium" },
 });
 
 const LabelVariants = classVarianceAuthority.cva("", {
@@ -48,22 +49,17 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
     ref,
   ) => {
     const tokenAmount = formatUnits(amount ?? 0n, decimals ?? 18);
-    // For large amount size, keep number large but symbol normal
-    const isLargeAmount = amountSize === "large";
     return (
       <h3
         ref={ref}
         className={cn(AmountVariants({ amountSize, className }))}
         {...props}
       >
-        <DisplayFormattedNumber 
-          num={tokenAmount} 
-          significant={disableRounding ? undefined : round} 
+        <DisplayFormattedNumber
+          num={tokenAmount}
+          significant={disableRounding ? undefined : round}
         />
-        <span className={cn(
-          LabelVariants({ labelSize }), 
-          isLargeAmount ? "text-base" : ""
-        )}> {unitLabel}</span>
+        <span className="text-muted-foreground"> {unitLabel}</span>
       </h3>
     );
   },

@@ -28,7 +28,7 @@ export default function StakeCard() {
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked {getSirSymbol()}
+                Your Unstaked Balance
               </h2>
               <div className="flex justify-between text-3xl">
                 <div className="flex items-end gap-x-1">

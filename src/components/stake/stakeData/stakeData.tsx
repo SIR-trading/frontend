@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import Show from "@/components/shared/show";
 import { useAccount } from "wagmi";
 import { getSirSymbol } from "@/lib/assets";
+import { Lock, LockOpen } from "lucide-react";
 
 const StakeData = ({ children }: { children: ReactNode }) => {
   const { 
@@ -32,23 +33,24 @@ const StakeData = ({ children }: { children: ReactNode }) => {
     if (totalSupply !== undefined && unstakedSupply !== undefined) {
       return totalSupply - unstakedSupply;
     }
+    return undefined;
   }, [unstakedSupply, totalSupply]);
 
-  const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading || !totalValueLocked;
+  const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading || totalValueLocked === undefined;
   const isLoadingUserStake = stakedPositionLoading;
 
   return (
     <div className="mx-auto grid gap-4 font-normal md:grid-cols-3  ">
       <Card className="flex flex-col  items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="text-sm font-normal text-muted-foreground">
-          Total Staked {getSirSymbol()}
+          Total Staked
         </div>
         {/* <div className="text-2xl font-semibold ">
           {parseFloat(formatUnits(totalValueLocked ?? 0n, 12)).toFixed(4)}
         </div> */}
         <div className=" text-2xl font-normal">
-          <Show 
-            when={!isLoadingTVL} 
+          <Show
+            when={!isLoadingTVL}
             fallback={
               <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
             }
@@ -64,7 +66,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
 
       <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
         <div className="flex w-full flex-row items-center justify-center">
-          <div className="px-2 text-sm text-muted-foreground">Your Staked {getSirSymbol()}</div>
+          <div className="px-2 text-sm text-muted-foreground">Your Stake</div>
         </div>
         <div className=" text-2xl ">
           <Show 
@@ -82,16 +84,30 @@ const StakeData = ({ children }: { children: ReactNode }) => {
               )
             }
           >
-            <TokenDisplay
-              amount={stakedPosition?.unlockedStake}
-              decimals={12}
-              unitLabel={`${getSirSymbol()} Unlocked`}
-            />
-            <TokenDisplay
-              amount={stakedPosition?.lockedStake}
-              decimals={12}
-              unitLabel={`${getSirSymbol()} Locked`}
-            />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1 justify-center group relative">
+                <LockOpen className="h-4 w-4 text-muted-foreground" />
+                <TokenDisplay
+                  amount={stakedPosition?.unlockedStake ?? 0n}
+                  decimals={12}
+                  unitLabel={getSirSymbol()}
+                />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Available to withdraw anytime
+                </div>
+              </div>
+              <div className="flex items-center gap-1 justify-center group relative">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <TokenDisplay
+                  amount={stakedPosition?.lockedStake ?? 0n}
+                  decimals={12}
+                  unitLabel={getSirSymbol()}
+                />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/95 border rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Locked stake cannot be withdrawn yet
+                </div>
+              </div>
+            </div>
           </Show>
         </div>
       </Card>

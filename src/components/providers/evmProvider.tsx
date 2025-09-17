@@ -26,7 +26,7 @@ const chainId = getChainId();
 const chain = {
   ...(chainId == mainnet.id ? mainnet : sepolia),
   id: chainId,
-  name: CHAIN_CONFIGS[chainId]?.name,
+  name: CHAIN_CONFIGS[chainId]?.name ?? "Unknown Chain",
 };
 
 const projectId =

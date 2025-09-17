@@ -36,12 +36,6 @@ export default function SearchTokensModal({
   const [enterManually, setEnterManually] = React.useState(false);
   const tokens = useMemo(() => {
     return tokenlist?.filter((token) => {
-      if (
-        token.address === selectedTokens[0] ||
-        token.address === selectedTokens[1]
-      ) {
-        return false;
-      }
       const inclSymb = token.name
         .toLowerCase()
         .includes(deSearch.trim().toLowerCase());
@@ -52,7 +46,7 @@ export default function SearchTokensModal({
       }
       return false;
     });
-  }, [deSearch, selectedTokens, tokenlist]);
+  }, [deSearch, tokenlist]);
   const [manualAddress, setManualAddress] = React.useState("");
   const { name, symbol, address, isLoading } = useRetrieveToken({
     tokenAddress: manualAddress,
@@ -115,6 +109,19 @@ export default function SearchTokensModal({
                       disabled={!address}
                       onClick={() => {
                         if (tokenSelection && address) {
+                          // Check if this token is already selected in the other field
+                          const isLongToken = tokenSelection === "longToken";
+                          const otherField = isLongToken ? "versusToken" : "longToken";
+                          const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
+
+                          // If the token is already selected in the other field, swap them
+                          if (address === otherFieldValue) {
+                            const currentValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
+                            if (currentValue) {
+                              setValue(otherField, currentValue);
+                            }
+                          }
+
                           setValue(tokenSelection, address);
                           onOpen?.(false);
                           setTimeout(() => {
@@ -173,17 +180,26 @@ export default function SearchTokensModal({
                 Tokens ({tokens?.length})
               </h2>
               <div className=" scrollbar h-[calc(100%-22px)] space-y-2 overflow-y-auto px-2 pb-2">
-                {tokens
-                  ?.filter(
-                    (token) =>
-                      !selectedTokens.includes(token.address as Address),
-                  )
-                  .map((token) => {
+                {tokens?.map((token) => {
                     return (
                       <TokenItem
                         token={token}
                         selectToken={(token) => {
                           setSearchQuery("");
+
+                          // Check if this token is already selected in the other field
+                          const isLongToken = tokenSelection === "longToken";
+                          const otherField = isLongToken ? "versusToken" : "longToken";
+                          const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
+
+                          // If the token is already selected in the other field, swap them
+                          if (token.address === otherFieldValue) {
+                            const currentValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
+                            if (currentValue) {
+                              setValue(otherField, currentValue);
+                            }
+                          }
+
                           setValue(
                             tokenSelection ?? "longToken",
                             token.address,
