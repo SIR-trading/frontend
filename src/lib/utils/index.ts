@@ -3,11 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { formatUnits } from "viem";
 import type { TAddressString } from "../types";
 import numeral from "numeral";
-import { getLeverageRatio } from "./calculations";
 
-// Default fee values (fallbacks when build-time data is not available)
-const DEFAULT_BASE_FEE = 0.025; // 2.5%
-const DEFAULT_MINTING_FEE = 0.005; // 0.5%
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -230,33 +226,14 @@ export function formatBigInt(b: bigint | undefined, fixed: number) {
   return parseFloat(parsed.toFixed(fixed));
 }
 
-/**
- *
- * @param k - Leverage Tier should be values -4 to 2
- * @param baseFee - Optional base fee as decimal. If not provided, uses default fallback
- * @returns number
- */
-export function calculateApeVaultFee(k: number, baseFee?: number) {
-  const l = getLeverageRatio(k);
-  const fee = baseFee ?? DEFAULT_BASE_FEE; // Use provided fee or fallback to default
-  const a = 1 / (1 + (l - 1) * fee);
-  return (1 * 10 - a * 10) / 10;
-}
-
-/**
- *
- * @param k - Leverage Tier should be values -4 to 2
- * @param mintingFee - Optional minting fee as decimal. If not provided, uses default fallback
- * @returns number
- */
-export function calculateTeaVaultFee(mintingFee?: number) {
-  const fee = mintingFee ?? DEFAULT_MINTING_FEE; // Use provided fee or fallback to default
-  const a = 1 / (1 + fee);
-  return (1 * 10 - a * 10) / 10;
-}
 
 export function compareAddress(a?: string, b?: string) {
   return a?.toLowerCase() === b?.toLowerCase();
+}
+
+export function formatAddress(address: string, chars = 4): string {
+  if (!address) return "";
+  return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;
 }
 
 export function getCurrentTime() {
