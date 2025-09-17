@@ -483,10 +483,10 @@ export default function MintForm({ isApe }: Props) {
             }}
           >
             <Show when={!needsApproval} fallback={"Approve"}>
-              <div className="flex items-center gap-x-1">
+              <span className="flex items-center gap-x-1">
                 <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
                 <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
-              </div>
+              </span>
             </Show>
           </SubmitButton>
         </motion.div>

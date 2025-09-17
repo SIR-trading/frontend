@@ -219,7 +219,7 @@ function TokenItem({
       }}
       className="mb-2 flex w-full justify-between rounded-md px-4 py-2 text-left transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
-      <div className="flex items-center gap-x-2">
+      <span className="flex items-center gap-x-2">
         <ImageWithFallback
           className="h-10 w-10 rounded-full"
           src={primary}
@@ -228,15 +228,13 @@ function TokenItem({
           height={40}
           alt=""
         />
-        <div>
-          <div>
-            <span>{token.symbol}</span>
-          </div>
-          <div>
-            <span className="text-gray-400 text-sm">{token.name}</span>
-          </div>
-        </div>
-      </div>
+        <span>
+          <span className="block">
+            {token.symbol}
+          </span>
+          <span className="block text-gray-400 text-sm">{token.name}</span>
+        </span>
+      </span>
     </button>
   );
 }

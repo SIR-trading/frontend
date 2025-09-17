@@ -279,11 +279,11 @@ function SelectTokenDialogTrigger({
         type="button"
         className="flex w-full justify-between gap-x-2 rounded-md border-2 border-tertiary-border bg-tertiary px-3 py-2"
       >
-        <div className="flex items-center gap-x-1">
+        <span className="flex items-center gap-x-1">
           {!tokenAddress && <span className="text-[14px]">Select Token</span>}
           {tokenAddress && (
             <>
-              <div className="h-7 w-7">
+              <span className="inline-block h-7 w-7">
                 <TokenImage
                   address={tokenAddress}
                   alt=""
@@ -291,18 +291,18 @@ function SelectTokenDialogTrigger({
                   width={25}
                   height={25}
                 />
-              </div>
-              <div className="">
-                <div className="text-[14px] font-medium text-foreground">
+              </span>
+              <span className="">
+                <span className="text-[14px] font-medium text-foreground">
                   {token?.symbol ?? symbol.data}
-                </div>
-              </div>
+                </span>
+              </span>
             </>
           )}
-        </div>
-        <div className="flex items-center">
+        </span>
+        <span className="flex items-center">
           <ChevronDown size={25} />
-        </div>
+        </span>
       </button>
     </div>
   );

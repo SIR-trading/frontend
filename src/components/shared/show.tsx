@@ -14,6 +14,6 @@ export default function Show({
     if (fallback) {
       return <>{fallback}</>;
     }
-    return undefined;
+    return null;
   }
 }
