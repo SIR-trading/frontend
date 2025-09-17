@@ -127,6 +127,12 @@ html {
 
 @layer utilities {
   .gradient-bg {
+    background: radial-gradient(
+      53.42% 53.42% at 50% 50%,
+      hsla(0, 0%, 100%, 0.2) 0%,
+      hsla(264, 68%, 96%, 0.2) 70%,
+      hsla(265, 100%, 94%, 0.3) 100%
+    );
   }
 
   html.dark {
