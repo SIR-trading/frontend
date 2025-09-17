@@ -5,12 +5,22 @@ import { SirContract } from "@/contracts/sir";
 import { env } from "@/env";
 import { shouldUseCoinGecko, getCoinGeckoPlatformId, getAlchemyChainString } from "@/lib/chains";
 
-// Cache for SIR price in USD (5 minute cache)
+// Cache configuration
+const CACHE_DURATION = 1 * 60 * 1000; // 1 minute cache for all prices
+
+// Cache for SIR price in USD
 let sirPriceUsdCache: { price: number; timestamp: number } | null = null;
-const SIR_PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Cache for token prices (Alchemy and CoinGecko)
+const tokenPriceCache = new Map<string, { price: number | null; timestamp: number }>();
+
+// Helper function to get cache key
+function getCacheKey(type: 'alchemy' | 'coingecko', chain: string, address: string): string {
+  return `${type}_${chain}_${address.toLowerCase()}`;
+}
 
 export const priceRouter = createTRPCRouter({
-  // Get token price from CoinGecko
+  // Get token price from CoinGecko (with caching)
   getCoinGeckoPrice: publicProcedure
     .input(
       z.object({
@@ -20,6 +30,15 @@ export const priceRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const { platformId, contractAddress } = input;
+
+      // Check cache first
+      const cacheKey = getCacheKey('coingecko', platformId, contractAddress);
+      const now = Date.now();
+      const cached = tokenPriceCache.get(cacheKey);
+
+      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        return cached.price;
+      }
 
       console.log("getCoinGeckoPrice called with:", {
         platformId,
@@ -47,6 +66,8 @@ export const priceRouter = createTRPCRouter({
           );
           const errorBody = await response.text();
           console.error("Error response body:", errorBody);
+          // Cache null response to avoid hammering the API
+          tokenPriceCache.set(cacheKey, { price: null, timestamp: Date.now() });
           return null;
         }
 
@@ -54,11 +75,16 @@ export const priceRouter = createTRPCRouter({
           string,
           { usd?: number }
         >;
-        const price = data[contractAddress.toLowerCase()]?.usd;
+        const price = data[contractAddress.toLowerCase()]?.usd ?? null;
 
-        return price ?? null;
+        // Cache the result
+        tokenPriceCache.set(cacheKey, { price, timestamp: Date.now() });
+
+        return price;
       } catch (error) {
         console.error("Failed to fetch CoinGecko price:", error);
+        // Cache null response to avoid hammering the API
+        tokenPriceCache.set(cacheKey, { price: null, timestamp: Date.now() });
         return null;
       }
     }),
@@ -96,11 +122,29 @@ export const priceRouter = createTRPCRouter({
       return ZTokenPrices.parse(await response.json());
     }),
 
-  // Get token price by address
+  // Get token price by address (with caching)
   getTokenPrice: publicProcedure
     .input(z.object({ chain: z.string(), contractAddress: z.string() }))
     .query(async ({ input }) => {
       const { chain, contractAddress } = input;
+
+      // Check cache first
+      const cacheKey = getCacheKey('alchemy', chain, contractAddress);
+      const now = Date.now();
+      const cached = tokenPriceCache.get(cacheKey);
+
+      if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+        // Return cached data in the expected format
+        if (cached.price !== null) {
+          return {
+            data: [{
+              address: contractAddress,
+              prices: [{ value: cached.price.toString() }]
+            }]
+          };
+        }
+        return { data: [] };
+      }
 
       const options = {
         method: "POST",
@@ -119,7 +163,15 @@ export const priceRouter = createTRPCRouter({
       );
 
       // Parse and validate the fetched JSON using ZVaultPrices
-      return ZTokenPrices.parse(await response.json());
+      const result = ZTokenPrices.parse(await response.json());
+
+      // Cache the price
+      const price = result.data?.[0]?.prices?.[0]?.value
+        ? Number(result.data[0].prices[0].value)
+        : null;
+      tokenPriceCache.set(cacheKey, { price, timestamp: Date.now() });
+
+      return result;
     }),
 
   getTokenPrices: publicProcedure
@@ -165,7 +217,7 @@ export const priceRouter = createTRPCRouter({
     try {
       // Check cache first
       const now = Date.now();
-      if (sirPriceUsdCache && (now - sirPriceUsdCache.timestamp) < SIR_PRICE_CACHE_DURATION) {
+      if (sirPriceUsdCache && (now - sirPriceUsdCache.timestamp) < CACHE_DURATION) {
         return sirPriceUsdCache.price;
       }
 
