@@ -39,16 +39,16 @@ const vaults = (
     apeCollateral
     teaCollateral
     id
+    exists
   }
 
   query VaultQuery($collateralToken: String, $skip: Int, $debtToken: String, $leverageTier: Int ) {
     vaults(
-     
-      first: ${first} 
+      where: { exists: true ${whereClauses.length > 0 ? ", " + whereClauses.join(", ") : ""} }
+      first: ${first}
       skip: $skip
-      orderBy: ${sortbyVaultId ? "vaultId" : "totalValueUsd"} 
-      orderDirection: ${sortbyVaultId ? "asc" : "desc"} 
-      ${whereClause}
+      orderBy: ${sortbyVaultId ? "vaultId" : "totalValueUsd"}
+      orderDirection: ${sortbyVaultId ? "asc" : "desc"}
     ) {
       ...VaultFields
     }

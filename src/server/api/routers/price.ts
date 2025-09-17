@@ -1,8 +1,67 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 import { ZTokenPrices } from "@/lib/schemas";
+import { SirContract } from "@/contracts/sir";
+import { env } from "@/env";
+import { shouldUseCoinGecko, getCoinGeckoPlatformId, getAlchemyChainString } from "@/lib/chains";
+
+// Cache for SIR price in USD (5 minute cache)
+let sirPriceUsdCache: { price: number; timestamp: number } | null = null;
+const SIR_PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const priceRouter = createTRPCRouter({
+  // Get token price from CoinGecko
+  getCoinGeckoPrice: publicProcedure
+    .input(
+      z.object({
+        platformId: z.string(),
+        contractAddress: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { platformId, contractAddress } = input;
+
+      console.log("getCoinGeckoPrice called with:", {
+        platformId,
+        contractAddress,
+      });
+
+      const headers: HeadersInit = {
+        accept: "application/json",
+      };
+
+      // Add CoinGecko API key if available
+      const apiKey = process.env.COINGECKO_API_KEY;
+      if (apiKey) {
+        headers["x-cg-demo-api-key"] = apiKey;
+      }
+
+      try {
+        const url = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${contractAddress.toLowerCase()}&vs_currencies=usd&include_24hr_change=false`;
+
+        const response = await fetch(url, { headers });
+
+        if (!response.ok) {
+          console.error(
+            `CoinGecko API error: ${response.status} ${response.statusText}`,
+          );
+          const errorBody = await response.text();
+          console.error("Error response body:", errorBody);
+          return null;
+        }
+
+        const data = (await response.json()) as Record<
+          string,
+          { usd?: number }
+        >;
+        const price = data[contractAddress.toLowerCase()]?.usd;
+
+        return price ?? null;
+      } catch (error) {
+        console.error("Failed to fetch CoinGecko price:", error);
+        return null;
+      }
+    }),
   // Returns the latest price for vault tokens by symbol
   getVaultPrices: publicProcedure
     .input(
@@ -58,6 +117,7 @@ export const priceRouter = createTRPCRouter({
         `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
         options,
       );
+
       // Parse and validate the fetched JSON using ZVaultPrices
       return ZTokenPrices.parse(await response.json());
     }),
@@ -99,4 +159,104 @@ export const priceRouter = createTRPCRouter({
         {} as Record<string, (typeof result.data)[0]>,
       );
     }),
+
+  // Get SIR price in USD by reusing existing logic from vault router
+  getSirPriceInUsd: publicProcedure.query(async () => {
+    try {
+      // Check cache first
+      const now = Date.now();
+      if (sirPriceUsdCache && (now - sirPriceUsdCache.timestamp) < SIR_PRICE_CACHE_DURATION) {
+        return sirPriceUsdCache.price;
+      }
+
+      // Import the necessary functions from vault router
+      const { getMostLiquidPoolPrice } = await import("./quote");
+
+      const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+      const wrappedTokenAddress = env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS;
+
+      // Get SIR price in wrapped native token (WETH/WHYPE) from Uniswap
+      const poolData = await getMostLiquidPoolPrice({
+        tokenA: SirContract.address,
+        tokenB: wrappedTokenAddress,
+        decimalsA: 12, // SIR has 12 decimals
+        decimalsB: 18, // WETH/WHYPE have 18 decimals
+      });
+
+      const sirPriceInWrappedToken = poolData.price;
+
+      if (sirPriceInWrappedToken === 0) {
+        console.warn("Could not fetch SIR price from Uniswap");
+        return null;
+      }
+
+      // Get wrapped token price in USD
+      let wrappedTokenPriceInUsd: number | null = null;
+
+      if (shouldUseCoinGecko(chainId)) {
+        // Use CoinGecko for HyperEVM chains (WHYPE price)
+        const platformId = getCoinGeckoPlatformId(chainId);
+
+        const headers: HeadersInit = {
+          accept: "application/json",
+        };
+
+        const apiKey = process.env.COINGECKO_API_KEY;
+        if (apiKey) {
+          headers["x-cg-demo-api-key"] = apiKey;
+        }
+
+        const url = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${wrappedTokenAddress.toLowerCase()}&vs_currencies=usd&include_24hr_change=false`;
+
+        const response = await fetch(url, { headers });
+
+        if (response.ok) {
+          const data = (await response.json()) as Record<string, { usd?: number }>;
+          wrappedTokenPriceInUsd = data[wrappedTokenAddress.toLowerCase()]?.usd ?? null;
+        }
+      } else {
+        // Use Alchemy for Ethereum chains (WETH price)
+        const alchemyChain = getAlchemyChainString(chainId);
+
+        const options = {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            addresses: [{ network: alchemyChain, address: wrappedTokenAddress }],
+          }),
+        };
+
+        const response = await fetch(
+          `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+          options,
+        );
+
+        if (response.ok) {
+          const result = ZTokenPrices.parse(await response.json());
+          wrappedTokenPriceInUsd = result.data?.[0]?.prices?.[0]?.value
+            ? Number(result.data[0].prices[0].value)
+            : null;
+        }
+      }
+
+      if (wrappedTokenPriceInUsd === null) {
+        console.warn("Could not fetch wrapped token price in USD");
+        return null;
+      }
+
+      // Calculate SIR price in USD
+      const sirPriceInUsd = sirPriceInWrappedToken * wrappedTokenPriceInUsd;
+
+      // Cache the result
+      sirPriceUsdCache = { price: sirPriceInUsd, timestamp: Date.now() };
+
+      return sirPriceInUsd;
+    } catch (error) {
+      console.error("Failed to fetch SIR price in USD:", error);
+      return null;
+    }
+  }),
 });

@@ -1,48 +1,90 @@
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { api } from "@/trpc/react";
 import type { TUserPosition } from "@/server/queries/vaults";
-export function useTeaAndApePrice({
-  isApe,
-  amount,
-  row
-}: {
-  isApe: boolean,
-  amount: string,
-  row: TUserPosition
-}) {
+import { useAccount } from "wagmi";
+import {
+  getAlchemyChainString,
+  getCoinGeckoPlatformId,
+  shouldUseCoinGecko,
+} from "@/lib/chains";
+import { SirContract } from "@/contracts/sir";
 
-  const { data: quoteBurn } = api.vault.quoteBurn.useQuery(
+export function useTeaAndApePrice({
+  quoteBurn,
+  row,
+}: {
+  quoteBurn: bigint | undefined;
+  row: TUserPosition;
+}) {
+  const { chainId } = useAccount();
+
+  const collateralAmount = parseFloat(
+    formatUnits(quoteBurn ?? 0n, row.decimals),
+  );
+
+  const contractAddress: string = row.collateralToken ?? "";
+
+  // Check if the collateral token is SIR
+  const isSirToken = contractAddress.toLowerCase() === SirContract.address.toLowerCase();
+
+  // Use CoinGecko for HyperEVM chains
+  const useCoinGecko = shouldUseCoinGecko(chainId);
+  const alchemyChain = getAlchemyChainString(chainId);
+  const coinGeckoPlatform = getCoinGeckoPlatformId(chainId);
+
+  // Fetch SIR price in USD (only when collateral is SIR)
+  const { data: sirPriceInUsd } = api.price.getSirPriceInUsd.useQuery(
+    undefined,
     {
-      amount: amount ?? "0",
-      isApe,
-      debtToken: row.debtToken,
-      leverageTier: parseInt(row.leverageTier),
-      collateralToken: row.collateralToken,
-      decimals: row.decimals,
-    },
-    {
-      enabled: Boolean(amount),
+      enabled: isSirToken,
     },
   );
-  const formatted = formatUnits(quoteBurn ?? 0n, row.decimals);
-  const contractAddress: string = row.collateralToken ?? "";
-  const { data: tokens } = api.price.getTokenPrice.useQuery(
+
+  // Fetch price from Alchemy (only when not using CoinGecko and not SIR)
+  const { data: alchemyData } = api.price.getTokenPrice.useQuery(
     {
       contractAddress,
-      chain: "eth-mainnet"
+      chain: alchemyChain,
     },
     {
-      enabled: Boolean(contractAddress)
-    }
-  )
-  // Calculate the prices for both conversion directions.
-  const collateralPrice = tokens?.data[0]?.prices[0]?.value
-    ? Number(tokens.data[0].prices[0].value)
-    : 0;
-  /*
-   const debtPrice = tokens?.data[1]?.prices[0]?.value
-    ? Number(tokens.data[1].prices[0].value)
-    : 0;
-  */
-  return Number(formatted) * collateralPrice;
+      enabled: Boolean(contractAddress) && !useCoinGecko && !isSirToken,
+    },
+  );
+
+  // Fetch price from CoinGecko (only when using CoinGecko and not SIR)
+  const { data: coinGeckoPrice } = api.price.getCoinGeckoPrice.useQuery(
+    {
+      platformId: coinGeckoPlatform,
+      contractAddress,
+    },
+    {
+      enabled: Boolean(contractAddress) && useCoinGecko && !isSirToken,
+    },
+  );
+
+  // If no quoteBurn data, return 0
+  if (!quoteBurn) {
+    return 0;
+  }
+
+  // Get price from the appropriate source
+  let collateralPrice = 0;
+
+  if (isSirToken) {
+    // Use SIR price from Uniswap
+    collateralPrice = sirPriceInUsd ?? 0;
+  } else if (useCoinGecko) {
+    // Use CoinGecko for HyperEVM chains
+    collateralPrice = coinGeckoPrice ?? 0;
+  } else {
+    // Use Alchemy for Ethereum chains
+    collateralPrice = alchemyData?.data?.[0]?.prices?.[0]?.value
+      ? Number(alchemyData.data[0].prices[0].value)
+      : 0;
+  }
+
+  const usdValue = collateralAmount * collateralPrice;
+
+  // Return USD value: collateral amount * price per token
+  return usdValue;
 }

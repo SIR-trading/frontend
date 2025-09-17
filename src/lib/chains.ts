@@ -144,6 +144,48 @@ export function getNativeCurrencySymbol(chainId?: number): string {
 export function getAuctionBidIncreasePercentage(chainId?: number): number {
   const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const config = CHAIN_CONFIGS[targetChainId];
-  
+
   return config?.auctionBidIncreasePercentage ?? 1;
+}
+
+export function getAlchemyChainString(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
+  // Map chain IDs to Alchemy chain strings
+  switch (targetChainId) {
+    case 1:
+      return "eth-mainnet";
+    case 11155111:
+      return "eth-sepolia";
+    case 998:
+      // HyperEVM testnet - Alchemy might not support it yet
+      return "hyperliquid-mainnet"; // Try using mainnet API for testnet
+    case 999:
+      return "hyperliquid-mainnet";
+    default:
+      return "eth-mainnet";
+  }
+}
+
+export function getCoinGeckoPlatformId(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
+  // Map chain IDs to CoinGecko platform IDs
+  switch (targetChainId) {
+    case 1:
+      return "ethereum";
+    case 11155111:
+      return "ethereum"; // Sepolia uses ethereum platform
+    case 998:
+    case 999:
+      return "hyperevm"; // CoinGecko platform ID for HyperEVM
+    default:
+      return "ethereum";
+  }
+}
+
+export function shouldUseCoinGecko(chainId?: number): boolean {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  // Use CoinGecko for HyperEVM chains
+  return targetChainId === 998 || targetChainId === 999;
 }

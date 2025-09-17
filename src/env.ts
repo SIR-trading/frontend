@@ -10,6 +10,7 @@ export const env = createEnv({
     SUBGRAPH_URL: z.string(),
     REDIS_URL: z.string(),
     ALCHEMY_BEARER: z.string(),
+    COINGECKO_API_KEY: z.string().optional(),
   },
 
   /**
@@ -40,6 +41,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ASSISTANT_ADDRESS: process.env.NEXT_PUBLIC_ASSISTANT_ADDRESS,
     NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS: process.env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS,
     REDIS_URL: process.env.REDIS_URL,
+    COINGECKO_API_KEY: process.env.COINGECKO_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -59,7 +59,7 @@ export function BurnTableRow({
   const apeBalance = formatUnits(apeBal ?? 0n, row.decimals);
   const rewards = formatUnits(teaRewards ?? 0n, 12);
   const amount = isApe ? apeBalance : teaBalance;
-  
+
   // Get collateral amount from quoteBurn
   const { data: quoteBurn } = api.vault.quoteBurn.useQuery(
     {
@@ -71,15 +71,14 @@ export function BurnTableRow({
       decimals: row.decimals,
     },
     {
-      enabled: Boolean(amount),
+      enabled: Boolean(amount && amount !== "0"),
     },
   );
-  
+
   const collateralAmount = formatUnits(quoteBurn ?? 0n, row.decimals);
-  
+
   const positionValue = useTeaAndApePrice({
-    isApe,
-    amount,
+    quoteBurn,
     row,
   });
   
