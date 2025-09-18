@@ -1,7 +1,12 @@
 import type { TAddressString } from "@/lib/types";
+import { getWrappedNativeTokenAddress } from "@/config/chains";
+import { env } from "@/env";
 
-export const WethContract = {
-  address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" as TAddressString,
+// Get the wrapped native token address for the current chain
+const wrappedTokenAddress = getWrappedNativeTokenAddress(parseInt(env.NEXT_PUBLIC_CHAIN_ID));
+
+export const WrappedNativeTokenContract = {
+  address: wrappedTokenAddress as TAddressString,
   abi: [
     {
       constant: true,
@@ -156,3 +161,6 @@ export const WethContract = {
     },
   ] as const,
 };
+
+// Keep WethContract as an alias for backward compatibility
+export const WethContract = WrappedNativeTokenContract;
