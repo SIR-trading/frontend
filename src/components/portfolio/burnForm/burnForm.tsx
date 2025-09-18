@@ -4,9 +4,9 @@ import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { api } from "@/trpc/react";
-import { useBurnApe } from "./hooks/useBurnApe";
-import { formatUnits, parseUnits, fromHex } from "viem";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { formatUnits, parseUnits, fromHex, erc20Abi } from "viem";
+import { useWaitForTransactionReceipt, useWriteContract, useReadContract } from "wagmi";
+import { getCurrentTime } from "@/lib/utils/index";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { Button } from "@/components/ui/button";
 import TransactionModal from "@/components/shared/transactionModal";
@@ -22,7 +22,6 @@ import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import ErrorMessage from "@/components/ui/error-message";
 import { VaultContract } from "@/contracts/vault";
-import { getCurrentTime } from "@/lib/utils/index";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
 
 // Helper function to convert vaultId to consistent decimal format
@@ -140,19 +139,7 @@ export default function BurnForm({
     utils.leaderboard.getClosedApePositions,
   ]);
 
-  const { data: burnData, isFetching: isFetchingBurnData } = useBurnApe({
-    isApe: isApe,
-    data: {
-      collateralToken: row.collateralToken,
-      debtToken: row.debtToken,
-      leverageTier: parseFloat(row.leverageTier),
-    },
-    amount: parseUnits(
-      formData.deposit?.toString() ?? "0",
-      row.decimals,
-    ),
-    balance: balance,
-  });
+  // No longer using simulation - removed useBurnApe hook usage
 
   const { claimRewardRequest } = useClaimTeaRewards({
     vaultId: parseUnits(row.vaultId, 0),
@@ -172,28 +159,17 @@ export default function BurnForm({
   );
 
   const { tokenReceived } = useGetTxTokens({ logs: receiptData?.logs });
-  
+
+  // Fetch collateral token decimals
+  const { data: collateralDecimals } = useReadContract({
+    address: row.collateralToken,
+    abi: erc20Abi,
+    functionName: "decimals",
+  });
+
   // Check if we have a valid burn amount (greater than 0 and less than or equal to balance)
   const parsedAmount = parseUnits(formData.deposit?.toString() ?? "0", row.decimals);
   const hasValidBurnAmount = parsedAmount > 0n && parsedAmount <= (balance ?? 0n);
-  
-  // Debug logging to investigate simulation failures
-  useEffect(() => {
-    if (formData.deposit && balance) {
-      console.log("Burn Form Debug:", {
-        depositInput: formData.deposit,
-        parsedAmount: parsedAmount.toString(),
-        balance: balance.toString(),
-        decimals: row.decimals,
-        hasValidBurnAmount,
-        hasBurnData: Boolean(burnData?.request),
-        isFetchingBurnData,
-        quoteBurn: quoteBurn?.toString(),
-        isApe,
-        vaultId: row.vaultId,
-      });
-    }
-  }, [formData.deposit, parsedAmount, balance, row.decimals, hasValidBurnAmount, burnData, isFetchingBurnData, quoteBurn, isApe, row.vaultId]);
   
   const onSubmit = () => {
     if (isConfirmed) {
@@ -205,10 +181,9 @@ export default function BurnForm({
       writeContract(claimRewardRequest);
       return;
     }
-    if (burnData?.request) {
-      writeContract(burnData.request);
-    } else if (hasValidBurnAmount && !isClaimingRewards) {
-      // If simulation failed but we have a valid amount, try to burn directly
+
+    // Direct burn without simulation - using quote for validation
+    if (hasValidBurnAmount && !isClaimingRewards) {
       writeContract({
         ...VaultContract,
         functionName: "burn",
@@ -322,6 +297,7 @@ export default function BurnForm({
               assetAddress={row.collateralToken}
               assetReceived={row.collateralSymbol}
               amountReceived={tokenReceived}
+              decimals={collateralDecimals ?? 18} // Use actual collateral token decimals
             />
           )}
         </TransactionModal.InfoContainer>
@@ -372,7 +348,7 @@ export default function BurnForm({
 
               <DisplayCollateral
                 isClaiming={false}
-                isLoading={isFetchingBurnData && parsedAmount > 0n && parsedAmount <= (balance ?? 0n)}
+                isLoading={false}
                 data={{
                   leverageTier: parseFloat(row.leverageTier),
                   collateralToken: row.collateralToken,

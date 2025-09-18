@@ -1,6 +1,5 @@
-import { useSimulateContract } from "wagmi";
-import { VaultContract } from "@/contracts/vault";
-import { getCurrentTime } from "@/lib/utils/index";
+// This hook is deprecated - we no longer simulate burn transactions
+// Keeping it for compatibility but it returns null
 export function useBurnApe({
   data,
   isApe,
@@ -18,23 +17,6 @@ export function useBurnApe({
       }
     | undefined;
 }) {
-  const { data: burnData, isFetching } = useSimulateContract({
-    ...VaultContract,
-    functionName: "burn",
-    args: [
-      isApe,
-      {
-        debtToken: data?.debtToken ?? "0x",
-        leverageTier: data?.leverageTier ?? -1,
-        collateralToken: data?.collateralToken ?? "0x",
-      },
-      amount,
-      getCurrentTime() + 10 * 60, // 10 minutes from now
-    ],
-    query: {
-      enabled: amount > 0n && (!balance || amount <= balance), // Only simulate when amount is valid
-    },
-  });
-
-  return { data: burnData, isFetching };
+  // No longer simulating - return null data
+  return { data: null, isFetching: false };
 }

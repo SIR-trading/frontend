@@ -47,6 +47,7 @@ export function DisplayCollateral({
                 alt="collateral"
                 width={28}
                 height={28}
+                className="rounded-full"
               />
             </div>
           </div>
