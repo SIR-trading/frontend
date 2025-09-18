@@ -65,7 +65,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     [currentBid, bidIncreaseMultiplier],
   );
 
-  const { writeContract, reset, data: hash, isPending } = useWriteContract();
+  const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
@@ -183,6 +183,14 @@ export function AuctionBidModal({ open, setOpen }: Props) {
             </AuctionBidInputs.Inputs>
 
             <div className="flex flex-col items-center justify-center gap-2 p-4">
+              {writeError && !isConfirming && !isConfirmed && (
+                <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
+                  <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
+                  <p className="text-red-400 text-xs break-all">
+                    {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
+                  </p>
+                </div>
+              )}
               <TransactionStatus
                 showLoading={isConfirming}
                 waitForSign={isPending}

@@ -90,7 +90,7 @@ export default function BurnForm({
     },
   );
 
-  const { writeContract, reset, data: hash, isPending } = useWriteContract();
+  const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
   const {
     data: receiptData,
     isLoading: isConfirming,
@@ -254,6 +254,14 @@ export default function BurnForm({
             }
           }} />
           <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
+            {writeError && !isConfirming && !isConfirmed && (
+              <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
+                <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
+                <p className="text-red-400 text-xs break-all">
+                  {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
+                </p>
+              </div>
+            )}
             {!isConfirmed && (
               <>
                 <TransactionStatus

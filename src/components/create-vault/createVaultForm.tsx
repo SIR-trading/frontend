@@ -30,6 +30,7 @@ import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
 import { useFormSuccessReset } from "@/components/leverage-liquidity/mintForm/hooks/useFormSuccessReset";
+import { getDexName } from "@/lib/chains";
 export default function CreateVaultForm() {
   const { isConnected } = useAccount();
   const form = useForm<z.infer<typeof CreateVaultInputValues>>({
@@ -45,7 +46,13 @@ export default function CreateVaultForm() {
   const formData = form.watch();
   const { longToken, versusToken, leverageTier } = formData;
   const data = useCreateVault({ longToken, versusToken, leverageTier });
-  const { writeContract, isPending, data: hash, reset } = useWriteContract();
+  const {
+    writeContract,
+    isPending,
+    data: hash,
+    reset,
+    error: writeError,
+  } = useWriteContract();
   const onSubmit = () => {
     if (data?.request) {
       writeContract(data?.request);
@@ -77,7 +84,11 @@ export default function CreateVaultForm() {
     }
     return false;
   }, [formData.longToken, formData.versusToken, formData.leverageTier]);
-  const { data: vaultData, isLoading: isCheckingOracle, error: oracleError } = api.vault.getVaultExists.useQuery(
+  const {
+    data: vaultData,
+    isLoading: isCheckingOracle,
+    error: oracleError,
+  } = api.vault.getVaultExists.useQuery(
     {
       debtToken: formData.versusToken,
       collateralToken: formData.longToken,
@@ -126,10 +137,23 @@ export default function CreateVaultForm() {
             isConfirming={isConfirming || isConfirmed}
             hash={hash}
           >
+            {writeError && !isConfirming && !isConfirmed && (
+              <div className="bg-red-500/10 border-red-500/20 mb-4 rounded-md border p-4">
+                <p className="text-red-500 mb-1 text-sm font-medium">
+                  Transaction Failed
+                </p>
+                <p className="text-red-400 break-all text-xs">
+                  {writeError.message ||
+                    "Transaction simulation failed. Please check your inputs and try again."}
+                </p>
+              </div>
+            )}
             <Show
               fallback={
                 <div>
-                  <h1 className="text-center font-geist text-lg">Successfully created vault!</h1>
+                  <h1 className="text-center font-geist text-lg">
+                    Successfully created vault!
+                  </h1>
                 </div>
               }
               when={!isConfirmed}
@@ -238,10 +262,12 @@ export default function CreateVaultForm() {
             }}
             disabled={!isValid.isValid || isCheckingOracle}
           >
-            {isCheckingOracle ? "Checking Uniswap Oracle..." : "Create Vault"}
+            {isCheckingOracle ? `Checking ${getDexName()} Oracle...` : "Create Vault"}
           </SubmitButton>
           <ErrorMessage>
-            {isCheckingOracle && enabled && "Verifying Uniswap v3 price oracle availability..."}
+            {isCheckingOracle &&
+              enabled &&
+              `Verifying ${getDexName()} price oracle availability...`}
             {oracleError && "Failed to check oracle status. Please try again."}
             {!isCheckingOracle && !oracleError && isValid.error}
           </ErrorMessage>

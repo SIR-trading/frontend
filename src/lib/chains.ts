@@ -148,6 +148,16 @@ export function getAuctionBidIncreasePercentage(chainId?: number): number {
   return config?.auctionBidIncreasePercentage ?? 1;
 }
 
+export function getDexName(chainId?: number): string {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  // HyperEVM chains use HyperSwap
+  if (targetChainId === 998 || targetChainId === 999) {
+    return "HyperSwap";
+  }
+  // All other chains use Uniswap v3
+  return "Uniswap v3";
+}
+
 export function getAlchemyChainString(chainId?: number): string {
   const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 

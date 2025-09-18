@@ -1,10 +1,8 @@
 "use client";
 
 import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { useFormContext } from "react-hook-form";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useEffect, useState } from "react";
 
@@ -34,7 +32,6 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const formData = form.watch();
 
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
 
   const { data: balance } = api.user.getUnstakedSirBalance.useQuery(
     { user: address },
@@ -44,7 +41,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     amount: parseUnits(formData.amount ?? "0", 12),
   });
 
-  const { writeContract, reset, data: hash, isPending } = useWriteContract();
+  const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
@@ -116,6 +113,14 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
             hash={hash}
             isConfirming={isConfirming}
           >
+            {writeError && !isConfirming && !isConfirmed && (
+              <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
+                <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
+                <p className="text-red-400 text-xs break-all">
+                  {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
+                </p>
+              </div>
+            )}
             {!isConfirmed && (
               <>
                 <TransactionStatus

@@ -57,7 +57,7 @@ export default function TransactionInfo({
           <TransactionEstimates
             isApe={isApe}
             decimals={decimals}
-            usingEth={useNativeToken}
+            usingNativeToken={useNativeToken}
             collateralEstimate={quoteData}
             vaultId={vaultId}
           />

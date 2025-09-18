@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getDexName } from "@/lib/chains";
 
 interface Props {
   vaultData: number | undefined;
@@ -20,10 +21,16 @@ export function useCheckValidityCreactVault({
       return { isValid: false, error: "Invalid token address(es)" };
     }
     if (vaultData === 1) {
-      return { isValid: false, error: "No Uniswap v3 price oracle available for this pair" };
+      return {
+        isValid: false,
+        error: `No ${getDexName()} price oracle available for this pair`,
+      };
     }
     if (vaultData === 3) {
-      return { isValid: false, error: "Vault already exists for this configuration" };
+      return {
+        isValid: false,
+        error: "Vault already exists for this configuration",
+      };
     }
     if (vaultSimulation) {
       return { isValid: true, error: undefined };

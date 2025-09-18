@@ -1,5 +1,5 @@
 import { EPage } from "@/lib/types";
-import { getNativeCurrencySymbol, getWrappedTokenSymbol } from "@/lib/chains";
+import { getNativeCurrencySymbol, getWrappedTokenSymbol, getDexName } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
 
 export const Explainers = {
@@ -34,7 +34,7 @@ Your staked ${getSirSymbol()} unlocks gradually—half of your locked amount bec
   },
   [EPage.CREATE_VAULT]: {
     title: "Create New Vaults",
-    description: `Enter any two tokens with a uniswap pool ...`.trim(),
+    description: `Enter any two tokens with a ${getDexName()} pool ...`.trim(),
   },
   [EPage.LEADERBOARD]: {
     title: "Leaderboard",
