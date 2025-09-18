@@ -71,7 +71,7 @@ export const userRouter = createTRPCRouter({
   getEthBalance: publicProcedure
     .input(
       z.object({
-        userAddress: z.string().startsWith("0x").length(42).optional(),
+        userAddress: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -86,8 +86,8 @@ export const userRouter = createTRPCRouter({
   getApeBalance: publicProcedure
     .input(
       z.object({
-        address: z.string().startsWith("0x").length(42).optional(),
-        user: z.string().startsWith("0x").length(42).optional(),
+        address: z.string().length(42).startsWith("0x").optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -106,7 +106,7 @@ export const userRouter = createTRPCRouter({
   getTeaBalance: publicProcedure
     .input(
       z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
         vaultId: z.string(),
       }),
     )
@@ -120,7 +120,7 @@ export const userRouter = createTRPCRouter({
     }),
   getApePositions: publicProcedure
     .input(
-      z.object({ address: z.string().startsWith("0x").length(42).optional() }),
+      z.object({ address: z.string().length(42).startsWith("0x").optional() }),
     )
     .query(async ({ input }) => {
       if (!input.address) {
@@ -134,7 +134,7 @@ export const userRouter = createTRPCRouter({
     }),
   getUserBalancesInVaults: publicProcedure
     .input(
-      z.object({ address: z.string().startsWith("0x").length(42).optional() }),
+      z.object({ address: z.string().length(42).startsWith("0x").optional() }),
     )
     .query(async ({ input }) => {
       if (!input.address) {
@@ -166,7 +166,7 @@ export const userRouter = createTRPCRouter({
     }),
   getTeaPositions: publicProcedure
     .input(
-      z.object({ address: z.string().startsWith("0x").length(42).optional() }),
+      z.object({ address: z.string().length(42).startsWith("0x").optional() }),
     )
     .query(async ({ input }) => {
       if (!input.address) {
@@ -182,7 +182,7 @@ export const userRouter = createTRPCRouter({
   getUnclaimedContributorRewards: publicProcedure
     .input(
       z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -197,7 +197,7 @@ export const userRouter = createTRPCRouter({
   getUnstakedSirBalance: publicProcedure
     .input(
       z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -212,7 +212,7 @@ export const userRouter = createTRPCRouter({
   getUserSirDividends: publicProcedure
     .input(
       z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {
@@ -239,7 +239,7 @@ export const userRouter = createTRPCRouter({
   getTotalSirBalance: publicProcedure
     .input(
       z.object({
-        user: z.string().startsWith("0x").length(42).optional(),
+        user: z.string().length(42).startsWith("0x").optional(),
       }),
     )
     .query(async ({ input }) => {

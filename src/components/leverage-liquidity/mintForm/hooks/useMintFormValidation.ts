@@ -9,16 +9,15 @@ import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 
 interface Props {
   requests: {
-    mintRequest?: SimulateContractReturnType["request"] | undefined;
     approveWriteRequest?: SimulateContractReturnType["request"] | undefined;
   };
   tokenAllowance?: bigint | undefined;
   tokenBalance: bigint | undefined;
   ethBalance?: bigint | undefined;
-  mintFetching: boolean;
   approveFetching?: boolean;
   useEth?: boolean;
   decimals: number;
+  hasValidQuote?: boolean;
 }
 
 /**
@@ -30,13 +29,13 @@ interface Props {
  */
 export const useMintFormValidation = ({
   tokenAllowance,
-  mintFetching,
   requests,
   approveFetching,
   tokenBalance,
   ethBalance,
   useEth,
   decimals,
+  hasValidQuote = false,
 }: Props) => {
   const chainId = useGetChainId();
   const form = useFormContext<TMintFormFields>();
@@ -45,7 +44,7 @@ export const useMintFormValidation = ({
   const { isValid, errorMessage } = useMemo(() => {
     // Note: We no longer block minting based on vault health (badHealth)
     // Users can now mint beyond the optimal threshold, they'll just see a warning
-    
+
     if (usingDebtToken(versus, depositToken)) {
       const num = Number.parseFloat(slippage ?? "0");
       if (num < 0 || num > 10) {
@@ -79,7 +78,8 @@ export const useMintFormValidation = ({
           errorMessage: "Insufficient Balance.",
         };
       }
-      if (requests.mintRequest) {
+      // Check for valid quote
+      if (hasValidQuote) {
         return {
           isValid: true,
           errorMessage: "",
@@ -99,7 +99,7 @@ export const useMintFormValidation = ({
     }
     // CHECK ALLOWANCE FIRST
     if (
-      parseUnits(deposit ?? "0", decimals) >= (tokenAllowance ?? 0n) &&
+      parseUnits(deposit ?? "0", decimals) > (tokenAllowance ?? 0n) &&
       requests.approveWriteRequest
     ) {
       if (requests.approveWriteRequest)
@@ -121,23 +121,17 @@ export const useMintFormValidation = ({
         }
       }
     } else {
-      if (requests.mintRequest)
+      // Check for valid quote
+      if (hasValidQuote) {
         return {
           isValid: true,
           errorMessage: null,
         };
-      else {
-        if (mintFetching) {
-          return {
-            isValid: false,
-            errorMessage: "",
-          };
-        } else {
-          return {
-            isValid: false,
-            errorMessage: "Unexpected Mint error.",
-          };
-        }
+      } else {
+        return {
+          isValid: false,
+          errorMessage: "",
+        };
       }
     }
   }, [
@@ -150,11 +144,10 @@ export const useMintFormValidation = ({
     tokenBalance,
     tokenAllowance,
     requests.approveWriteRequest,
-    requests.mintRequest,
     slippage,
     ethBalance,
     approveFetching,
-    mintFetching,
+    hasValidQuote,
   ]);
   return { isValid, errorMessage };
 };

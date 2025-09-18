@@ -299,7 +299,7 @@ const OngoingAuction = ({
                             labelSize="small"
                             amountSize="large"
                             decimals={18}
-                            unitLabel={"ETH"}
+                            unitLabel={getNativeCurrencySymbol()}
                             className={"text-lg"}
                           />
                         ),

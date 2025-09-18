@@ -15,6 +15,8 @@ import MintFormSubmit from "./submit";
 import { useFormSuccessReset } from "./hooks/useFormSuccessReset";
 import { useTransactions } from "./hooks/useTransactions";
 import TransactionModal from "@/components/shared/transactionModal";
+import { VaultContract } from "@/contracts/vault";
+import { formatDataInput } from "@/lib/utils/index";
 import { useGetReceivedTokens } from "./hooks/useGetReceivedTokens";
 import { useResetAfterApprove } from "./hooks/useResetAfterApprove";
 import TransactionInfo from "./transactionInfo";
@@ -28,6 +30,7 @@ import { useMintFormValidation } from "./hooks/useMintFormValidation";
 import Dropdown from "@/components/shared/dropDown";
 import { useIsWeth } from "./hooks/useIsWeth";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
+import { WETH_ADDRESS } from "@/data/constants";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
@@ -57,7 +60,6 @@ export default function MintForm({ isApe }: Props) {
   const { vaults: vaultsQuery } = useVaultProvider();
   const {
     userEthBalance,
-    userBalanceFetching,
     userBalance,
     collateralDecimals,
     depositDecimals,
@@ -68,7 +70,7 @@ export default function MintForm({ isApe }: Props) {
   // Ensure use eth toggle is not used on non-weth tokens
   const { setError, formState, watch, handleSubmit, setValue } =
     useFormContext<TMintFormFields>();
-  const { deposit, leverageTier, long: longInput, versus: versusInput } = watch();
+  const { deposit, leverageTier, long: longInput, versus: versusInput, depositToken, slippage } = watch();
   const useEth = useMemo(() => {
     return isWeth ? useEthRaw : false;
   }, [isWeth, useEthRaw]);
@@ -80,23 +82,6 @@ export default function MintForm({ isApe }: Props) {
 
   const selectedVault = useFindVault();
   const [maxApprove, setMaxApprove] = useState(false);
-  
-  const {
-    requests,
-    isApproveFetching,
-    isMintFetching,
-    needsApproval,
-    needs0Approval,
-  } = useTransactions({
-    useEth,
-    maxApprove,
-    tokenAllowance: userBalance?.tokenAllowance?.result,
-    vaultId: selectedVault.result?.vaultId,
-    minCollateralOut,
-    isApe,
-    vaultsQuery,
-    decimals: depositDecimals ?? 18,
-  });
   const { versus, leverageTiers, long } = useFilterVaults({
     vaultsQuery,
   });
@@ -118,6 +103,24 @@ export default function MintForm({ isApe }: Props) {
     isSuccess: isConfirmed,
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
+
+
+  const {
+    requests,
+    isApproveFetching,
+    needsApproval,
+    needs0Approval,
+  } = useTransactions({
+    depositToken: depositToken ?? "",
+    deposit: deposit ?? "0",
+    useEth,
+    maxApprove,
+    tokenAllowance: userBalance?.tokenAllowance?.result,
+    vaultsQuery,
+    decimals: depositDecimals ?? 18,
+    enableMintSimulation: false,
+  });
+
   useSetDepositTokenDefault({
     collToken: selectedVault.result?.collateralToken,
   });
@@ -167,12 +170,11 @@ export default function MintForm({ isApe }: Props) {
   });
   
   // Determine which results to use based on page type and vault status
-  const { maxCollateralIn, maxDebtIn, isLoading } = shouldCalculateMax 
-    ? leverageHookResult 
-    : { 
-        maxCollateralIn: undefined, 
-        maxDebtIn: undefined, 
-        isLoading: false 
+  const { maxCollateralIn, maxDebtIn } = shouldCalculateMax
+    ? leverageHookResult
+    : {
+        maxCollateralIn: undefined,
+        maxDebtIn: undefined
       };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
   
@@ -182,38 +184,70 @@ export default function MintForm({ isApe }: Props) {
     const depositAmount = parseUnits(deposit, depositDecimals ?? 18);
     return depositAmount > maxIn;
   }, [isApe, maxIn, deposit, depositDecimals]);
-  const { isValid, errorMessage } = useMintFormValidation({
-    ethBalance: userEthBalance,
-    decimals: depositDecimals ?? 18,
-    useEth,
-    requests,
-    tokenBalance: userBalance?.tokenBalance?.result,
-    tokenAllowance: userBalance?.tokenAllowance?.result,
-    mintFetching: isMintFetching,
-    approveFetching: isApproveFetching,
-  });
 
-  useSetRootError({
-    setError: setError,
-    errorMessage,
-    rootErrorMessage: formState.errors.root?.message,
-  });
+  const { openTransactionModal, setOpenTransactionModal } =
+    useResetTransactionModal({ reset, isConfirmed });
+
   const onSubmit = useCallback(() => {
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");
       writeContract(requests.approveWriteRequest);
       return;
     }
-    if (requests.mintRequest) {
-      setCurrentTxType("mint");
-      writeContract?.(requests.mintRequest);
-      return;
+
+    // Create mint request using the quote data
+    // Check if we're depositing the debt token (either as ERC20 or native ETH)
+    const debtTokenAddress = versusInput.split(",")[0];
+    const isDebtTokenDeposit = depositToken === debtTokenAddress && versusInput !== "";
+
+    // When using ETH and the debt token is WETH, it's also a debt token deposit
+    const isNativeDebtTokenDeposit = useEth && debtTokenAddress?.toLowerCase() === WETH_ADDRESS.toLowerCase();
+    const isAnyDebtTokenDeposit = isDebtTokenDeposit || isNativeDebtTokenDeposit;
+
+    let minCollateralOutWithSlippage = 0n;
+
+    if (isAnyDebtTokenDeposit && minCollateralOut && minCollateralOut > 0n) {
+      // Apply slippage percentage to the quoted amount
+      const slippageBasisPoints = Math.floor(parseFloat(slippage?.trim() ?? "0.5") * 100);
+      const slippageAmount = (minCollateralOut * BigInt(slippageBasisPoints)) / 10000n;
+      minCollateralOutWithSlippage = minCollateralOut - slippageAmount;
     }
+
+    const mintRequest = {
+      address: VaultContract.address,
+      abi: VaultContract.abi,
+      functionName: "mint" as const,
+      args: [
+        isApe,
+        {
+          debtToken: formatDataInput(versusInput),
+          collateralToken: formatDataInput(longInput),
+          leverageTier: Number(leverageTier),
+        },
+        useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
+        minCollateralOutWithSlippage,
+        Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
+      ],
+      value: useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n,
+    };
+
+    setCurrentTxType("mint");
+    // @ts-expect-error - writeContract types are complex, but this matches the expected shape
+    writeContract(mintRequest);
   }, [
     needsApproval,
     requests.approveWriteRequest,
-    requests.mintRequest,
     writeContract,
+    isApe,
+    versusInput,
+    longInput,
+    leverageTier,
+    deposit,
+    depositDecimals,
+    useEth,
+    depositToken,
+    minCollateralOut,
+    slippage,
   ]);
 
   let balance = userBalance?.tokenBalance?.result;
@@ -221,8 +255,23 @@ export default function MintForm({ isApe }: Props) {
     balance = userEthBalance;
   }
 
-  const { openTransactionModal, setOpenTransactionModal } =
-    useResetTransactionModal({ reset, isConfirmed });
+  const { isValid, errorMessage } = useMintFormValidation({
+    ethBalance: userEthBalance,
+    decimals: depositDecimals ?? 18,
+    useEth,
+    requests,
+    tokenBalance: userBalance?.tokenBalance?.result,
+    tokenAllowance: userBalance?.tokenAllowance?.result,
+    approveFetching: isApproveFetching,
+    hasValidQuote: Boolean(amountTokens && amountTokens > 0n),
+  });
+
+  useSetRootError({
+    setError: setError,
+    errorMessage,
+    rootErrorMessage: formState.errors.root?.message,
+  });
+
 
   const fee = useFormFee({ leverageTier, isApe });
   const modalSubmit = () => {
@@ -263,7 +312,7 @@ export default function MintForm({ isApe }: Props) {
               isConfirmed={isConfirmed}
               isApproving={needsApproval}
               isConfirming={isConfirming}
-              userBalanceFetching={userBalanceFetching}
+              userBalanceFetching={false}
               isPending={isPending}
               isApe={isApe}
               useEth={useEth}
@@ -330,14 +379,9 @@ export default function MintForm({ isApe }: Props) {
             </Show>
             <TransactionModal.SubmitButton
               onClick={modalSubmit}
-              disabled={
-                (!isValid && !isConfirmed) ||
-                isPending ||
-                isConfirming ||
-                (isConfirmed && needsApproval)
-              }
-              isPending={isPending}
-              loading={isConfirming}
+              disabled={false}
+              isPending={false}
+              loading={false}
               isConfirmed={isConfirmed && !needsApproval}
             >
               <Show

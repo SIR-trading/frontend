@@ -3,6 +3,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { parseAddress } from "@/lib/utils/index";
 import { useFormContext } from "react-hook-form";
 import { formatUnits } from "viem";
+import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
 
 interface EstimateProps {
   collateralEstimate: bigint | undefined;
@@ -19,14 +20,15 @@ export function TransactionEstimates({
   decimals,
 }: EstimateProps) {
   const form = useFormContext<TMintFormFields>();
+  const nativeCurrency = useNativeCurrency();
   const data = form.watch();
   const usingDebt =
     data.depositToken === parseAddress(data.versus) && data.depositToken !== "";
   const collateralAssetName = usingEth
-    ? "ETH"
+    ? nativeCurrency.symbol
     : form.getValues("long").split(",")[1] ?? "";
   const debtAssetName = usingEth
-    ? "ETH"
+    ? nativeCurrency.symbol
     : form.getValues("versus").split(",")[1] ?? "";
   const deposit = form.getValues("deposit");
   return (

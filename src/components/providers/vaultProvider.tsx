@@ -88,7 +88,6 @@ export const VaultProvider = ({ children }: Props) => {
           },
           "query",
         );
-        console.log({ queryKey });
         queryClient.setQueryData(queryKey, { vaultQuery: { vaults: [found] } });
       }
     }
