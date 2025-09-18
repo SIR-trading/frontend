@@ -288,6 +288,11 @@ function SelectTokenDialogTrigger({
           {!tokenAddress && <span className="text-[14px]">Select Token</span>}
           {tokenAddress && (
             <>
+              <span className="">
+                <span className="text-[14px] font-medium text-foreground">
+                  {token?.symbol ?? symbol.data}
+                </span>
+              </span>
               <span className="inline-block h-7 w-7">
                 <TokenImage
                   address={tokenAddress}
@@ -296,11 +301,6 @@ function SelectTokenDialogTrigger({
                   width={25}
                   height={25}
                 />
-              </span>
-              <span className="">
-                <span className="text-[14px] font-medium text-foreground">
-                  {token?.symbol ?? symbol.data}
-                </span>
               </span>
             </>
           )}

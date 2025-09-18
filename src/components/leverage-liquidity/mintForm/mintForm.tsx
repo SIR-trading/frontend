@@ -189,6 +189,19 @@ export default function MintForm({ isApe }: Props) {
     useResetTransactionModal({ reset, isConfirmed });
 
   const onSubmit = useCallback(() => {
+    console.log("📋 FORM SUBMIT - Initial values:", {
+      deposit,
+      depositToken,
+      versusInput,
+      longInput,
+      leverageTier,
+      leverageTierParsed: Number(leverageTier),
+      slippage,
+      useEth,
+      needsApproval,
+      minCollateralOut: minCollateralOut?.toString(),
+    });
+
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");
       writeContract(requests.approveWriteRequest);
@@ -198,6 +211,7 @@ export default function MintForm({ isApe }: Props) {
     // Create mint request using the quote data
     // Check if we're depositing the debt token (either as ERC20 or native ETH)
     const debtTokenAddress = versusInput.split(",")[0];
+    const collateralTokenAddress = longInput.split(",")[0];
     const isDebtTokenDeposit = depositToken === debtTokenAddress && versusInput !== "";
 
     // When using ETH and the debt token is WETH, it's also a debt token deposit
@@ -230,6 +244,44 @@ export default function MintForm({ isApe }: Props) {
       ],
       value: useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n,
     };
+
+    // Debug logging
+    const parsedLeverageTier = Number(leverageTier);
+    console.log("🚀 MINT TRANSACTION PARAMS:", {
+      isApe,
+      depositToken,
+      depositAmount: deposit,
+      depositDecimals,
+      debtTokenAddress,
+      collateralTokenAddress,
+      versusInput,
+      longInput,
+      leverageTier: parsedLeverageTier,
+      useEth,
+      isDebtTokenDeposit,
+      isNativeDebtTokenDeposit,
+      isAnyDebtTokenDeposit,
+      minCollateralOut: minCollateralOut?.toString(),
+      minCollateralOutWithSlippage: minCollateralOutWithSlippage.toString(),
+      slippage,
+      amountToDeposit: (useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
+      value: (useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
+      deadline: Math.floor(Date.now() / 1000) + 600,
+      WETH_ADDRESS,
+    });
+
+    console.log("📦 FINAL TRANSACTION ARGS:", {
+      isAPE: isApe,
+      vaultParams: {
+        debtToken: formatDataInput(versusInput),
+        collateralToken: formatDataInput(longInput),
+        leverageTier: parsedLeverageTier,
+      },
+      amountToDeposit: (useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
+      collateralToDepositMin: minCollateralOutWithSlippage.toString(),
+      deadline: Math.floor(Date.now() / 1000) + 600,
+      value: (useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
+    });
 
     setCurrentTxType("mint");
     // @ts-expect-error - writeContract types are complex, but this matches the expected shape

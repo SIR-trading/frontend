@@ -58,7 +58,7 @@ function InfoContainer({
       {children}
       {isConfirming && (
         <div className="">
-          <ExplorerLink align="left" transactionHash={hash} />
+          <ExplorerLink align="center" transactionHash={hash} />
         </div>
       )}
     </div>

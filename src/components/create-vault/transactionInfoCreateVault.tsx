@@ -38,6 +38,9 @@ export default function TransactionInfoCreateVault({
           {isLoading && <TextSkele />}
           {!isLoading && (
             <div className="flex items-center gap-x-2">
+              <span className="text-base font-medium text-foreground">
+                {symbols?.[0]?.result ?? "Unknown"}
+              </span>
               <TokenImage
                 address={longToken as TAddressString}
                 alt={symbols?.[0]?.result ?? ""}
@@ -45,9 +48,6 @@ export default function TransactionInfoCreateVault({
                 height={25}
                 className="rounded-full"
               />
-              <span className="text-base font-medium text-foreground">
-                {symbols?.[0]?.result ?? "Unknown"}
-              </span>
             </div>
           )}
         </div>
@@ -56,6 +56,9 @@ export default function TransactionInfoCreateVault({
           {isLoading && <TextSkele />}
           {!isLoading && (
             <div className="flex items-center gap-x-2">
+              <span className="text-base font-medium text-foreground">
+                {symbols?.[1]?.result ?? "Unknown"}
+              </span>
               <TokenImage
                 address={versusToken as TAddressString}
                 alt={symbols?.[1]?.result ?? ""}
@@ -63,9 +66,6 @@ export default function TransactionInfoCreateVault({
                 height={25}
                 className="rounded-full"
               />
-              <span className="text-base font-medium text-foreground">
-                {symbols?.[1]?.result ?? "Unknown"}
-              </span>
             </div>
           )}
         </div>
