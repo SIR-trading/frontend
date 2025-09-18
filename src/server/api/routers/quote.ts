@@ -3,14 +3,16 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { rpcViemClient } from "@/lib/viemClient";
 import { OracleContract } from "@/contracts/oracle";
 import type { TAddressString } from "@/lib/types";
-import { UniswapV3PoolABI, UNISWAP_V3_FACTORY, FEE_TIERS } from "@/contracts/uniswap-v3-pool";
+import { UniswapV3PoolABI, getUniswapV3Factory, getUniswapV3PoolInitCodeHash, FEE_TIERS } from "@/contracts/uniswap-v3-pool";
 import { getAddress, keccak256, encodeAbiParameters, parseAbiParameters } from "viem";
+import { env } from "@/env";
 
 // Helper function to compute Uniswap V3 pool address
 function computePoolAddress(
   tokenA: string,
   tokenB: string,
-  fee: number
+  fee: number,
+  chainId: number
 ): string {
   // Sort tokens
   const [token0, token1] = tokenA.toLowerCase() < tokenB.toLowerCase()
@@ -24,11 +26,12 @@ function computePoolAddress(
     )
   );
 
-  const poolInitCodeHash = "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54";
-  
+  const poolInitCodeHash = getUniswapV3PoolInitCodeHash(chainId);
+  const factoryAddress = getUniswapV3Factory(chainId);
+
   // Compute CREATE2 address
   const data = keccak256(
-    `0xff${UNISWAP_V3_FACTORY.slice(2)}${salt.slice(2)}${poolInitCodeHash.slice(2)}` as `0x${string}`
+    `0xff${factoryAddress.slice(2)}${salt.slice(2)}${poolInitCodeHash.slice(2)}` as `0x${string}`
   );
   
   return getAddress(`0x${data.slice(-40)}`);
@@ -53,13 +56,14 @@ export async function getMostLiquidPoolPrice(input: {
   decimalsA?: number;
   decimalsB?: number;
 }) {
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const feeTiers = [FEE_TIERS.LOW, FEE_TIERS.MEDIUM, FEE_TIERS.HIGH];
   let bestPool = null;
   let maxLiquidity = 0n;
 
   for (const fee of feeTiers) {
     try {
-      const poolAddress = computePoolAddress(input.tokenA, input.tokenB, fee);
+      const poolAddress = computePoolAddress(input.tokenA, input.tokenB, fee, chainId);
       
       // Try to read pool data
       const [slot0, liquidity] = await Promise.all([
@@ -140,9 +144,10 @@ export const quoteRouter = createTRPCRouter({
       });
 
       const fee = oracleState.uniswapFeeTier.fee;
-      
+      const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
       // Compute pool address
-      const poolAddress = computePoolAddress(input.tokenA, input.tokenB, fee);
+      const poolAddress = computePoolAddress(input.tokenA, input.tokenB, fee, chainId);
       
       // Read slot0 from the pool
       const slot0 = await rpcViemClient.readContract({

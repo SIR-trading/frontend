@@ -1,9 +1,10 @@
 import { env } from "@/env";
 import type { TAddressString } from "@/lib/types";
 import { LeverageTier } from "@/lib/types";
+import { getWrappedNativeTokenAddress } from "@/config/chains";
 
 export const RPC_URL = "";
-export const WETH_ADDRESS = env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS.toLowerCase() as TAddressString;
+export const WETH_ADDRESS = getWrappedNativeTokenAddress(parseInt(env.NEXT_PUBLIC_CHAIN_ID)).toLowerCase() as TAddressString;
 export const ASSET_REPO =
   "https://raw.githubusercontent.com/trustwallet/assets/master";
 

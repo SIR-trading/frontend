@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 import { createPublicClient, http, erc20Abi, type Chain } from "viem";
 import * as viemChains from "viem/chains";
 import buildData from "../public/build-data.json";
+import chainsConfig from "../src/config/chains.json";
 
 // Load environment variables from .env and .env.local
 dotenv.config({ path: ".env" });
@@ -36,12 +37,6 @@ if (!selectedChainId || isNaN(selectedChainId)) {
 }
 
 // Type definitions
-interface ChainConfig {
-  chainId: number;
-  platformId: string | null;
-  name: string;
-  isTestnet: boolean;
-}
 
 interface CoinMarket {
   id: string;
@@ -76,33 +71,6 @@ interface PlatformToken {
   logoURI: string;
 }
 
-// Configuration for supported chains
-const CHAIN_CONFIGS: Record<number, ChainConfig> = {
-  1: {
-    chainId: 1,
-    platformId: "ethereum",
-    name: "Ethereum Mainnet",
-    isTestnet: false,
-  },
-  11155111: {
-    chainId: 11155111,
-    platformId: null,
-    name: "Sepolia Testnet",
-    isTestnet: true,
-  },
-  998: {
-    chainId: 998,
-    platformId: null,
-    name: "HyperEVM Testnet",
-    isTestnet: true,
-  },
-  999: {
-    chainId: 999,
-    platformId: "hyperevm",
-    name: "HyperEVM Mainnet",
-    isTestnet: false,
-  },
-};
 
 // Map chain IDs to viem chain objects
 const viemChainMap: Record<number, Chain> = {
@@ -269,7 +237,7 @@ async function main(): Promise<void> {
   console.log("🚀 Starting token list fetch script...");
   console.log(`Chain ID: ${process.env.NEXT_PUBLIC_CHAIN_ID}`);
 
-  const config = CHAIN_CONFIGS[selectedChainId];
+  const config = chainsConfig[selectedChainId.toString() as keyof typeof chainsConfig];
   if (!config) throw new Error(`Unsupported chain ID: ${selectedChainId}`);
 
   let platformTokens: PlatformToken[] = [];
@@ -283,7 +251,7 @@ async function main(): Promise<void> {
     );
   } else {
     // For non-testnets, fetch from CoinGecko
-    const platformId = config.platformId;
+    const platformId = config.coingecko.platformId;
     if (!platformId) {
       throw new Error(
         "No platformId for selected chain. Provide a platformId or adjust logic for manual list.",
@@ -388,7 +356,8 @@ async function main(): Promise<void> {
   };
 
   // Check if wrapped token is already in platformTokens
-  const wrappedTokenAddress = process.env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS;
+  const chainConfig = chainsConfig[config.chainId.toString() as keyof typeof chainsConfig];
+  const wrappedTokenAddress = chainConfig?.wrappedNativeToken?.address;
   const isWrappedTokenInList =
     wrappedTokenAddress &&
     platformTokens.some(
@@ -396,14 +365,10 @@ async function main(): Promise<void> {
     );
 
   const wrappedToken: PlatformToken | undefined =
-    wrappedTokenAddress && !isWrappedTokenInList
+    wrappedTokenAddress && !isWrappedTokenInList && chainConfig
       ? {
-          symbol:
-            config.chainId === 999 || config.chainId === 998 ? "WHYPE" : "WETH",
-          name:
-            config.chainId === 999 || config.chainId === 998
-              ? "Wrapped Hype"
-              : "Wrapped Ether",
+          symbol: chainConfig.wrappedNativeToken.symbol,
+          name: chainConfig.wrappedNativeToken.name,
           marketCap: 0, // Will be at the top
           address: wrappedTokenAddress,
           decimals: 18,

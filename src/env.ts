@@ -24,7 +24,6 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_ASSISTANT_ADDRESS: z.string(),
     NEXT_PUBLIC_CHAIN_ID: z.string(),
-    NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS: z.string(),
 
     // Note: BASE_FEE and MINTING_FEE are now fetched at build time from contracts
   },
@@ -39,7 +38,6 @@ export const env = createEnv({
     RPC_URL: process.env.RPC_URL,
     SUBGRAPH_URL: process.env.SUBGRAPH_URL,
     NEXT_PUBLIC_ASSISTANT_ADDRESS: process.env.NEXT_PUBLIC_ASSISTANT_ADDRESS,
-    NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS: process.env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS,
     REDIS_URL: process.env.REDIS_URL,
     COINGECKO_API_KEY: process.env.COINGECKO_API_KEY,
   },

@@ -1,0 +1,114 @@
+{
+  "1": {
+    "chainId": 1,
+    "name": "Ethereum Mainnet",
+    "isTestnet": false,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "blockExplorers": {
+      "default": {
+        "name": "Etherscan",
+        "url": "https://etherscan.io"
+      }
+    },
+    "contracts": {
+      "uniswapV3Factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
+    },
+    "coingecko": {
+      "platformId": "ethereum"
+    },
+    "wrappedNativeToken": {
+      "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      "symbol": "WETH",
+      "name": "Wrapped Ether"
+    }
+  },
+  "11155111": {
+    "chainId": 11155111,
+    "name": "Sepolia Testnet",
+    "isTestnet": true,
+    "nativeCurrency": {
+      "name": "Sepolia Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "blockExplorers": {
+      "default": {
+        "name": "Sepolia Etherscan",
+        "url": "https://sepolia.etherscan.io"
+      }
+    },
+    "contracts": {
+      "uniswapV3Factory": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
+      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
+    },
+    "coingecko": {
+      "platformId": null
+    },
+    "wrappedNativeToken": {
+      "address": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+      "symbol": "WETH",
+      "name": "Wrapped Ether"
+    }
+  },
+  "998": {
+    "chainId": 998,
+    "name": "HyperEVM Testnet",
+    "isTestnet": true,
+    "nativeCurrency": {
+      "name": "HYPE",
+      "symbol": "HYPE",
+      "decimals": 18
+    },
+    "blockExplorers": {
+      "default": {
+        "name": "HyperEVM Testnet Explorer",
+        "url": "https://testnet.purrsec.com"
+      }
+    },
+    "contracts": {
+      "uniswapV3Factory": "0xB1c0fa0B789320044A6F623cFe5eBda9562602E3",
+      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
+    },
+    "coingecko": {
+      "platformId": null
+    },
+    "wrappedNativeToken": {
+      "address": "0xADcb2f358Eae6492F61A5F87eb8893d09391d160",
+      "symbol": "WHYPE",
+      "name": "Wrapped HYPE"
+    }
+  },
+  "999": {
+    "chainId": 999,
+    "name": "HyperEVM",
+    "isTestnet": false,
+    "nativeCurrency": {
+      "name": "HYPE",
+      "symbol": "HYPE",
+      "decimals": 18
+    },
+    "blockExplorers": {
+      "default": {
+        "name": "HyperEVM Explorer",
+        "url": "https://hyperevmscan.io"
+      }
+    },
+    "contracts": {
+      "uniswapV3Factory": "0x22B0768972bB7f1F5ea7a8740BB8f94b32483826",
+      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
+    },
+    "coingecko": {
+      "platformId": "hyperevm"
+    },
+    "wrappedNativeToken": {
+      "address": "0x5555555555555555555555555555555555555555",
+      "symbol": "WHYPE",
+      "name": "Wrapped HYPE"
+    }
+  }
+}

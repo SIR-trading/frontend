@@ -4,6 +4,7 @@ import { ZTokenPrices } from "@/lib/schemas";
 import { SirContract } from "@/contracts/sir";
 import { env } from "@/env";
 import { shouldUseCoinGecko, getCoinGeckoPlatformId, getAlchemyChainString } from "@/lib/chains";
+import { getWrappedNativeTokenAddress } from "@/config/chains";
 
 // Cache configuration
 const CACHE_DURATION = 1 * 60 * 1000; // 1 minute cache for all prices
@@ -225,7 +226,7 @@ export const priceRouter = createTRPCRouter({
       const { getMostLiquidPoolPrice } = await import("./quote");
 
       const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-      const wrappedTokenAddress = env.NEXT_PUBLIC_WRAPPED_TOKEN_ADDRESS;
+      const wrappedTokenAddress = getWrappedNativeTokenAddress(chainId);
 
       // Get SIR price in wrapped native token (WETH/WHYPE) from Uniswap
       const poolData = await getMostLiquidPoolPrice({
