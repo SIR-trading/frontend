@@ -271,7 +271,7 @@ export default function BurnForm({
                       }
                       outAssetName={row.collateralSymbol}
                       collateralEstimate={quoteBurn}
-                      usingEth={false}
+                      usingNativeToken={false}
                     />
                   ) : (
                     <div className="flex h-[40px] items-center gap-x-2 py-2">

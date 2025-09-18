@@ -9,7 +9,7 @@ export function useTransactions({
   depositToken,
   deposit,
   decimals,
-  useEth,
+  useNativeToken,
   tokenAllowance,
   maxApprove,
 }: {
@@ -18,14 +18,14 @@ export function useTransactions({
   maxApprove: boolean;
   vaultsQuery: TVaults;
   decimals: number;
-  useEth: boolean;
+  useNativeToken: boolean;
   tokenAllowance: bigint | undefined;
   enableMintSimulation?: boolean;
 }) {
   // Skip approval logic when using ETH directly
   const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
     useMaxApprove: maxApprove,
-    tokenAddr: useEth ? "" : (depositToken ?? ""), // Skip approval when using ETH
+    tokenAddr: useNativeToken ? "" : (depositToken ?? ""), // Skip approval when using ETH
     approveContract: VaultContract.address,
     amount: parseUnits(deposit ?? "0", decimals),
     allowance: tokenAllowance ?? 0n,
@@ -34,12 +34,12 @@ export function useTransactions({
   return {
     requests: {
       mintRequest: undefined, // No longer simulating mint
-      approveWriteRequest: useEth ? undefined : (approveSimulate.data?.request as SimulateReq), // No approval needed for ETH
+      approveWriteRequest: useNativeToken ? undefined : (approveSimulate.data?.request as SimulateReq), // No approval needed for ETH
     },
-    isApproveFetching: useEth ? false : approveSimulate.isFetching, // No approval fetching for ETH
+    isApproveFetching: useNativeToken ? false : approveSimulate.isFetching, // No approval fetching for ETH
     isMintFetching: false,
-    needs0Approval: useEth ? false : needs0Approval, // No approval needed for ETH
-    needsApproval: useEth ? false : needsApproval, // No approval needed for ETH
+    needs0Approval: useNativeToken ? false : needs0Approval, // No approval needed for ETH
+    needsApproval: useNativeToken ? false : needsApproval, // No approval needed for ETH
     mintError: undefined,
     mintFailureReason: undefined,
   };

@@ -99,7 +99,7 @@ export default function CreateVaultForm() {
     isConfirmed,
     isConfirming,
     currentTxType: "create-vault",
-    useEth: false,
+    useNativeToken: false,
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
   });
 

@@ -30,7 +30,7 @@ import { useMintFormValidation } from "./hooks/useMintFormValidation";
 import Dropdown from "@/components/shared/dropDown";
 import { useIsWeth } from "./hooks/useIsWeth";
 import useSetDepositTokenDefault from "./hooks/useSetDepositTokenDefault";
-import { WETH_ADDRESS } from "@/data/constants";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
@@ -56,10 +56,10 @@ interface Props {
  * Contains form actions and validition.
  */
 export default function MintForm({ isApe }: Props) {
-  const [useEthRaw, setUseEth] = useState(false);
+  const [useNativeTokenRaw, setUseNativeToken] = useState(false);
   const { vaults: vaultsQuery } = useVaultProvider();
   const {
-    userEthBalance,
+    userNativeTokenBalance,
     userBalance,
     collateralDecimals,
     depositDecimals,
@@ -71,9 +71,9 @@ export default function MintForm({ isApe }: Props) {
   const { setError, formState, watch, handleSubmit, setValue } =
     useFormContext<TMintFormFields>();
   const { deposit, leverageTier, long: longInput, versus: versusInput, depositToken, slippage } = watch();
-  const useEth = useMemo(() => {
-    return isWeth ? useEthRaw : false;
-  }, [isWeth, useEthRaw]);
+  const useNativeToken = useMemo(() => {
+    return isWeth ? useNativeTokenRaw : false;
+  }, [isWeth, useNativeTokenRaw]);
 
   const { amountTokens, minCollateralOut } = useQuoteMint({
     isApe,
@@ -113,7 +113,7 @@ export default function MintForm({ isApe }: Props) {
   } = useTransactions({
     depositToken: depositToken ?? "",
     deposit: deposit ?? "0",
-    useEth,
+    useNativeToken,
     maxApprove,
     tokenAllowance: userBalance?.tokenAllowance?.result,
     vaultsQuery,
@@ -138,7 +138,7 @@ export default function MintForm({ isApe }: Props) {
     isConfirming,
     isConfirmed,
     currentTxType,
-    useEth,
+    useNativeToken,
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
   });
   const usingDebtToken = useIsDebtToken();
@@ -197,7 +197,7 @@ export default function MintForm({ isApe }: Props) {
       leverageTier,
       leverageTierParsed: Number(leverageTier),
       slippage,
-      useEth,
+      useNativeToken,
       needsApproval,
       minCollateralOut: minCollateralOut?.toString(),
     });
@@ -215,7 +215,7 @@ export default function MintForm({ isApe }: Props) {
     const isDebtTokenDeposit = depositToken === debtTokenAddress && versusInput !== "";
 
     // When using ETH and the debt token is WETH, it's also a debt token deposit
-    const isNativeDebtTokenDeposit = useEth && debtTokenAddress?.toLowerCase() === WETH_ADDRESS.toLowerCase();
+    const isNativeDebtTokenDeposit = useNativeToken && debtTokenAddress?.toLowerCase() === WRAPPED_NATIVE_TOKEN_ADDRESS.toLowerCase();
     const isAnyDebtTokenDeposit = isDebtTokenDeposit || isNativeDebtTokenDeposit;
 
     let minCollateralOutWithSlippage = 0n;
@@ -238,11 +238,11 @@ export default function MintForm({ isApe }: Props) {
           collateralToken: formatDataInput(longInput),
           leverageTier: Number(leverageTier),
         },
-        useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
+        useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
         minCollateralOutWithSlippage,
         Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
       ],
-      value: useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n,
+      value: useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n,
     };
 
     // Debug logging
@@ -257,17 +257,17 @@ export default function MintForm({ isApe }: Props) {
       versusInput,
       longInput,
       leverageTier: parsedLeverageTier,
-      useEth,
+      useNativeToken,
       isDebtTokenDeposit,
       isNativeDebtTokenDeposit,
       isAnyDebtTokenDeposit,
       minCollateralOut: minCollateralOut?.toString(),
       minCollateralOutWithSlippage: minCollateralOutWithSlippage.toString(),
       slippage,
-      amountToDeposit: (useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
-      value: (useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
+      amountToDeposit: (useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
+      value: (useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
       deadline: Math.floor(Date.now() / 1000) + 600,
-      WETH_ADDRESS,
+      WRAPPED_NATIVE_TOKEN_ADDRESS,
     });
 
     console.log("📦 FINAL TRANSACTION ARGS:", {
@@ -277,10 +277,10 @@ export default function MintForm({ isApe }: Props) {
         collateralToken: formatDataInput(longInput),
         leverageTier: parsedLeverageTier,
       },
-      amountToDeposit: (useEth ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
+      amountToDeposit: (useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
       collateralToDepositMin: minCollateralOutWithSlippage.toString(),
       deadline: Math.floor(Date.now() / 1000) + 600,
-      value: (useEth ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
+      value: (useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
     });
 
     setCurrentTxType("mint");
@@ -296,21 +296,21 @@ export default function MintForm({ isApe }: Props) {
     leverageTier,
     deposit,
     depositDecimals,
-    useEth,
+    useNativeToken,
     depositToken,
     minCollateralOut,
     slippage,
   ]);
 
   let balance = userBalance?.tokenBalance?.result;
-  if (useEth) {
-    balance = userEthBalance;
+  if (useNativeToken) {
+    balance = userNativeTokenBalance;
   }
 
   const { isValid, errorMessage } = useMintFormValidation({
-    ethBalance: userEthBalance,
+    nativeTokenBalance: userNativeTokenBalance,
     decimals: depositDecimals ?? 18,
-    useEth,
+    useNativeToken,
     requests,
     tokenBalance: userBalance?.tokenBalance?.result,
     tokenAllowance: userBalance?.tokenAllowance?.result,
@@ -367,7 +367,7 @@ export default function MintForm({ isApe }: Props) {
               userBalanceFetching={false}
               isPending={isPending}
               isApe={isApe}
-              useEth={useEth}
+              useNativeToken={useNativeToken}
               quoteData={amountTokens}
               tokenReceived={tokenReceived}
             />
@@ -462,9 +462,9 @@ export default function MintForm({ isApe }: Props) {
             inputLoading={false}
             disabled={false}
             decimals={collateralDecimals ?? 18}
-            useEth={useEth}
-            setUseEth={(b: boolean) => {
-              setUseEth(b);
+            useNativeToken={useNativeToken}
+            setUseNativeToken={(b: boolean) => {
+              setUseNativeToken(b);
             }}
             balance={formatUnits(balance ?? 0n, depositDecimals ?? 18)}
           >

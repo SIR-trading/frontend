@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { BalancePercent } from "@/components/shared/balancePercent";
 import { inputPatternMatch } from "@/lib/utils/index";
 import { Switch } from "@/components/ui/switch";
-import { WETH_ADDRESS } from "@/data/constants";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
@@ -30,8 +30,8 @@ function Root({ children }: { children: React.ReactNode }) {
 
 interface Props {
   balance?: string;
-  useEth: boolean;
-  setUseEth: (b: boolean) => void;
+  useNativeToken: boolean;
+  setUseNativeToken: (b: boolean) => void;
   decimals: number;
   disabled: boolean;
   inputLoading: boolean;
@@ -40,8 +40,8 @@ interface Props {
 function Inputs({
   decimals,
   balance,
-  useEth,
-  setUseEth,
+  useNativeToken,
+  setUseNativeToken,
   disabled,
   inputLoading,
   children,
@@ -92,13 +92,13 @@ function Inputs({
           />
         </Show>
         <div className="space-y-2">
-          {formData.depositToken === WETH_ADDRESS && (
+          {formData.depositToken === WRAPPED_NATIVE_TOKEN_ADDRESS && (
             <div className="flex items-center gap-x-2 pt-1">
               <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
               <Switch
-                checked={useEth}
+                checked={useNativeToken}
                 onCheckedChange={() => {
-                  setUseEth(!useEth);
+                  setUseNativeToken(!useNativeToken);
                 }}
                 aria-readonly
               />
@@ -112,7 +112,7 @@ function Inputs({
           className={`flex h-[40px] w-[150px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
-          {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
+          {/* <AssetInfo depositAsset={depositAsset} useNativeToken={useNativeToken} /> */}
           {children}
         </div>
         <h2 className="font-geist-mono pt-1 text-right text-on-bg-subdued whitespace-nowrap">

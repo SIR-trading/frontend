@@ -7,7 +7,7 @@ import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
 
 interface EstimateProps {
   collateralEstimate: bigint | undefined;
-  usingEth: boolean;
+  usingNativeToken: boolean;
   isApe: boolean;
   vaultId: string;
   decimals: number;
@@ -15,7 +15,7 @@ interface EstimateProps {
 export function TransactionEstimates({
   isApe,
   collateralEstimate,
-  usingEth,
+  usingNativeToken,
   vaultId,
   decimals,
 }: EstimateProps) {
@@ -24,10 +24,10 @@ export function TransactionEstimates({
   const data = form.watch();
   const usingDebt =
     data.depositToken === parseAddress(data.versus) && data.depositToken !== "";
-  const collateralAssetName = usingEth
+  const collateralAssetName = usingNativeToken
     ? nativeCurrency.symbol
     : form.getValues("long").split(",")[1] ?? "";
-  const debtAssetName = usingEth
+  const debtAssetName = usingNativeToken
     ? nativeCurrency.symbol
     : form.getValues("versus").split(",")[1] ?? "";
   const deposit = form.getValues("deposit");

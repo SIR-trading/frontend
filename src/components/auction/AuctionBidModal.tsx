@@ -10,7 +10,7 @@ import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
 import { useCallback, useMemo, useState } from "react";
-import { WETH_ADDRESS } from "@/data/constants";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
@@ -43,7 +43,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
 
   const { userBalance, userBalanceFetching, needsApproval, approveRequest } =
     useAuctionTokenInfo({
-      tokenAddress: WETH_ADDRESS,
+      tokenAddress: WRAPPED_NATIVE_TOKEN_ADDRESS,
       amount: formData.bid,
       isOpen: open.open,
       maxApprove,
@@ -147,6 +147,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     formData.bid,
     isConfirmed,
     isTopUp,
+    bidIncreasePercentage,
+    wrappedTokenSymbol,
     nextBid,
     userBalanceFetching,
   ]);
@@ -172,7 +174,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               isTopUp={isTopUp}
             >
               <TokenImage
-                address={WETH_ADDRESS}
+                address={WRAPPED_NATIVE_TOKEN_ADDRESS}
                 alt="alt"
                 width={25}
                 height={25}

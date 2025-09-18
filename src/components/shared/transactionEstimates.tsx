@@ -7,7 +7,7 @@ interface EstimateProps {
   collateralEstimate: bigint | undefined;
   inAssetName: string;
   outAssetName: string;
-  usingEth: boolean;
+  usingNativeToken: boolean;
   decimals: number;
 }
 export function TransactionEstimates({

@@ -6,7 +6,7 @@ import { useFormContext } from "react-hook-form";
 import { useAccount } from "wagmi";
 /**
  * Gets user balance and allowance for the form field deposit token
- * Gets user ETH Balance
+ * Gets user native token balance
  * Gets Collateral and Debt Decimals
  */
 export default function useGetFormTokensInfo() {
@@ -28,7 +28,7 @@ export default function useGetFormTokensInfo() {
           Boolean(formData.depositToken),
       },
     );
-  const { data: userEthBalance } = api.user.getEthBalance.useQuery(
+  const { data: userNativeTokenBalance } = api.user.getNativeTokenBalance.useQuery(
     { userAddress: address },
     { enabled: Boolean(address) && Boolean(formData.long) },
   );
@@ -56,7 +56,7 @@ export default function useGetFormTokensInfo() {
       ? collateralDecimals
       : debtDecimals;
   return {
-    userEthBalance,
+    userNativeTokenBalance,
     userBalance,
     userBalanceFetching: isFetching,
     collateralDecimals,

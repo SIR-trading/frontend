@@ -17,7 +17,7 @@ interface Props {
   needs0Approval: boolean;
   tokenReceived: bigint | undefined;
   isApe: boolean;
-  useEth: boolean;
+  useNativeToken: boolean;
   quoteData: bigint | undefined;
   vaultId: string;
   transactionHash: string | undefined;
@@ -34,7 +34,7 @@ export default function TransactionInfo({
   needs0Approval,
   tokenReceived,
   decimals,
-  useEth,
+  useNativeToken,
   userBalanceFetching,
   vaultId,
   transactionHash,
@@ -57,7 +57,7 @@ export default function TransactionInfo({
           <TransactionEstimates
             isApe={isApe}
             decimals={decimals}
-            usingEth={useEth}
+            usingEth={useNativeToken}
             collateralEstimate={quoteData}
             vaultId={vaultId}
           />

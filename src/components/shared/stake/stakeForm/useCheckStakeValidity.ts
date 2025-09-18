@@ -14,10 +14,10 @@ interface Props {
   };
   tokenAllowance?: bigint | undefined;
   tokenBalance: bigint | undefined;
-  ethBalance?: bigint | undefined;
+  nativeTokenBalance?: bigint | undefined;
   mintFetching: boolean;
   approveFetching?: boolean;
-  useEth?: boolean;
+  useNativeToken?: boolean;
   decimals: number;
 }
 
@@ -35,8 +35,8 @@ export const useCheckStakeValidity = ({
   requests,
   approveFetching,
   tokenBalance,
-  ethBalance,
-  useEth,
+  nativeTokenBalance,
+  useNativeToken,
   decimals,
 }: Props) => {
   const chainId = useGetChainId();
@@ -57,8 +57,8 @@ export const useCheckStakeValidity = ({
       };
     }
 
-    if (useEth) {
-      if ((ethBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
+    if (useNativeToken) {
+      if ((nativeTokenBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
         return {
           isValid: false,
           errorMessage: "Insufficient Balance.",
@@ -138,12 +138,12 @@ export const useCheckStakeValidity = ({
     chainId,
     deposit,
     decimals,
-    useEth,
+    useNativeToken,
     tokenBalance,
     tokenAllowance,
     requests.approveWriteRequest,
     requests.mintRequest,
-    ethBalance,
+    nativeTokenBalance,
     approveFetching,
     mintFetching,
   ]);

@@ -15,7 +15,7 @@ import React from "react";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import { compareAddress } from "@/lib/utils/index";
-import { WETH_ADDRESS } from "@/data/constants";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
@@ -147,7 +147,7 @@ const NewAuction = ({
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           <div className="grid gap-4">
             <h4 className="text-lg font-bold">
-              {compareAddress(id, WETH_ADDRESS)
+              {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
                 ? `${isPending || isConfirming ? "Collecting" : "Collect"} ${getWrappedTokenSymbol()} Fees`
                 : `${isPending || isConfirming ? "Starting" : "Start"} Auction for
               ${uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")} `}
@@ -234,7 +234,7 @@ const NewAuction = ({
                     ],
                   ]}
                   action={{
-                    title: compareAddress(auction.token, WETH_ADDRESS)
+                    title: compareAddress(auction.token, WRAPPED_NATIVE_TOKEN_ADDRESS)
                       ? "Collect Fees"
                       : "Start Auction",
                     onClick: () => {

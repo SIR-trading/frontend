@@ -4,13 +4,12 @@ import { getVaultsForTable } from "@/lib/getVaults";
 import { ZAddress } from "@/lib/schemas";
 import type { TAddressString, VaultFieldFragment } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
-import { rpcViemClient } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
 import { executeVaultsQuery } from "@/server/queries/vaults";
 import { executeGetVaultFees } from "@/server/queries/fees";
 import type { Address } from "viem";
-import { erc20Abi, formatUnits } from "viem";
+import { erc20Abi } from "viem";
 import { parseUnits } from "viem";
 import { z } from "zod";
 import { VaultContract } from "@/contracts/vault";
@@ -42,7 +41,7 @@ async function getCachedSirPrice(): Promise<number> {
     return sirPriceCache.price;
   }
   
-  const price = await getSirPriceInWeth();
+  const price = await getSirPriceInWrappedNativeToken();
   sirPriceCache = { price, timestamp: now };
   return price;
 }
@@ -74,18 +73,18 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
     
-    // Get SIR price in WETH from Uniswap (cached)
-    const sirPriceInWeth = await getCachedSirPrice();
-    console.log("SIR price in WETH:", sirPriceInWeth);
+    // Get SIR price in wrapped native token from Uniswap (cached)
+    const sirPriceInWrappedNativeToken = await getCachedSirPrice();
+    console.log("SIR price in wrapped native token:", sirPriceInWrappedNativeToken);
     
-    if (sirPriceInWeth === 0) {
+    if (sirPriceInWrappedNativeToken === 0) {
       console.warn("Could not fetch SIR price from Uniswap");
       return 0;
     }
 
     // Convert SIR price to vault's collateral token
-    const sirPriceInCollateral = await convertWethPriceToCollateral(
-      sirPriceInWeth,
+    const sirPriceInCollateral = await convertWrappedNativeTokenPriceToCollateral(
+      sirPriceInWrappedNativeToken,
       vault.collateralToken as TAddressString
     );
 
@@ -119,19 +118,19 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
 }
 
 /**
- * Get SIR price in WETH from Uniswap V3
+ * Get SIR price in wrapped native token from Uniswap V3
  */
-async function getSirPriceInWeth(): Promise<number> {
+async function getSirPriceInWrappedNativeToken(): Promise<number> {
   try {
     // Import the direct pool reading function
     const { getMostLiquidPoolPrice } = await import("./quote");
     
-    // Get the most liquid pool price for SIR/WETH
+    // Get the most liquid pool price for SIR/wrapped native token
     const poolData = await getMostLiquidPoolPrice({
       tokenA: SirContract.address,
       tokenB: WethContract.address,
       decimalsA: 12, // SIR has 12 decimals
-      decimalsB: 18, // WETH has 18 decimals
+      decimalsB: 18, // wrapped native token has 18 decimals
     });
     
     return poolData.price;
@@ -142,19 +141,19 @@ async function getSirPriceInWeth(): Promise<number> {
 }
 
 /**
- * Convert WETH price to collateral token price
+ * Convert wrapped native token price to collateral token price
  */
-async function convertWethPriceToCollateral(
-  wethPrice: number,
+async function convertWrappedNativeTokenPriceToCollateral(
+  wrappedNativeTokenPrice: number,
   collateralTokenAddress: TAddressString
 ): Promise<number> {
   try {
-    // If collateral is WETH, no conversion needed
+    // If collateral is wrapped native token, no conversion needed
     if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
-      return wethPrice;
+      return wrappedNativeTokenPrice;
     }
 
-    // Get WETH/Collateral price from Alchemy
+    // Get wrapped native token/Collateral price from Alchemy
     const response = await fetch(
       `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
       {
@@ -183,18 +182,18 @@ async function convertWethPriceToCollateral(
       }>;
     };
 
-    const wethData = data.data.find(
+    const wrappedNativeTokenData = data.data.find(
       (token) => token.address.toLowerCase() === WethContract.address.toLowerCase()
     );
     const collateralData = data.data.find(
       (token) => token.address.toLowerCase() === collateralTokenAddress.toLowerCase()
     );
 
-    if (!wethData?.prices[0]?.value || !collateralData?.prices[0]?.value) {
+    if (!wrappedNativeTokenData?.prices[0]?.value || !collateralData?.prices[0]?.value) {
       throw new Error("Price data not available");
     }
 
-    const wethUsdPrice = parseFloat(wethData.prices[0].value);
+    const wrappedNativeTokenUsdPrice = parseFloat(wrappedNativeTokenData.prices[0].value);
     const collateralUsdPrice = parseFloat(collateralData.prices[0].value);
 
     if (collateralUsdPrice === 0) {
@@ -202,14 +201,14 @@ async function convertWethPriceToCollateral(
     }
 
 
-    // Convert: SIR -> WETH -> USD -> Collateral
-    const sirUsdPrice = wethPrice * wethUsdPrice;
+    // Convert: SIR -> wrapped native token -> USD -> Collateral
+    const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
     const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
 
 
     return sirCollateralPrice;
   } catch (error) {
-    console.error("Error converting WETH price to collateral:", error);
+    console.error("Error converting wrapped native token price to collateral:", error);
     return 0;
   }
 }
@@ -224,7 +223,7 @@ async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<
   }
   
   try {
-    // Add WETH to the list for price conversion
+    // Add wrapped native token to the list for price conversion
     const tokensToFetch = [WethContract.address, ...collateralTokens];
     
     const response = await fetch(
@@ -271,7 +270,7 @@ async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<
  */
 async function calculateSirRewardsApyWithCachedPrices(
   vault: VaultWithCollateral,
-  sirPriceInWeth: number,
+  sirPriceInWrappedNativeToken: number,
   tokenPrices: Map<string, number>
 ): Promise<number> {
   try {
@@ -304,13 +303,13 @@ async function calculateSirRewardsApyWithCachedPrices(
     }
 
     // For non-SIR collateral vaults, need price conversion
-    if (sirPriceInWeth === 0) {
+    if (sirPriceInWrappedNativeToken === 0) {
       return 0;
     }
 
     // Convert SIR price to vault's collateral token using cached prices
-    const sirPriceInCollateral = convertWethPriceToCollateralCached(
-      sirPriceInWeth,
+    const sirPriceInCollateral = convertWrappedNativeTokenPriceToCollateralCached(
+      sirPriceInWrappedNativeToken,
       vault.collateralToken as TAddressString,
       tokenPrices
     );
@@ -333,34 +332,34 @@ async function calculateSirRewardsApyWithCachedPrices(
 }
 
 /**
- * Convert WETH price to collateral token price using cached price data
+ * Convert wrapped native token price to collateral token price using cached price data
  */
-function convertWethPriceToCollateralCached(
-  wethPrice: number,
+function convertWrappedNativeTokenPriceToCollateralCached(
+  wrappedNativeTokenPrice: number,
   collateralTokenAddress: TAddressString,
   tokenPrices: Map<string, number>
 ): number {
   try {
-    // If collateral is WETH, no conversion needed
+    // If collateral is wrapped native token, no conversion needed
     if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
-      return wethPrice;
+      return wrappedNativeTokenPrice;
     }
 
-    const wethUsdPrice = tokenPrices.get(WethContract.address.toLowerCase());
+    const wrappedNativeTokenUsdPrice = tokenPrices.get(WethContract.address.toLowerCase());
     const collateralUsdPrice = tokenPrices.get(collateralTokenAddress.toLowerCase());
 
-    if (!wethUsdPrice || !collateralUsdPrice || collateralUsdPrice === 0) {
+    if (!wrappedNativeTokenUsdPrice || !collateralUsdPrice || collateralUsdPrice === 0) {
       console.warn(`Missing price data for ${collateralTokenAddress}`);
       return 0;
     }
 
-    // Convert: SIR -> WETH -> USD -> Collateral
-    const sirUsdPrice = wethPrice * wethUsdPrice;
+    // Convert: SIR -> wrapped native token -> USD -> Collateral
+    const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
     const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
 
     return sirCollateralPrice;
   } catch (error) {
-    console.error("Error converting WETH price to collateral with cached data:", error);
+    console.error("Error converting wrapped native token price to collateral with cached data:", error);
     return 0;
   }
 }
@@ -720,10 +719,10 @@ export const vaultRouter = createTRPCRouter({
         const vaults = await executeVaultsQuery({});
         const vaultMap = new Map(vaults.vaults.map(v => [v.vaultId, v as VaultWithCollateral]));
         
-        // Get SIR price in WETH once (shared across all vaults, cached)
-        const sirPriceInWeth = await getCachedSirPrice();
+        // Get SIR price in wrapped native token once (shared across all vaults, cached)
+        const sirPriceInWrappedNativeToken = await getCachedSirPrice();
         
-        if (sirPriceInWeth === 0) {
+        if (sirPriceInWrappedNativeToken === 0) {
           console.warn("Could not fetch SIR price from Uniswap");
           // Return zero APY for all vaults
           return Object.fromEntries(
@@ -766,7 +765,7 @@ export const vaultRouter = createTRPCRouter({
               // Calculate SIR rewards APY using cached prices
               const sirRewardsApy = await calculateSirRewardsApyWithCachedPrices(
                 vault,
-                sirPriceInWeth,
+                sirPriceInWrappedNativeToken,
                 tokenPrices
               );
               

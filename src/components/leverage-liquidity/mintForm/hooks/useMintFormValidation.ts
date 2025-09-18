@@ -13,9 +13,9 @@ interface Props {
   };
   tokenAllowance?: bigint | undefined;
   tokenBalance: bigint | undefined;
-  ethBalance?: bigint | undefined;
+  nativeTokenBalance?: bigint | undefined;
   approveFetching?: boolean;
-  useEth?: boolean;
+  useNativeToken?: boolean;
   decimals: number;
   hasValidQuote?: boolean;
 }
@@ -32,8 +32,8 @@ export const useMintFormValidation = ({
   requests,
   approveFetching,
   tokenBalance,
-  ethBalance,
-  useEth,
+  nativeTokenBalance,
+  useNativeToken,
   decimals,
   hasValidQuote = false,
 }: Props) => {
@@ -71,8 +71,8 @@ export const useMintFormValidation = ({
     // Note: We no longer enforce maxCollateralIn as a hard limit
     // The max button will still use this value, but users can input larger amounts
     // A warning will be shown instead when exceeding the optimal amount
-    if (useEth) {
-      if ((ethBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
+    if (useNativeToken) {
+      if ((nativeTokenBalance ?? 0n) < parseUnits(deposit ?? "0", decimals)) {
         return {
           isValid: false,
           errorMessage: "Insufficient Balance.",
@@ -140,12 +140,12 @@ export const useMintFormValidation = ({
     chainId,
     deposit,
     decimals,
-    useEth,
+    useNativeToken,
     tokenBalance,
     tokenAllowance,
     requests.approveWriteRequest,
     slippage,
-    ethBalance,
+    nativeTokenBalance,
     approveFetching,
     hasValidQuote,
   ]);

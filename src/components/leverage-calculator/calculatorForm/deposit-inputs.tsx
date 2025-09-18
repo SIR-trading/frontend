@@ -82,7 +82,7 @@ function Inputs({ decimals, disabled, inputLoading, children }: Props) {
           className={`flex h-[40px] w-[130px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
           {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
-          {/* <AssetInfo depositAsset={depositAsset} useEth={useEth} /> */}
+          {/* <AssetInfo depositAsset={depositAsset} useNativeToken={useNativeToken} /> */}
           {children}
         </div>
       </div>

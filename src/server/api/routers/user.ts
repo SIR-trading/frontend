@@ -68,7 +68,7 @@ export const userRouter = createTRPCRouter({
         tokenAllowance: allowance,
       };
     }),
-  getEthBalance: publicProcedure
+  getNativeTokenBalance: publicProcedure
     .input(
       z.object({
         userAddress: z.string().length(42).startsWith("0x").optional(),

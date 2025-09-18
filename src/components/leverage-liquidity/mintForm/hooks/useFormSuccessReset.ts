@@ -7,21 +7,21 @@ interface Props {
   isConfirming: boolean;
   isConfirmed: boolean;
   currentTxType: "mint" | "approve" | "create-vault" | undefined;
-  useEth: boolean;
+  useNativeToken: boolean;
   txBlock?: number;
 }
 export function useFormSuccessReset({
   isConfirmed,
   isConfirming,
   currentTxType,
-  useEth,
+  useNativeToken,
   txBlock,
 }: Props) {
   const form = useFormContext<TMintFormFields>();
 
   const utils = api.useUtils();
   useEffect(() => {
-    if (isConfirmed && !useEth && currentTxType === "create-vault") {
+    if (isConfirmed && !useNativeToken && currentTxType === "create-vault") {
       subgraphSyncPoll(txBlock)
         .then(() => {
           utils.vault.getTableVaults.invalidate().catch((e) => console.log(e));
@@ -31,7 +31,7 @@ export function useFormSuccessReset({
     }
     if (
       isConfirmed &&
-      !useEth &&
+      !useNativeToken &&
       form.getValues("deposit") &&
       currentTxType === "mint"
     ) {
@@ -47,9 +47,9 @@ export function useFormSuccessReset({
         .catch((e) => console.log(e));
     }
 
-    if (isConfirmed && useEth && form.getValues("deposit")) {
+    if (isConfirmed && useNativeToken && form.getValues("deposit")) {
       form.resetField("deposit");
-      utils.user.getEthBalance.invalidate().catch((e) => console.log(e));
+      utils.user.getNativeTokenBalance.invalidate().catch((e) => console.log(e));
       utils.vault.getReserve.invalidate().catch((e) => console.log(e));
       subgraphSyncPoll(txBlock)
         .then(() => {
@@ -61,9 +61,9 @@ export function useFormSuccessReset({
     isConfirming,
     isConfirmed,
     utils.user.getBalanceAndAllowance,
-    utils.user.getEthBalance,
+    utils.user.getNativeTokenBalance,
     currentTxType,
-    useEth,
+    useNativeToken,
     form,
     utils.vault.getTableVaults,
     txBlock,
