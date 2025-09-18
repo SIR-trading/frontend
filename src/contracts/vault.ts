@@ -1,7 +1,29 @@
 import type { TAddressString } from "@/lib/types";
 import buildData from "@/../public/build-data.json";
+import { env } from "@/env";
 
 const VAULT_ADDRESS = buildData.contractAddresses.vault as TAddressString;
+
+/**
+ * Helper function to get chain-aware error message
+ * Translates WETH-specific errors to WHYPE for HyperEVM chains
+ * and Uniswap errors to HyperSwap for HyperEVM chains
+ */
+export function getVaultErrorMessage(error: string): string {
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const isHyperEVM = chainId === 998 || chainId === 999;
+
+  if (isHyperEVM) {
+    if (error === "NotAWETHVault") {
+      return "NotAWHYPEVault";
+    }
+    if (error === "NoUniswapPool") {
+      return "NoHyperSwapPool";
+    }
+  }
+
+  return error;
+}
 
 export const VaultContract = {
   address: VAULT_ADDRESS,
@@ -713,7 +735,8 @@ export const VaultContract = {
     { type: "error", name: "InsufficientDeposit", inputs: [] },
     { type: "error", name: "LengthMismatch", inputs: [] },
     { type: "error", name: "Locked", inputs: [] },
-    { type: "error", name: "NotAWETHVault", inputs: [] },
+    { type: "error", name: "NoUniswapPool", inputs: [] }, // Oracle error that can bubble up through vault
+    { type: "error", name: "NotAWETHVault", inputs: [] }, // Use getVaultErrorMessage() to get chain-specific name
     { type: "error", name: "NotAuthorized", inputs: [] },
     { type: "error", name: "TEAMaxSupplyExceeded", inputs: [] },
     { type: "error", name: "TransferToZeroAddress", inputs: [] },

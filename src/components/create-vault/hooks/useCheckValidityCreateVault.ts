@@ -32,7 +32,8 @@ export function useCheckValidityCreactVault({
         error: "Vault already exists for this configuration",
       };
     }
-    if (vaultSimulation) {
+    // vaultData === 2 means vault can be created
+    if (vaultData === 2 && vaultSimulation) {
       return { isValid: true, error: undefined };
     } else {
       return { isValid: false, error: "" };

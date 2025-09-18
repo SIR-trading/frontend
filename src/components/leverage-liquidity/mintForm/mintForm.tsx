@@ -70,56 +70,65 @@ export default function MintForm({ isApe }: Props) {
   // Ensure use eth toggle is not used on non-weth tokens
   const { setError, formState, watch, handleSubmit, setValue } =
     useFormContext<TMintFormFields>();
-  const { deposit, leverageTier, long: longInput, versus: versusInput, depositToken, slippage } = watch();
+  const {
+    deposit,
+    leverageTier,
+    long: longInput,
+    versus: versusInput,
+    depositToken,
+    slippage,
+  } = watch();
   const useNativeToken = useMemo(() => {
     return isWeth ? useNativeTokenRaw : false;
   }, [isWeth, useNativeTokenRaw]);
 
-  const { amountTokens, minCollateralOut } = useQuoteMint({
-    isApe,
-    decimals: depositDecimals ?? 0,
-  });
+  const { amountTokens, amountCollateral, amountCollateralIdeal } =
+    useQuoteMint({
+      isApe,
+      decimals: depositDecimals ?? 0,
+    });
 
   const selectedVault = useFindVault();
   const [maxApprove, setMaxApprove] = useState(false);
   const { versus, leverageTiers, long } = useFilterVaults({
     vaultsQuery,
   });
-  
+
   // Parse token info safely
   const longTokenAddress = longInput ? longInput.split(",")[0] : "";
   const longTokenSymbol = longInput ? longInput.split(",")[1] : "";
   const versusTokenAddress = versusInput ? versusInput.split(",")[0] : "";
   const versusTokenSymbol = versusInput ? versusInput.split(",")[1] : "";
-  
+
   // Check if we have enough info to show deposit token options
   const hasVaultInfo = Boolean(
-    selectedVault.result ?? (longInput && versusInput && leverageTier)
+    selectedVault.result ?? (longInput && versusInput && leverageTier),
   );
 
-  const { writeContract, data: hash, isPending, reset, error: writeError } = useWriteContract();
+  const {
+    writeContract,
+    data: hash,
+    isPending,
+    reset,
+    error: writeError,
+  } = useWriteContract();
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
 
-
-  const {
-    requests,
-    isApproveFetching,
-    needsApproval,
-    needs0Approval,
-  } = useTransactions({
-    depositToken: depositToken ?? "",
-    deposit: deposit ?? "0",
-    useNativeToken,
-    maxApprove,
-    tokenAllowance: userBalance?.tokenAllowance?.result,
-    vaultsQuery,
-    decimals: depositDecimals ?? 18,
-    enableMintSimulation: false,
-  });
+  const { requests, isApproveFetching, needsApproval, needs0Approval } =
+    useTransactions({
+      depositToken: depositToken ?? "",
+      deposit: deposit ?? "0",
+      useNativeToken,
+      maxApprove,
+      tokenAllowance: userBalance?.tokenAllowance?.result,
+      vaultsQuery,
+      decimals: depositDecimals ?? 18,
+      enableMintSimulation: false,
+    });
 
   useSetDepositTokenDefault({
     collToken: selectedVault.result?.collateralToken,
@@ -142,7 +151,7 @@ export default function MintForm({ isApe }: Props) {
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
   });
   const usingDebtToken = useIsDebtToken();
-  
+
   // Always calculate vault health to check for red status
   const vaultHealthResult = useCalculateVaultHealth({
     vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
@@ -151,33 +160,40 @@ export default function MintForm({ isApe }: Props) {
     apeCollateral: selectedVault.result?.apeCollateral,
     teaCollateral: selectedVault.result?.teaCollateral,
   });
-  
+
   // Check if vault is already in red status (only when vault is selected and data is loaded)
   const isVaultRed = useMemo(() => {
-    if (!selectedVault.result?.vaultId || vaultHealthResult.isLoading) return false;
+    if (!selectedVault.result?.vaultId || vaultHealthResult.isLoading)
+      return false;
     return vaultHealthResult.variant === "red";
-  }, [selectedVault.result?.vaultId, vaultHealthResult.variant, vaultHealthResult.isLoading]);
-  
+  }, [
+    selectedVault.result?.vaultId,
+    vaultHealthResult.variant,
+    vaultHealthResult.isLoading,
+  ]);
+
   // Only calculate max amounts for leverage page when vault is not red
   // For red vaults, we don't need these calculations as the vault already has insufficient liquidity
   const shouldCalculateMax = isApe && !isVaultRed;
-  
+
   const leverageHookResult = useCalculateMaxApe({
     usingDebtToken,
     collateralDecimals: collateralDecimals ?? 18,
-    vaultId: shouldCalculateMax ? Number.parseInt(selectedVault.result?.vaultId ?? "-1") : -1,
+    vaultId: shouldCalculateMax
+      ? Number.parseInt(selectedVault.result?.vaultId ?? "-1")
+      : -1,
     taxAmount: selectedVault.result?.taxAmount ?? "0",
   });
-  
+
   // Determine which results to use based on page type and vault status
   const { maxCollateralIn, maxDebtIn } = shouldCalculateMax
     ? leverageHookResult
     : {
         maxCollateralIn: undefined,
-        maxDebtIn: undefined
+        maxDebtIn: undefined,
       };
   const maxIn = usingDebtToken ? maxDebtIn : maxCollateralIn;
-  
+
   // Check if user's input exceeds the optimal amount for constant leverage
   const isExceedingOptimal = useMemo(() => {
     if (!isApe || !maxIn || !deposit) return false;
@@ -185,23 +201,56 @@ export default function MintForm({ isApe }: Props) {
     return depositAmount > maxIn;
   }, [isApe, maxIn, deposit, depositDecimals]);
 
+  // Calculate minimum collateral based on user's slippage setting
+  const minCollateralOut = useMemo(() => {
+    if (!amountCollateralIdeal || amountCollateralIdeal === 0n) return 0n;
+
+    const userSlippage = parseFloat(slippage?.trim() ?? "0.5");
+    const slippageBasisPoints = Math.floor(userSlippage * 100);
+    const slippageAmount =
+      (amountCollateralIdeal * BigInt(slippageBasisPoints)) / 10000n;
+    return amountCollateralIdeal - slippageAmount;
+  }, [amountCollateralIdeal, slippage]);
+
+  // Calculate expected slippage and check if user's slippage is sufficient
+  const slippageWarning = useMemo(() => {
+    if (
+      !amountCollateralIdeal ||
+      !amountCollateral ||
+      amountCollateralIdeal === 0n
+    ) {
+      return null;
+    }
+
+    // Calculate the actual/expected slippage from market conditions
+    const expectedSlippageAmount = amountCollateralIdeal - amountCollateral;
+    const expectedSlippagePercent =
+      Number((expectedSlippageAmount * 10000n) / amountCollateralIdeal) / 100;
+
+    // Get user's selected slippage
+    const userSlippage = parseFloat(slippage?.trim() ?? "0.5");
+
+    // Check if user's slippage is less than expected slippage * 1.2 (20% buffer)
+    // Round up to 1 decimal place
+    const minimumRequiredSlippage =
+      Math.ceil(expectedSlippagePercent * 1.2 * 10) / 10; // 20% buffer, rounded up
+
+    if (userSlippage < minimumRequiredSlippage) {
+      return {
+        showWarning: true,
+        expectedSlippage: expectedSlippagePercent,
+        suggestedSlippage: minimumRequiredSlippage.toFixed(1),
+        userSlippage: userSlippage.toFixed(1),
+      };
+    }
+
+    return null;
+  }, [amountCollateralIdeal, amountCollateral, slippage]);
+
   const { openTransactionModal, setOpenTransactionModal } =
     useResetTransactionModal({ reset, isConfirmed });
 
   const onSubmit = useCallback(() => {
-    console.log("📋 FORM SUBMIT - Initial values:", {
-      deposit,
-      depositToken,
-      versusInput,
-      longInput,
-      leverageTier,
-      leverageTierParsed: Number(leverageTier),
-      slippage,
-      useNativeToken,
-      needsApproval,
-      minCollateralOut: minCollateralOut?.toString(),
-    });
-
     if (requests.approveWriteRequest && needsApproval) {
       setCurrentTxType("approve");
       writeContract(requests.approveWriteRequest);
@@ -211,21 +260,21 @@ export default function MintForm({ isApe }: Props) {
     // Create mint request using the quote data
     // Check if we're depositing the debt token (either as ERC20 or native ETH)
     const debtTokenAddress = versusInput.split(",")[0];
-    const collateralTokenAddress = longInput.split(",")[0];
-    const isDebtTokenDeposit = depositToken === debtTokenAddress && versusInput !== "";
+    const isDebtTokenDeposit =
+      depositToken === debtTokenAddress && versusInput !== "";
 
     // When using ETH and the debt token is WETH, it's also a debt token deposit
-    const isNativeDebtTokenDeposit = useNativeToken && debtTokenAddress?.toLowerCase() === WRAPPED_NATIVE_TOKEN_ADDRESS.toLowerCase();
-    const isAnyDebtTokenDeposit = isDebtTokenDeposit || isNativeDebtTokenDeposit;
+    const isNativeDebtTokenDeposit =
+      useNativeToken &&
+      debtTokenAddress?.toLowerCase() ===
+        WRAPPED_NATIVE_TOKEN_ADDRESS.toLowerCase();
+    const isAnyDebtTokenDeposit =
+      isDebtTokenDeposit || isNativeDebtTokenDeposit;
 
-    let minCollateralOutWithSlippage = 0n;
-
-    if (isAnyDebtTokenDeposit && minCollateralOut && minCollateralOut > 0n) {
-      // Apply slippage percentage to the quoted amount
-      const slippageBasisPoints = Math.floor(parseFloat(slippage?.trim() ?? "0.5") * 100);
-      const slippageAmount = (minCollateralOut * BigInt(slippageBasisPoints)) / 10000n;
-      minCollateralOutWithSlippage = minCollateralOut - slippageAmount;
-    }
+    // Use the calculated minCollateralOut based on user's slippage
+    const minCollateralOutWithSlippage = isAnyDebtTokenDeposit
+      ? minCollateralOut
+      : 0n;
 
     const mintRequest = {
       address: VaultContract.address,
@@ -242,45 +291,21 @@ export default function MintForm({ isApe }: Props) {
         minCollateralOutWithSlippage,
         Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
       ],
-      value: useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n,
+      value: useNativeToken
+        ? parseUnits(deposit ?? "0", depositDecimals ?? 18)
+        : 0n,
     };
 
-    // Debug logging
-    const parsedLeverageTier = Number(leverageTier);
-    console.log("🚀 MINT TRANSACTION PARAMS:", {
-      isApe,
-      depositToken,
-      depositAmount: deposit,
-      depositDecimals,
-      debtTokenAddress,
-      collateralTokenAddress,
-      versusInput,
-      longInput,
-      leverageTier: parsedLeverageTier,
-      useNativeToken,
-      isDebtTokenDeposit,
-      isNativeDebtTokenDeposit,
-      isAnyDebtTokenDeposit,
-      minCollateralOut: minCollateralOut?.toString(),
-      minCollateralOutWithSlippage: minCollateralOutWithSlippage.toString(),
-      slippage,
-      amountToDeposit: (useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
-      value: (useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
-      deadline: Math.floor(Date.now() / 1000) + 600,
-      WRAPPED_NATIVE_TOKEN_ADDRESS,
-    });
-
-    console.log("📦 FINAL TRANSACTION ARGS:", {
-      isAPE: isApe,
-      vaultParams: {
-        debtToken: formatDataInput(versusInput),
-        collateralToken: formatDataInput(longInput),
-        leverageTier: parsedLeverageTier,
+    console.log("📝 MINT FUNCTION PARAMETERS:", {
+      functionName: "mint",
+      args: {
+        isApe: mintRequest.args[0],
+        vaultParams: mintRequest.args[1],
+        amountToDeposit: mintRequest.args[2].toString(),
+        collateralToDepositMin: mintRequest.args[3].toString(),
+        deadline: mintRequest.args[4],
       },
-      amountToDeposit: (useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18)).toString(),
-      collateralToDepositMin: minCollateralOutWithSlippage.toString(),
-      deadline: Math.floor(Date.now() / 1000) + 600,
-      value: (useNativeToken ? parseUnits(deposit ?? "0", depositDecimals ?? 18) : 0n).toString(),
+      value: mintRequest.value?.toString() ?? "0",
     });
 
     setCurrentTxType("mint");
@@ -324,7 +349,6 @@ export default function MintForm({ isApe }: Props) {
     rootErrorMessage: formState.errors.root?.message,
   });
 
-
   const fee = useFormFee({ leverageTier, isApe });
   const modalSubmit = () => {
     if (!isConfirmed) {
@@ -356,10 +380,13 @@ export default function MintForm({ isApe }: Props) {
             hash={hash}
           >
             {writeError && !isConfirming && !isConfirmed && (
-              <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
-                <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
-                <p className="text-red-400 text-xs break-all">
-                  {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
+              <div className="bg-red-500/10 border-red-500/20 mb-4 rounded-md border p-4">
+                <p className="text-red-500 mb-1 text-sm font-medium">
+                  Transaction Failed
+                </p>
+                <p className="text-red-400 break-all text-xs">
+                  {writeError.message ||
+                    "Transaction simulation failed. Please check your inputs and try again."}
                 </p>
               </div>
             )}
@@ -399,7 +426,10 @@ export default function MintForm({ isApe }: Props) {
                   value={
                     <span>
                       <DisplayFormattedNumber
-                        num={(parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100)).toString()}
+                        num={(
+                          parseFloat(deposit ?? "0") *
+                          (parseFloat(fee ?? "0") / 100)
+                        ).toString()}
                       />
                       <span className="ml-1">{depositTokenSymbol ?? ""}</span>
                     </span>
@@ -485,14 +515,28 @@ export default function MintForm({ isApe }: Props) {
             >
               <Show when={hasVaultInfo}>
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.collateralToken ?? longTokenAddress ?? ""}
-                  value={selectedVault.result?.collateralToken ?? longTokenAddress ?? ""}
+                  tokenAddress={
+                    selectedVault.result?.collateralToken ??
+                    longTokenAddress ??
+                    ""
+                  }
+                  value={
+                    selectedVault.result?.collateralToken ??
+                    longTokenAddress ??
+                    ""
+                  }
                 >
-                  {selectedVault.result?.collateralSymbol ?? longTokenSymbol ?? ""}
+                  {selectedVault.result?.collateralSymbol ??
+                    longTokenSymbol ??
+                    ""}
                 </Dropdown.Item>
                 <Dropdown.Item
-                  tokenAddress={selectedVault.result?.debtToken ?? versusTokenAddress ?? ""}
-                  value={selectedVault.result?.debtToken ?? versusTokenAddress ?? ""}
+                  tokenAddress={
+                    selectedVault.result?.debtToken ?? versusTokenAddress ?? ""
+                  }
+                  value={
+                    selectedVault.result?.debtToken ?? versusTokenAddress ?? ""
+                  }
                 >
                   {selectedVault.result?.debtSymbol ?? versusTokenSymbol ?? ""}
                 </Dropdown.Item>
@@ -500,50 +544,92 @@ export default function MintForm({ isApe }: Props) {
             </Dropdown.Root>
           </DepositInputs.Inputs>
         </DepositInputs.Root>
-        
+
         {/* Warning when vault is already in red status */}
         <Show when={isApe && isVaultRed}>
-          <div className="my-3 rounded-md border border-orange-500/50 bg-orange-500/10 p-3">
+          <div className="border-orange-500/50 bg-orange-500/10 my-3 rounded-md border p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
               <div className="text-sm">
-                <strong className="text-orange-300">Leverage Variability Warning:</strong>
-                <span className="text-foreground/80 ml-1">
-                  This vault has limited liquidity. The non-constant leverage could impact your returns, especially in volatile markets.
+                <strong className="text-orange-300">
+                  Leverage Variability Warning:
+                </strong>
+                <span className="ml-1 text-foreground/80">
+                  This vault has limited liquidity. The non-constant leverage
+                  could impact your returns, especially in volatile markets.
                 </span>
               </div>
             </div>
           </div>
         </Show>
-        
+
         {/* Warning when exceeding optimal amount for constant leverage (only show if vault is not red) */}
         <Show when={isExceedingOptimal && !isVaultRed}>
-          <div className="my-3 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3">
+          <div className="border-yellow-500/50 bg-yellow-500/10 my-3 rounded-md border p-3">
             <div className="flex items-start gap-2">
               <div className="text-yellow-500">⚠️</div>
-              <div className="text-sm text-yellow-200">
-                <strong>Leverage Variability Warning:</strong> The amount you&apos;ve entered exceeds the vault&apos;s optimal liquidity threshold of{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const maxAmount = formatUnits(maxIn ?? 0n, depositDecimals ?? 18);
-                    setValue("deposit", maxAmount);
-                  }}
-                  className="font-bold text-yellow-100 underline hover:text-white transition-colors"
-                >
-                  <span>
-                    <DisplayFormattedNumber 
-                      num={formatUnits(maxIn ?? 0n, depositDecimals ?? 18)} 
-                    />
-                    {" "}{depositTokenSymbol}
-                  </span>
-                </button>. 
-                Beyond this point, your leverage ratio may not remain constant and could vary with market conditions.
+              <div className="text-yellow-200 text-sm">
+                <strong>Leverage Variability Warning:</strong>
+                <span class="text-foreground/80">
+                  The amount you&apos;ve entered exceeds the vault&apos;s
+                  optimal liquidity threshold of{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const maxAmount = formatUnits(
+                        maxIn ?? 0n,
+                        depositDecimals ?? 18,
+                      );
+                      setValue("deposit", maxAmount);
+                    }}
+                    className="text-yellow-100 font-bold underline transition-colors hover:text-white"
+                  >
+                    <span>
+                      <DisplayFormattedNumber
+                        num={formatUnits(maxIn ?? 0n, depositDecimals ?? 18)}
+                      />{" "}
+                      {depositTokenSymbol}
+                    </span>
+                  </button>
+                  . Beyond this point, your leverage ratio may not remain
+                  constant and could vary with market conditions.
+                </span>
               </div>
             </div>
           </div>
         </Show>
-        
+
+        {/* Warning when slippage tolerance is too low */}
+        <Show when={slippageWarning?.showWarning}>
+          <div className="border-amber-500/50 bg-amber-500/10 my-3 rounded-md border p-3">
+            <div className="flex items-start gap-2">
+              <div className="text-amber-500">⚠️</div>
+              <div className="text-sm">
+                <strong className="text-amber-300">Slippage Warning:</strong>
+                <span className="ml-1 text-foreground/80">
+                  Current market slippage is approximately{" "}
+                  {slippageWarning?.expectedSlippage}%. Your setting of{" "}
+                  {slippageWarning?.userSlippage}% may be insufficient. Consider
+                  increasing it to{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValue(
+                        "slippage",
+                        slippageWarning?.suggestedSlippage ?? "0.5",
+                      );
+                    }}
+                    className="text-amber-100 font-bold underline transition-colors hover:text-white"
+                  >
+                    {slippageWarning?.suggestedSlippage}%
+                  </button>{" "}
+                  or higher to avoid transaction failure.
+                </span>
+              </div>
+            </div>
+          </div>
+        </Show>
+
         {
           /* Calculator link */
           isApe && (
@@ -572,7 +658,10 @@ export default function MintForm({ isApe }: Props) {
               error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
               isValid={isValid}
-              feeAmount={(parseFloat(deposit ?? "0") * (parseFloat(fee ?? "0") / 100)).toString()}
+              feeAmount={(
+                parseFloat(deposit ?? "0") *
+                (parseFloat(fee ?? "0") / 100)
+              ).toString()}
               feePercent={fee}
               symbol={depositTokenSymbol}
               deposit={deposit}

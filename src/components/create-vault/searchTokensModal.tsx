@@ -112,14 +112,14 @@ export default function SearchTokensModal({
                           // Check if this token is already selected in the other field
                           const isLongToken = tokenSelection === "longToken";
                           const otherField = isLongToken ? "versusToken" : "longToken";
+                          // selectedTokens = [longToken, versusToken]
+                          const currentFieldValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
                           const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
 
                           // If the token is already selected in the other field, swap them
                           if (address === otherFieldValue) {
-                            const currentValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
-                            if (currentValue) {
-                              setValue(otherField, currentValue);
-                            }
+                            // Move the current field's value to the other field
+                            setValue(otherField, currentFieldValue);
                           }
 
                           setValue(tokenSelection, address);
@@ -190,14 +190,14 @@ export default function SearchTokensModal({
                           // Check if this token is already selected in the other field
                           const isLongToken = tokenSelection === "longToken";
                           const otherField = isLongToken ? "versusToken" : "longToken";
+                          // selectedTokens = [longToken, versusToken]
+                          const currentFieldValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
                           const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
 
                           // If the token is already selected in the other field, swap them
                           if (token.address === otherFieldValue) {
-                            const currentValue = isLongToken ? selectedTokens[0] : selectedTokens[1];
-                            if (currentValue) {
-                              setValue(otherField, currentValue);
-                            }
+                            // Move the current field's value to the other field
+                            setValue(otherField, currentFieldValue);
                           }
 
                           setValue(

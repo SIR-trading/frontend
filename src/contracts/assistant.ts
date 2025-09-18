@@ -231,6 +231,7 @@ export const AssistantContract = {
       outputs: [
         { name: "amountTokens", type: "uint256", internalType: "uint256" },
         { name: "amountCollateral", type: "uint256", internalType: "uint256" },
+        { name: "amountCollateralIdeal", type: "uint256", internalType: "uint256" },
       ],
       stateMutability: "view",
     },

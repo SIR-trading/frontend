@@ -23,7 +23,7 @@ import { useCheckValidityCreactVault } from "./hooks/useCheckValidityCreateVault
 import { TokenImage } from "../shared/TokenImage";
 import Show from "../shared/show";
 import SearchTokensModal from "./searchTokensModal";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, CircleCheck, AlertTriangle } from "lucide-react";
 import type { Address } from "viem";
 import { erc20Abi, zeroAddress } from "viem";
 import { useTokenlistContext } from "@/contexts/tokenListProvider";
@@ -70,19 +70,24 @@ export default function CreateVaultForm() {
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
   const enabled = useMemo(() => {
-    if (
+    const shouldEnable = !!(
       formData.longToken &&
       formData.versusToken &&
-      Boolean(formData.leverageTier)
-    ) {
-      if (
-        formData.longToken.length === 42 &&
-        formData.versusToken.length === 42
-      ) {
-        return true;
-      }
-    }
-    return false;
+      formData.leverageTier &&
+      formData.longToken.length === 42 &&
+      formData.versusToken.length === 42
+    );
+
+    console.log("getVaultStatus enabled check:", {
+      shouldEnable,
+      longToken: formData.longToken,
+      versusToken: formData.versusToken,
+      leverageTier: formData.leverageTier,
+      longTokenLength: formData.longToken?.length,
+      versusTokenLength: formData.versusToken?.length,
+    });
+
+    return shouldEnable;
   }, [formData.longToken, formData.versusToken, formData.leverageTier]);
   const {
     data: vaultData,
@@ -98,6 +103,28 @@ export default function CreateVaultForm() {
       enabled,
     },
   );
+
+  // Log the result whenever it changes
+  useEffect(() => {
+    if (enabled) {
+      console.log("getVaultStatus query:", {
+        enabled,
+        isLoading: isCheckingOracle,
+        error: oracleError,
+        vaultData,
+        debtToken: formData.versusToken,
+        collateralToken: formData.longToken,
+        leverageTier: parseInt(formData.leverageTier),
+        statusMeaning:
+          vaultData === 0 ? "Invalid token addresses" :
+          vaultData === 1 ? "No oracle available" :
+          vaultData === 2 ? "Vault can be created" :
+          vaultData === 3 ? "Vault already exists" :
+          vaultData === undefined ? "Not checked yet" :
+          "Unknown status"
+      });
+    }
+  }, [vaultData, isCheckingOracle, oracleError, enabled, formData.versusToken, formData.longToken, formData.leverageTier]);
 
   const isValid = useCheckValidityCreactVault({
     vaultSimulation: Boolean(data?.request),
@@ -138,19 +165,35 @@ export default function CreateVaultForm() {
             hash={hash}
           >
             {writeError && !isConfirming && !isConfirmed && (
-              <div className="bg-red-500/10 border-red-500/20 mb-4 rounded-md border p-4">
-                <p className="text-red-500 mb-1 text-sm font-medium">
-                  Transaction Failed
-                </p>
-                <p className="text-red-400 break-all text-xs">
-                  {writeError.message ||
-                    "Transaction simulation failed. Please check your inputs and try again."}
-                </p>
+              <div className="flex gap-3 p-4">
+                <AlertTriangle className="text-amber-500 mt-0.5 flex-shrink-0" size={20} />
+                <div className="flex-1">
+                  <p className="text-amber-500 mb-1 text-sm font-medium">
+                    Transaction Failed
+                  </p>
+                  <p className="text-amber-400/80 text-xs">
+                    {(() => {
+                      const message = writeError.message || "";
+                      // Check for specific errors and provide user-friendly messages
+                      if (message.includes("NoUniswapPool") || message.includes("0x94113d81")) {
+                        return `No ${getDexName()} liquidity pool exists for this token pair. Please choose tokens with existing liquidity pools.`;
+                      }
+                      if (message.includes("user rejected") || message.includes("User denied")) {
+                        return "Transaction was cancelled by the user.";
+                      }
+                      // Return the original message or a generic one
+                      return message || "Transaction failed. Please check your inputs and try again.";
+                    })()}
+                  </p>
+                </div>
               </div>
             )}
             <Show
               fallback={
-                <div>
+                <div className="space-y-2">
+                  <div className="flex justify-center">
+                    <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
+                  </div>
                   <h1 className="text-center font-geist text-lg">
                     Successfully created vault!
                   </h1>

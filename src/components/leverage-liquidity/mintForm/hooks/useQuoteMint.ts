@@ -70,12 +70,19 @@ export function useQuoteMint({
     if (error) {
       console.error("❌ quoteMint failed:", error);
     } else if (quoteData && !isFetching) {
-      console.log("✅ Quote result:", {
+      console.log("✅ Quote result (quoteMintWithDebtToken):", {
         amountTokens: quoteData[0]?.toString(),
-        minCollateralOut: quoteData[1]?.toString(),
+        amountCollateral: quoteData[1]?.toString(),  // actual with slippage
+        amountCollateralIdeal: quoteData[2]?.toString(),  // ideal without slippage
+        usingDebtToken,
+        isApe
       });
     }
-  }, [quoteData, error, isFetching]);
+  }, [quoteData, error, isFetching, usingDebtToken, isApe]);
 
-  return { amountTokens: quoteData?.[0], minCollateralOut: quoteData?.[1] };
+  return {
+    amountTokens: quoteData?.[0],
+    amountCollateral: quoteData?.[1],  // actual amount with current slippage
+    amountCollateralIdeal: quoteData?.[2]  // ideal amount without slippage
+  };
 }

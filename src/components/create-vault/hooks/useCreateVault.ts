@@ -1,9 +1,10 @@
 import { VaultContract } from "@/contracts/vault";
 import type { CreateVaultInputValues } from "@/lib/schemas";
 import type { TAddressString } from "@/lib/types";
-import { useSimulateContract } from "wagmi";
 import type { z } from "zod";
+
 type Props = z.infer<typeof CreateVaultInputValues>;
+
 export function useCreateVault({
   longToken,
   versusToken,
@@ -13,16 +14,11 @@ export function useCreateVault({
   if (!isFinite(lt)) {
     lt = 0;
   }
-  const enabled = Boolean(versusToken !== "" && longToken !== "");
 
-  const vault = {
+  // Build the request object for direct contract write (no simulation)
+  const request = {
     ...VaultContract,
-    address: enabled ? VaultContract.address : undefined,
-  };
-  // return undefined address to avoid simulation
-  const { data, error } = useSimulateContract({
-    ...vault,
-    functionName: "initialize",
+    functionName: "initialize" as const,
     args: [
       {
         debtToken: versusToken as TAddressString,
@@ -30,10 +26,10 @@ export function useCreateVault({
         leverageTier: lt,
       },
     ],
-  });
+  };
 
-  if (error) {
-    console.log(error, "init error", data);
-  }
-  return data;
+  // Only return request if we have valid inputs
+  const enabled = Boolean(versusToken && longToken && leverageTier);
+
+  return enabled ? { request } : undefined;
 }
