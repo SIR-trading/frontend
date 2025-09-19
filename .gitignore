@@ -48,9 +48,6 @@ public/build-data.json
 public/assets.json
 .env*.local
 
-# private directory for non-public build files
-/private
-
 # Claude
 .claude
 

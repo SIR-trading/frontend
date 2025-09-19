@@ -207,7 +207,8 @@ function loadAssetsExtra(chainId: number): PlatformToken[] {
   try {
     const assetsExtraPath = path.join(
       process.cwd(),
-      "private",
+      "src",
+      "data",
       "assetsExtra.json",
     );
     if (fs.existsSync(assetsExtraPath)) {

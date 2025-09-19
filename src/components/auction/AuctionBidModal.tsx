@@ -196,13 +196,16 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               nextBid={formatEther(nextBid)}
               isTopUp={isTopUp}
             >
-              <TokenImage
-                address={WRAPPED_NATIVE_TOKEN_ADDRESS}
-                alt="alt"
-                width={25}
-                height={25}
-              />
-              <p>{wrappedTokenSymbol}</p>
+              <div className="flex items-center gap-2">
+                <p>{wrappedTokenSymbol}</p>
+                <TokenImage
+                  address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                  alt="alt"
+                  width={25}
+                  height={25}
+                  className="rounded-full"
+                />
+              </div>
             </AuctionBidInputs.Inputs>
 
             <div className="flex flex-col items-center justify-center gap-2 p-4">

@@ -25,7 +25,7 @@ export default function SubmitAndProgressButton({
         message: (
           <div className="flex items-center gap-x-1">
             <Spinner />
-            <span>Please Sign Transaction.</span>
+            <span>Please sign transaction.</span>
           </div>
         ),
       };

@@ -1,0 +1,84 @@
+{
+  "1": [
+    {
+      "name": "Rekt",
+      "address": "0xdd3b11ef34cd511a2da159034a05fcb94d806686",
+      "symbol": "REKT",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/51727/standard/rektcion_trans_200px.png",
+      "marketCap": 0
+    },
+    {
+      "name": "PepeUSD",
+      "address": "0xed7fd16423Bc19b9143313ac5E4B7F731D714e97",
+      "symbol": "PEPEUSD",
+      "decimals": 6,
+      "logoURI": "https://dd.dexscreener.com/ds-data/tokens/ethereum/0xed7fd16423bc19b9143313ac5e4b7f731d714e97.png"
+    },
+    {
+      "name": "Origami hOHM",
+      "address": "0x1DB1591540d7A6062Be0837ca3C808aDd28844F6",
+      "symbol": "hOHM",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/66457/standard/hOHM_200px.png"
+    },
+    {
+      "name": "Savings USDS",
+      "address": "0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD",
+      "symbol": "sUSDS",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/52721/standard/sUSDS_Coin.png"
+    },
+    {
+      "name": "Convex Finance",
+      "address": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B",
+      "symbol": "CVX",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/15585/standard/convex.png"
+    }
+  ],
+  "11155111": [
+    {
+      "symbol": "METH",
+      "name": "MockToken",
+      "marketCap": 0,
+      "address": "0x7Aef48AdbFDc1262161e71Baf205b47316430067",
+      "decimals": 18,
+      "logoURI": ""
+    },
+    {
+      "symbol": "TARP",
+      "name": "TarpToken ",
+      "marketCap": 0,
+      "address": "0x3ED05DE92879a5D47a3c8cc402DD5259219505aD",
+      "decimals": 18,
+      "logoURI": ""
+    },
+    {
+      "symbol": "usdt",
+      "name": "Tether",
+      "marketCap": 0,
+      "address": "0xC959483DBa39aa9E78757139af0e9a2EDEb3f42D",
+      "decimals": 6,
+      "logoURI": "https://coin-images.coingecko.com/coins/images/325/large/Tether.png?1696501661"
+    },
+    {
+      "symbol": "usdc",
+      "name": "USDC",
+      "marketCap": 0,
+      "address": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "decimals": 6,
+      "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694"
+    }
+  ],
+  "998": [
+    {
+      "symbol": "usdc",
+      "name": "USDC",
+      "marketCap": 0,
+      "address": "0xd9CBEC81df392A88AEff575E962d149d57F4d6bc",
+      "decimals": 6,
+      "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694"
+    }
+  ]
+}

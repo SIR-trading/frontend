@@ -18,9 +18,9 @@ export function TransactionStatus({
     if (waitForSign) {
       return {
         message: (
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center justify-center gap-x-2">
             <Spinner />
-            <span className="text-[14px]">Please Sign Transaction.</span>
+            <span className="text-[14px]">Please sign transaction.</span>
           </div>
         ),
       };
@@ -29,7 +29,7 @@ export function TransactionStatus({
       return { message: <Spinner></Spinner> };
     }
     // For Create Vault, show "Create Vault" as the title
-    return { message: action === "Create" ? "Create Vault" : (action ?? "Mint") };
+    return { message: action === "Create" ? "Create Vault" : action ?? "Mint" };
   }, [waitForSign, showLoading, action]);
   if (isConfirmed) {
     return undefined;

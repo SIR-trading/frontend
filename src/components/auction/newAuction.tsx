@@ -146,12 +146,30 @@ const NewAuction = ({
         <TransactionModal.Close setOpen={setOpenTransactionModal} />
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           <div className="grid gap-4">
-            <h4 className="text-lg font-bold">
-              {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
-                ? `${isPending || isConfirming ? "Collecting" : "Collect"} ${getWrappedTokenSymbol()} Fees`
-                : `${isPending || isConfirming ? "Starting" : "Start"} Auction for
-              ${uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")} `}
-            </h4>
+            <div className="flex flex-col items-center gap-3">
+              {id && (
+                <TokenImage
+                  address={id as Address}
+                  className="rounded-full"
+                  width={48}
+                  height={48}
+                />
+              )}
+              <h4 className="text-lg text-center">
+                {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                  ? (
+                    <>
+                      {isPending || isConfirming ? "Collecting" : "Collect"} {getWrappedTokenSymbol()} Fees
+                    </>
+                  )
+                  : (
+                    <>
+                      {isPending || isConfirming ? "Starting" : "Start"} Auction for{" "}
+                      {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")}
+                    </>
+                  )}
+              </h4>
+            </div>
             <TransactionStatus
               showLoading={isConfirming}
               waitForSign={isPending}

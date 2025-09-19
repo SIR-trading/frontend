@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import Show from "@/components/shared/show";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { useFormContext } from "react-hook-form";
+import { getLogoAssetWithFallback } from "@/lib/assets";
 interface Props {
   long: VaultFieldFragment[];
   versus: VaultFieldFragment[];
@@ -37,21 +38,9 @@ export default function VaultParamsInputSelects({
       storeVersus ||
       storeLeverageTier
     );
-  }, [formData.leverageTier, formData.long, formData.versus, 
+  }, [formData.leverageTier, formData.long, formData.versus,
       storeLong, storeVersus, storeLeverageTier]);
 
-  // Helper function to get logo with fallback from tokenlist
-  const getLogoWithFallback = (address: string) => {
-    // First try to find from tokenlist (which has curated logoURIs)
-    const token = tokenlist?.find(
-      (t) => t.address.toLowerCase() === address.toLowerCase()
-    );
-    if (token?.logoURI) {
-      return token.logoURI;
-    }
-    // Fall back to Trust Wallet
-    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`;
-  };
   const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
     <div className="relative grid gap-x-4 pb-5 pt-4 md:grid-cols-3">
@@ -78,20 +67,26 @@ export default function VaultParamsInputSelects({
       <SelectWithSearch
         name="long"
         title="Go long"
-        items={long.map((e) => ({
-          label: e.collateralSymbol,
-          value: e.collateralToken + "," + e.collateralSymbol,
-          imageUrl: getLogoWithFallback(e.collateralToken),
-        }))}
+        items={long.map((e) => {
+          const logos = getLogoAssetWithFallback(e.collateralToken as `0x${string}`, tokenlist);
+          return {
+            label: e.collateralSymbol,
+            value: e.collateralToken + "," + e.collateralSymbol,
+            imageUrl: logos.fallback ?? logos.primary,
+          };
+        })}
       />
       <SelectWithSearch
         name="versus"
         title="Versus"
-        items={versus.map((e) => ({
-          label: e.debtSymbol,
-          value: e.debtToken + "," + e.debtSymbol,
-          imageUrl: getLogoWithFallback(e.debtToken),
-        }))}
+        items={versus.map((e) => {
+          const logos = getLogoAssetWithFallback(e.debtToken as `0x${string}`, tokenlist);
+          return {
+            label: e.debtSymbol,
+            value: e.debtToken + "," + e.debtSymbol,
+            imageUrl: logos.fallback ?? logos.primary,
+          };
+        })}
       />
       <Select
         placeholder="Select Leverage"

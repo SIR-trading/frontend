@@ -57,7 +57,7 @@ function InfoContainer({
     <div className="space-y-4 rounded-t-xl px-6 pb-6 pt-6">
       {children}
       {isConfirming && (
-        <div className="">
+        <div className="flex justify-center">
           <ExplorerLink align="center" transactionHash={hash} />
         </div>
       )}
