@@ -327,53 +327,88 @@ export function VaultTableRow({
       </td>
       <td className="relative col-span-2 flex items-center sm:col-span-1 md:col-span-3">
         {/* Mobile view - logos with separator */}
-        <div className="flex items-center md:hidden">
-          <TokenImage
-            address={pool.collateralToken as TAddressString}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Collateral token"
-          />
-          <span className="mx-1 font-normal">/</span>
-          <TokenImage
-            address={pool.debtToken as TAddressString}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Debt token"
-          />
-          {variant.variant === "red" ? (
-            <HoverPopupMobile
-              size="200"
-              alignOffset={4}
-              asChild
-              trigger={
+        {variant.variant === "red" ? (
+          <HoverPopupMobile
+            size="200"
+            alignOffset={4}
+            asChild
+            trigger={
+              <div className="flex items-center md:hidden cursor-pointer">
+                <TokenImage
+                  address={pool.collateralToken as TAddressString}
+                  className="h-6 w-6 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Collateral token"
+                />
+                <span className="mx-1 font-normal">/</span>
+                <TokenImage
+                  address={pool.debtToken as TAddressString}
+                  className="h-6 w-6 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Debt token"
+                />
                 <sup className="ml-0.5 text-[10px] font-semibold text-red">
                   {showPercent()
                     ? getRealLeverage()
                     : getLeverageRatio(pool.leverageTier)}
                 </sup>
-              }
-            >
-              <div className="text-[13px] font-medium">
-                Insufficient liquidity for constant ^
-                {getLeverageRatio(pool.leverageTier)} leverage
+                {isApe && hasChart && embedUrl && (
+                  <div onClick={(e) => e.stopPropagation()} className="ml-2">
+                    <DuneChartPopup embedUrl={embedUrl} />
+                  </div>
+                )}
               </div>
-            </HoverPopupMobile>
-          ) : (
-            <sup className="ml-0.5 text-[10px] font-semibold">
-              {showPercent()
-                ? getRealLeverage()
-                : getLeverageRatio(pool.leverageTier)}
-            </sup>
-          )}
-          {isApe && hasChart && embedUrl && (
-            <div onClick={(e) => e.stopPropagation()} className="ml-2">
-              <DuneChartPopup embedUrl={embedUrl} />
+            }
+          >
+            <div className="text-[13px] font-medium">
+              Insufficient liquidity for constant ^
+              {getLeverageRatio(pool.leverageTier)} leverage
             </div>
-          )}
-        </div>
+          </HoverPopupMobile>
+        ) : (
+          <HoverPopupMobile
+            size="200"
+            alignOffset={4}
+            asChild
+            trigger={
+              <div className="flex items-center md:hidden cursor-pointer">
+                <TokenImage
+                  address={pool.collateralToken as TAddressString}
+                  className="h-6 w-6 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Collateral token"
+                />
+                <span className="mx-1 font-normal">/</span>
+                <TokenImage
+                  address={pool.debtToken as TAddressString}
+                  className="h-6 w-6 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Debt token"
+                />
+                <sup className="ml-0.5 text-[10px] font-semibold">
+                  {showPercent()
+                    ? getRealLeverage()
+                    : getLeverageRatio(pool.leverageTier)}
+                </sup>
+                {isApe && hasChart && embedUrl && (
+                  <div onClick={(e) => e.stopPropagation()} className="ml-2">
+                    <DuneChartPopup embedUrl={embedUrl} />
+                  </div>
+                )}
+              </div>
+            }
+          >
+            <div className="text-[13px] font-medium">
+              {isApe
+                ? `APE's returns increase as (price change)^${getLeverageRatio(pool.leverageTier)}.`
+                : `TEA earns trading fees from maintaining ^${getLeverageRatio(pool.leverageTier)} leverage for APEs.`}
+            </div>
+          </HoverPopupMobile>
+        )}
 
         {/* Desktop view - leaderboard format */}
         <div className="hidden items-center md:flex">
