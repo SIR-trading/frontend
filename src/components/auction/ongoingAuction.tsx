@@ -120,9 +120,10 @@ const OngoingAuction = ({
                         {
                           title: AuctionCardTitle.AUCTION_DETAILS,
                           content: (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-baseline gap-2">
                               <TokenImage
                                 address={token as Address}
+                                className="rounded-full self-center"
                                 width={24}
                                 height={24}
                               />
@@ -132,6 +133,7 @@ const OngoingAuction = ({
                               />
                             </div>
                           ),
+                          variant: "large",
                         },
                         {
                           title: AuctionCardTitle.AMOUNT,
@@ -244,9 +246,10 @@ const OngoingAuction = ({
                       {
                         title: AuctionCardTitle.AUCTION_DETAILS,
                         content: (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-baseline gap-2">
                             <TokenImage
                               address={token as Address}
+                              className="rounded-full self-center"
                               width={24}
                               height={24}
                             />
@@ -256,6 +259,7 @@ const OngoingAuction = ({
                             />
                           </div>
                         ),
+                        variant: "large",
                       },
                       {
                         title: AuctionCardTitle.AMOUNT,

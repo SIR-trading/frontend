@@ -48,7 +48,7 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
           num={tokenAmount}
           significant={disableRounding ? undefined : round}
         />
-        <span className="text-muted-foreground"> {unitLabel}</span>
+        <span className={cn("text-muted-foreground", amountSize === "large" ? "text-base" : "")}> {unitLabel}</span>
       </h3>
     );
   },

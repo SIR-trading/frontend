@@ -1,11 +1,9 @@
 "use client";
 import Link from "next/link";
 import React from "react";
-import { env } from "@/env";
 import { useTheme } from "next-themes";
 import { useEnsName } from "@/components/shared/hooks/useEnsName";
-
-const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+import { getCurrentChainConfig } from "@/lib/chains";
 
 const AddressExplorerLink = ({
   address,
@@ -19,6 +17,7 @@ const AddressExplorerLink = ({
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
   const { ensName, isLoading } = useEnsName(address);
+  const chainConfig = getCurrentChainConfig();
 
   // Function to shorten the address
   const shortenAddress = (addr: string, length: number) => {
@@ -31,9 +30,9 @@ const AddressExplorerLink = ({
 
   return (
     <Link
-      href={`https://${chainId === 1 ? "" : "sepolia."}etherscan.io/address/${address}`}
+      href={`${chainConfig.explorerUrl}/address/${address}`}
       target="_blank"
-      className="flex h-[32px] items-center gap-x-1 hover:underline"
+      className="inline-block hover:underline"
     >
       <span style={{ fontSize, color: isDarkMode ? "#FFF" : "#000" }}>
         {isLoading ? shortenAddress(address, shortenLength) : displayText}
