@@ -34,14 +34,14 @@ export default function LeverageLiquidityContent({
   return (
     <Container>
       <Explainer page={isApe ? EPage.LEVERAGE : EPage.LIQUIDITY} />
-      <div className="grid w-full gap-x-[16px] gap-y-4 xl:grid-cols-2">
+      <div className="grid w-full gap-x-[16px] gap-y-4 lg:grid-cols-2">
         {/* Always show the form immediately - it handles its own loading states */}
         <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
-        
+
         <Card className={"md:px-5"}>
           <div className="flex h-full flex-col justify-between">
             {/* Wrap VaultTable in NoSSR to prevent SSR issues */}
-            <NoSSR 
+            <NoSSR
               fallback={
                 <table className="w-full">
                   <caption className="pb-6 text-left text-[20px] font-semibold leading-[24px]">
@@ -54,9 +54,15 @@ export default function LeverageLiquidityContent({
                       <th className="hidden items-center gap-x-1 font-medium md:flex">
                         {!isApe ? "APY" : "Pol"}
                       </th>
-                      <th className="gap hidden items-center gap-x-1 font-medium md:flex">Fees</th>
-                      <th className="relative z-10 flex items-center gap-x-1 font-medium">Leverage</th>
-                      <th className="relative text-right font-medium md:col-span-2">TVL</th>
+                      <th className="gap hidden items-center gap-x-1 font-medium md:flex">
+                        Fees
+                      </th>
+                      <th className="relative z-10 flex items-center gap-x-1 font-medium">
+                        Leverage
+                      </th>
+                      <th className="relative text-right font-medium md:col-span-2">
+                        TVL
+                      </th>
                     </tr>
                   </thead>
                   <tbody>

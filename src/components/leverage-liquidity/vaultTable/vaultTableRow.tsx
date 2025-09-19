@@ -292,11 +292,11 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="grid cursor-pointer grid-cols-5 rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20  sm:grid-cols-4 md:grid-cols-9 dark:hover:bg-primary"
+      className="flex items-center justify-between cursor-pointer rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
-      <td className="h-full">
+      <td className="flex-shrink-0 w-12 sm:w-14">
         <div className="flex h-full items-center gap-x-1">
-          <span className="w-5">{pool.vaultId}</span>
+          <span>{pool.vaultId}</span>
           {parsedRateAmount > 0n && (
             <HoverPopupMobile
               size="200"
@@ -325,93 +325,109 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="relative col-span-2 flex items-center sm:col-span-1 md:col-span-3">
-        {/* Mobile view - logos with separator */}
-        {variant.variant === "red" ? (
-          <HoverPopupMobile
-            size="200"
-            alignOffset={4}
-            asChild
-            trigger={
-              <div className="flex items-center md:hidden cursor-pointer">
-                <TokenImage
-                  address={pool.collateralToken as TAddressString}
-                  className="h-6 w-6 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Collateral token"
-                />
-                <span className="mx-1 font-normal">/</span>
-                <TokenImage
-                  address={pool.debtToken as TAddressString}
-                  className="h-6 w-6 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Debt token"
-                />
-                <sup className="ml-0.5 text-[10px] font-semibold text-red">
+      <td className="flex-shrink-0 w-24 min-[650px]:flex-1 min-[650px]:min-w-0 lg:w-24 lg:flex-shrink-0 min-[1130px]:flex-1 lg:max-w-none min-[650px]:max-w-[200px]">
+        {/* Mobile view - compact logos only with leverage */}
+        <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
+          <TokenImage
+            address={pool.collateralToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Collateral token"
+          />
+          <span className="mx-1 font-normal">/</span>
+          <TokenImage
+            address={pool.debtToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Debt token"
+          />
+          {variant.variant === "red" ? (
+            <HoverPopupMobile
+              size="200"
+              alignOffset={4}
+              asChild
+              trigger={
+                <sup className="ml-0.5 text-[10px] font-semibold text-red cursor-help">
                   {showPercent()
                     ? getRealLeverage()
                     : getLeverageRatio(pool.leverageTier)}
                 </sup>
-                {isApe && hasChart && embedUrl && (
-                  <div onClick={(e) => e.stopPropagation()} className="ml-2">
-                    <DuneChartPopup embedUrl={embedUrl} />
-                  </div>
-                )}
+              }
+            >
+              <div className="text-[13px] font-medium">
+                Insufficient liquidity for constant ^
+                {getLeverageRatio(pool.leverageTier)} leverage
               </div>
-            }
-          >
-            <div className="text-[13px] font-medium">
-              Insufficient liquidity for constant ^
-              {getLeverageRatio(pool.leverageTier)} leverage
+            </HoverPopupMobile>
+          ) : (
+            <sup className="ml-0.5 text-[10px] font-semibold">
+              {showPercent()
+                ? getRealLeverage()
+                : getLeverageRatio(pool.leverageTier)}
+            </sup>
+          )}
+          {isApe && hasChart && embedUrl && (
+            <div onClick={(e) => e.stopPropagation()} className="ml-2">
+              <DuneChartPopup embedUrl={embedUrl} />
             </div>
-          </HoverPopupMobile>
-        ) : (
-          <HoverPopupMobile
-            size="200"
-            alignOffset={4}
-            asChild
-            trigger={
-              <div className="flex items-center md:hidden cursor-pointer">
-                <TokenImage
-                  address={pool.collateralToken as TAddressString}
-                  className="h-6 w-6 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Collateral token"
-                />
-                <span className="mx-1 font-normal">/</span>
-                <TokenImage
-                  address={pool.debtToken as TAddressString}
-                  className="h-6 w-6 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Debt token"
-                />
-                <sup className="ml-0.5 text-[10px] font-semibold">
-                  {showPercent()
-                    ? getRealLeverage()
-                    : getLeverageRatio(pool.leverageTier)}
-                </sup>
-                {isApe && hasChart && embedUrl && (
-                  <div onClick={(e) => e.stopPropagation()} className="ml-2">
-                    <DuneChartPopup embedUrl={embedUrl} />
-                  </div>
-                )}
-              </div>
-            }
-          >
-            <div className="text-[13px] font-medium">
-              {isApe
-                ? `APE's returns increase as (price change)^${getLeverageRatio(pool.leverageTier)}.`
-                : `TEA earns trading fees from maintaining ^${getLeverageRatio(pool.leverageTier)} leverage for APEs.`}
-            </div>
-          </HoverPopupMobile>
-        )}
+          )}
+        </div>
 
-        {/* Desktop view - leaderboard format */}
-        <div className="hidden items-center md:flex">
+        {/* Medium view (650px to lg, and 1130px to xl) - logos + symbols + leverage */}
+        <div className="hidden items-center min-[650px]:flex lg:hidden min-[1130px]:flex xl:hidden">
+          <TokenImage
+            address={pool.collateralToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Collateral token"
+          />
+          <span className="ml-1 font-normal">{pool.collateralSymbol}</span>
+          <span className="mx-1 font-normal">/</span>
+          <TokenImage
+            address={pool.debtToken as TAddressString}
+            className="h-6 w-6 rounded-full"
+            width={28}
+            height={28}
+            alt="Debt token"
+          />
+          <span className="ml-1 font-normal">{pool.debtSymbol}</span>
+          {variant.variant === "red" ? (
+            <HoverPopupMobile
+              size="200"
+              alignOffset={4}
+              asChild
+              trigger={
+                <sup className="ml-0.5 text-[10px] font-semibold text-red cursor-help">
+                  {showPercent()
+                    ? getRealLeverage()
+                    : getLeverageRatio(pool.leverageTier)}
+                </sup>
+              }
+            >
+              <div className="text-[13px] font-medium">
+                Insufficient liquidity for constant ^
+                {getLeverageRatio(pool.leverageTier)} leverage
+              </div>
+            </HoverPopupMobile>
+          ) : (
+            <sup className="ml-0.5 text-[10px] font-semibold">
+              {showPercent()
+                ? getRealLeverage()
+                : getLeverageRatio(pool.leverageTier)}
+            </sup>
+          )}
+          {isApe && hasChart && embedUrl && (
+            <div onClick={(e) => e.stopPropagation()} className="ml-2">
+              <DuneChartPopup embedUrl={embedUrl} />
+            </div>
+          )}
+        </div>
+
+        {/* XL and above view - full names without leverage (shown in separate column) */}
+        <div className="hidden items-center xl:flex">
           <TokenImage
             address={pool.collateralToken as TAddressString}
             className="h-6 w-6 rounded-full"
@@ -436,7 +452,7 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="flex items-center pl-1 sm:pl-3">
+      <td className="flex-shrink-0 w-16 sm:w-20 pl-2 sm:pl-3">
         {!isApe ? (
           <HoverPopupMobile
             size="250"
@@ -503,10 +519,10 @@ export function VaultTableRow({
           </h4>
         )}
       </td>
-      <td className="hidden items-center gap-x-1 text-[13px] font-normal text-foreground/80 md:flex">
+      <td className="hidden text-[13px] font-normal text-foreground/80 min-[450px]:block flex-shrink-0 w-16 pl-2">
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
-      <td className="relative hidden items-center md:flex">
+      <td className="relative hidden items-center xl:flex flex-shrink-0 w-20">
         <HoverPopupMobile
           size="200"
           alignOffset={4}
@@ -543,7 +559,7 @@ export function VaultTableRow({
         </HoverPopupMobile>
       </td>
 
-      <td className="relative flex items-center justify-end gap-x-1 text-right md:col-span-2">
+      <td className="flex items-center justify-end gap-x-1 text-right flex-shrink-0 w-20 min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
         <HoverPopupMobile
           size="250"
           asChild

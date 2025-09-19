@@ -17,18 +17,16 @@ const ToolTip: FC<TooltipsProps> = ({ children, iconSize, size = "200" }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check if device has touch capability or small screen
+    // Check if device has touch capability
     const checkMobile = () => {
       setIsMobile(
         'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.innerWidth < 768
+        navigator.maxTouchPoints > 0
       );
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    // No need to listen to resize events since we only care about touch capability
   }, []);
 
   const triggerElement = (

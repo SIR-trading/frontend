@@ -2,26 +2,25 @@ import React from "react";
 
 export default function VaultRowSkeleton() {
   return (
-    <tr className="grid cursor-pointer grid-cols-4 rounded-md   px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors  hover:bg-primary/20 md:grid-cols-9 dark:hover:bg-primary">
-      <th className="-ml-1">
+    <tr className="flex items-center justify-between cursor-pointer rounded-md px-1 py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary">
+      <td className="flex-shrink-0 w-12 sm:w-14">
         <Skeleton width="14px" />
-      </th>
-      <th className="flex items-center md:col-span-3">
+      </td>
+      <td className="flex-shrink-0 w-24 min-[650px]:flex-1 min-[650px]:min-w-0 lg:w-24 lg:flex-shrink-0 min-[1130px]:flex-1 lg:max-w-none min-[650px]:max-w-[200px]">
         <Skeleton width="80px" />
-      </th>
-      <th className="hidden items-center md:flex">
+      </td>
+      <td className="flex-shrink-0 w-16 sm:w-20 pl-2 sm:pl-3">
         <Skeleton width="28px" />
-      </th>
-      <th className="hidden items-center gap-x-1 text-[13px] font-normal text-red md:flex">
+      </td>
+      <td className="hidden text-[13px] font-normal text-foreground/80 min-[450px]:block flex-shrink-0 w-16 pl-2">
         <Skeleton width="45px" />
-      </th>
-      <th className="pl-2">
+      </td>
+      <td className="relative hidden items-center xl:flex flex-shrink-0 w-20">
         <Skeleton width="64px" />
-      </th>
-
-      <th className="flex items-center justify-end gap-x-1 text-right md:col-span-2">
+      </td>
+      <td className="flex items-center justify-end gap-x-1 text-right flex-shrink-0 w-20 min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
         <Skeleton width="45px" />
-      </th>
+      </td>
     </tr>
   );
 }
