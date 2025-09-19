@@ -1,4 +1,4 @@
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { api } from "@/trpc/react";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { useAccount } from "wagmi";

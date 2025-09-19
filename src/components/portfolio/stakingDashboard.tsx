@@ -58,7 +58,6 @@ export default function StakingDashboard() {
   );
   
   const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
-  const totalStaked = stakedSir.unlockedStake + stakedSir.lockedStake;
   
   // Claim logic
   const { claimData } = useClaim();
@@ -84,7 +83,6 @@ export default function StakingDashboard() {
     }
   }, [isConfirmed, utils.user.getUserSirDividends]);
   
-  const isLoading = unstakedLoading || stakedLoading || dividendsLoading;
   
   return (
     <Card className="w-full">

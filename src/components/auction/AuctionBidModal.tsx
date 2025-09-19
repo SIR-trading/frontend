@@ -153,6 +153,17 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     userBalanceFetching,
   ]);
 
+  const isSimulationFailure = useMemo(() => {
+    if (writeError && !isConfirming && !isConfirmed) {
+      const errorMsg = writeError.message || "";
+      const isUserRejection = errorMsg.toLowerCase().includes("user rejected") ||
+                             errorMsg.toLowerCase().includes("user denied") ||
+                             errorMsg.toLowerCase().includes("rejected the request");
+      return !isUserRejection;
+    }
+    return false;
+  }, [writeError, isConfirming, isConfirmed]);
+
   return (
     <Dialog open={open.open} onOpenChange={(open) => {
       setOpen({ open });
@@ -256,16 +267,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 userBalanceFetching ||
                 (Number(formData.bid) === 0 && !isConfirmed) ||
                 (!balance && !isConfirmed) ||
-                (() => {
-                  if (writeError && !isConfirming && !isConfirmed) {
-                    const errorMessage = writeError.message || "";
-                    const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
-                                           errorMessage.toLowerCase().includes("user denied") ||
-                                           errorMessage.toLowerCase().includes("rejected the request");
-                    return !isUserRejection;
-                  }
-                  return false;
-                })() ||
+                isSimulationFailure ||
                 (parseEther(formData.bid) > balance! && !isConfirmed) ||
                 (!isConfirmed && isTopUp
                   ? Number(formData.bid) <=

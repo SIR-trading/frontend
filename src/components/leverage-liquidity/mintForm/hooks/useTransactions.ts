@@ -1,10 +1,6 @@
 import { useApproveErc20 } from "@/components/shared/hooks/useApproveErc20";
 import { VaultContract } from "@/contracts/vault";
-import type { TVaults } from "@/lib/types";
 import { parseUnits } from "viem";
-import type { SimulateContractReturnType } from "viem";
-
-type SimulateReq = SimulateContractReturnType["request"] | undefined;
 export function useTransactions({
   depositToken,
   deposit,
@@ -16,11 +12,9 @@ export function useTransactions({
   depositToken: string;
   deposit: string;
   maxApprove: boolean;
-  vaultsQuery: TVaults;
   decimals: number;
   useNativeToken: boolean;
   tokenAllowance: bigint | undefined;
-  enableMintSimulation?: boolean;
 }) {
   // Skip approval logic when using ETH directly
   const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
@@ -34,7 +28,7 @@ export function useTransactions({
   return {
     requests: {
       mintRequest: undefined, // No longer simulating mint
-      approveWriteRequest: useNativeToken ? undefined : (approveSimulate.data?.request as SimulateReq), // No approval needed for ETH
+      approveWriteRequest: useNativeToken ? undefined : approveSimulate.data?.request, // No approval needed for ETH
     },
     isApproveFetching: useNativeToken ? false : approveSimulate.isFetching, // No approval fetching for ETH
     isMintFetching: false,

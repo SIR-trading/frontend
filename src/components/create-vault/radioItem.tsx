@@ -3,17 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { FormControl } from "../ui/form";
 import { RadioGroupItem } from "../ui/radio-group";
 import { mapLeverage } from "@/lib/utils/index";
-import ToolTip from "../ui/tooltip";
 
-const leverageOptions = [
-  "For extremely volatile pairs. Very low fees.",
-  "For very volatile pairs. Low fees.",
-  "Moderate leverage for a moderate fee.",
-  "Recommended for long-term investors.",
-  "Large leverage but pay large fee upfront.",
-  "Very large leverage. High upfront fees.",
-  "Extreme leverage. Very high upfront fees.",
-];
 const leverageDescriptions = [
   "Minimal liquidity needed.",
   "Little liquidity needed.",
@@ -22,15 +12,6 @@ const leverageDescriptions = [
   "Recommended.",
   "Large minting fee.",
   "Extreme minting fee.",
-];
-const leverageOptionsTitle = [
-  "For extremely volatile pairs.",
-  "For very volatile pairs.",
-  "Moderate leverage for a moderate fee.",
-  "Recommended for long-term investors.",
-  "Large leverage but pay large fee upfront.",
-  "Very large leverage.",
-  "Extreme leverage.",
 ];
 export function RadioItem({
   value,

@@ -6,12 +6,11 @@ import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 
 import { useEffect, useState } from "react";
 
-import { type SimulateContractReturnType, parseUnits, formatUnits } from "viem";
+import { parseUnits, formatUnits } from "viem";
 
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
 
-import usestakeError from "@/components/stake/hooks/useUnstakeError";
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
@@ -25,7 +24,6 @@ import SubmitButton from "../../submitButton";
 import ErrorMessage from "@/components/ui/error-message";
 import { getSirSymbol } from "@/lib/assets";
 
-type SimulateReq = SimulateContractReturnType["request"] | undefined;
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const form = useFormContext<TUnstakeFormFields>();
@@ -48,11 +46,11 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
   // REFACTOR THIS INTO REUSABLE HOOK
-  const { isValid, errorMessage } = useCheckStakeValidity({
+  const { isValid } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {
-      mintRequest: stake?.request as SimulateReq,
+      mintRequest: stake?.request,
     },
     tokenBalance: balance,
     mintFetching: unstakeFetching,
@@ -65,12 +63,6 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     }
   };
 
-  usestakeError({
-    formData,
-    setError: form.setError,
-    errorMessage,
-    rootErrorMessage: form.formState.errors.root?.message,
-  });
 
   const [open, setOpen] = useState(false);
   const { tokenReceived } = useGetReceivedSir({

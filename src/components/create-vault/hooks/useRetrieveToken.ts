@@ -15,7 +15,7 @@ export default function useRetrieveToken({
       return { address: null };
     }
   }, [tokenAddress]);
-  const { data, error, isLoading } = useReadContracts({
+  const { data, isLoading } = useReadContracts({
     contracts: [
       {
         address: address ?? zeroAddress,

@@ -2,7 +2,6 @@ import { getActiveApePositions } from "@/server/leaderboard/getActiveApePosition
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { createClient } from "redis";
-import { getCurrentApePositions } from "@/server/queries/leaderboard";
 
 // Force this route to be dynamic and never cache at Next.js level
 export const dynamic = 'force-dynamic';

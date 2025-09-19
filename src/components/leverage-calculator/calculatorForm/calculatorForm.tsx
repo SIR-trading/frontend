@@ -1,7 +1,7 @@
 // In CalculatorForm.tsx
 "use client";
 import React from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import { Card } from "@/components/ui/card";
 import DepositInputs from "./deposit-inputs";
@@ -45,7 +45,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   const { collateralDecimals, debtDecimals } = useGetFormTokensInfo();
   const { versus, long, leverageTiers } = useFilterVaults({ vaultsQuery });
   const form = useFormContext<TCalculatorFormFields>();
-  const { setValue, watch, control } = form;
+  const { setValue, watch } = form;
   const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
 
   const selectedVault = useFindVault(vaultsQuery);

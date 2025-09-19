@@ -41,7 +41,7 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
       round = 3,
       decimals,
       amountSize,
-      labelSize,
+      _labelSize,
       unitLabel,
       disableRounding,
       ...props

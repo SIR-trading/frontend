@@ -144,7 +144,6 @@ export default function MintForm({ isApe }: Props) {
     "approve" | "mint" | undefined
   >();
   useFormSuccessReset({
-    isConfirming,
     isConfirmed,
     currentTxType,
     useNativeToken,
@@ -296,18 +295,6 @@ export default function MintForm({ isApe }: Props) {
         : 0n,
     };
 
-    console.log("📝 MINT FUNCTION PARAMETERS:", {
-      functionName: "mint",
-      args: {
-        isApe: mintRequest.args[0],
-        vaultParams: mintRequest.args[1],
-        amountToDeposit: mintRequest.args[2].toString(),
-        collateralToDepositMin: mintRequest.args[3].toString(),
-        deadline: mintRequest.args[4],
-      },
-      value: mintRequest.value?.toString() ?? "0",
-    });
-
     setCurrentTxType("mint");
     // @ts-expect-error - writeContract types are complex, but this matches the expected shape
     writeContract(mintRequest);
@@ -324,7 +311,6 @@ export default function MintForm({ isApe }: Props) {
     useNativeToken,
     depositToken,
     minCollateralOut,
-    slippage,
   ]);
 
   let balance = userBalance?.tokenBalance?.result;
@@ -380,13 +366,15 @@ export default function MintForm({ isApe }: Props) {
           }}
           open={openTransactionModal}
         >
-          <TransactionModal.Close setOpen={(open) => {
-            setOpenTransactionModal(open);
-            // Reset the write error when closing the modal
-            if (!open && writeError) {
-              reset();
-            }
-          }} />
+          <TransactionModal.Close
+            setOpen={(open) => {
+              setOpenTransactionModal(open);
+              // Reset the write error when closing the modal
+              if (!open && writeError) {
+                reset();
+              }
+            }}
+          />
           <TransactionModal.InfoContainer
             isConfirming={isConfirming}
             hash={hash}
@@ -407,25 +395,33 @@ export default function MintForm({ isApe }: Props) {
               quoteData={amountTokens}
               tokenReceived={tokenReceived}
             />
-            {writeError && !isConfirming && !isConfirmed && (() => {
-              // Check if this is a simulation error (not user rejection)
-              const errorMessage = writeError.message || "";
-              const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
-                                     errorMessage.toLowerCase().includes("user denied") ||
-                                     errorMessage.toLowerCase().includes("rejected the request");
+            {writeError &&
+              !isConfirming &&
+              !isConfirmed &&
+              (() => {
+                // Check if this is a simulation error (not user rejection)
+                const errorMessage = writeError.message || "";
+                const isUserRejection =
+                  errorMessage.toLowerCase().includes("user rejected") ||
+                  errorMessage.toLowerCase().includes("user denied") ||
+                  errorMessage.toLowerCase().includes("rejected the request");
 
-              // Only show error for simulation failures, not user rejections
-              if (!isUserRejection) {
-                return (
-                  <div className="mt-3 px-4">
-                    <p className="text-xs text-center" style={{ color: "#ef4444" }}>
-                      Transaction simulation failed. Please check your inputs and try again.
-                    </p>
-                  </div>
-                );
-              }
-              return null;
-            })()}
+                // Only show error for simulation failures, not user rejections
+                if (!isUserRejection) {
+                  return (
+                    <div className="mt-3 px-4">
+                      <p
+                        className="text-center text-xs"
+                        style={{ color: "#ef4444" }}
+                      >
+                        Transaction simulation failed. Please check your inputs
+                        and try again.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <Show when={!needsApproval && !isConfirmed}>
@@ -489,17 +485,18 @@ export default function MintForm({ isApe }: Props) {
             </Show>
             <TransactionModal.SubmitButton
               onClick={modalSubmit}
-              disabled={(() => {
+              disabled={useMemo(() => {
                 if (writeError && !isConfirming && !isConfirmed) {
                   const errorMessage = writeError.message || "";
-                  const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
-                                         errorMessage.toLowerCase().includes("user denied") ||
-                                         errorMessage.toLowerCase().includes("rejected the request");
+                  const isUserRejection =
+                    errorMessage.toLowerCase().includes("user rejected") ||
+                    errorMessage.toLowerCase().includes("user denied") ||
+                    errorMessage.toLowerCase().includes("rejected the request");
                   // Disable button only for simulation failures, not user rejections
                   return !isUserRejection;
                 }
                 return false;
-              })()}
+              }, [writeError, isConfirming, isConfirmed])}
               isPending={false}
               loading={false}
               isConfirmed={isConfirmed && !needsApproval}
@@ -577,7 +574,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when vault is already in red status */}
         <Show when={isApe && isVaultRed}>
-          <div className="border-orange-500/50 bg-orange-500/10 my-3 rounded-md border p-3">
+          <div className="my-3 rounded-md border-2 border-foreground/20 bg-orange-500/10 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
               <div className="text-sm">
@@ -595,7 +592,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when exceeding optimal amount for constant leverage (only show if vault is not red) */}
         <Show when={isExceedingOptimal && !isVaultRed}>
-          <div className="border-yellow-500/50 bg-yellow-500/10 my-3 rounded-md border p-3">
+          <div className="my-3 rounded-md border-2 border-foreground/20 bg-yellow-500/10 p-3">
             <div className="flex items-start gap-2">
               <div className="text-yellow-500">⚠️</div>
               <div className="text-yellow-200 text-sm">
@@ -631,7 +628,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when slippage tolerance is too low */}
         <Show when={slippageWarning?.showWarning}>
-          <div className="border-amber-500/50 bg-amber-500/10 my-3 rounded-md border p-3">
+          <div className="my-3 rounded-md border-2 border-foreground/20 bg-amber-500/10 p-3">
             <div className="flex items-start gap-2">
               <div className="text-amber-500">⚠️</div>
               <div className="text-sm">

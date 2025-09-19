@@ -4,7 +4,6 @@ import { api } from "@/trpc/react";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 interface Props {
-  isConfirming: boolean;
   isConfirmed: boolean;
   currentTxType: "mint" | "approve" | "create-vault" | undefined;
   useNativeToken: boolean;
@@ -12,7 +11,6 @@ interface Props {
 }
 export function useFormSuccessReset({
   isConfirmed,
-  isConfirming,
   currentTxType,
   useNativeToken,
   txBlock,
@@ -58,7 +56,6 @@ export function useFormSuccessReset({
         .catch((e) => console.log(e));
     }
   }, [
-    isConfirming,
     isConfirmed,
     utils.user.getBalanceAndAllowance,
     utils.user.getNativeTokenBalance,

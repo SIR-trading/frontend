@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
@@ -214,6 +214,17 @@ export default function BurnForm({
     }
   }, [isClaimingRewards]);
 
+  const isSimulationFailure = useMemo(() => {
+    if (writeError && !isConfirming && !isConfirmed) {
+      const errorMessage = writeError.message || "";
+      const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                             errorMessage.toLowerCase().includes("user denied") ||
+                             errorMessage.toLowerCase().includes("rejected the request");
+      return !isUserRejection;
+    }
+    return false;
+  }, [writeError, isConfirming, isConfirmed]);
+
   if (isClaimingRewards) {
     return (
       <>
@@ -331,16 +342,7 @@ export default function BurnForm({
         {/*----*/}
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
-            disabled={isPending || isConfirming || (() => {
-              if (writeError && !isConfirming && !isConfirmed) {
-                const errorMessage = writeError.message || "";
-                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
-                                       errorMessage.toLowerCase().includes("user denied") ||
-                                       errorMessage.toLowerCase().includes("rejected the request");
-                return !isUserRejection;
-              }
-              return false;
-            })()}
+            disabled={isPending || isConfirming || isSimulationFailure}
             isPending={isPending}
             loading={isConfirming}
             onClick={() => onSubmit()}
