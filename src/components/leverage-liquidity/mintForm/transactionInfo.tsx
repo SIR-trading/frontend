@@ -87,7 +87,7 @@ export default function TransactionInfo({
               <div className="flex items-center justify-between">
                 <span className="text-xl">
                   <DisplayFormattedNumber
-                    num={deposit}
+                    num={deposit ?? "0"}
                     significant={undefined}
                   />
                 </span>
@@ -97,7 +97,7 @@ export default function TransactionInfo({
                   </span>
                   {depositTokenAddress && (
                     <TokenImage
-                      address={depositTokenAddress}
+                      address={depositTokenAddress as `0x${string}`}
                       alt={depositTokenSymbol}
                       width={24}
                       height={24}

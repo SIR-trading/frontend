@@ -6,7 +6,7 @@ import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 
 import { useEffect, useState } from "react";
 
-import { parseUnits, formatUnits } from "viem";
+import { parseUnits, formatUnits, type SimulateContractReturnType } from "viem";
 
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
@@ -59,7 +59,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {
-      mintRequest: stake?.request,
+      mintRequest: stake?.request as SimulateContractReturnType["request"] | undefined,
     },
     tokenBalance: balance,
     mintFetching: unstakeFetching,

@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import type { TUnstakeFormFields } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { parseUnits, formatUnits } from "viem";
+import { parseUnits, formatUnits, type SimulateContractReturnType } from "viem";
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
 import useUnstakeError from "@/components/stake/hooks/useUnstakeError";
@@ -86,7 +86,7 @@ const UnstakeForm = ({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
     requests: {
-      mintRequest: Unstake?.request,
+      mintRequest: Unstake?.request as SimulateContractReturnType["request"] | undefined,
     },
     tokenBalance: balance.unlockedStake,
     mintFetching: unstakeFetching,
