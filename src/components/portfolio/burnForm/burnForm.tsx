@@ -237,13 +237,17 @@ export default function BurnForm({
 
   return (
     <FormProvider {...form}>
-      <TransactionModal.Root 
-        title="Burn" 
-        open={open} 
+      <TransactionModal.Root
+        title="Burn"
+        open={open}
         setOpen={(value) => {
           setOpen(value);
           if (!value && !isConfirmed) {
             close(); // Also close the burn form when closing the modal
+          }
+          // Reset the write error when closing the modal
+          if (!value && writeError) {
+            reset();
           }
         }}
       >
@@ -252,16 +256,12 @@ export default function BurnForm({
             if (!value && !isConfirmed) {
               close(); // Also close the burn form when closing the modal
             }
+            // Reset the write error when closing the modal
+            if (!value && writeError) {
+              reset();
+            }
           }} />
           <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-            {writeError && !isConfirming && !isConfirmed && (
-              <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
-                <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
-                <p className="text-red-400 text-xs break-all">
-                  {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
-                </p>
-              </div>
-            )}
             {!isConfirmed && (
               <>
                 <TransactionStatus
@@ -269,6 +269,25 @@ export default function BurnForm({
                   waitForSign={isPending}
                   showLoading={isConfirming}
                 />
+                {writeError && !isConfirming && (() => {
+                  // Check if this is a simulation error (not user rejection)
+                  const errorMessage = writeError.message || "";
+                  const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                         errorMessage.toLowerCase().includes("user denied") ||
+                                         errorMessage.toLowerCase().includes("rejected the request");
+
+                  // Only show error for simulation failures, not user rejections
+                  if (!isUserRejection) {
+                    return (
+                      <div className="mt-3">
+                        <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                          Transaction simulation failed. Please check your inputs and try again.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 {!isClaimingRewards && (
                 <>
                   {quoteBurn ? (
@@ -312,7 +331,16 @@ export default function BurnForm({
         {/*----*/}
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
-            disabled={isPending || isConfirming}
+            disabled={isPending || isConfirming || (() => {
+              if (writeError && !isConfirming && !isConfirmed) {
+                const errorMessage = writeError.message || "";
+                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                       errorMessage.toLowerCase().includes("user denied") ||
+                                       errorMessage.toLowerCase().includes("rejected the request");
+                return !isUserRejection;
+              }
+              return false;
+            })()}
             isPending={isPending}
             loading={isConfirming}
             onClick={() => onSubmit()}

@@ -154,12 +154,24 @@ export function AuctionBidModal({ open, setOpen }: Props) {
   ]);
 
   return (
-    <Dialog open={open.open} onOpenChange={(open) => setOpen({ open })}>
+    <Dialog open={open.open} onOpenChange={(open) => {
+      setOpen({ open });
+      // Reset the write error when closing the modal
+      if (!open && writeError) {
+        reset();
+      }
+    }}>
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
           className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary pt-4  transition-all duration-700 `}
         >
-          <TransactionModal.Close setOpen={(open) => setOpen({ open })} />
+          <TransactionModal.Close setOpen={(open) => {
+            setOpen({ open });
+            // Reset the write error when closing the modal
+            if (!open && writeError) {
+              reset();
+            }
+          }} />
           <h1 className="text-center font-geist text-2xl">
             {isTopUp ? "Top up bid" : "Place bid"}{" "}
           </h1>
@@ -183,14 +195,6 @@ export function AuctionBidModal({ open, setOpen }: Props) {
             </AuctionBidInputs.Inputs>
 
             <div className="flex flex-col items-center justify-center gap-2 p-4">
-              {writeError && !isConfirming && !isConfirmed && (
-                <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
-                  <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
-                  <p className="text-red-400 text-xs break-all">
-                    {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
-                  </p>
-                </div>
-              )}
               <TransactionStatus
                 showLoading={isConfirming}
                 waitForSign={isPending}
@@ -198,6 +202,26 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               />
 
               <ExplorerLink align="left" transactionHash={hash} />
+
+              {writeError && !isConfirming && !isConfirmed && (() => {
+                // Check if this is a simulation error (not user rejection)
+                const errorMessage = writeError.message || "";
+                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                       errorMessage.toLowerCase().includes("user denied") ||
+                                       errorMessage.toLowerCase().includes("rejected the request");
+
+                // Only show error for simulation failures, not user rejections
+                if (!isUserRejection) {
+                  return (
+                    <div className="mt-2">
+                      <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                        Transaction simulation failed. Please check your inputs and try again.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </AuctionBidInputs.Root>
 
@@ -232,6 +256,16 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 userBalanceFetching ||
                 (Number(formData.bid) === 0 && !isConfirmed) ||
                 (!balance && !isConfirmed) ||
+                (() => {
+                  if (writeError && !isConfirming && !isConfirmed) {
+                    const errorMessage = writeError.message || "";
+                    const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                           errorMessage.toLowerCase().includes("user denied") ||
+                                           errorMessage.toLowerCase().includes("rejected the request");
+                    return !isUserRejection;
+                  }
+                  return false;
+                })() ||
                 (parseEther(formData.bid) > balance! && !isConfirmed) ||
                 (!isConfirmed && isTopUp
                   ? Number(formData.bid) <=

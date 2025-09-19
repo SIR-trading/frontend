@@ -224,14 +224,6 @@ export default function TransferForm({
           }
         }} />
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-          {writeError && !isConfirming && !isConfirmed && (
-            <div className="p-4 mb-4 rounded-md bg-red-500/10 border border-red-500/20">
-              <p className="text-red-500 text-sm font-medium mb-1">Transaction Failed</p>
-              <p className="text-red-400 text-xs break-all">
-                {writeError.message || "Transaction simulation failed. Please check your inputs and try again."}
-              </p>
-            </div>
-          )}
           {!isConfirmed && (
             <>
               <TransactionStatus
@@ -239,6 +231,25 @@ export default function TransferForm({
                 waitForSign={isPending}
                 showLoading={isConfirming}
               />
+              {writeError && !isConfirming && (() => {
+                // Check if this is a simulation error (not user rejection)
+                const errorMessage = writeError.message || "";
+                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                       errorMessage.toLowerCase().includes("user denied") ||
+                                       errorMessage.toLowerCase().includes("rejected the request");
+
+                // Only show error for simulation failures, not user rejections
+                if (!isUserRejection) {
+                  return (
+                    <div className="mt-3">
+                      <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                        Transaction simulation failed. Please check your inputs and try again.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               {formData.amount && recipientAddress && isValid && (
                 <div className="flex h-[40px] items-center gap-x-2 py-2">
                   <h3 className="space-x-1">

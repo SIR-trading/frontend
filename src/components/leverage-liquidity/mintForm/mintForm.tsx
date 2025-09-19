@@ -371,25 +371,26 @@ export default function MintForm({ isApe }: Props) {
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
           title="Mint"
-          setOpen={setOpenTransactionModal}
+          setOpen={(open) => {
+            setOpenTransactionModal(open);
+            // Reset the write error when closing the modal
+            if (!open && writeError) {
+              reset();
+            }
+          }}
           open={openTransactionModal}
         >
-          <TransactionModal.Close setOpen={setOpenTransactionModal} />
+          <TransactionModal.Close setOpen={(open) => {
+            setOpenTransactionModal(open);
+            // Reset the write error when closing the modal
+            if (!open && writeError) {
+              reset();
+            }
+          }} />
           <TransactionModal.InfoContainer
             isConfirming={isConfirming}
             hash={hash}
           >
-            {writeError && !isConfirming && !isConfirmed && (
-              <div className="bg-red-500/10 border-red-500/20 mb-4 rounded-md border p-4">
-                <p className="text-red-500 mb-1 text-sm font-medium">
-                  Transaction Failed
-                </p>
-                <p className="text-red-400 break-all text-xs">
-                  {writeError.message ||
-                    "Transaction simulation failed. Please check your inputs and try again."}
-                </p>
-              </div>
-            )}
             <TransactionInfo
               needs0Approval={needs0Approval ?? false}
               transactionHash={hash}
@@ -406,6 +407,25 @@ export default function MintForm({ isApe }: Props) {
               quoteData={amountTokens}
               tokenReceived={tokenReceived}
             />
+            {writeError && !isConfirming && !isConfirmed && (() => {
+              // Check if this is a simulation error (not user rejection)
+              const errorMessage = writeError.message || "";
+              const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                     errorMessage.toLowerCase().includes("user denied") ||
+                                     errorMessage.toLowerCase().includes("rejected the request");
+
+              // Only show error for simulation failures, not user rejections
+              if (!isUserRejection) {
+                return (
+                  <div className="mt-3 px-4">
+                    <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                      Transaction simulation failed. Please check your inputs and try again.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </TransactionModal.InfoContainer>
           <TransactionModal.StatSubmitContainer>
             <Show when={!needsApproval && !isConfirmed}>
@@ -469,7 +489,17 @@ export default function MintForm({ isApe }: Props) {
             </Show>
             <TransactionModal.SubmitButton
               onClick={modalSubmit}
-              disabled={false}
+              disabled={(() => {
+                if (writeError && !isConfirming && !isConfirmed) {
+                  const errorMessage = writeError.message || "";
+                  const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                         errorMessage.toLowerCase().includes("user denied") ||
+                                         errorMessage.toLowerCase().includes("rejected the request");
+                  // Disable button only for simulation failures, not user rejections
+                  return !isUserRejection;
+                }
+                return false;
+              })()}
               isPending={false}
               loading={false}
               isConfirmed={isConfirmed && !needsApproval}
