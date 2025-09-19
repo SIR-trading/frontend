@@ -211,7 +211,7 @@ const NewAuction = ({
                         title: AuctionCardTitle.AMOUNT,
                         content: (
                           <TokenDisplay
-                            labelSize="small"
+                            
                             amountSize="large"
                             amount={auction.amount}
                             decimals={
@@ -278,7 +278,7 @@ const NewAuction = ({
                       title: AuctionCardTitle.AMOUNT,
                       content: (
                         <TokenDisplay
-                          labelSize="small"
+                          
                           amountSize="large"
                           amount={auction.amount}
                           decimals={

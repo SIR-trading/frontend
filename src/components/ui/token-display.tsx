@@ -15,18 +15,8 @@ const AmountVariants = classVarianceAuthority.cva("", {
   defaultVariants: { amountSize: "large" },
 });
 
-const LabelVariants = classVarianceAuthority.cva("", {
-  variants: {
-    labelSize: {
-      small: "",
-      large: "text-sm",
-    },
-  },
-  defaultVariants: { labelSize: "large" },
-});
 export type InputProps = React.HTMLAttributes<HTMLHeadElement> &
-  classVarianceAuthority.VariantProps<typeof AmountVariants> &
-  classVarianceAuthority.VariantProps<typeof LabelVariants> & {
+  classVarianceAuthority.VariantProps<typeof AmountVariants> & {
     decimals?: number;
     amount: bigint | undefined;
     unitLabel: string;
@@ -41,7 +31,6 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
       round = 3,
       decimals,
       amountSize,
-      _labelSize,
       unitLabel,
       disableRounding,
       ...props

@@ -125,7 +125,7 @@ const PastAuction = ({
               {isPending || isConfirming ? "Claiming" : "Claim"}{" "}
               <TokenDisplay
                 amount={BigInt(auctionLots?.get(id ?? "") ?? "0")}
-                labelSize="small"
+                
                 amountSize="large"
                 decimals={
                   uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ??
@@ -204,7 +204,7 @@ const PastAuction = ({
                                   ? auctionLots?.get(token)
                                   : BigInt(amount)
                               }
-                              labelSize="small"
+                              
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -230,7 +230,7 @@ const PastAuction = ({
                           content: (
                             <TokenDisplay
                               amount={BigInt(highestBid)}
-                              labelSize="small"
+                              
                               amountSize="large"
                               decimals={18}
                               unitLabel={getNativeCurrencySymbol()}

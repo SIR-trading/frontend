@@ -143,7 +143,7 @@ const OngoingAuction = ({
                                   ? auctionLots?.get(token)
                                   : BigInt(amount)
                               }
-                              labelSize="small"
+                              
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -168,7 +168,7 @@ const OngoingAuction = ({
                           content: (
                             <TokenDisplay
                               amount={BigInt(isParticipant[0]?.bid ?? "0")}
-                              labelSize="small"
+                              
                               amountSize="large"
                               decimals={18}
                               unitLabel={getNativeCurrencySymbol()}
@@ -181,7 +181,7 @@ const OngoingAuction = ({
                           content: (
                             <TokenDisplay
                               amount={BigInt(highestBid)}
-                              labelSize="small"
+                              
                               amountSize="large"
                               decimals={18}
                               unitLabel={getNativeCurrencySymbol()}
@@ -267,7 +267,7 @@ const OngoingAuction = ({
                                 ? auctionLots?.get(token)
                                 : BigInt(amount)
                             }
-                            labelSize="small"
+                            
                             amountSize="large"
                             decimals={
                               uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -296,7 +296,7 @@ const OngoingAuction = ({
                         content: (
                           <TokenDisplay
                             amount={BigInt(highestBid)}
-                            labelSize="small"
+                            
                             amountSize="large"
                             decimals={18}
                             unitLabel={getNativeCurrencySymbol()}

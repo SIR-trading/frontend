@@ -519,7 +519,7 @@ export function VaultTableRow({
               transition={{ duration: 1 }}
             >
               <TokenDisplay
-                labelSize="small"
+                
                 amountSize="small"
                 amount={parseUnits(pool.totalValue, 0)}
                 decimals={pool.apeDecimals}

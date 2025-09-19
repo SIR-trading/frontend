@@ -55,6 +55,7 @@ export default function CreateVaultForm() {
   } = useWriteContract();
   const onSubmit = () => {
     if (data?.request) {
+      // @ts-expect-error - writeContract type mismatch
       writeContract(data?.request);
     }
   };
@@ -135,7 +136,6 @@ export default function CreateVaultForm() {
 
   useFormSuccessReset({
     isConfirmed,
-    isConfirming,
     currentTxType: "create-vault",
     useNativeToken: false,
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),

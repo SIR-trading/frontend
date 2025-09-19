@@ -125,9 +125,7 @@ export default function MintForm({ isApe }: Props) {
       useNativeToken,
       maxApprove,
       tokenAllowance: userBalance?.tokenAllowance?.result,
-      vaultsQuery,
       decimals: depositDecimals ?? 18,
-      enableMintSimulation: false,
     });
 
   useSetDepositTokenDefault({
@@ -597,7 +595,7 @@ export default function MintForm({ isApe }: Props) {
               <div className="text-yellow-500">⚠️</div>
               <div className="text-yellow-200 text-sm">
                 <strong>Leverage Variability Warning:</strong>
-                <span class="text-foreground/80">
+                <span className="text-foreground/80">
                   The amount you&apos;ve entered exceeds the vault&apos;s
                   optimal liquidity threshold of{" "}
                   <button
@@ -627,7 +625,7 @@ export default function MintForm({ isApe }: Props) {
         </Show>
 
         {/* Warning when slippage tolerance is too low */}
-        <Show when={slippageWarning?.showWarning}>
+        <Show when={slippageWarning?.showWarning ?? false}>
           <div className="my-3 rounded-md border-2 border-foreground/20 bg-amber-500/10 p-3">
             <div className="flex items-start gap-2">
               <div className="text-amber-500">⚠️</div>

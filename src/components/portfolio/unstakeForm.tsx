@@ -72,9 +72,7 @@ const UnstakeForm = ({
   const { isValid, errorMessage } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
-    requests: {
-      mintRequest: Unstake?.request,
-    },
+    requests: {},
     tokenBalance: balance.unlockedStake,
     mintFetching: unstakeFetching,
     decimals: 12,

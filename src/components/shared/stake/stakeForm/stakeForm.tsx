@@ -49,9 +49,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const { isValid } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
-    requests: {
-      mintRequest: stake?.request,
-    },
+    requests: {},
     tokenBalance: balance,
     mintFetching: unstakeFetching,
     decimals: 12,
