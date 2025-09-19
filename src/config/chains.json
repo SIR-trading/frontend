@@ -71,7 +71,7 @@
       }
     },
     "contracts": {
-      "uniswapV3Factory": "0xB1c0fa0B789320044A6F623cFe5eBda9562602E3",
+      "uniswapV3Factory": "0x22B0768972bB7f1F5ea7a8740BB8f94b32483826",
       "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
     },
     "coingecko": {
@@ -99,7 +99,7 @@
       }
     },
     "contracts": {
-      "uniswapV3Factory": "0x22B0768972bB7f1F5ea7a8740BB8f94b32483826",
+      "uniswapV3Factory": "0xB1c0fa0B789320044A6F623cFe5eBda9562602E3",
       "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
     },
     "coingecko": {
