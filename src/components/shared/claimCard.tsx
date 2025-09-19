@@ -13,6 +13,10 @@ import TransactionSuccess from "../shared/transactionSuccess";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "./show";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import DisplayFormattedNumber from "./displayFormattedNumber";
+import { formatUnits } from "viem";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+import { TokenImage } from "./TokenImage";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -58,25 +62,42 @@ export default function ClaimCard() {
   return (
     <div className=" border-secondary-300">
       <TransactionModal.Root
-        title="Claim"
+        title={`Claim ${getNativeCurrencySymbol()}`}
         setOpen={setOpenModal}
         open={openModal}
       >
+        <TransactionModal.Close setOpen={setOpenModal} />
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
-            <div>
-              <h2>Claim</h2>
-              <TokenDisplay
-                disableRounding
-                amount={dividends}
-                unitLabel={getNativeCurrencySymbol()}
-              />
-              {/* <span>{formatUnits(dividends ?? 0n, 18)} Eth</span> */}
+            <div className="space-y-4 px-6 pb-6 pt-4">
+              <div className="pt-2">
+                <div className="mb-2">
+                  <label className="text-sm text-muted-foreground">Claiming Amount</label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">
+                    <DisplayFormattedNumber
+                      num={formatUnits(dividends ?? 0n, 18)}
+                      significant={3}
+                    />
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-muted-foreground">{getNativeCurrencySymbol()}</span>
+                    <TokenImage
+                      address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                      alt={getNativeCurrencySymbol()}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           {isConfirmed && <TransactionSuccess hash={hash} />}
         </TransactionModal.InfoContainer>
-        <TransactionModal.Close setOpen={setOpenModal} />
+        <div className="mx-4 border-t border-foreground/10" />
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
             isPending={isPending}

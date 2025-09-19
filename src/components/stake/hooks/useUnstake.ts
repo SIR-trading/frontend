@@ -21,8 +21,16 @@ export const useUnstake = ({ amount, unstakeAndClaimFees }: Props) => {
     args: [amount ?? 0n],
   });
 
+  console.log("useUnstake hook debug:", {
+    functionName: unstakeAndClaimFees ? "unstakeAndClaim" : "unstake",
+    amount,
+    Unstake,
+    error: error?.message ?? error,
+    isFetching,
+  });
+
   useEffect(() => {
-    refetch().catch((e) => console.log(e));
+    refetch().catch((e) => console.log("useUnstake refetch error:", e));
   }, [refetch]);
 
   return { Unstake, isFetching, error };

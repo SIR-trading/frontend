@@ -120,6 +120,14 @@ export const useCheckStakeValidity = ({
         submitType: ESubmitType.mint,
       };
     else {
+      console.log("useCheckStakeValidity - No mintRequest:", {
+        mintFetching,
+        requests,
+        tokenAllowance,
+        deposit,
+        parseUnits: parseUnits(deposit ?? "0", decimals),
+        tokenBalance,
+      });
       if (mintFetching) {
         return {
           isValid: false,

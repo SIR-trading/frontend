@@ -22,7 +22,10 @@ import { useGetReceivedSir } from "@/components/portfolio/hooks/useGetReceivedSi
 import { useCheckStakeValidity } from "./useCheckStakeValidity";
 import SubmitButton from "../../submitButton";
 import ErrorMessage from "@/components/ui/error-message";
-import { getSirSymbol } from "@/lib/assets";
+import { getSirSymbol, getSirLogo } from "@/lib/assets";
+import Image from "next/image";
+import DisplayFormattedNumber from "../../displayFormattedNumber";
+import ExplorerLink from "../../explorerLink";
 
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
@@ -46,13 +49,27 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
   // REFACTOR THIS INTO REUSABLE HOOK
-  const { isValid } = useCheckStakeValidity({
+  console.log("Stake debug:", {
+    amount: formData.amount,
+    stake,
+    unstakeFetching,
+    balance,
+  });
+
+  const { isValid, errorMessage } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
-    requests: {},
+    requests: {
+      mintRequest: stake?.request,
+    },
     tokenBalance: balance,
     mintFetching: unstakeFetching,
     decimals: 12,
+  });
+
+  console.log("Stake validity:", {
+    isValid,
+    errorMessage,
   });
 
   const onSubmit = () => {
@@ -97,7 +114,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root title="Stake" setOpen={setOpen} open={open}>
+        <TransactionModal.Root title={`Stake ${getSirSymbol()}`} setOpen={setOpen} open={open}>
           <TransactionModal.Close setOpen={setOpen} />
           <TransactionModal.InfoContainer
             hash={hash}
@@ -105,11 +122,49 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
           >
             {!isConfirmed && (
               <>
-                <TransactionStatus
-                  action="Stake"
-                  waitForSign={isPending}
-                  showLoading={isConfirming}
-                />
+                {!isPending && !isConfirming && (
+                  <div className="space-y-4 px-6 pb-6 pt-4">
+                    <div className="pt-2">
+                      <div className="mb-2">
+                        <label className="text-sm text-muted-foreground">Staking Amount</label>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">
+                          <DisplayFormattedNumber
+                            num={form.getValues("amount") ?? "0"}
+                            significant={undefined}
+                          />
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl text-muted-foreground">{getSirSymbol()}</span>
+                          <Image
+                            src={getSirLogo()}
+                            alt={getSirSymbol()}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(isPending || isConfirming) && (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <TransactionStatus
+                      action=""
+                      waitForSign={isPending}
+                      showLoading={isConfirming}
+                    />
+                    {hash && (
+                      <div className="mt-4">
+                        <ExplorerLink transactionHash={hash} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {writeError && !isConfirming && (() => {
                   // Check if this is a simulation error (not user rejection)
                   const errorMessage = writeError.message || "";
@@ -129,14 +184,6 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                   }
                   return null;
                 })()}
-                <div className="flex items-center justify-between py-2">
-                  <h3 className="text-xl">
-                    {form.getValues("amount")}
-                    <span className="pl-[2px] text-[12px] text-gray-400">
-                      {getSirSymbol()}
-                    </span>
-                  </h3>
-                </div>
               </>
             )}
             {isConfirmed && (
@@ -149,6 +196,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
               />
             )}
           </TransactionModal.InfoContainer>
+          <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
               isConfirmed={isConfirmed}

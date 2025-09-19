@@ -8,7 +8,10 @@ import Show from "./show";
 import ExplorerLink from "./explorerLink";
 import { TokenImage } from "./TokenImage";
 import { SirContract } from "@/contracts/sir";
-import { getSirSymbol } from "@/lib/assets";
+import { getSirSymbol, getSirLogo } from "@/lib/assets";
+import Image from "next/image";
+import DisplayFormattedNumber from "./displayFormattedNumber";
+import { formatUnits } from "viem";
 
 interface SirClaimModalProps {
   open: boolean;
@@ -48,43 +51,42 @@ export function SirClaimModal({
 
   return (
     <TransactionModal.Root
-      title={title}
+      title={`Claim ${getSirSymbol()}`}
       setOpen={handleClose}
       open={open}
     >
       <TransactionModal.Close setOpen={handleClose} />
       <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-        <h2 className="text-center text-xl font-semibold mb-4">{title}</h2>
         {!isConfirmed && (
           <>
-            {(isPending || isConfirming) && (
-              <TransactionStatus
-                action="Claim"
-                waitForSign={isPending}
-                showLoading={isConfirming}
-                isConfirmed={isConfirmed}
-              />
-            )}
-            <div className="pt-2">
-              <div className="mb-2">
-                <label className="text-sm text-foreground/70">Amount</label>
-              </div>
-              <div className="flex items-center justify-between">
-                <TokenDisplay
-                  disableRounding
-                  amount={unclaimedAmount}
-                  decimals={12}
-                  unitLabel=""
-                  amountSize="large"
-                />
-                <div className="flex items-center gap-x-2">
-                  <span className="text-foreground/70">{getSirSymbol()}</span>
-                  <TokenImage
-                    address={SirContract.address}
-                    width={24}
-                    height={24}
-                    alt={getSirSymbol()}
-                  />
+            <TransactionStatus
+              action="Claim"
+              waitForSign={isPending}
+              showLoading={isConfirming}
+              isConfirmed={isConfirmed}
+            />
+            <div className="space-y-4 px-6 pb-6 pt-4">
+              <div className="pt-2">
+                <div className="mb-2">
+                  <label className="text-sm text-muted-foreground">Claiming Amount</label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">
+                    <DisplayFormattedNumber
+                      num={formatUnits(unclaimedAmount ?? 0n, 12)}
+                      significant={undefined}
+                    />
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-muted-foreground">{getSirSymbol()}</span>
+                    <Image
+                      src={getSirLogo()}
+                      alt={getSirSymbol()}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -101,6 +103,7 @@ export function SirClaimModal({
         )}
       </TransactionModal.InfoContainer>
 
+      <div className="mx-4 border-t border-foreground/10" />
       <TransactionModal.StatSubmitContainer>
         <Show when={!isConfirmed}>
           <div className="flex w-full items-center justify-end gap-x-2 py-2">

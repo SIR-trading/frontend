@@ -23,6 +23,9 @@ import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import ErrorMessage from "@/components/ui/error-message";
 import { VaultContract } from "@/contracts/vault";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { TokenImage } from "@/components/shared/TokenImage";
+import ExplorerLink from "@/components/shared/explorerLink";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -249,7 +252,7 @@ export default function BurnForm({
   return (
     <FormProvider {...form}>
       <TransactionModal.Root
-        title="Burn"
+        title={`Burn ${isApe ? 'APE' : 'TEA'}-${getDisplayVaultId(row.vaultId)}`}
         open={open}
         setOpen={(value) => {
           setOpen(value);
@@ -275,11 +278,72 @@ export default function BurnForm({
           <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
             {!isConfirmed && (
               <>
-                <TransactionStatus
-                  action="Burn"
-                  waitForSign={isPending}
-                  showLoading={isConfirming}
-                />
+                {!isPending && !isConfirming && !isClaimingRewards && (
+                  <div className="space-y-4 px-6 pb-6 pt-4">
+                    {/* Burning Amount */}
+                    <div className="pt-2">
+                      <div className="mb-2">
+                        <label className="text-sm text-muted-foreground">Burning Amount</label>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">
+                          <DisplayFormattedNumber
+                            num={formData.deposit ?? "0"}
+                            significant={undefined}
+                          />
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl text-muted-foreground">
+                            {isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Receiving Amount */}
+                    {quoteBurn && (
+                      <div className="pt-2">
+                        <div className="mb-2">
+                          <label className="text-sm text-muted-foreground">Receiving Amount</label>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl">
+                            <DisplayFormattedNumber
+                              num={formatUnits(quoteBurn, row.decimals)}
+                              significant={3}
+                            />
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl text-muted-foreground">{row.collateralSymbol}</span>
+                            <TokenImage
+                              address={row.collateralToken}
+                              alt={row.collateralSymbol}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(isPending || isConfirming) && (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <TransactionStatus
+                      action=""
+                      waitForSign={isPending}
+                      showLoading={isConfirming}
+                    />
+                    {hash && (
+                      <div className="mt-4">
+                        <ExplorerLink transactionHash={hash} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {writeError && !isConfirming && (() => {
                   // Check if this is a simulation error (not user rejection)
                   const errorMessage = writeError.message || "";
@@ -299,36 +363,8 @@ export default function BurnForm({
                   }
                   return null;
                 })()}
-                {!isClaimingRewards && (
-                <>
-                  {quoteBurn ? (
-                    <TransactionEstimates
-                      decimals={row.decimals}
-                      inAssetName={
-                        isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`
-                      }
-                      outAssetName={row.collateralSymbol}
-                      collateralEstimate={quoteBurn}
-                      usingNativeToken={false}
-                    />
-                  ) : (
-                    <div className="flex h-[40px] items-center gap-x-2 py-2">
-                      <h3 className="space-x-1">
-                        <span>{formData.deposit}</span>
-                        <span className="text-gray-300 text-sm">
-                          {isApe ? `APE-${getDisplayVaultId(row.vaultId)}` : `TEA-${getDisplayVaultId(row.vaultId)}`}
-                        </span>
-                      </h3>
-                      <span className="text-foreground/70">{"->"}</span>
-                      <h3 className="space-x-1 text-foreground/70">
-                        <span className="text-sm italic">Estimate unavailable</span>
-                      </h3>
-                    </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
+              </>
+            )}
           {isConfirmed && (
             <TransactionSuccess
               hash={hash}
@@ -339,7 +375,7 @@ export default function BurnForm({
             />
           )}
         </TransactionModal.InfoContainer>
-        {/*----*/}
+        <div className="mx-4 border-t border-foreground/10" />
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
             disabled={isPending || isConfirming || isSimulationFailure}

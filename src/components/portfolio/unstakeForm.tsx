@@ -21,7 +21,12 @@ import { TokenDisplay } from "../ui/token-display";
 import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
-import { getSirSymbol } from "@/lib/assets";
+import { getSirSymbol, getSirLogo } from "@/lib/assets";
+import Image from "next/image";
+import { getNativeCurrencySymbol } from "@/lib/chains";
+import DisplayFormattedNumber from "../shared/displayFormattedNumber";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+import { TokenImage } from "../shared/TokenImage";
 
 
 const UnstakeForm = ({
@@ -69,10 +74,20 @@ const UnstakeForm = ({
     utils.user.getUserSirDividends,
   ]);
 
+  console.log("Unstake debug:", {
+    amount: formData.amount,
+    Unstake,
+    unstakeFetching,
+    unlockedStake: balance.unlockedStake,
+    unstakeAndClaimFees,
+  });
+
   const { isValid, errorMessage } = useCheckStakeValidity({
     deposit: formData.amount ?? "0",
     depositToken: SirContract.address,
-    requests: {},
+    requests: {
+      mintRequest: Unstake?.request,
+    },
     tokenBalance: balance.unlockedStake,
     mintFetching: unstakeFetching,
     decimals: 12,
@@ -110,7 +125,7 @@ const UnstakeForm = ({
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root title="Unstake" setOpen={setOpen} open={open}>
+        <TransactionModal.Root title={`Unstake ${getSirSymbol()}`} setOpen={setOpen} open={open}>
           <TransactionModal.Close setOpen={setOpen} />
           <TransactionModal.InfoContainer
             isConfirming={isConfirming}
@@ -142,16 +157,60 @@ const UnstakeForm = ({
                   }
                   return null;
                 })()}
-                <div className="flex items-center justify-between py-2">
-                  {/* <h2 className="text-sm text-gray-400">Amount</h2> */}
-                  <h3 className="text-xl">
-                    <TokenDisplay
-                      amount={parseUnits(form.getValues("amount") ?? "0", 12)}
-                      unitLabel={getSirSymbol()}
-                      decimals={12}
-                      disableRounding
-                    />
-                  </h3>
+                <div className="space-y-4 px-6 pb-6 pt-4">
+                  {/* Unstaking Amount */}
+                  <div className="pt-2">
+                    <div className="mb-2">
+                      <label className="text-sm text-foreground/70">Unstaking Amount</label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl">
+                        <DisplayFormattedNumber
+                          num={formatUnits(parseUnits(form.getValues("amount") ?? "0", 12), 12)}
+                          significant={undefined}
+                        />
+                        <span className="text-muted-foreground text-base"> </span>
+                      </h3>
+                      <div className="flex items-center gap-x-2">
+                        <span className="text-foreground/70">{getSirSymbol()}</span>
+                        <Image
+                          src={getSirLogo()}
+                          alt={getSirSymbol()}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Claiming Dividends */}
+                  {unstakeAndClaimFees && dividends && parseFloat(formatUnits(dividends, 18)) > 0 && (
+                    <div className="pt-2">
+                      <div className="mb-2">
+                        <label className="text-sm text-foreground/70">Claiming Dividends</label>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl text-green-400">
+                          <DisplayFormattedNumber
+                            num={formatUnits(dividends, 18)}
+                            significant={3}
+                          />
+                          <span className="text-muted-foreground text-base"> </span>
+                        </h3>
+                        <div className="flex items-center gap-x-2">
+                          <span className="text-foreground/70">{getNativeCurrencySymbol()}</span>
+                          <TokenImage
+                            address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                            alt={getNativeCurrencySymbol()}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -165,6 +224,7 @@ const UnstakeForm = ({
               />
             )}
           </TransactionModal.InfoContainer>
+          <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
               isPending={isPending}
