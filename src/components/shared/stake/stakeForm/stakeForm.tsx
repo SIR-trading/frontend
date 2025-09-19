@@ -25,7 +25,6 @@ import ErrorMessage from "@/components/ui/error-message";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import Image from "next/image";
 import DisplayFormattedNumber from "../../displayFormattedNumber";
-import ExplorerLink from "../../explorerLink";
 
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
@@ -122,48 +121,37 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
           >
             {!isConfirmed && (
               <>
-                {!isPending && !isConfirming && (
-                  <div className="space-y-4 px-6 pb-6 pt-4">
-                    <div className="pt-2">
-                      <div className="mb-2">
-                        <label className="text-sm text-muted-foreground">Staking Amount</label>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl">
-                          <DisplayFormattedNumber
-                            num={form.getValues("amount") ?? "0"}
-                            significant={undefined}
-                          />
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl text-muted-foreground">{getSirSymbol()}</span>
-                          <Image
-                            src={getSirLogo()}
-                            alt={getSirSymbol()}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        </div>
+                <TransactionStatus
+                  action="Stake"
+                  waitForSign={isPending}
+                  showLoading={isConfirming}
+                />
+
+                <div className="space-y-4 px-6 pb-6 pt-4">
+                  <div className="pt-2">
+                    <div className="mb-2">
+                      <label className="text-sm text-muted-foreground">Staking Amount</label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">
+                        <DisplayFormattedNumber
+                          num={form.getValues("amount") ?? "0"}
+                          significant={undefined}
+                        />
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl text-muted-foreground">{getSirSymbol()}</span>
+                        <Image
+                          src={getSirLogo()}
+                          alt={getSirSymbol()}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
                       </div>
                     </div>
                   </div>
-                )}
-
-                {(isPending || isConfirming) && (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <TransactionStatus
-                      action=""
-                      waitForSign={isPending}
-                      showLoading={isConfirming}
-                    />
-                    {hash && (
-                      <div className="mt-4">
-                        <ExplorerLink transactionHash={hash} />
-                      </div>
-                    )}
-                  </div>
-                )}
+                </div>
 
                 {writeError && !isConfirming && (() => {
                   // Check if this is a simulation error (not user rejection)

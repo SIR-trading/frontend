@@ -26,7 +26,14 @@ export function TransactionStatus({
       };
     }
     if (showLoading) {
-      return { message: <Spinner></Spinner> };
+      return {
+        message: (
+          <div className="flex items-center justify-center gap-x-2">
+            <Spinner />
+            <span className="text-[14px]">Waiting for confirmation</span>
+          </div>
+        ),
+      };
     }
     // For Create Vault, show "Create Vault" as the title
     return { message: action === "Create" ? "Create Vault" : action ?? "Mint" };

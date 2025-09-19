@@ -25,7 +25,6 @@ import { VaultContract } from "@/contracts/vault";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { TokenImage } from "@/components/shared/TokenImage";
-import ExplorerLink from "@/components/shared/explorerLink";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -278,7 +277,13 @@ export default function BurnForm({
           <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
             {!isConfirmed && (
               <>
-                {!isPending && !isConfirming && !isClaimingRewards && (
+                <TransactionStatus
+                  action="Burn"
+                  waitForSign={isPending}
+                  showLoading={isConfirming}
+                />
+
+                {!isClaimingRewards && (
                   <div className="space-y-4 px-6 pb-6 pt-4">
                     {/* Burning Amount */}
                     <div className="pt-2">
@@ -324,21 +329,6 @@ export default function BurnForm({
                             />
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {(isPending || isConfirming) && (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <TransactionStatus
-                      action=""
-                      waitForSign={isPending}
-                      showLoading={isConfirming}
-                    />
-                    {hash && (
-                      <div className="mt-4">
-                        <ExplorerLink transactionHash={hash} />
                       </div>
                     )}
                   </div>

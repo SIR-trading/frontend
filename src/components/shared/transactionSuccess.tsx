@@ -32,21 +32,21 @@ export default function TransactionSuccess({
       </div>
       <h2 className="text-center">Transaction Successful!</h2>
       {amountReceived && (
-        <div className="flex justify-center gap-x-2">
-          <div className="flex items-center justify-center gap-x-1">
+        <div className="flex justify-center items-center gap-x-2">
+          <span className="text-xl">
+            <DisplayFormattedNumber num={formatUnits(amountReceived ?? 0n, decimals ?? 18)} significant={6} />
+          </span>
+          <div className="flex items-center gap-x-2">
             {assetAddress && (
               <TokenImage
-                className="h-5 w-5 rounded-full"
+                className="rounded-full"
                 alt={assetReceived ?? ""}
                 width={24}
                 height={24}
                 address={assetAddress}
               />
             )}
-            {assetReceived}{" "}
-          </div>
-          <div>
-            <DisplayFormattedNumber num={formatUnits(amountReceived ?? 0n, decimals ?? 18)} significant={6} />
+            <span className="text-xl text-muted-foreground">{assetReceived}</span>
           </div>
         </div>
       )}

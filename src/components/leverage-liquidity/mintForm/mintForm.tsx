@@ -421,6 +421,7 @@ export default function MintForm({ isApe }: Props) {
                 return null;
               })()}
           </TransactionModal.InfoContainer>
+          <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <Show when={!needsApproval && !isConfirmed}>
               <TransactionModal.StatContainer>
@@ -450,14 +451,12 @@ export default function MintForm({ isApe }: Props) {
                   }
                 />
 
-                <div className="text-gray-400 flex w-full   justify-start text-[14px]">
-                  <div className="flex w-[300px]">
-                    <p>
-                      {isApe
-                        ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
-                        : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
-                    </p>
-                  </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <p>
+                    {isApe
+                      ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
+                      : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
+                  </p>
                 </div>
               </TransactionModal.StatContainer>
             </Show>

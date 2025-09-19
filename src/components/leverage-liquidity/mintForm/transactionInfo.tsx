@@ -6,6 +6,11 @@ import { formatUnits } from "viem";
 import { motion } from "motion/react";
 import ExplorerLink from "@/components/shared/explorerLink";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { TokenImage } from "@/components/shared/TokenImage";
+import { useFormContext } from "react-hook-form";
+import type { TMintFormFields } from "@/components/providers/mintFormProvider";
+import { parseAddress } from "@/lib/utils/index";
+import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
 interface Props {
   isConfirmed: boolean;
   decimals: number;
@@ -39,6 +44,22 @@ export default function TransactionInfo({
   vaultId,
   transactionHash,
 }: Props) {
+  const form = useFormContext<TMintFormFields>();
+  const nativeCurrency = useNativeCurrency();
+  const data = form.watch();
+  const deposit = form.getValues("deposit");
+
+  const usingDebt =
+    data.depositToken === parseAddress(data.versus) && data.depositToken !== "";
+  const collateralAssetName = useNativeToken
+    ? nativeCurrency.symbol
+    : form.getValues("long").split(",")[1] ?? "";
+  const debtAssetName = useNativeToken
+    ? nativeCurrency.symbol
+    : form.getValues("versus").split(",")[1] ?? "";
+  const depositTokenSymbol = usingDebt ? debtAssetName : collateralAssetName;
+  const depositTokenAddress = data.depositToken;
+
   if (!isConfirmed) {
     return (
       <>
@@ -53,29 +74,79 @@ export default function TransactionInfo({
                 : "Approve"
           }
         />
-        {!needsApproval && (
-          <TransactionEstimates
-            isApe={isApe}
-            decimals={decimals}
-            usingNativeToken={useNativeToken}
-            collateralEstimate={quoteData}
-            vaultId={vaultId}
-          />
+
+        {!needsApproval && !isConfirming && (
+          <div className="space-y-4">
+            {/* Depositing Amount */}
+            <div>
+              <div className="mb-2">
+                <label className="text-sm text-muted-foreground">
+                  Depositing Amount
+                </label>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">
+                  <DisplayFormattedNumber
+                    num={deposit}
+                    significant={undefined}
+                  />
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl text-muted-foreground">
+                    {depositTokenSymbol}
+                  </span>
+                  {depositTokenAddress && (
+                    <TokenImage
+                      address={depositTokenAddress}
+                      alt={depositTokenSymbol}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Receiving Amount */}
+            {quoteData && (
+              <div>
+                <div className="mb-2">
+                  <label className="text-sm text-muted-foreground">
+                    Receiving Amount (Estimated)
+                  </label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">
+                    <DisplayFormattedNumber
+                      num={formatUnits(quoteData, decimals)}
+                      significant={6}
+                    />
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-muted-foreground">
+                      {isApe ? "APE" : "TEA"}-{vaultId}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
-        {!needsApproval && (
-          <TransactionModal.Disclaimer>
-            Output is estimated.
-          </TransactionModal.Disclaimer>
-        )}
+
         {needsApproval && !needs0Approval && (
-          <TransactionModal.Disclaimer>
-            Approve Funds to Mint.
-          </TransactionModal.Disclaimer>
+          <div className="px-6 py-4">
+            <TransactionModal.Disclaimer>
+              Approve Funds to Mint.
+            </TransactionModal.Disclaimer>
+          </div>
         )}
         {needsApproval && needs0Approval && (
-          <TransactionModal.Disclaimer>
-            USDT requires users to remove approval before approving again!
-          </TransactionModal.Disclaimer>
+          <div className="px-6 py-4">
+            <TransactionModal.Disclaimer>
+              USDT requires users to remove approval before approving again!
+            </TransactionModal.Disclaimer>
+          </div>
         )}
       </>
     );
@@ -93,21 +164,24 @@ export default function TransactionInfo({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="animate-fade-in space-y-2  duration-500"
+        className="space-y-2"
       >
-        <div className="flex animate-fade-in justify-center">
+        <div className="flex justify-center">
           <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
         </div>
-        <h2 className="text-gray-300 text-center">Transaction Successful!</h2>
+        <h2 className="text-center">Transaction Successful!</h2>
         {Boolean(tokenReceived) && (
-          <h3 className="flex items-center justify-center gap-x-1 ">
-            <span className="text-xl font-medium ">
-              <DisplayFormattedNumber num={formatUnits(tokenReceived ?? 0n, decimals)} significant={4} />{" "}
-              {isApe ? "APE" : "TEA"}
-              <span className="text-gray-400">{"-"}</span>
-              {vaultId}{" "}
+          <div className="flex items-center justify-center gap-x-2">
+            <span className="text-xl">
+              <DisplayFormattedNumber
+                num={formatUnits(tokenReceived ?? 0n, decimals)}
+                significant={6}
+              />
             </span>
-          </h3>
+            <span className="text-xl text-muted-foreground">
+              {isApe ? "APE" : "TEA"}-{vaultId}
+            </span>
+          </div>
         )}
         <ExplorerLink transactionHash={transactionHash} />
       </motion.div>

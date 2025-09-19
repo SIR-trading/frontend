@@ -21,6 +21,7 @@ import { ApeContract } from "@/contracts/ape";
 import type { TAddressString } from "@/lib/types";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { formatUnits, fromHex } from "viem";
+import { TokenImage } from "@/components/shared/TokenImage";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -207,9 +208,9 @@ export default function TransferForm({
 
   return (
     <FormProvider {...form}>
-      <TransactionModal.Root 
-        title="Transfer" 
-        open={open} 
+      <TransactionModal.Root
+        title={`Transfer ${tokenName}`}
+        open={open}
         setOpen={(value) => {
           setOpen(value);
           if (!value && !isConfirmed) {
@@ -231,6 +232,55 @@ export default function TransferForm({
                 waitForSign={isPending}
                 showLoading={isConfirming}
               />
+
+              {formData.amount && recipientAddress && isValid && (
+                <div className="space-y-4 px-6 pb-6 pt-4">
+                  {/* Transfer Amount */}
+                  <div className="pt-2">
+                    <div className="mb-2">
+                      <label className="text-sm text-muted-foreground">Transfer Amount</label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">
+                        <DisplayFormattedNumber
+                          num={formData.amount}
+                          significant={undefined}
+                        />
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl text-muted-foreground">{tokenName}</span>
+                        {row.collateralToken && (
+                          <TokenImage
+                            address={row.collateralToken}
+                            alt={tokenName}
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recipient */}
+                  <div className="pt-2">
+                    <div className="mb-2">
+                      <label className="text-sm text-muted-foreground">Recipient Address</label>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-mono text-foreground/80">
+                        {recipientAddress.slice(0, 6)}...{recipientAddress.slice(-4)}
+                      </span>
+                      {isEnsName && formData.recipient && (
+                        <span className="text-sm text-muted-foreground">
+                          {formData.recipient}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {writeError && !isConfirming && (() => {
                 // Check if this is a simulation error (not user rejection)
                 const errorMessage = writeError.message || "";
@@ -250,41 +300,28 @@ export default function TransferForm({
                 }
                 return null;
               })()}
-              {formData.amount && recipientAddress && isValid && (
-                <div className="flex h-[40px] items-center gap-x-2 py-2">
-                  <h3 className="space-x-1">
-                    <span>{formData.amount}</span>
-                    <span className="text-gray-300 text-sm">{tokenName}</span>
-                  </h3>
-                  <span className="text-foreground/70">{"→"}</span>
-                  <h3 className="space-x-1">
-                    <span className="font-mono text-sm">
-                      {recipientAddress.slice(0, 6)}...{recipientAddress.slice(-4)}
-                    </span>
-                  </h3>
-                </div>
-              )}
             </>
           )}
           {isConfirmed && (
             <TransactionSuccess
               hash={hash}
               assetAddress={recipientAddress as TAddressString}
-              assetReceived={`transferred to`}
+              assetReceived={tokenName}
               amountReceived={parsedAmount}
               decimals={row.decimals}
             />
           )}
         </TransactionModal.InfoContainer>
+        <div className="mx-4 border-t border-foreground/10" />
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
-            disabled={!isValid || isPending || isConfirming}
+            disabled={!isValid && !isConfirmed}
             isPending={isPending}
             loading={isConfirming}
             onClick={() => onSubmit()}
             isConfirmed={isConfirmed}
           >
-            Confirm Transfer
+            {isConfirmed ? "Close" : "Confirm Transfer"}
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
