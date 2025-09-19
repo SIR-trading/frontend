@@ -7,6 +7,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
 import { env } from "@/env";
+import NetworkBadge from "./networkBadge";
 
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
@@ -64,28 +65,8 @@ export default function SideNav() {
         <SheetTrigger className="rounded-md p-1.5 hover:bg-accent transition-colors">
           <Menu className="cursor-pointer" size={24} />
         </SheetTrigger>
-        <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-          <SheetHeader className="mb-6">
-            <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2">
-              <Image
-                height={36}
-                width={36}
-                src={logos.dark}
-                alt="Sir Icon"
-                className="hidden rounded-full dark:block"
-              />
-              <Image
-                height={36}
-                width={36}
-                src={logos.light}
-                alt="Sir Icon"
-                className="rounded-full dark:hidden"
-              />
-              <span className="font-geist text-lg font-semibold">Sir trading</span>
-            </Link>
-          </SheetHeader>
-          
-          <nav className="space-y-6">
+        <SheetContent side="right" className="w-[220px] sm:w-[260px]">
+          <nav className="space-y-6 mt-8">
             {menuItems.map((section) => (
               <div key={section.section}>
                 <h3 className="mb-2 px-2 text-xs font-semibold uppercase text-muted-foreground">
@@ -116,6 +97,13 @@ export default function SideNav() {
               </div>
             ))}
           </nav>
+
+          {/* Network Badge at the bottom of mobile menu */}
+          <div className="mt-8 pt-6 border-t border-foreground/10">
+            <div className="flex justify-center">
+              <NetworkBadge variant="full" className="w-full max-w-[200px]" />
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     </div>

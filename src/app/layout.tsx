@@ -14,6 +14,7 @@ import { TokenlistContextProvider } from "@/contexts/tokenListProvider";
 import MintFormProvider from "@/components/providers/mintFormProvider";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+import FloatingNetworkBadge from "@/components/floatingNetworkBadge";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                           </div>
                         </div>
                         <Footer />
+                        <FloatingNetworkBadge />
                       </div>
                     </MintFormProvider>
                   </VaultProvider>

@@ -56,6 +56,9 @@ const config = {
       "on-bg-subdued": "hsl(var(--on-bg-subdued))",
     },
     extend: {
+      screens: {
+        'custom-lg': '1580px',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
