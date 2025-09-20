@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { motion } from "motion/react";
 import { formatUnits, parseUnits } from "viem";
@@ -66,6 +66,18 @@ export default function MintForm({ isApe }: Props) {
   } = useGetFormTokensInfo();
   const isWeth = useIsWeth();
   const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
+
+  // Auto-enable native token toggle when user has native balance but no wrapped balance
+  useEffect(() => {
+    if (
+      isWeth &&
+      userBalance?.tokenBalance?.result === 0n &&
+      userNativeTokenBalance &&
+      userNativeTokenBalance > 0n
+    ) {
+      setUseNativeToken(true);
+    }
+  }, [isWeth, userBalance?.tokenBalance?.result, userNativeTokenBalance]);
 
   // Ensure use eth toggle is not used on non-weth tokens
   const { setError, formState, watch, handleSubmit, setValue } =
