@@ -46,6 +46,7 @@ const AuctionCard = ({
   disabled,
   auctionType,
   className,
+  isPulsing,
 }: {
   data: TAuctionData[];
   action?: TAuctionAction;
@@ -54,13 +55,17 @@ const AuctionCard = ({
   disabled?: boolean;
   auctionType: "new" | "ongoing" | "past";
   className?: string;
+  isPulsing?: boolean;
 }) => {
   const { isConnected } = useAccount();
   const shouldDelay = Boolean(actionDelay && actionDelay > Date.now() / 1000);
   const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
   return (
     <Card
-      className={`flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto ${className ?? ""}`}
+      className={cn(
+        "flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto",
+        className
+      )}
     >
       {data.map((item, index) => (
         <div key={index} className="grid grid-cols-2 gap-6">
@@ -72,6 +77,10 @@ const AuctionCard = ({
                   subItem.variant
                     ? "font-geist text-[24px] font-normal leading-[32px]"
                     : "text-lg",
+                  isPulsing &&
+                  (subItem.title === AuctionCardTitle.HIGHEST_BID ||
+                   subItem.title === AuctionCardTitle.LEADER) &&
+                  "auction-pulse",
                 )}
               >
                 {subItem.content}

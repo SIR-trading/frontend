@@ -3,7 +3,7 @@ import AuctionCard, {
   AuctionCardTitle,
 } from "@/components/auction/auctionCard";
 import { useAccount } from "wagmi";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import type { TAuctionBidModalState } from "@/components/auction/AuctionBidModal";
 import { AuctionBidModal } from "@/components/auction/AuctionBidModal";
 import AuctionBidFormProvider from "@/components/providers/auctionBidFormProvider";
@@ -22,6 +22,7 @@ import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 import { TokenImage } from "@/components/shared/TokenImage";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { useAuctionRpcPolling } from "@/components/auction/hooks/useAuctionRpcPolling";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -32,6 +33,7 @@ const OngoingAuction = ({
     open: false,
   });
   const { address } = useAccount();
+  const [pulsingTokens, setPulsingTokens] = useState<Set<Address>>(new Set());
 
   const { data: auctions, isLoading } = api.auction.getOngoingAuctions.useQuery(
     address,
@@ -51,6 +53,34 @@ const OngoingAuction = ({
   const [isTriggered, setIsTriggered] = useState(false);
   const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
 
+  const activeTokens = useMemo(() => {
+    if (!auctions) return [];
+    return auctions.map(a => a.token as Address);
+  }, [auctions]);
+
+  const {
+    mergeWithServerData,
+    pollingError,
+  } = useAuctionRpcPolling({
+    tokens: activeTokens,
+    enabled: !openModal.open && activeTokens.length > 0,
+    onNewBid: (update) => {
+      setPulsingTokens(prev => {
+        const next = new Set(prev);
+        next.add(update.token);
+        return next;
+      });
+
+      setTimeout(() => {
+        setPulsingTokens(prev => {
+          const next = new Set(prev);
+          next.delete(update.token);
+          return next;
+        });
+      }, 2000);
+    },
+  });
+
   const { userAuction, otherAuction } = useMemo(() => {
     const initial: {
       userAuction: AuctionFieldFragment[];
@@ -59,7 +89,26 @@ const OngoingAuction = ({
     if (!auctions) {
       return initial;
     }
-    return auctions.reduce((acc, auction) => {
+
+    const { merged, newBidsDetected } = mergeWithServerData(auctions);
+
+    if (newBidsDetected.length > 0) {
+      setPulsingTokens(prev => {
+        const next = new Set(prev);
+        newBidsDetected.forEach(token => next.add(token));
+        return next;
+      });
+
+      setTimeout(() => {
+        setPulsingTokens(prev => {
+          const next = new Set(prev);
+          newBidsDetected.forEach(token => next.delete(token));
+          return next;
+        });
+      }, 2000);
+    }
+
+    return merged.reduce((acc, auction) => {
       if (Boolean(auction.isParticipant.length)) {
         acc.userAuction.push(auction);
       } else {
@@ -67,7 +116,7 @@ const OngoingAuction = ({
       }
       return acc;
     }, initial);
-  }, [auctions]);
+  }, [auctions, mergeWithServerData]);
 
   const handleTrigger = useCallback(() => {
     if (isTriggered) {
@@ -78,6 +127,12 @@ const OngoingAuction = ({
 
     setIsTriggered(false);
   }, [isTriggered, resetAuctionOnTrigger]);
+
+  useEffect(() => {
+    if (pollingError) {
+      console.error("RPC polling error:", pollingError);
+    }
+  }, [pollingError]);
 
   // useEffect(() => {
   //   if (!openModal.open) {
@@ -115,6 +170,7 @@ const OngoingAuction = ({
                 }) => (
                   <AuctionCard
                     auctionType="ongoing"
+                    isPulsing={pulsingTokens.has(token as Address)}
                     data={[
                       [
                         {
@@ -238,6 +294,7 @@ const OngoingAuction = ({
               ({ startTime, highestBid, token, amount, highestBidder }) => (
                 <AuctionCard
                   auctionType="ongoing"
+                  isPulsing={pulsingTokens.has(token as Address)}
                   data={[
                     [
                       {
