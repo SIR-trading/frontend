@@ -15,7 +15,7 @@ const AuctionContentWrapper = ({
         </h3>
       )}
       <div className="pb-4"></div>
-      <div className="grid min-h-[172px] gap-4 gap-y-8 md:grid-cols-2 lg:gap-8">
+      <div className="grid min-h-[172px] gap-4 gap-y-4 md:grid-cols-2 lg:gap-6">
         {children}
       </div>
     </div>

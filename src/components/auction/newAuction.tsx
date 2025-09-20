@@ -21,7 +21,12 @@ import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton"
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { TokenImage } from "@/components/shared/TokenImage";
 import type { Address } from "viem";
-import { getWrappedTokenSymbol } from "@/lib/chains";
+import { getWrappedTokenSymbol, getNativeCurrencySymbol } from "@/lib/chains";
+import { formatUnits } from "viem";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { CircleCheck } from "lucide-react";
+import { motion } from "motion/react";
+import ExplorerLink from "@/components/shared/explorerLink";
 
 type TNewAuctionData = {
   amount: bigint;
@@ -59,10 +64,16 @@ const NewAuction = ({
     useResetTransactionModal({ reset, isConfirmed });
 
   const [id, setId] = useState<string>();
+  const [collectedAmount, setCollectedAmount] = useState<bigint>();
   const startAuctionRequest = useStartAuction({ id });
 
   const handleAuctionStart = (id: string) => {
     setId(id);
+    // Store the amount before collection
+    const amount = tokenWithFeesMap?.get(id);
+    if (amount) {
+      setCollectedAmount(amount);
+    }
     setOpenTransactionModal(true);
   };
 
@@ -121,7 +132,11 @@ const NewAuction = ({
         writeContract(startAuctionRequest);
       }
     } else {
+      // Close modal and reset state when clicking Close after success
       setOpenTransactionModal(false);
+      setId(undefined);
+      setCollectedAmount(undefined);
+      reset();
     }
   };
 
@@ -130,8 +145,9 @@ const NewAuction = ({
     isConfirmed,
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
     actions: () => {
-      setId(undefined);
-      setOpenTransactionModal(false);
+      // Don't close modal or reset ID here - let user close it manually after seeing success
+      // setId(undefined);
+      // setOpenTransactionModal(false);
     },
     auctionType: "new",
   });
@@ -139,44 +155,166 @@ const NewAuction = ({
   return (
     <div>
       <TransactionModal.Root
-        title="Start Auction"
+        title="Collect Fees"
         open={openTransactionModal}
-        setOpen={setOpenTransactionModal}
+        setOpen={(open) => {
+          setOpenTransactionModal(open);
+          // Reset state when closing modal
+          if (!open) {
+            setId(undefined);
+            setCollectedAmount(undefined);
+            reset();
+          }
+        }}
       >
-        <TransactionModal.Close setOpen={setOpenTransactionModal} />
-        <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-          <div className="grid gap-4">
-            <div className="flex flex-col items-center gap-3">
-              {id && (
-                <TokenImage
-                  address={id as Address}
-                  className="rounded-full"
-                  width={48}
-                  height={48}
-                />
-              )}
-              <h4 className="text-lg text-center">
-                {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
-                  ? (
-                    <>
-                      {isPending || isConfirming ? "Collecting" : "Collect"} {getWrappedTokenSymbol()} Fees
-                    </>
-                  )
-                  : (
-                    <>
-                      {isPending || isConfirming ? "Starting" : "Start"} Auction for{" "}
-                      {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")}
-                    </>
-                  )}
-              </h4>
+        <TransactionModal.Close setOpen={(open) => {
+          setOpenTransactionModal(open);
+          // Reset state when closing modal
+          if (!open) {
+            setId(undefined);
+            setCollectedAmount(undefined);
+            reset();
+          }
+        }} />
+
+        {/* Show success state when confirmed */}
+        <Show when={isConfirmed} fallback={
+          <div className="space-y-4 rounded-t-xl px-6 pb-6 pt-6">
+            <h2 className="text-center font-geist text-2xl">
+              {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                ? "Collect Fees"
+                : "Start Auction"}
+            </h2>
+
+            {/* Display the fee amount when collecting native token fees */}
+            {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS) && (
+              <div className="space-y-4 px-6 pb-6 pt-4">
+                <div className="pt-2">
+                  <div className="mb-2">
+                    <label className="text-sm text-muted-foreground">Protocol Fees for Stakers</label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl">
+                      <DisplayFormattedNumber
+                        num={formatUnits(tokenWithFeesMap?.get(id ?? "") ?? 0n, 18)}
+                        significant={6}
+                      />
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl text-muted-foreground">
+                        {getNativeCurrencySymbol()}
+                      </span>
+                      <TokenImage
+                        address={id as Address}
+                        className="rounded-full"
+                        width={24}
+                        height={24}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Display auction info when starting other token auctions */}
+            {!compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS) && id && (
+              <div className="space-y-4 px-6 pb-6 pt-4">
+                <div className="pt-2">
+                  <div className="mb-2">
+                    <label className="text-sm text-muted-foreground">Starting Auction For</label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl">
+                      <DisplayFormattedNumber
+                        num={formatUnits(
+                          tokenWithFeesMap?.get(id ?? "") ?? 0n,
+                          uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ?? 18
+                        )}
+                        significant={6}
+                      />
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl text-muted-foreground">
+                        {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")}
+                      </span>
+                      <TokenImage
+                        address={id as Address}
+                        className="rounded-full"
+                        width={24}
+                        height={24}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Transaction status */}
+            <div className="flex justify-center">
+              <TransactionStatus
+                showLoading={isConfirming}
+                waitForSign={isPending}
+                action={""}
+              />
             </div>
-            <TransactionStatus
-              showLoading={isConfirming}
-              waitForSign={isPending}
-              action={""}
-            />
           </div>
-        </TransactionModal.InfoContainer>
+        }>
+          {/* Success state content */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-4 p-8"
+          >
+            <div className="flex justify-center">
+              <CircleCheck size={60} color="hsl(173, 73%, 36%)" />
+            </div>
+            <h2 className="text-center text-xl font-semibold">
+              {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                ? "Fees Collected Successfully!"
+                : "Auction Started Successfully!"}
+            </h2>
+            <div className="space-y-2">
+              <div className="text-center">
+                <span className="text-sm text-muted-foreground">
+                  {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                    ? "Amount Collected"
+                    : "Auction Started For"}
+                </span>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                  <span className="text-2xl font-mono">
+                    <DisplayFormattedNumber
+                      num={formatUnits(
+                        collectedAmount ?? 0n,
+                        compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                          ? 18
+                          : uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ?? 18
+                      )}
+                      significant={6}
+                    />
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <TokenImage
+                      address={id as Address}
+                      className="rounded-full"
+                      width={24}
+                      height={24}
+                    />
+                    <span className="text-2xl font-mono text-muted-foreground">
+                      {compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                        ? getNativeCurrencySymbol()
+                        : uniqueAuctionCollection.collateralSymbolMap.get(id ?? "")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <ExplorerLink transactionHash={hash} align="center" />
+          </motion.div>
+        </Show>
+
+        <div className="mx-4 border-t border-foreground/10" />
+
         <TransactionModal.StatSubmitContainer>
           <TransactionModal.SubmitButton
             onClick={confirmTransaction}
@@ -187,7 +325,11 @@ const NewAuction = ({
             loading={isConfirming}
             isConfirmed={isConfirmed}
           >
-            {isConfirmed ? "Confirmed" : "Confirm"}
+            {isConfirmed
+              ? "Close"
+              : compareAddress(id, WRAPPED_NATIVE_TOKEN_ADDRESS)
+                ? "Confirm Collect"
+                : "Confirm Start Auction"}
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
@@ -268,7 +410,7 @@ const NewAuction = ({
                 />
               ))}
             </AuctionContentWrapper>
-            <div className="h-[64px]" />
+            <div className="h-[24px]" />
           </>
         )}
         {onHold.length > 0 && (

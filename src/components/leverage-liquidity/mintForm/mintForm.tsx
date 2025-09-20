@@ -495,6 +495,9 @@ export default function MintForm({ isApe }: Props) {
             <TransactionModal.SubmitButton
               onClick={modalSubmit}
               disabled={useMemo(() => {
+                // Disable while confirming
+                if (isConfirming) return true;
+
                 if (writeError && !isConfirming && !isConfirmed) {
                   const errorMessage = writeError.message || "";
                   const isUserRejection =
@@ -507,7 +510,7 @@ export default function MintForm({ isApe }: Props) {
                 return false;
               }, [writeError, isConfirming, isConfirmed])}
               isPending={false}
-              loading={false}
+              loading={isConfirming}
               isConfirmed={isConfirmed && !needsApproval}
             >
               <Show
