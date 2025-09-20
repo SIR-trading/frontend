@@ -18,7 +18,13 @@ import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctio
 import Show from "@/components/shared/show";
 import ToolTip from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getAuctionBidIncreasePercentage, getWrappedTokenSymbol } from "@/lib/chains";
+import { CircleCheck } from "lucide-react";
+import { motion } from "motion/react";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import {
+  getAuctionBidIncreasePercentage,
+  getWrappedTokenSymbol,
+} from "@/lib/chains";
 
 export type TAuctionBidModalState = {
   open: boolean;
@@ -34,6 +40,7 @@ interface Props {
 
 export function AuctionBidModal({ open, setOpen }: Props) {
   const [maxApprove, setMaxApprove] = useState(false);
+  const [confirmedBidAmount, setConfirmedBidAmount] = useState<string>("");
 
   const { id: tokenAddress, bid: currentBid, isTopUp } = open;
 
@@ -65,7 +72,13 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     [currentBid, bidIncreaseMultiplier],
   );
 
-  const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
+  const {
+    writeContract,
+    reset,
+    data: hash,
+    isPending,
+    error: writeError,
+  } = useWriteContract();
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
@@ -79,10 +92,21 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     }
 
     if (bidRequest && !isConfirmed) {
+      // Store the bid amount before submitting (for success screen)
+      // For top-ups, show the total bid amount (current + top-up)
+      const displayAmount = isTopUp
+        ? formatEther((currentBid ?? 0n) + parseEther(formData.bid))
+        : formData.bid;
+      setConfirmedBidAmount(displayAmount);
       writeContract(bidRequest);
       return;
     }
+
+    // When closing after confirmation, reset everything
     setOpen({ open: false });
+    setConfirmedBidAmount("");
+    reset();
+    form.reset();
   }, [
     approveRequest,
     bidRequest,
@@ -90,6 +114,11 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     needsApproval,
     setOpen,
     writeContract,
+    formData.bid,
+    isTopUp,
+    currentBid,
+    form,
+    reset,
   ]);
 
   useResetAfterApprove({
@@ -110,12 +139,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     auctionType: "ongoing",
     actions: () => {
       console.log("Taking Actions");
-
       form.reset();
-      setTimeout(() => {
-        setOpen({ open: false });
-        reset();
-      }, 3000);
+      // Don't auto-close anymore - let user close manually after seeing success
     },
   });
 
@@ -156,88 +181,155 @@ export function AuctionBidModal({ open, setOpen }: Props) {
   const isSimulationFailure = useMemo(() => {
     if (writeError && !isConfirming && !isConfirmed) {
       const errorMsg = writeError.message || "";
-      const isUserRejection = errorMsg.toLowerCase().includes("user rejected") ||
-                             errorMsg.toLowerCase().includes("user denied") ||
-                             errorMsg.toLowerCase().includes("rejected the request");
+      const isUserRejection =
+        errorMsg.toLowerCase().includes("user rejected") ||
+        errorMsg.toLowerCase().includes("user denied") ||
+        errorMsg.toLowerCase().includes("rejected the request");
       return !isUserRejection;
     }
     return false;
   }, [writeError, isConfirming, isConfirmed]);
 
   return (
-    <Dialog open={open.open} onOpenChange={(open) => {
-      setOpen({ open });
-      // Reset the write error when closing the modal
-      if (!open && writeError) {
-        reset();
-      }
-    }}>
+    <Dialog
+      open={open.open}
+      onOpenChange={(open) => {
+        setOpen({ open });
+        // Reset everything when closing the modal
+        if (!open) {
+          setConfirmedBidAmount("");
+          reset();
+          form.reset();
+        }
+      }}
+    >
       <DialogContent title="Auction Bid Modal" className="bg-transparent">
         <div
           className={`nav-shadow relative rounded-xl border border-foreground/10 bg-secondary pt-4  transition-all duration-700 `}
         >
-          <TransactionModal.Close setOpen={(open) => {
-            setOpen({ open });
-            // Reset the write error when closing the modal
-            if (!open && writeError) {
-              reset();
-            }
-          }} />
+          <TransactionModal.Close
+            setOpen={(open) => {
+              setOpen({ open });
+              // Reset everything when closing the modal
+              if (!open) {
+                setConfirmedBidAmount("");
+                reset();
+                form.reset();
+              }
+            }}
+          />
           <h1 className="text-center font-geist text-2xl">
             {isTopUp ? "Top up bid" : "Place bid"}{" "}
           </h1>
-          <AuctionBidInputs.Root>
-            <AuctionBidInputs.Inputs
-              decimals={18}
-              disabled={false}
-              inputLoading={false}
-              balance={formatEther(balance ?? BigInt(0))}
-              currentBid={formatEther(currentBid ?? BigInt(0))}
-              nextBid={formatEther(nextBid)}
-              isTopUp={isTopUp}
+
+          {/* Show success state when transaction is confirmed and it's a bid (not approval) */}
+          <Show when={isConfirmed && !needsApproval} fallback={
+            <>
+              <AuctionBidInputs.Root>
+                <AuctionBidInputs.Inputs
+                  decimals={18}
+                  disabled={false}
+                  inputLoading={false}
+                  balance={formatEther(balance ?? BigInt(0))}
+                  currentBid={formatEther(currentBid ?? BigInt(0))}
+                  nextBid={formatEther(nextBid)}
+                  isTopUp={isTopUp}
+                >
+                  <div className="flex items-center gap-2">
+                    <p>{wrappedTokenSymbol}</p>
+                    <TokenImage
+                      address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                      alt="alt"
+                      width={25}
+                      height={25}
+                      className="rounded-full"
+                    />
+                  </div>
+                </AuctionBidInputs.Inputs>
+
+                <div className="flex flex-col items-center justify-center gap-2 p-4">
+                  <TransactionStatus
+                    showLoading={isConfirming}
+                    waitForSign={isPending}
+                    action={""}
+                  />
+
+                  <ExplorerLink align="left" transactionHash={hash} />
+
+                  {writeError &&
+                    !isConfirming &&
+                    !isConfirmed &&
+                    (() => {
+                      // Check if this is a simulation error (not user rejection)
+                      const errorMessage = writeError.message || "";
+                      const isUserRejection =
+                        errorMessage.toLowerCase().includes("user rejected") ||
+                        errorMessage.toLowerCase().includes("user denied") ||
+                        errorMessage.toLowerCase().includes("rejected the request");
+
+                      // Only show error for simulation failures, not user rejections
+                      if (!isUserRejection) {
+                        return (
+                          <div className="mt-2">
+                            <p
+                              className="text-center text-xs"
+                              style={{ color: "#ef4444" }}
+                            >
+                              Transaction simulation failed. Please check your
+                              inputs and try again.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                </div>
+              </AuctionBidInputs.Root>
+            </>
+          }>
+            {/* Success state content */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-4 p-8"
             >
-              <div className="flex items-center gap-2">
-                <p>{wrappedTokenSymbol}</p>
-                <TokenImage
-                  address={WRAPPED_NATIVE_TOKEN_ADDRESS}
-                  alt="alt"
-                  width={25}
-                  height={25}
-                  className="rounded-full"
-                />
+              <div className="flex justify-center">
+                <CircleCheck size={60} color="hsl(173, 73%, 36%)" />
               </div>
-            </AuctionBidInputs.Inputs>
-
-            <div className="flex flex-col items-center justify-center gap-2 p-4">
-              <TransactionStatus
-                showLoading={isConfirming}
-                waitForSign={isPending}
-                action={""}
-              />
-
-              <ExplorerLink align="left" transactionHash={hash} />
-
-              {writeError && !isConfirming && !isConfirmed && (() => {
-                // Check if this is a simulation error (not user rejection)
-                const errorMessage = writeError.message || "";
-                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
-                                       errorMessage.toLowerCase().includes("user denied") ||
-                                       errorMessage.toLowerCase().includes("rejected the request");
-
-                // Only show error for simulation failures, not user rejections
-                if (!isUserRejection) {
-                  return (
-                    <div className="mt-2">
-                      <p className="text-xs text-center" style={{ color: "#ef4444" }}>
-                        Transaction simulation failed. Please check your inputs and try again.
-                      </p>
+              <h2 className="text-center text-xl font-semibold">
+                {isTopUp ? "Bid Topped Up!" : "Bid Placed Successfully!"}
+              </h2>
+              <div className="space-y-2">
+                <div className="text-center">
+                  <span className="text-sm text-muted-foreground">
+                    {isTopUp ? "Your Total Bid" : "Your Bid Amount"}
+                  </span>
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    <span className="text-2xl font-mono">
+                      <DisplayFormattedNumber
+                        num={confirmedBidAmount || formData.bid}
+                        significant={6}
+                      />
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <TokenImage
+                        address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                        alt={wrappedTokenSymbol}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                      <span className="text-2xl font-mono text-muted-foreground">
+                        {wrappedTokenSymbol}
+                      </span>
                     </div>
-                  );
-                }
-                return null;
-              })()}
-            </div>
-          </AuctionBidInputs.Root>
+                  </div>
+                </div>
+              </div>
+              <ExplorerLink transactionHash={hash} align="center" />
+            </motion.div>
+          </Show>
 
           <TransactionModal.StatSubmitContainer>
             <Show when={!isConfirmed && needsApproval && !errorMessage}>
@@ -267,21 +359,26 @@ export function AuctionBidModal({ open, setOpen }: Props) {
             <TransactionModal.SubmitButton
               onClick={onSubmit}
               disabled={
-                userBalanceFetching ||
-                (Number(formData.bid) === 0 && !isConfirmed) ||
-                (!balance && !isConfirmed) ||
-                isSimulationFailure ||
-                (parseEther(formData.bid) > balance! && !isConfirmed) ||
-                (!isConfirmed && isTopUp
-                  ? Number(formData.bid) <=
-                    +formatEther(nextBid - (currentBid ?? BigInt(0)))
-                  : Number(formData.bid) <= +formatEther(nextBid)) // TODO: Add proper error message to show user that minimum bid must be 1% higher than the current bid
+                // Don't disable the button when showing success state
+                isConfirmed && !needsApproval
+                  ? false
+                  : userBalanceFetching ||
+                    (Number(formData.bid) === 0 && !isConfirmed) ||
+                    (!balance && !isConfirmed) ||
+                    isSimulationFailure ||
+                    (parseEther(formData.bid) > balance! && !isConfirmed) ||
+                    (!isConfirmed && isTopUp
+                      ? Number(formData.bid) <=
+                        +formatEther(nextBid - (currentBid ?? BigInt(0)))
+                      : Number(formData.bid) <= +formatEther(nextBid)) // TODO: Add proper error message to show user that minimum bid must be 1% higher than the current bid
               }
               isPending={isPending}
               loading={isConfirming}
-              isConfirmed={isConfirmed}
+              isConfirmed={isConfirmed && !needsApproval}
             >
-              {isConfirming
+              {isConfirmed && !needsApproval
+                ? "Close"
+                : isConfirming
                 ? needsApproval
                   ? "Approving"
                   : isTopUp
@@ -290,8 +387,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 : needsApproval
                   ? "Approve"
                   : isTopUp
-                    ? "Top up Bid"
-                    : "Place Bid"}
+                    ? "Top up bid"
+                    : "Place bid"}
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </div>

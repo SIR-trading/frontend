@@ -103,7 +103,7 @@ const OngoingAuction = ({
       >
         {userAuction.length > 0 && (
           <>
-            <AuctionContentWrapper header={"Ongoing auctions you’re Part of"}>
+            <AuctionContentWrapper header={"Ongoing auctions you're part of"}>
               {userAuction.map(
                 ({
                   startTime,
@@ -123,7 +123,7 @@ const OngoingAuction = ({
                             <div className="flex items-baseline gap-2">
                               <TokenImage
                                 address={token as Address}
-                                className="rounded-full self-center"
+                                className="self-center rounded-full"
                                 width={24}
                                 height={24}
                               />
@@ -145,7 +145,6 @@ const OngoingAuction = ({
                                   ? auctionLots?.get(token)
                                   : BigInt(amount)
                               }
-                              
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -170,7 +169,6 @@ const OngoingAuction = ({
                           content: (
                             <TokenDisplay
                               amount={BigInt(isParticipant[0]?.bid ?? "0")}
-                              
                               amountSize="large"
                               decimals={18}
                               unitLabel={getNativeCurrencySymbol()}
@@ -183,7 +181,6 @@ const OngoingAuction = ({
                           content: (
                             <TokenDisplay
                               amount={BigInt(highestBid)}
-                              
                               amountSize="large"
                               decimals={18}
                               unitLabel={getNativeCurrencySymbol()}
@@ -249,7 +246,7 @@ const OngoingAuction = ({
                           <div className="flex items-baseline gap-2">
                             <TokenImage
                               address={token as Address}
-                              className="rounded-full self-center"
+                              className="self-center rounded-full"
                               width={24}
                               height={24}
                             />
@@ -271,7 +268,6 @@ const OngoingAuction = ({
                                 ? auctionLots?.get(token)
                                 : BigInt(amount)
                             }
-                            
                             amountSize="large"
                             decimals={
                               uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -300,7 +296,6 @@ const OngoingAuction = ({
                         content: (
                           <TokenDisplay
                             amount={BigInt(highestBid)}
-                            
                             amountSize="large"
                             decimals={18}
                             unitLabel={getNativeCurrencySymbol()}

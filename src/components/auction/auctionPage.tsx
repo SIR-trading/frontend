@@ -10,7 +10,7 @@ import NewAuction from "@/components/auction/newAuction";
 import { EPage } from "@/lib/types";
 import Explainer from "../shared/explainer";
 import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
-import { getNativeCurrencySymbol } from "@/lib/chains";
+import { getNativeCurrencySymbol, getAuctionBidIncreasePercentage } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
 
 export type TUniqueAuctionCollection = {
@@ -142,6 +142,10 @@ const AuctionPage = () => {
           <TabsContent value="active" className="mt-10">
             <div className="mb-6 text-center text-sm text-muted-foreground">
               Bid on active auctions to acquire tokens below market price
+              <br />
+              <span className="text-xs">
+                Minimum bid increase: {getAuctionBidIncreasePercentage()}%
+              </span>
             </div>
             <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} />
           </TabsContent>
