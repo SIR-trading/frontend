@@ -3,6 +3,7 @@ import { usePublicClient, useAccount } from "wagmi";
 import type { Address } from "viem";
 import { SirContract } from "@/contracts/sir";
 import type { AuctionFieldFragment } from "@/lib/types";
+import { compareAddress } from "@/lib/utils";
 
 interface AuctionData {
   bidder: Address;
@@ -90,13 +91,14 @@ export function useAuctionRpcPolling({
           const lastKnown = lastKnownBids.current.get(token);
           let isNewBid = false;
 
-          if (!lastKnown ||
-              lastKnown.bidder !== auction.bidder ||
-              lastKnown.bid !== auction.bid) {
+          // Check if bid changed (new bidder or new amount)
+          const bidChanged = !lastKnown ||
+                           !compareAddress(lastKnown.bidder, auction.bidder) ||
+                           lastKnown.bid !== auction.bid;
 
-            if (lastKnown && address && auction.bidder !== address) {
-              isNewBid = true;
-            }
+          if (bidChanged) {
+            // Pulse only if: there was a previous bid AND (no wallet connected OR bidder is not us)
+            isNewBid = !!(lastKnown && (!address || !compareAddress(auction.bidder, address)));
 
             lastKnownBids.current.set(token, {
               bidder: auction.bidder,
@@ -184,42 +186,56 @@ export function useAuctionRpcPolling({
     const newBidsDetected: Address[] = [];
 
     const merged = serverAuctions.map(serverAuction => {
-      const rpcUpdate = auctionUpdates.get(serverAuction.token as Address);
+      const token = serverAuction.token as Address;
+      const rpcUpdate = auctionUpdates.get(token);
+      const lastKnown = lastKnownBids.current.get(token);
+
+      // Determine which data is newer
+      let finalBidder: string;
+      let finalBid: string;
+      let shouldPulse = false;
 
       if (!rpcUpdate?.auction) {
-        return serverAuction;
-      }
+        // No RPC data, use server data
+        finalBidder = serverAuction.highestBidder;
+        finalBid = serverAuction.highestBid;
+      } else {
+        const rpcBid = rpcUpdate.auction.bid;
+        const serverBid = BigInt(serverAuction.highestBid);
 
-      const rpcBid = rpcUpdate.auction.bid.toString();
-      const rpcBidder = rpcUpdate.auction.bidder;
+        if (rpcBid > serverBid) {
+          // RPC data is newer
+          finalBidder = rpcUpdate.auction.bidder;
+          finalBid = rpcBid.toString();
+          shouldPulse = !address || !compareAddress(finalBidder, address);
+        } else {
+          // Server data is newer or equal
+          finalBidder = serverAuction.highestBidder;
+          finalBid = serverAuction.highestBid;
 
-      if (BigInt(serverAuction.highestBid) < BigInt(rpcBid)) {
-        const lastKnown = lastKnownBids.current.get(serverAuction.token as Address);
-        if (lastKnown && address && rpcBidder !== address) {
-          newBidsDetected.push(serverAuction.token as Address);
-        }
-
-        return {
-          ...serverAuction,
-          highestBid: rpcBid,
-          highestBidder: rpcBidder,
-        };
-      }
-
-      if (BigInt(serverAuction.highestBid) > BigInt(rpcBid)) {
-        const lastKnown = lastKnownBids.current.get(serverAuction.token as Address);
-        if (!lastKnown || lastKnown.bid < BigInt(serverAuction.highestBid)) {
-          if (address && serverAuction.highestBidder !== address) {
-            newBidsDetected.push(serverAuction.token as Address);
+          // Check if this is a new bid we haven't seen
+          if (!lastKnown || lastKnown.bid < serverBid) {
+            shouldPulse = !address || !compareAddress(finalBidder, address);
           }
-          lastKnownBids.current.set(serverAuction.token as Address, {
-            bidder: serverAuction.highestBidder as Address,
-            bid: BigInt(serverAuction.highestBid),
-          });
         }
       }
 
-      return serverAuction;
+      // Update last known and trigger pulse if needed
+      if (!lastKnown || lastKnown.bid !== BigInt(finalBid) || !compareAddress(lastKnown.bidder, finalBidder)) {
+        if (shouldPulse && lastKnown) {  // Only pulse if there was a previous bid
+          newBidsDetected.push(token);
+        }
+        lastKnownBids.current.set(token, {
+          bidder: finalBidder as Address,
+          bid: BigInt(finalBid),
+        });
+      }
+
+      return {
+        ...serverAuction,
+        highestBid: finalBid,
+        highestBidder: finalBidder,
+      };
     });
 
     return { merged, newBidsDetected };

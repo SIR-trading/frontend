@@ -77,7 +77,7 @@ const OngoingAuction = ({
           next.delete(update.token);
           return next;
         });
-      }, 2000);
+      }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
     },
   });
 
@@ -105,7 +105,7 @@ const OngoingAuction = ({
           newBidsDetected.forEach(token => next.delete(token));
           return next;
         });
-      }, 2000);
+      }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
     }
 
     return merged.reduce((acc, auction) => {

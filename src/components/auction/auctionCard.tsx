@@ -64,6 +64,7 @@ const AuctionCard = ({
     <Card
       className={cn(
         "flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto",
+        isPulsing && "auction-card-pulse",
         className
       )}
     >
@@ -80,7 +81,7 @@ const AuctionCard = ({
                   isPulsing &&
                   (subItem.title === AuctionCardTitle.HIGHEST_BID ||
                    subItem.title === AuctionCardTitle.LEADER) &&
-                  "auction-pulse",
+                  "auction-gold-glow",
                 )}
               >
                 {subItem.content}
