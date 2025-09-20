@@ -683,6 +683,7 @@ export default function MintForm({ isApe }: Props) {
           isApe={isApe}
           disabled={!Boolean(amountTokens)}
           ape={formatUnits(amountTokens ?? 0n, collateralDecimals ?? 18)}
+          vaultId={selectedVault.result?.vaultId}
         />
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
