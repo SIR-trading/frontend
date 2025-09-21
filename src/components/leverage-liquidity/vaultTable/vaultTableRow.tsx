@@ -292,24 +292,31 @@ export function VaultTableRow({
           pool.collateralToken + "," + pool.collateralSymbol,
         );
       }}
-      className="flex items-center justify-between cursor-pointer rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
+      className="relative flex cursor-pointer items-center justify-between rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
-      <td className="flex-shrink-0 w-12 sm:w-14">
-        <div className="flex h-full items-center gap-x-1">
-          <span>{pool.vaultId}</span>
-          {parsedRateAmount > 0n && (
+      <td className="w-12 flex-shrink-0 pl-3 sm:w-14">
+        <div className="flex h-full items-center">
+          {parsedRateAmount > 0n ? (
             <HoverPopupMobile
               size="200"
               asChild
               trigger={
-                <div className="flex h-full items-center">
-                  <Image
-                    src={getSirLogo()}
-                    height={24}
-                    width={24}
-                    className=" "
-                    alt="Boost Icon"
+                <div className="relative cursor-pointer">
+                  <img
+                    src="/images/hat.svg"
+                    width="18"
+                    height="18"
+                    className="hat-outline absolute -top-[11px] left-1/2 z-10"
+                    alt="SIR Rewards Hat"
+                    style={{
+                      width: "18px",
+                      height: "18px",
+                      minWidth: "18px",
+                      minHeight: "18px",
+                      transform: "translateX(-40%) rotate(8deg)",
+                    }}
                   />
+                  <span className="pt-1">{pool.vaultId}</span>
                 </div>
               }
             >
@@ -322,10 +329,12 @@ export function VaultTableRow({
                 SIR/day.
               </span>
             </HoverPopupMobile>
+          ) : (
+            <span>{pool.vaultId}</span>
           )}
         </div>
       </td>
-      <td className="flex-shrink-0 w-24 min-[650px]:flex-1 min-[650px]:min-w-0 lg:w-24 lg:flex-shrink-0 min-[1130px]:flex-1 lg:max-w-none min-[650px]:max-w-[200px]">
+      <td className="w-24 flex-shrink-0 min-[650px]:min-w-0 min-[650px]:max-w-[200px] min-[650px]:flex-1 lg:w-24 lg:max-w-none lg:flex-shrink-0 min-[1130px]:flex-1">
         {/* Mobile view - compact logos only with leverage */}
         <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
           <TokenImage
@@ -349,7 +358,7 @@ export function VaultTableRow({
               alignOffset={4}
               asChild
               trigger={
-                <sup className="ml-0.5 text-[10px] font-semibold text-red cursor-help">
+                <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
                   {showPercent()
                     ? getRealLeverage()
                     : getLeverageRatio(pool.leverageTier)}
@@ -400,7 +409,7 @@ export function VaultTableRow({
               alignOffset={4}
               asChild
               trigger={
-                <sup className="ml-0.5 text-[10px] font-semibold text-red cursor-help">
+                <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
                   {showPercent()
                     ? getRealLeverage()
                     : getLeverageRatio(pool.leverageTier)}
@@ -452,7 +461,7 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="flex-shrink-0 w-16 sm:w-20 pl-2 sm:pl-3">
+      <td className="w-16 flex-shrink-0 pl-2 sm:w-20 sm:pl-3">
         {!isApe ? (
           <HoverPopupMobile
             size="250"
@@ -519,10 +528,10 @@ export function VaultTableRow({
           </h4>
         )}
       </td>
-      <td className="hidden text-[13px] font-normal text-foreground/80 min-[450px]:block flex-shrink-0 w-16 pl-2">
+      <td className="hidden w-16 flex-shrink-0 pl-2 text-[13px] font-normal text-foreground/80 min-[450px]:block">
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
-      <td className="relative hidden items-center xl:flex flex-shrink-0 w-20">
+      <td className="relative hidden w-20 flex-shrink-0 items-center xl:flex">
         <HoverPopupMobile
           size="200"
           alignOffset={4}
@@ -559,7 +568,7 @@ export function VaultTableRow({
         </HoverPopupMobile>
       </td>
 
-      <td className="flex items-center justify-end gap-x-1 text-right flex-shrink-0 w-20 min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
+      <td className="flex w-20 flex-shrink-0 items-center justify-end gap-x-1 text-right min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
         <HoverPopupMobile
           size="250"
           asChild
@@ -570,7 +579,6 @@ export function VaultTableRow({
               transition={{ duration: 1 }}
             >
               <TokenDisplay
-                
                 amountSize="small"
                 amount={parseUnits(pool.totalValue, 0)}
                 decimals={pool.apeDecimals}

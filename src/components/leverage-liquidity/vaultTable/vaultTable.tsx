@@ -120,7 +120,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
 function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
   return (
     <tr className="flex items-center justify-between text-left text-[14px] font-normal text-muted-foreground">
-      <th className="font-medium flex-shrink-0 w-12 sm:w-14">Id</th>
+      <th className="font-medium flex-shrink-0 w-12 sm:w-14 pl-3">Id</th>
       <th className="font-medium flex-shrink-0 w-24 min-[650px]:flex-1 min-[650px]:min-w-0 lg:w-24 lg:flex-shrink-0 min-[1130px]:flex-1 lg:max-w-none min-[650px]:max-w-[200px] text-left">
         Vault
       </th>

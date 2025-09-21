@@ -29,20 +29,23 @@
   }
 
   25% {
-    text-shadow: 0 0 10px hsla(265, 100%, 58%, 0.9),
-                 0 0 20px hsla(265, 100%, 58%, 0.7);
+    text-shadow:
+      0 0 10px hsla(265, 100%, 58%, 0.9),
+      0 0 20px hsla(265, 100%, 58%, 0.7);
   }
 
   50% {
-    text-shadow: 0 0 20px hsla(265, 100%, 58%, 0.7),
-                 0 0 30px hsla(265, 100%, 58%, 0.5),
-                 0 0 40px hsla(265, 100%, 58%, 0.3);
+    text-shadow:
+      0 0 20px hsla(265, 100%, 58%, 0.7),
+      0 0 30px hsla(265, 100%, 58%, 0.5),
+      0 0 40px hsla(265, 100%, 58%, 0.3);
   }
 
   75% {
-    text-shadow: 0 0 30px hsla(265, 100%, 58%, 0.4),
-                 0 0 40px hsla(265, 100%, 58%, 0.2),
-                 0 0 50px hsla(265, 100%, 58%, 0.1);
+    text-shadow:
+      0 0 30px hsla(265, 100%, 58%, 0.4),
+      0 0 40px hsla(265, 100%, 58%, 0.2),
+      0 0 50px hsla(265, 100%, 58%, 0.1);
   }
 
   100% {
@@ -57,20 +60,23 @@
   }
 
   25% {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.9),
-                 0 0 20px rgba(255, 255, 255, 0.7);
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.9),
+      0 0 20px rgba(255, 255, 255, 0.7);
   }
 
   50% {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.7),
-                 0 0 30px rgba(255, 255, 255, 0.5),
-                 0 0 40px rgba(255, 255, 255, 0.3);
+    text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.7),
+      0 0 30px rgba(255, 255, 255, 0.5),
+      0 0 40px rgba(255, 255, 255, 0.3);
   }
 
   75% {
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.4),
-                 0 0 40px rgba(255, 255, 255, 0.2),
-                 0 0 50px rgba(255, 255, 255, 0.1);
+    text-shadow:
+      0 0 30px rgba(255, 255, 255, 0.4),
+      0 0 40px rgba(255, 255, 255, 0.2),
+      0 0 50px rgba(255, 255, 255, 0.1);
   }
 
   100% {
@@ -93,8 +99,9 @@ html.dark .auction-pulse {
   }
 
   70% {
-    box-shadow: 0 0 0 10px rgba(198, 168, 91, 0),
-                0 0 35px rgba(198, 168, 91, 0);
+    box-shadow:
+      0 0 0 10px rgba(198, 168, 91, 0),
+      0 0 35px rgba(198, 168, 91, 0);
   }
 
   100% {
@@ -108,8 +115,9 @@ html.dark .auction-pulse {
   }
 
   70% {
-    box-shadow: 0 0 0 12px rgba(198, 168, 91, 0),
-                0 0 40px rgba(198, 168, 91, 0);
+    box-shadow:
+      0 0 0 12px rgba(198, 168, 91, 0),
+      0 0 40px rgba(198, 168, 91, 0);
   }
 
   100% {
@@ -124,9 +132,10 @@ html.dark .auction-pulse {
   }
 
   50% {
-    text-shadow: 0 0 20px rgba(198, 168, 91, 0.9),
-                 0 0 30px rgba(198, 168, 91, 0.7),
-                 0 0 40px rgba(198, 168, 91, 0.5);
+    text-shadow:
+      0 0 20px rgba(198, 168, 91, 0.9),
+      0 0 30px rgba(198, 168, 91, 0.7),
+      0 0 40px rgba(198, 168, 91, 0.5);
   }
 
   100% {
@@ -140,9 +149,10 @@ html.dark .auction-pulse {
   }
 
   50% {
-    text-shadow: 0 0 20px rgba(198, 168, 91, 0.9),
-                 0 0 35px rgba(198, 168, 91, 0.7),
-                 0 0 50px rgba(198, 168, 91, 0.5);
+    text-shadow:
+      0 0 20px rgba(198, 168, 91, 0.9),
+      0 0 35px rgba(198, 168, 91, 0.7),
+      0 0 50px rgba(198, 168, 91, 0.5);
   }
 
   100% {
@@ -208,7 +218,7 @@ html {
     --muted: 210 40% 96.1%;
     --muted-foreground: 240, 15%, 50%, 1;
 
-    --background: 0, 0%, 100%;  /* When changing this, change the last color of `.gradient-bg` too */
+    --background: 0, 0%, 100%; /* When changing this, change the last color of `.gradient-bg` too */
     --foreground: 240, 15%, 13%;
     --border: 0, 0%, 100%;
     --primary: 265, 100%, 58%;
@@ -267,6 +277,44 @@ html {
 
 .scale-up {
   animation: scaleUp 0.2s ease-in-out;
+}
+
+/* Hat outline for dark mode */
+.hat-outline {
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+html.dark .hat-outline {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 1px rgba(255, 255, 255, 1))
+    drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* SIR Hat floating animation */
+@keyframes hat-float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+.sir-hat-float {
+  animation: hat-float 3s ease-in-out infinite;
+}
+
+/* Enhance on parent hover */
+tr:hover .sir-hat-float {
+  animation: hat-float 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(198, 168, 91, 0.5));
 }
 
 @layer utilities {
