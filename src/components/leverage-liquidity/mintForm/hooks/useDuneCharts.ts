@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAccount } from "wagmi";
+import { env } from "@/env";
 
 type VaultChartConfigs = Record<number, Record<string, string>>;
 
@@ -27,7 +27,8 @@ const VAULT_CHARTS: VaultChartConfigs = {
 };
 
 export function useDuneCharts(vaultId?: string) {
-  const { chainId } = useAccount();
+  // Use the app's configured chain ID instead of wallet's connected chain
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
   const embedUrl = useMemo(() => {
     if (!vaultId || !chainId) return null;
