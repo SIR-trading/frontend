@@ -66,7 +66,8 @@ export default function NavItem({
       >
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {children}
-        {(hasNotification ?? hasRewardsNotification ?? hasDividendsNotification) && (
+        {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+        {(hasRewardsNotification || hasDividendsNotification) && (
           <span className="ml-1.5 inline-flex flex-col gap-1">
             {hasRewardsNotification && (
               <span

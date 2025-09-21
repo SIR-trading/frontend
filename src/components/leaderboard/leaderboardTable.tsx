@@ -13,8 +13,8 @@ import {
   Accordion,
 } from "@/components/ui/accordion";
 import { fromHex } from "viem";
-import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
+import { useVaultData } from "@/contexts/VaultDataContext";
 
 export const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 
@@ -60,15 +60,13 @@ function LeaderboardTable<T, P>({
   const [isClient, setIsClient] = useState(false);
   const { address: userAddress, isConnected } = useAccount();
 
-  const { data: vaults } = api.vault.getVaults.useQuery(
-    {
-      sortbyVaultId: true,
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      placeholderData: (previousData) => previousData,
-    },
-  );
+  const { allVaults: vaultsData } = useVaultData();
+
+  // Transform the vault data to match the expected format
+  const vaults = useMemo(() => {
+    if (!vaultsData) return undefined;
+    return { vaults: vaultsData };
+  }, [vaultsData]);
 
   const vault = useCallback(
     (_vaultId: `0x${string}`) => {

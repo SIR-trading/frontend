@@ -2,7 +2,7 @@
 
 import { Form } from "@/components/ui/form";
 import { useFormContext } from "react-hook-form";
-import { useAccount, useWaitForTransactionReceipt } from "wagmi";
+import { useWaitForTransactionReceipt } from "wagmi";
 
 import { useEffect, useState } from "react";
 
@@ -25,18 +25,15 @@ import ErrorMessage from "@/components/ui/error-message";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import Image from "next/image";
 import DisplayFormattedNumber from "../../displayFormattedNumber";
+import { useStaking } from "@/contexts/StakingContext";
 
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const form = useFormContext<TUnstakeFormFields>();
   const formData = form.watch();
 
-  const { address, isConnected } = useAccount();
 
-  const { data: balance } = api.user.getUnstakedSirBalance.useQuery(
-    { user: address },
-    { enabled: isConnected },
-  );
+  const { unstakedBalance: balance } = useStaking();
   const { stake, isFetching: unstakeFetching } = useStake({
     amount: parseUnits(formData.amount ?? "0", 12),
   });

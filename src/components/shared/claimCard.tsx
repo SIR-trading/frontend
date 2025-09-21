@@ -1,7 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Button } from "../ui/button";
-import { api } from "@/trpc/react";
-import { useEffect } from "react";
 import {
   useAccount,
   useWriteContract,
@@ -18,13 +16,19 @@ import { formatUnits } from "viem";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { TokenImage } from "./TokenImage";
 import { env } from "@/env";
+import { useClaimableBalances } from "@/hooks/useClaimableBalances";
+import { api } from "@/trpc/react";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
 
   const { claimData } = useClaim();
 
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
+
+  // Use the context instead of making our own query
+  const { dividendsAmount: dividends, isLoading } = useClaimableBalances();
+  const dividendsLoading = isLoading;
 
   // Determine glow threshold based on chain
   const glowThreshold = useMemo(() => {
@@ -33,13 +37,6 @@ export default function ClaimCard() {
     // 1 HYPE for HyperEVM, 0.01 ETH for Ethereum
     return isHyperEVM ? 1000000000000000000n : 10000000000000000n;
   }, []);
-
-  const { data: dividends, isLoading: dividendsLoading } = api.user.getUserSirDividends.useQuery(
-    { user: address },
-    {
-      enabled: isConnected,
-    },
-  );
 
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
   const { isSuccess: isConfirmed, isLoading: isConfirming } =
@@ -66,7 +63,7 @@ export default function ClaimCard() {
 
   useEffect(() => {
     if (isConfirmed)
-      utils.user.getUserSirDividends.invalidate().catch((e) => console.log(e));
+      utils.user.getUserSirDividends.invalidate().catch((e: unknown) => console.log(e));
   }, [isConfirmed, utils.user.getUserSirDividends]);
   return (
     <div className=" border-secondary-300">

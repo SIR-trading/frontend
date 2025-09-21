@@ -1,8 +1,8 @@
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import type { TVaults, VaultFieldFragment } from "@/lib/types";
-import { api } from "@/trpc/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
+import { useVaultData } from "@/contexts/VaultDataContext";
 
 interface Props {
   vaultsQuery: TVaults;
@@ -13,17 +13,26 @@ interface Props {
 export function useFilterVaults({ vaultsQuery }: Props) {
   const form = useFormContext<TCalculatorFormFields>();
   const formData = form.watch();
-  
-  // Skip query if fields are not selected
+  const { allVaults } = useVaultData();
+
+  // Skip filtering if fields are not selected
   const skipQuery = !formData.versus && !formData.long && !formData.leverageTier;
-  
-  const { data, isFetching } = api.vault.getVaults.useQuery({
-    filterDebtToken: formData.versus?.split(",")[0] ?? "",
-    filterCollateralToken: formData.long?.split(",")[0] ?? "",
-    filterLeverage: formData.leverageTier || "",
-  }, {
-    enabled: !skipQuery
-  });
+
+  // Filter vaults using the context data instead of making a new query
+  const data = useMemo(() => {
+    if (!allVaults || skipQuery) return undefined;
+
+    const filtered = allVaults.filter(vault => {
+      if (formData.versus && vault.debtToken !== formData.versus.split(",")[0]) return false;
+      if (formData.long && vault.collateralToken !== formData.long.split(",")[0]) return false;
+      if (formData.leverageTier && vault.leverageTier !== parseInt(formData.leverageTier)) return false;
+      return true;
+    });
+
+    return { vaults: filtered };
+  }, [allVaults, formData.versus, formData.long, formData.leverageTier, skipQuery]);
+
+  const isFetching = false; // No longer fetching since we're using context data
   const [filters, setFilters] = useState<{
     versus: VaultFieldFragment[];
     long: VaultFieldFragment[];

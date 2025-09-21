@@ -14,13 +14,14 @@ import Show from "../shared/show";
 import { api } from "@/trpc/react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useClaim } from "../stake/hooks/useClaim";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Coins, TrendingDown, Wallet, Lock, LockOpen } from "lucide-react";
 import ToolTip from "../ui/tooltip";
 import HoverPopup from "../ui/hover-popup";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
+import { useStaking } from "@/contexts/StakingContext";
 
 export default function StakingDashboard() {
   const [stakeModal, setStakeModal] = useState(false);
@@ -28,29 +29,21 @@ export default function StakingDashboard() {
   const [claimModal, setClaimModal] = useState(false);
   
   const { isConnected, address } = useAccount();
-  
-  // Fetch protocol data
-  const { data: unstakedSupply, isLoading: unstakedSupplyLoading } = api.user.getSirSupply.useQuery();
-  const { data: totalSupply, isLoading: totalSupplyLoading } = api.user.getSirTotalSupply.useQuery();
-  const { data: apr, isLoading: aprLoading } = api.user.getMonthlyApr.useQuery();
-  
-  const totalValueLocked = useMemo(() => {
-    if (totalSupply !== undefined && unstakedSupply !== undefined) {
-      return totalSupply - unstakedSupply;
-    }
-    return 0n;
-  }, [unstakedSupply, totalSupply]);
-  
-  // Fetch balances
-  const { data: unstakedBalance, isLoading: unstakedLoading } = api.user.getUnstakedSirBalance.useQuery(
-    { user: address },
-    { enabled: isConnected }
-  );
-  
-  const { data: stakedPosition, isLoading: stakedLoading } = api.user.getStakedSirPosition.useQuery(
-    { user: address ?? "0x" },
-    { enabled: isConnected }
-  );
+
+  // Use StakingContext for all staking-related queries
+  const {
+    unstakedBalance,
+    stakedPosition,
+    unstakedLoading,
+    stakedLoading,
+    totalSupply,
+    unstakedSupply,
+    totalValueLocked,
+    apr,
+    totalSupplyLoading,
+    unstakedSupplyLoading,
+    aprLoading,
+  } = useStaking();
   
   const { data: dividends, isLoading: dividendsLoading } = api.user.getUserSirDividends.useQuery(
     { user: address },
@@ -123,7 +116,7 @@ export default function StakingDashboard() {
                 <div className="text-xl font-semibold">
                   {apr && parseFloat(apr.apr) > 0 ? (
                     <>
-                      <DisplayFormattedNumber num={parseFloat(apr.apr)} />%
+                      <DisplayFormattedNumber num={apr.apr} />%
                     </>
                   ) : (
                     'N/A'

@@ -1,9 +1,9 @@
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import type { TVaults, VaultFieldFragment } from "@/lib/types";
 import { parseAddress } from "@/lib/utils/index";
-import { api } from "@/trpc/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
+import { useVaultData } from "@/contexts/VaultDataContext";
 
 interface Props {
   vaultsQuery: TVaults;
@@ -14,18 +14,27 @@ interface Props {
 export function useFilterVaults({ vaultsQuery }: Props) {
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
-  
-  // Skip query if fields are not selected
+  const { allVaults } = useVaultData();
+
+  // Skip filtering if fields are not selected
   const skipQuery = !formData.versus && !formData.long && !formData.leverageTier;
-  
-  const { data, isFetching } = api.vault.getVaults.useQuery({
-    filterDebtToken: parseAddress(formData.versus || ""),
-    filterCollateralToken: parseAddress(formData.long || ""),
-    filterLeverage: formData.leverageTier || "",
-    first: 40,
-  }, {
-    enabled: !skipQuery
-  });
+
+  // Filter vaults using the context data instead of making a new query
+  const data = useMemo(() => {
+    if (!allVaults || skipQuery) return undefined;
+
+    const filtered = allVaults.filter(vault => {
+      if (formData.versus && vault.debtToken !== parseAddress(formData.versus)) return false;
+      if (formData.long && vault.collateralToken !== parseAddress(formData.long)) return false;
+      if (formData.leverageTier && vault.leverageTier !== parseInt(formData.leverageTier)) return false;
+      return true;
+    });
+
+    // Limit to 40 vaults like the original query
+    return { vaults: filtered.slice(0, 40) };
+  }, [allVaults, formData.versus, formData.long, formData.leverageTier, skipQuery]);
+
+  const isFetching = false; // No longer fetching since we're using context data
   const [filters, setFilters] = useState<{
     versus: VaultFieldFragment[];
     long: VaultFieldFragment[];

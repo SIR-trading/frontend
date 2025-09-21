@@ -1,20 +1,14 @@
 "use client";
-import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import StakeCard from "./stakeCard";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
 import { getSirSymbol } from "@/lib/assets";
+import { useStaking } from "@/contexts/StakingContext";
 
 export function SirCard() {
-  const { isConnected, address } = useAccount();
-  const { data: totalBalance, isLoading: balanceLoading } =
-    api.user.getUnstakedSirBalance.useQuery(
-      {
-        user: address,
-      },
-      { enabled: isConnected },
-    );
+  const { isConnected } = useAccount();
+  const { unstakedBalance: totalBalance, unstakedLoading: balanceLoading } = useStaking();
   return (
     <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
       <div className="flex justify-between rounded-md text-2xl">

@@ -1,8 +1,6 @@
 "use client";
 
-import { api } from "@/trpc/react";
 import type { ReactNode } from "react";
-import { useMemo } from "react";
 import { TokenDisplay } from "@/components/ui/token-display";
 import { Card } from "@/components/ui/card";
 import Show from "@/components/shared/show";
@@ -10,34 +8,20 @@ import { useAccount } from "wagmi";
 import { getSirSymbol } from "@/lib/assets";
 import { Lock, LockOpen } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
+import { useStaking } from "@/contexts/StakingContext";
 
 const StakeData = ({ children }: { children: ReactNode }) => {
-  const { 
-    data: unstakedSupply, 
-    isLoading: unstakedSupplyLoading 
-  } = api.user.getSirSupply.useQuery();
-  const { 
-    data: totalSupply, 
-    isLoading: totalSupplyLoading 
-  } = api.user.getSirTotalSupply.useQuery();
+  const { isConnected } = useAccount();
 
-  const { address, isConnected } = useAccount();
-  const { 
-    data: stakedPosition, 
-    isLoading: stakedPositionLoading 
-  } = api.user.getStakedSirPosition.useQuery(
-    { user: address ?? "0x" },
-    { enabled: isConnected },
-  );
+  const {
+    stakedPosition,
+    totalValueLocked,
+    unstakedSupplyLoading,
+    totalSupplyLoading,
+    stakedLoading: stakedPositionLoading,
+  } = useStaking();
 
-  const totalValueLocked = useMemo(() => {
-    if (totalSupply !== undefined && unstakedSupply !== undefined) {
-      return totalSupply - unstakedSupply;
-    }
-    return undefined;
-  }, [unstakedSupply, totalSupply]);
-
-  const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading || totalValueLocked === undefined;
+  const isLoadingTVL = unstakedSupplyLoading || totalSupplyLoading;
   const isLoadingUserStake = stakedPositionLoading;
 
   return (

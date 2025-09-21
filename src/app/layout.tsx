@@ -15,6 +15,9 @@ import MintFormProvider from "@/components/providers/mintFormProvider";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import FloatingNetworkBadge from "@/components/floatingNetworkBadge";
+import { ClaimableBalancesProvider } from "@/contexts/ClaimableBalancesContext";
+import { VaultDataProvider } from "@/contexts/VaultDataContext";
+import { StakingProvider } from "@/contexts/StakingContext";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -71,27 +74,33 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <TRPCReactProvider>
               <TokenlistContextProvider>
                 <EvmProvider>
-                  <VaultProvider>
-                    <MintFormProvider>
-                      <div className=" flex min-h-screen flex-col">
-                        <Header />
-                        <Warning />
-                        <div className="">
-                          <div className="flex flex-col justify-center">
-                            <div
-                              className={
-                                "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6"
-                              }
-                            >
-                              {children}
-                            </div>{" "}
+                  <VaultDataProvider>
+                    <StakingProvider>
+                      <ClaimableBalancesProvider>
+                        <VaultProvider>
+                          <MintFormProvider>
+                        <div className=" flex min-h-screen flex-col">
+                          <Header />
+                          <Warning />
+                          <div className="">
+                            <div className="flex flex-col justify-center">
+                              <div
+                                className={
+                                  "mx-auto mt-8  min-h-[calc(100vh-200px)] w-full max-w-[1280px]  rounded-[8px] p-6"
+                                }
+                              >
+                                {children}
+                              </div>{" "}
+                            </div>
                           </div>
+                          <Footer />
+                          <FloatingNetworkBadge />
                         </div>
-                        <Footer />
-                        <FloatingNetworkBadge />
-                      </div>
-                    </MintFormProvider>
-                  </VaultProvider>
+                          </MintFormProvider>
+                        </VaultProvider>
+                      </ClaimableBalancesProvider>
+                    </StakingProvider>
+                  </VaultDataProvider>
                 </EvmProvider>
               </TokenlistContextProvider>
             </TRPCReactProvider>

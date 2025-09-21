@@ -2,22 +2,16 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { StakeModal } from "../shared/stake/stakeModal";
 import StakeFormProvider from "../providers/stakeFormProvider";
-import { api } from "@/trpc/react";
 import { useAccount } from "wagmi";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
 import { getSirSymbol } from "@/lib/assets";
+import { useStaking } from "@/contexts/StakingContext";
 
 export default function StakeCard() {
   const [openModal, setOpenModal] = useState(false);
-  const { address, isConnected } = useAccount();
-  const { 
-    data: userUnstakedSir, 
-    isLoading: unstakedSirLoading 
-  } = api.user.getUnstakedSirBalance.useQuery(
-    { user: address },
-    { enabled: isConnected },
-  );
+  const { isConnected } = useAccount();
+  const { unstakedBalance: userUnstakedSir, unstakedLoading: unstakedSirLoading } = useStaking();
   return (
     <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
       <StakeFormProvider>

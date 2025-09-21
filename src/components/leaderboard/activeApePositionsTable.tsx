@@ -14,6 +14,7 @@ import Show from "@/components/shared/show";
 import { Button } from "@/components/ui/button";
 import { BurnFormModal } from "@/components/portfolio/burnTable/burnFormModal";
 import BurnForm from "@/components/portfolio/burnForm/burnForm";
+import { useVaultData } from "@/contexts/VaultDataContext";
 
 const cellStyling = "pr-2 md:pr-4 py-2.5 flex-1 flex items-center";
 
@@ -39,16 +40,13 @@ export const ActiveApePositionsTable: React.FC<
     positionAddress: string;
   } | null>(null);
 
-  const { data: vaults } = api.vault.getVaults.useQuery(
-    {
-      sortbyVaultId: true,
-      first: 1000, // Fetch more vaults to ensure all are included
-    },
-    {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      placeholderData: (previousData) => previousData,
-    },
-  );
+  const { allVaults: vaultsData } = useVaultData();
+
+  // Transform the vault data to match the expected format
+  const vaults = useMemo(() => {
+    if (!vaultsData) return undefined;
+    return { vaults: vaultsData };
+  }, [vaultsData]);
 
   const { data: userBalancesInVaults } =
     api.user.getUserBalancesInVaults.useQuery(

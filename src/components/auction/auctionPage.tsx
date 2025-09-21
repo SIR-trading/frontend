@@ -12,6 +12,7 @@ import Explainer from "../shared/explainer";
 import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
 import { getNativeCurrencySymbol, getAuctionBidIncreasePercentage } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
+import { useVaultData } from "@/contexts/VaultDataContext";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -20,10 +21,16 @@ export type TUniqueAuctionCollection = {
 };
 
 const AuctionPage = () => {
-  const { data: vaults } = api.vault.getVaults.useQuery();
+  const { allVaults: vaultsData } = useVaultData();
   const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
   const { data: expiredAuctions } = api.auction.getExpiredAuctions.useQuery({});
   const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery();
+
+  // Transform the vault data to match the expected format
+  const vaults = useMemo(() => {
+    if (!vaultsData) return undefined;
+    return { vaults: vaultsData };
+  }, [vaultsData]);
 
   const uniqueAuctionCollection = useMemo<TUniqueAuctionCollection>(() => {
     const uniqueCollateralToken = new Set<string>();

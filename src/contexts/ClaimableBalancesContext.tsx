@@ -1,0 +1,143 @@
+"use client";
+import React, { createContext, useContext, type ReactNode } from "react";
+import { useAccount } from "wagmi";
+import { api } from "@/trpc/react";
+import { useEffect, useState, useMemo } from "react";
+import { useClaim } from "@/components/stake/hooks/useClaim";
+import { env } from "@/env";
+
+interface ClaimableBalancesContextType {
+  hasClaimableBalances: boolean;
+  dividendsAmount: bigint;
+  rewardsAmount: bigint;
+  stakingRewardsAmount: bigint;
+  contributorRewardsAmount: bigint;
+  teaRewardsAmount: bigint;
+  isLoading: boolean;
+  hasDividendsAboveThreshold: boolean;
+  hasRewardsAboveThreshold: boolean;
+}
+
+const ClaimableBalancesContext = createContext<ClaimableBalancesContextType | undefined>(undefined);
+
+export function ClaimableBalancesProvider({ children }: { children: ReactNode }) {
+  const { isConnected, address } = useAccount();
+  const [hasClaimableBalances, setHasClaimableBalances] = useState(false);
+
+  // Determine thresholds based on chain
+  const { dividendsThreshold, rewardsThreshold } = useMemo(() => {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    const isHyperEVM = chainId === 998 || chainId === 999;
+    return {
+      // 1 HYPE for HyperEVM, 0.01 ETH for Ethereum
+      dividendsThreshold: isHyperEVM ? 1000000000000000000n : 10000000000000000n,
+      // 100k SIR for rewards
+      rewardsThreshold: 100000000000000000n
+    };
+  }, []);
+
+  // Get ETH/HYPE dividends
+  const { data: dividends } = api.user.getUserSirDividends.useQuery(
+    { user: address },
+    {
+      enabled: isConnected && !!address,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchInterval: false,
+    }
+  );
+
+  // Get SIR/HyperSIR rewards from staking
+  const { claimData } = useClaim();
+
+  // Get contributor rewards
+  const { data: contributorRewards } = api.user.getUnclaimedContributorRewards.useQuery(
+    { user: address },
+    {
+      enabled: isConnected && !!address,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchInterval: false,
+    }
+  );
+
+  // Get TEA vault rewards (unclaimedSirRewards for each vault)
+  const { data: userBalancesInVaults } = api.user.getUserBalancesInVaults.useQuery(
+    { address },
+    {
+      enabled: isConnected && !!address,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+    }
+  );
+
+  // Calculate total TEA vault rewards and check if any single vault meets threshold
+  const totalTeaRewards = useMemo(() => {
+    if (!userBalancesInVaults?.unclaimedSirRewards) return 0n;
+    return userBalancesInVaults.unclaimedSirRewards.reduce(
+      (sum, reward) => sum + (reward ?? 0n),
+      0n
+    );
+  }, [userBalancesInVaults?.unclaimedSirRewards]);
+
+  // Check if any single vault has rewards above threshold
+  const hasAnyVaultAboveThreshold = useMemo(() => {
+    if (!userBalancesInVaults?.unclaimedSirRewards) return false;
+    return userBalancesInVaults.unclaimedSirRewards.some(
+      reward => reward && reward >= rewardsThreshold
+    );
+  }, [userBalancesInVaults?.unclaimedSirRewards, rewardsThreshold]);
+
+  useEffect(() => {
+    const hasDividends = Boolean(dividends && dividends > 0n);
+    const hasStakingRewards = Boolean(claimData?.result && claimData.result > 0n);
+    const hasContributorRewards = Boolean(contributorRewards && contributorRewards > 0n);
+    const hasTeaRewards = Boolean(totalTeaRewards && totalTeaRewards > 0n);
+    setHasClaimableBalances(hasDividends || hasStakingRewards || hasContributorRewards || hasTeaRewards);
+  }, [dividends, claimData?.result, contributorRewards, totalTeaRewards]);
+
+  // Check if dividends meet threshold
+  const hasDividendsAboveThreshold = Boolean(dividends && dividends >= dividendsThreshold);
+
+  // Check if any rewards meet threshold individually
+  const hasRewardsAboveThreshold = Boolean(
+    /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+    (contributorRewards && contributorRewards >= rewardsThreshold) ||
+    hasAnyVaultAboveThreshold
+  );
+
+  const value = useMemo(() => ({
+    hasClaimableBalances,
+    dividendsAmount: dividends ?? 0n,
+    rewardsAmount: (claimData?.result ?? 0n) + (contributorRewards ?? 0n) + totalTeaRewards,
+    stakingRewardsAmount: claimData?.result ?? 0n,
+    contributorRewardsAmount: contributorRewards ?? 0n,
+    teaRewardsAmount: totalTeaRewards,
+    isLoading: !dividends && !claimData && !contributorRewards && !userBalancesInVaults,
+    hasDividendsAboveThreshold,
+    hasRewardsAboveThreshold,
+  }), [
+    hasClaimableBalances,
+    dividends,
+    claimData,
+    contributorRewards,
+    totalTeaRewards,
+    userBalancesInVaults,
+    hasDividendsAboveThreshold,
+    hasRewardsAboveThreshold,
+  ]);
+
+  return (
+    <ClaimableBalancesContext.Provider value={value}>
+      {children}
+    </ClaimableBalancesContext.Provider>
+  );
+}
+
+export function useClaimableBalances() {
+  const context = useContext(ClaimableBalancesContext);
+  if (context === undefined) {
+    throw new Error("useClaimableBalances must be used within a ClaimableBalancesProvider");
+  }
+  return context;
+}
