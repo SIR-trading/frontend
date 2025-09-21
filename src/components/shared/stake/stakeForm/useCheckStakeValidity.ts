@@ -142,6 +142,7 @@ export const useCheckStakeValidity = ({
         };
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     chainId,
     deposit,

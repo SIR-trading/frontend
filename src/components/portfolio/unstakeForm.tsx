@@ -17,7 +17,6 @@ import StakeInput from "@/components/shared/stake/stakeInput";
 import { useUnstake } from "../stake/hooks/useUnstake";
 import ClaimFeesCheckbox from "./claimFeesCheck";
 import { useGetReceivedSir } from "./hooks/useGetReceivedSir";
-import { TokenDisplay } from "../ui/token-display";
 import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";

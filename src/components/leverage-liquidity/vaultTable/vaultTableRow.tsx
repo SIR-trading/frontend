@@ -1,7 +1,5 @@
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { roundDown } from "@/lib/utils";
-import Image from "next/image";
-import { getSirLogo } from "@/lib/assets";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
@@ -302,6 +300,7 @@ export function VaultTableRow({
               asChild
               trigger={
                 <div className="relative cursor-pointer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/images/hat.svg"
                     width="18"

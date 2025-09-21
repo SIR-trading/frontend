@@ -55,11 +55,11 @@ export function useClaimableBalances() {
   // Check if dividends meet threshold
   const hasDividendsAboveThreshold = Boolean(dividends && dividends >= dividendsThreshold);
 
-  // Check if any rewards meet threshold
-  const stakingRewards = claimData?.result ?? 0n;
+  // Check if contributor rewards meet threshold
+  // Note: TEA rewards are checked separately per vault in burnTableRow
+  // We don't check staking rewards here as they're not displayed as a separate claimable amount
   const hasRewardsAboveThreshold = Boolean(
-    (stakingRewards >= rewardsThreshold) ||
-    (contributorRewards && contributorRewards >= rewardsThreshold)
+    contributorRewards && contributorRewards >= rewardsThreshold
   );
 
   return {

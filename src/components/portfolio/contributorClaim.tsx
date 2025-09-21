@@ -78,7 +78,6 @@ export default function ContributorClaim() {
         claimAndStake={checked}
         setClaimAndStake={setChecked}
         onSubmit={onSubmit}
-        title="Claim"
         checkboxLabel="Mint and stake"
       />
 

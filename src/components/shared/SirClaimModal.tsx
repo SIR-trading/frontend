@@ -2,12 +2,9 @@ import React from "react";
 import TransactionModal from "./transactionModal";
 import { TransactionStatus } from "../leverage-liquidity/mintForm/transactionStatus";
 import { CircleCheck } from "lucide-react";
-import { TokenDisplay } from "../ui/token-display";
 import { Checkbox } from "../ui/checkbox";
 import Show from "./show";
 import ExplorerLink from "./explorerLink";
-import { TokenImage } from "./TokenImage";
-import { SirContract } from "@/contracts/sir";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import Image from "next/image";
 import DisplayFormattedNumber from "./displayFormattedNumber";
@@ -25,7 +22,6 @@ interface SirClaimModalProps {
   setClaimAndStake: (value: boolean) => void;
   onSubmit: () => void;
   onClose?: () => void;
-  title?: string;
 }
 
 export function SirClaimModal({
@@ -40,7 +36,6 @@ export function SirClaimModal({
   setClaimAndStake,
   onSubmit,
   onClose,
-  title = "Claim Rewards",
 }: SirClaimModalProps) {
   const handleClose = (value: boolean) => {
     setOpen(value);

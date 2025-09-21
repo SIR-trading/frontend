@@ -10,7 +10,6 @@ import { getCurrentTime } from "@/lib/utils/index";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { Button } from "@/components/ui/button";
 import TransactionModal from "@/components/shared/transactionModal";
-import { TransactionEstimates } from "@/components/shared/transactionEstimates";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
 import { useGetTxTokens } from "./hooks/useGetTxTokens";
 import { X } from "lucide-react";
@@ -242,7 +241,6 @@ export default function BurnForm({
           setClaimAndStake={setClaimAndStake}
           onSubmit={onSubmit}
           onClose={close}
-          title="Claim Rewards"
         />
       </>
     );

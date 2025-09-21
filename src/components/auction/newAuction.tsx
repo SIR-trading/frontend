@@ -21,7 +21,7 @@ import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton"
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { TokenImage } from "@/components/shared/TokenImage";
 import type { Address } from "viem";
-import { getWrappedTokenSymbol, getNativeCurrencySymbol } from "@/lib/chains";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 import { formatUnits } from "viem";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CircleCheck } from "lucide-react";

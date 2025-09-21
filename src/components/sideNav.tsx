@@ -21,8 +21,7 @@ import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   const pathname = usePathname();
-  const { hasClaimableBalances, hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances() as {
-    hasClaimableBalances: boolean;
+  const { hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances() as {
     hasDividendsAboveThreshold: boolean;
     hasRewardsAboveThreshold: boolean;
   };
