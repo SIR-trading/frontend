@@ -16,9 +16,7 @@ const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
 });
 export function Header() {
   // Check for claimable balances
-  const { hasClaimableBalances, dividendsAmount, rewardsAmount } = useClaimableBalances();
-  const hasRewards = rewardsAmount > 0n;
-  const hasDividends = dividendsAmount > 0n;
+  const { hasClaimableBalances, hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances();
 
   // Determine if we're on a HyperEVM chain
   const isHyperEVM = useMemo(() => {
@@ -80,8 +78,8 @@ export function Header() {
                   url={"/portfolio"}
                   icon={Briefcase}
                   hasNotification={hasClaimableBalances}
-                  hasRewardsNotification={hasRewards}
-                  hasDividendsNotification={hasDividends}
+                  hasRewardsNotification={hasRewardsAboveThreshold}
+                  hasDividendsNotification={hasDividendsAboveThreshold}
                 >
                   Portfolio
                 </NavItem>

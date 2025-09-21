@@ -21,13 +21,11 @@ import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   const pathname = usePathname();
-  const { hasClaimableBalances, dividendsAmount, rewardsAmount } = useClaimableBalances() as {
+  const { hasClaimableBalances, hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances() as {
     hasClaimableBalances: boolean;
-    dividendsAmount: bigint;
-    rewardsAmount: bigint;
+    hasDividendsAboveThreshold: boolean;
+    hasRewardsAboveThreshold: boolean;
   };
-  const hasRewards = rewardsAmount > 0n;
-  const hasDividends = dividendsAmount > 0n;
 
   const menuItems = [
     {
@@ -86,9 +84,9 @@ export default function SideNav() {
                         >
                           <Icon className="h-4 w-4" />
                           {item.label}
-                          {item.url === "/portfolio" && hasClaimableBalances && (
+                          {item.url === "/portfolio" && (hasRewardsAboveThreshold || hasDividendsAboveThreshold) && (
                             <span className="ml-1 inline-flex flex-col gap-1">
-                              {hasRewards && (
+                              {hasRewardsAboveThreshold && (
                                 <span
                                   className="inline-block rounded-full animate-pulse"
                                   style={{
@@ -100,7 +98,7 @@ export default function SideNav() {
                                   }}
                                 />
                               )}
-                              {hasDividends && (
+                              {hasDividendsAboveThreshold && (
                                 <span
                                   className="inline-block rounded-full animate-pulse"
                                   style={{
