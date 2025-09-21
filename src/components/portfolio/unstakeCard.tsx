@@ -34,16 +34,13 @@ export function UnstakeCard() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   Your Stake
                 </h2>
-                <div className="flex justify-between text-3xl">
+                <div className="flex justify-between text-3xl min-h-[32px]">
                   <div className="flex items-end gap-x-1">
                     <Show
                       when={isConnected && !stakedPositionLoading}
                       fallback={
                         isConnected ? (
-                          <div className="space-y-2">
-                            <div className="h-6 w-24 animate-pulse rounded bg-foreground/10"></div>
-                            <div className="h-6 w-24 animate-pulse rounded bg-foreground/10"></div>
-                          </div>
+                          <div className="h-8 w-32 animate-pulse rounded bg-foreground/10"></div>
                         ) : (
                           <div className="text-sm italic text-foreground">
                             Connect to unstake
@@ -51,43 +48,49 @@ export function UnstakeCard() {
                         )
                       }
                     >
-                      <div className="flex flex-col gap-1">
-                        <HoverPopup
-                          trigger={
-                            <div className="flex items-center gap-1 cursor-default">
-                              <LockOpen className="h-4 w-4 text-muted-foreground" />
-                              <TokenDisplay
-                                amount={stakedSir.unlockedStake}
-                                decimals={12}
-                                unitLabel={getSirSymbol()}
-                                amountSize="medium"
-                              />
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <HoverPopup
+                            trigger={
+                              <div className="flex cursor-default items-center gap-1">
+                                <LockOpen className="h-4 w-4 text-muted-foreground" />
+                                <TokenDisplay
+                                  amount={stakedSir.unlockedStake}
+                                  decimals={12}
+                                  unitLabel=""
+                                />
+                              </div>
+                            }
+                            size="200"
+                          >
+                            <div className="text-xs font-normal">
+                              Available to withdraw anytime
                             </div>
-                          }
-                          size="200"
-                        >
-                          <div className="text-xs font-normal">
-                            Available to withdraw anytime
-                          </div>
-                        </HoverPopup>
-                        <HoverPopup
-                          trigger={
-                            <div className="flex items-center gap-1 cursor-default">
-                              <Lock className="h-4 w-4 text-muted-foreground" />
-                              <TokenDisplay
-                                amount={stakedSir.lockedStake}
-                                decimals={12}
-                                unitLabel={getSirSymbol()}
-                                amountSize="medium"
-                              />
+                          </HoverPopup>
+                          <span className="text-2xl text-muted-foreground">
+                            +
+                          </span>
+                          <HoverPopup
+                            trigger={
+                              <div className="flex cursor-default items-center gap-1">
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                                <TokenDisplay
+                                  amount={stakedSir.lockedStake}
+                                  decimals={12}
+                                  unitLabel=""
+                                />
+                              </div>
+                            }
+                            size="200"
+                          >
+                            <div className="text-xs font-normal">
+                              Locked stake cannot be withdrawn yet
                             </div>
-                          }
-                          size="200"
-                        >
-                          <div className="text-xs font-normal">
-                            Locked stake cannot be withdrawn yet
-                          </div>
-                        </HoverPopup>
+                          </HoverPopup>
+                        </div>
+                        <span className="ml-1 text-xl text-muted-foreground">
+                          {getSirSymbol()}
+                        </span>
                       </div>
                     </Show>
                   </div>

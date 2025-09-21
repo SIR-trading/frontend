@@ -10,38 +10,24 @@ import {
   Plus,
   Calculator,
 } from "lucide-react";
-import React, { useState, useMemo } from "react";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "./ui/sheet";
+import React, { useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
-import { env } from "@/env";
 import NetworkBadge from "./networkBadge";
+import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   const pathname = usePathname();
-
-  // Determine if we're on a HyperEVM chain
-  const isHyperEVM = useMemo(() => {
-    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-    return chainId === 998 || chainId === 999;
-  }, []);
-
-  // Determine which logos to use based on chain
-  const logos = useMemo(() => {
-    if (isHyperEVM) {
-      return {
-        dark: "/SIR+HyperLiquid_outline_white.svg",
-        light: "/SIR+HyperLiquid_outline_black.svg",
-      };
-    }
-    return {
-      dark: "/SIR_outline_white.svg",
-      light: "/SIR_outline_black.svg",
-    };
-  }, [isHyperEVM]);
+  const { hasClaimableBalances, dividendsAmount, rewardsAmount } = useClaimableBalances() as {
+    hasClaimableBalances: boolean;
+    dividendsAmount: bigint;
+    rewardsAmount: bigint;
+  };
+  const hasRewards = rewardsAmount > 0n;
+  const hasDividends = dividendsAmount > 0n;
 
   const menuItems = [
     {
@@ -87,7 +73,7 @@ export default function SideNav() {
                     const Icon = item.icon;
                     const isActive = pathname === item.url;
                     return (
-                      <li key={item.url}>
+                      <li key={item.url} className="relative">
                         <Link
                           href={item.url}
                           onClick={() => setOpen(false)}
@@ -100,6 +86,34 @@ export default function SideNav() {
                         >
                           <Icon className="h-4 w-4" />
                           {item.label}
+                          {item.url === "/portfolio" && hasClaimableBalances && (
+                            <span className="ml-1 inline-flex flex-col gap-1">
+                              {hasRewards && (
+                                <span
+                                  className="inline-block rounded-full animate-pulse"
+                                  style={{
+                                    width: '4px',
+                                    height: '4px',
+                                    backgroundColor: '#c6a85b',
+                                    minWidth: '4px',
+                                    minHeight: '4px'
+                                  }}
+                                />
+                              )}
+                              {hasDividends && (
+                                <span
+                                  className="inline-block rounded-full animate-pulse"
+                                  style={{
+                                    width: '4px',
+                                    height: '4px',
+                                    backgroundColor: '#22c55e',
+                                    minWidth: '4px',
+                                    minHeight: '4px'
+                                  }}
+                                />
+                              )}
+                            </span>
+                          )}
                         </Link>
                       </li>
                     );

@@ -279,6 +279,122 @@ html {
   animation: scaleUp 0.2s ease-in-out;
 }
 
+/* Claim card glow effect */
+.claim-card-glow {
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.25),
+    0 0 40px rgba(34, 197, 94, 0.15),
+    inset 0 0 20px rgba(34, 197, 94, 0.08);
+}
+
+html.dark .claim-card-glow {
+  box-shadow:
+    0 0 25px rgba(34, 197, 94, 0.2),
+    0 0 50px rgba(34, 197, 94, 0.15),
+    inset 0 0 30px rgba(34, 197, 94, 0.08);
+}
+
+/* Subtle claim card glow for portfolio cards */
+.claim-card-subtle-glow {
+  box-shadow:
+    0 0 15px rgba(34, 197, 94, 0.35),
+    0 0 25px rgba(34, 197, 94, 0.2),
+    0 0 35px rgba(34, 197, 94, 0.1);
+}
+
+html.dark .claim-card-subtle-glow {
+  box-shadow:
+    0 0 15px rgba(34, 197, 94, 0.15),
+    0 0 25px rgba(34, 197, 94, 0.1);
+}
+
+/* Gold glow for SIR rewards cards */
+.claim-card-gold-glow {
+  box-shadow:
+    0 0 10px rgba(198, 168, 91, 0.15),
+    0 0 20px rgba(198, 168, 91, 0.08);
+}
+
+html.dark .claim-card-gold-glow {
+  box-shadow:
+    0 0 15px rgba(198, 168, 91, 0.2),
+    0 0 25px rgba(198, 168, 91, 0.12);
+}
+
+/* Claim button glow for dropdown menus */
+@keyframes claimButtonPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 2px rgba(34, 197, 94, 0.7),
+      0 0 4px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 3px rgba(34, 197, 94, 0.9),
+      0 0 6px rgba(34, 197, 94, 0.5);
+  }
+}
+
+@keyframes claimButtonPulseDark {
+  0%, 100% {
+    box-shadow:
+      0 0 3px rgba(34, 197, 94, 0.5),
+      0 0 5px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 4px rgba(34, 197, 94, 0.7),
+      0 0 7px rgba(34, 197, 94, 0.4);
+  }
+}
+
+.claim-button-glow {
+  animation: claimButtonPulse 2s ease-in-out infinite;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+}
+
+html.dark .claim-button-glow {
+  animation: claimButtonPulseDark 2s ease-in-out infinite;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+/* Gold button glow for SIR rewards */
+@keyframes claimButtonGoldPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 2px rgba(198, 168, 91, 0.7),
+      0 0 4px rgba(198, 168, 91, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 3px rgba(198, 168, 91, 0.9),
+      0 0 6px rgba(198, 168, 91, 0.5);
+  }
+}
+
+@keyframes claimButtonGoldPulseDark {
+  0%, 100% {
+    box-shadow:
+      0 0 3px rgba(198, 168, 91, 0.5),
+      0 0 5px rgba(198, 168, 91, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 4px rgba(198, 168, 91, 0.7),
+      0 0 7px rgba(198, 168, 91, 0.4);
+  }
+}
+
+.claim-button-gold-glow {
+  animation: claimButtonGoldPulse 2s ease-in-out infinite;
+  border-color: rgba(198, 168, 91, 0.5) !important;
+}
+
+html.dark .claim-button-gold-glow {
+  animation: claimButtonGoldPulseDark 2s ease-in-out infinite;
+  border-color: rgba(198, 168, 91, 0.4) !important;
+}
+
 /* Hat outline for dark mode */
 .hat-outline {
   filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));

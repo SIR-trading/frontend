@@ -9,13 +9,11 @@ import NoSSR from "../ui/no-ssr";
 import { UnstakeCard } from "./unstakeCard";
 
 import { SirCard } from "./sirCard";
-import ContributorClaim from "./contributorClaim";
+import ContributorRewardsCard from "./contributorRewardsCard";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
 import ClaimCard from "../shared/claimCard";
-import { getNativeCurrencySymbol } from "@/lib/chains";
-import { getSirSymbol } from "@/lib/assets";
 export default function PortfolioPage() {
   const [value, setValue] = useState<"ape" | "tea" | "all">("all");
   return (
@@ -25,34 +23,11 @@ export default function PortfolioPage() {
       <Container className="space-y-4">
         <Explainer page={EPage.PORTFOLIO} />
         <Card className="w-full">
-          <div className="grid gap-4 md:grid-cols-2 h-full">
-            <div className="flex flex-col justify-between h-full">
-              <div className="rounded-md p-2 pb-2">
-                <div className="flex justify-between rounded-md text-2xl">
-                  <div className="flex gap-x-2">
-                    <div className="flex w-full justify-between">
-                      <div>
-                        <div className="text-sm">
-                          <p>Stake your {getSirSymbol()} to earn {getNativeCurrencySymbol()} dividends.</p>
-                        </div>
-                        <div className="pt-2">
-                          <ContributorClaim />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <SirCard />
-            </div>
-            <div className="grid gap-y-3 h-full">
-              <div className="h-full">
-                <UnstakeCard />
-              </div>
-              <div className="h-full">
-                <ClaimCard />
-              </div>
-            </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <ContributorRewardsCard />
+            <ClaimCard />
+            <SirCard />
+            <UnstakeCard />
           </div>
         </Card>
         <Card className="py-4">

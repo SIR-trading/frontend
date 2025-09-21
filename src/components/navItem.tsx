@@ -31,6 +31,9 @@ interface Props extends VariantProps<typeof navItemVariants> {
   url: string;
   main?: boolean;
   icon?: LucideIcon;
+  hasNotification?: boolean;
+  hasRewardsNotification?: boolean;
+  hasDividendsNotification?: boolean;
 }
 export default function NavItem({
   url,
@@ -40,6 +43,9 @@ export default function NavItem({
   theme,
   className,
   icon: Icon,
+  hasNotification,
+  hasRewardsNotification,
+  hasDividendsNotification,
 }: Props) {
   const [active, setActive] = useState(false);
   const pathname = usePathname();
@@ -50,7 +56,7 @@ export default function NavItem({
   }, [pathname, url]);
 
   return (
-    <li>
+    <li className="relative inline-flex items-center">
       <Link
         data-active={active ? "true" : "false"}
         data-main={main ? "true" : "false"}
@@ -60,6 +66,47 @@ export default function NavItem({
       >
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {children}
+        {(hasNotification ?? hasRewardsNotification ?? hasDividendsNotification) && (
+          <span className="ml-1.5 inline-flex flex-col gap-1">
+            {hasRewardsNotification && (
+              <span
+                className="inline-block rounded-full animate-pulse"
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: '#c6a85b',
+                  minWidth: '4px',
+                  minHeight: '4px'
+                }}
+              />
+            )}
+            {hasDividendsNotification && (
+              <span
+                className="inline-block rounded-full animate-pulse"
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: '#22c55e',
+                  minWidth: '4px',
+                  minHeight: '4px',
+                  marginTop: hasRewardsNotification ? '0' : '0'
+                }}
+              />
+            )}
+            {hasNotification && !hasRewardsNotification && !hasDividendsNotification && (
+              <span
+                className="inline-block rounded-full animate-pulse"
+                style={{
+                  width: '5px',
+                  height: '5px',
+                  backgroundColor: '#22c55e',
+                  minWidth: '5px',
+                  minHeight: '5px'
+                }}
+              />
+            )}
+          </span>
+        )}
       </Link>
     </li>
   );

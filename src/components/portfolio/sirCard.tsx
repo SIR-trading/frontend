@@ -17,14 +17,14 @@ export function SirCard() {
     );
   return (
     <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
-      <div className=" flex justify-between rounded-md text-2xl">
-        <div className="flex gap-x-2 ">
+      <div className="flex justify-between rounded-md text-2xl">
+        <div className="flex gap-x-2">
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
                 Your Unstaked Balance
               </h2>
-              <div className="flex justify-between text-3xl   ">
+              <div className="flex justify-between text-3xl min-h-[32px]">
                 <div className="flex items-end gap-x-1">
                   <Show
                     when={isConnected && !balanceLoading}

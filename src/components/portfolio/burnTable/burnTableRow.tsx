@@ -8,6 +8,7 @@ import { getLeverageRatio } from "@/lib/utils/calculations";
 import Show from "@/components/shared/show";
 import { useTeaAndApePrice } from "./hooks/useTeaAndApePrice";
 import { MoreVertical, Send } from "lucide-react";
+import { getSirSymbol } from "@/lib/assets";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -151,7 +152,7 @@ export function BurnTableRow({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-8 w-8 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={`h-8 w-8 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 relative ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? 'claim-button-gold-glow' : ''}`}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -165,7 +166,7 @@ export function BurnTableRow({
                 >
                   <span>Claim</span>
                   <span className="text-gray-300">
-                    <DisplayFormattedNumber num={rewards} significant={2} /> SIR
+                    <DisplayFormattedNumber num={rewards} significant={2} /> {getSirSymbol()}
                   </span>
                 </DropdownMenuItem>
               </Show>
@@ -221,7 +222,7 @@ export function BurnTableRow({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-7 w-7 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={`h-7 w-7 p-0 border border-foreground/20 bg-secondary hover:bg-primary/20 dark:hover:bg-primary focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 relative ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? 'claim-button-gold-glow' : ''}`}
               >
                 <MoreVertical className="h-3 w-3" />
               </Button>
@@ -238,7 +239,7 @@ export function BurnTableRow({
                 >
                   <span>Claim</span>
                   <span className="text-gray-300">
-                    <DisplayFormattedNumber num={rewards} significant={2} /> SIR
+                    <DisplayFormattedNumber num={rewards} significant={2} /> {getSirSymbol()}
                   </span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-foreground/10" />

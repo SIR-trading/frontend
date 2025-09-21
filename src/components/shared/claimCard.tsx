@@ -17,6 +17,7 @@ import DisplayFormattedNumber from "./displayFormattedNumber";
 import { formatUnits } from "viem";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { TokenImage } from "./TokenImage";
+import { env } from "@/env";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -24,6 +25,14 @@ export default function ClaimCard() {
   const { claimData } = useClaim();
 
   const { isConnected, address } = useAccount();
+
+  // Determine glow threshold based on chain
+  const glowThreshold = useMemo(() => {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    const isHyperEVM = chainId === 998 || chainId === 999;
+    // 1 HYPE for HyperEVM, 0.01 ETH for Ethereum
+    return isHyperEVM ? 1000000000000000000n : 10000000000000000n;
+  }, []);
 
   const { data: dividends, isLoading: dividendsLoading } = api.user.getUserSirDividends.useQuery(
     { user: address },
@@ -70,9 +79,10 @@ export default function ClaimCard() {
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
             <div className="space-y-4 px-6 pb-6 pt-4">
+              <h2 className="text-center text-xl font-semibold mb-4">Claim {getNativeCurrencySymbol()} Dividends</h2>
               <div className="pt-2">
                 <div className="mb-2">
-                  <label className="text-sm text-muted-foreground">Claiming Amount</label>
+                  <label className="text-sm text-muted-foreground">Amount</label>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xl">
@@ -116,7 +126,7 @@ export default function ClaimCard() {
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
+      <div className={`rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary ${dividends && dividends >= glowThreshold ? 'claim-card-subtle-glow' : ''}`}>
         <div className="flex justify-between rounded-md text-2xl">
           <div className="flex gap-x-2">
             <div className="flex w-full justify-between">
@@ -124,7 +134,7 @@ export default function ClaimCard() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   Dividends
                 </h2>
-                <div className="flex justify-between text-3xl">
+                <div className="flex justify-between text-3xl min-h-[32px]">
                   <div className="flex items-end gap-x-1">
                     <Show 
                       when={isConnected && !dividendsLoading} 
@@ -147,6 +157,7 @@ export default function ClaimCard() {
           </div>
           <div className="flex items-end">
             <Button
+              data-claim-dividends
               disabled={!isConnected || !dividends || !isValid.isValid}
               onClick={() => {
                 if (isValid.isValid) setOpenModal(true);

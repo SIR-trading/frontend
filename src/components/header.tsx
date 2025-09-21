@@ -9,11 +9,17 @@ import { TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel } from "lucide-re
 import dynamic from "next/dynamic";
 import { env } from "@/env";
 import { useMemo } from "react";
+import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 
 const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
   ssr: false,
 });
 export function Header() {
+  // Check for claimable balances
+  const { hasClaimableBalances, dividendsAmount, rewardsAmount } = useClaimableBalances();
+  const hasRewards = rewardsAmount > 0n;
+  const hasDividends = dividendsAmount > 0n;
+
   // Determine if we're on a HyperEVM chain
   const isHyperEVM = useMemo(() => {
     const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
@@ -70,7 +76,15 @@ export function Header() {
               >
                 <NavItem url={"/"} icon={TrendingUp}>Leverage</NavItem>
                 <NavItem url={"/liquidity"} icon={Droplets}>Liquidity</NavItem>
-                <NavItem url={"/portfolio"} icon={Briefcase}>Portfolio</NavItem>
+                <NavItem
+                  url={"/portfolio"}
+                  icon={Briefcase}
+                  hasNotification={hasClaimableBalances}
+                  hasRewardsNotification={hasRewards}
+                  hasDividendsNotification={hasDividends}
+                >
+                  Portfolio
+                </NavItem>
               </ul>
               {/* Show secondary nav items only on large screens */}
               <div className="hidden items-center lg:flex">
