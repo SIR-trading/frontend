@@ -2,8 +2,22 @@ import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { parseAddress } from "@/lib/utils/index";
 import { useFormContext } from "react-hook-form";
-import { formatUnits } from "viem";
+import { formatUnits, fromHex } from "viem";
 import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string): string => {
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      return vaultId; // Return as-is if conversion fails
+    }
+  }
+  // Already in decimal format
+  return vaultId;
+};
 
 interface EstimateProps {
   collateralEstimate: bigint | undefined;
@@ -49,7 +63,7 @@ export function TransactionEstimates({
         </span>
         <span className="text-gray-300 text-sm">
           <span>
-            {isApe ? "APE" : "TEA"}-{vaultId}
+            {isApe ? "APE" : "TEA"}-{getDisplayVaultId(vaultId)}
           </span>
         </span>
       </h3>

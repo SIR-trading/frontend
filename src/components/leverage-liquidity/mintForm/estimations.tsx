@@ -1,3 +1,20 @@
+import { fromHex } from "viem";
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string | undefined): string => {
+  if (!vaultId) return "";
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      return vaultId; // Return as-is if conversion fails
+    }
+  }
+  // Already in decimal format
+  return vaultId;
+};
+
 export default function Estimations({
   ape,
   disabled,
@@ -22,7 +39,7 @@ export default function Estimations({
           {ape}
         </h2>
         <span className="text-sm text-foreground/80 md:text-xl">
-          {isApe ? "APE" : "TEA"}{vaultId ? `-${vaultId}` : ""}
+          {isApe ? "APE" : "TEA"}{vaultId ? `-${getDisplayVaultId(vaultId)}` : ""}
         </span>
       </div>
     </div>

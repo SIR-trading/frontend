@@ -1,7 +1,7 @@
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "./transactionStatus";
 import { CircleCheck } from "lucide-react";
-import { formatUnits } from "viem";
+import { formatUnits, fromHex } from "viem";
 import { motion } from "motion/react";
 import ExplorerLink from "@/components/shared/explorerLink";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
@@ -10,6 +10,20 @@ import { useFormContext } from "react-hook-form";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { parseAddress } from "@/lib/utils/index";
 import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
+
+// Helper function to convert vaultId to consistent decimal format
+const getDisplayVaultId = (vaultId: string): string => {
+  // If vaultId starts with '0x', it's hexadecimal and needs conversion
+  if (vaultId.startsWith('0x')) {
+    try {
+      return fromHex(vaultId as `0x${string}`, "number").toString();
+    } catch {
+      return vaultId; // Return as-is if conversion fails
+    }
+  }
+  // Already in decimal format
+  return vaultId;
+};
 interface Props {
   isConfirmed: boolean;
   decimals: number;
@@ -124,7 +138,7 @@ export default function TransactionInfo({
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xl text-muted-foreground">
-                      {isApe ? "APE" : "TEA"}-{vaultId}
+                      {isApe ? "APE" : "TEA"}-{getDisplayVaultId(vaultId)}
                     </span>
                   </div>
                 </div>
@@ -178,7 +192,7 @@ export default function TransactionInfo({
               />
             </span>
             <span className="text-xl text-muted-foreground">
-              {isApe ? "APE" : "TEA"}-{vaultId}
+              {isApe ? "APE" : "TEA"}-{getDisplayVaultId(vaultId)}
             </span>
           </div>
         )}
