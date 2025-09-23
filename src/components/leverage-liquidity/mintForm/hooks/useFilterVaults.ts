@@ -24,8 +24,8 @@ export function useFilterVaults({ vaultsQuery }: Props) {
     if (!allVaults || skipQuery) return undefined;
 
     const filtered = allVaults.filter(vault => {
-      if (formData.versus && vault.debtToken !== parseAddress(formData.versus)) return false;
-      if (formData.long && vault.collateralToken !== parseAddress(formData.long)) return false;
+      if (formData.versus && vault.debtToken.id !== parseAddress(formData.versus)) return false;
+      if (formData.long && vault.collateralToken.id !== parseAddress(formData.long)) return false;
       if (formData.leverageTier && vault.leverageTier !== parseInt(formData.leverageTier)) return false;
       return true;
     });

@@ -13,11 +13,11 @@ export interface FeesQueryResult {
 }
 
 const feesQuery = gql`
-  query getVaultFees($vaultId: String!, $timestampThreshold: BigInt!) {
+  query getVaultFees($vaultId: Bytes!, $timestampThreshold: BigInt!) {
     fees(
-      where: { 
-        vaultId: $vaultId, 
-        timestamp_gte: $timestampThreshold 
+      where: {
+        vaultId: $vaultId,
+        timestamp_gte: $timestampThreshold
       }
       orderBy: timestamp
       orderDirection: desc
@@ -37,26 +37,12 @@ export const executeGetVaultFees = async ({
   vaultId: string;
   timestampThreshold: string;
 }) => {
-  // Convert vaultId to 0x format if not already
-  // Vault IDs in the subgraph are stored as simple hex values like 0xa for vault 10
-  let formattedVaultId: string;
-  if (vaultId.startsWith('0x')) {
-    formattedVaultId = vaultId;
-  } else {
-    const hexValue = parseInt(vaultId).toString(16);
-    formattedVaultId = `0x${hexValue}`;
-  }
-  
-  console.log(`Fetching fees for vault: ${vaultId} -> formatted: ${formattedVaultId}, threshold: ${timestampThreshold}`);
-  
   const result = await graphqlClient.request(feesQuery, {
-    vaultId: formattedVaultId,
+    vaultId,
     timestampThreshold,
   });
-  
+
   const typedResult = result as FeesQueryResult;
-  
-  console.log(`Fees result for vault ${formattedVaultId}:`, typedResult.fees.length, 'fees found');
-  
+
   return typedResult;
 };

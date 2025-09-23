@@ -8,19 +8,24 @@ import { graphqlClient } from "@/lib/graphqlClient";
 const closedApePositionsQuery = gql`
   #graphql
 
-  fragment ClosedApePositionFields on ClosedApePosition {
+  fragment ClosedApePositionFields on ApePositionClosed {
     collateralDeposited
     collateralWithdrawn
     dollarDeposited
     dollarWithdrawn
     user
-    vaultId
     timestamp
-    decimal
+    vault {
+      id
+      leverageTier
+      collateralToken {
+        decimals
+      }
+    }
   }
 
   query ClosedApePositionsQuery($startTimestamp: Int) {
-    closedApePositions(where: { timestamp_gte: $startTimestamp }) {
+    apePositionCloseds(where: { timestamp_gte: $startTimestamp }) {
       ...ClosedApePositionFields
     }
   }
@@ -28,18 +33,30 @@ const closedApePositionsQuery = gql`
 const currentApePositionsQuery = gql`
   #graphql
   fragment CurrentApePositionFields on ApePosition {
-    vaultId
     user
     collateralTotal
     dollarTotal
-    apeBalance: balance
-    apeAddress: ape
-    leverageTier
-    apeDecimals: decimals
-    collateralToken
-    collateralSymbol
-    debtToken
-    debtSymbol
+    debtTokenTotal
+    balance
+    vault {
+      id
+      leverageTier
+      collateralToken {
+        id
+        symbol
+        decimals
+      }
+      debtToken {
+        id
+        symbol
+        decimals
+      }
+      ape {
+        id
+        symbol
+        decimals
+      }
+    }
   }
   query CurrentApePositionsQuery {
     apePositions {
@@ -61,7 +78,7 @@ export const getClosedApePositions = async () => {
   });
 
   return result as {
-    closedApePositions: ClosedApePositionFragment[];
+    apePositionCloseds: ClosedApePositionFragment[];
   };
 };
 

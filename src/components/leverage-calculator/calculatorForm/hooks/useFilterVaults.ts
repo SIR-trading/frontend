@@ -23,8 +23,8 @@ export function useFilterVaults({ vaultsQuery }: Props) {
     if (!allVaults || skipQuery) return undefined;
 
     const filtered = allVaults.filter(vault => {
-      if (formData.versus && vault.debtToken !== formData.versus.split(",")[0]) return false;
-      if (formData.long && vault.collateralToken !== formData.long.split(",")[0]) return false;
+      if (formData.versus && vault.debtToken.id !== formData.versus.split(",")[0]) return false;
+      if (formData.long && vault.collateralToken.id !== formData.long.split(",")[0]) return false;
       if (formData.leverageTier && vault.leverageTier !== parseInt(formData.leverageTier)) return false;
       return true;
     });

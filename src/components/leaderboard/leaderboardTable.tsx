@@ -73,7 +73,7 @@ function LeaderboardTable<T, P>({
       const vaultId = fromHex(_vaultId, "number");
       
       // Find the vault by its actual vaultId, not by array index
-      const vaultData = vaults?.vaults.find(v => parseInt(v.vaultId) === vaultId);
+      const vaultData = vaults?.vaults.find(v => parseInt(v.id) === vaultId);
       
       if (!vaultData) {
         return {
@@ -86,14 +86,13 @@ function LeaderboardTable<T, P>({
         };
       }
       
-      const { collateralSymbol, debtSymbol, leverageTier, collateralToken, debtToken } = vaultData;
       return {
         vaultId,
-        collateralSymbol,
-        debtSymbol,
-        leverageTier,
-        collateralToken: collateralToken as `0x${string}` | undefined,
-        debtToken: debtToken as `0x${string}` | undefined,
+        collateralSymbol: vaultData.collateralToken.symbol ?? 'Unknown',
+        debtSymbol: vaultData.debtToken.symbol ?? 'Unknown',
+        leverageTier: vaultData.leverageTier,
+        collateralToken: vaultData.collateralToken.id,
+        debtToken: vaultData.debtToken.id,
       };
     },
     [vaults],

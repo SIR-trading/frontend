@@ -69,8 +69,8 @@ export const VaultProvider = ({ children }: Props) => {
       const found = data?.vaultQuery?.vaults.find((vault) => {
         if (
           vault.leverageTier === parseInt(filterLeverage) &&
-          vault.debtToken === filterDebtToken &&
-          vault.collateralToken === filterCollateralToken
+          vault.debtToken.id === filterDebtToken &&
+          vault.collateralToken.id === filterCollateralToken
         ) {
           return true;
         }

@@ -23,7 +23,11 @@ const auctions = (type: TAuctionType, first = 100) => {
           first: ${first}
         ) {
           id
-          token
+          token {
+            id
+            symbol
+            decimals
+          }
           amount
           highestBid
           highestBidder
@@ -38,7 +42,11 @@ const auctions = (type: TAuctionType, first = 100) => {
           first: ${first}
         ) {
           id
-          token
+          token {
+            id
+            symbol
+            decimals
+          }
           amount
           highestBid
           highestBidder
@@ -59,7 +67,11 @@ const auctions = (type: TAuctionType, first = 100) => {
 
     fragment AuctionFields on Auction {
       id
-      token
+      token {
+        id
+        symbol
+        decimals
+      }
       amount
       highestBid
       highestBidder
@@ -100,7 +112,11 @@ export const getAuctions = async (
     interface ExpiredAuctionsResult {
       auctions?: Array<{
         id: string;
-        token: string;
+        token: {
+          id: string;
+          symbol: string | null;
+          decimals: number;
+        };
         amount: string;
         highestBid: string;
         highestBidder: string;
@@ -109,7 +125,11 @@ export const getAuctions = async (
       }>;
       auctionsHistories?: Array<{
         id: string;
-        token: string;
+        token: {
+          id: string;
+          symbol: string | null;
+          decimals: number;
+        };
         amount: string;
         highestBid: string;
         highestBidder: string;

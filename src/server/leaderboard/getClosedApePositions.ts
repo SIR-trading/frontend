@@ -9,8 +9,8 @@ const calculatePercentage = (withdrawn: number, deposited: number) =>
   deposited > 0 ? (withdrawn / deposited - 1) * 100 : 0;
 
 export async function getClosedApePositions(): Promise<TClosedApePositions> {
-  const { closedApePositions } = await getClosedApePositionsQuery();
-  const groupedPositions = groupBy(closedApePositions, (position) =>
+  const { apePositionCloseds } = await getClosedApePositionsQuery();
+  const groupedPositions = groupBy(apePositionCloseds, (position) =>
     getAddress(position.user),
   );
 
@@ -22,20 +22,15 @@ export async function getClosedApePositions(): Promise<TClosedApePositions> {
         (res, position) => {
           const collateralDeposited = +formatUnits(
             BigInt(position.collateralDeposited),
-            Number(position.decimal),
+            position.vault.collateralToken.decimals,
           );
           const collateralWithdrawn = +formatUnits(
             BigInt(position.collateralWithdrawn),
-            Number(position.decimal),
+            position.vault.collateralToken.decimals,
           );
-          const dollarDeposited = +formatUnits(
-            BigInt(position.dollarDeposited),
-            6,
-          );
-          const dollarWithdrawn = +formatUnits(
-            BigInt(position.dollarWithdrawn),
-            6,
-          );
+          // dollarDeposited and dollarWithdrawn are now BigDecimal strings
+          const dollarDeposited = parseFloat(position.dollarDeposited);
+          const dollarWithdrawn = parseFloat(position.dollarWithdrawn);
           const pnlUsd = calculatePnl(dollarWithdrawn, dollarDeposited);
           const pnlCollateral = calculatePnl(
             collateralWithdrawn,
@@ -57,7 +52,7 @@ export async function getClosedApePositions(): Promise<TClosedApePositions> {
             dollarDeposited,
             collateralDeposited,
             timestamp: +position.timestamp,
-            vaultId: position.vaultId,
+            vaultId: position.vault.id,
           });
           res.total.dollarWithdrawn += dollarWithdrawn;
           res.total.dollarDeposited += dollarDeposited;

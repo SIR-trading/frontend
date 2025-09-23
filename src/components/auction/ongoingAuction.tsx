@@ -55,7 +55,7 @@ const OngoingAuction = ({
 
   const activeTokens = useMemo(() => {
     if (!auctions) return [];
-    return auctions.map(a => a.token as Address);
+    return auctions.map(a => a.token.id as Address);
   }, [auctions]);
 
   const {
@@ -170,7 +170,7 @@ const OngoingAuction = ({
                 }) => (
                   <AuctionCard
                     auctionType="ongoing"
-                    isPulsing={pulsingTokens.has(token as Address)}
+                    isPulsing={pulsingTokens.has(token.id as Address)}
                     data={[
                       [
                         {
@@ -178,13 +178,13 @@ const OngoingAuction = ({
                           content: (
                             <div className="flex items-baseline gap-2">
                               <TokenImage
-                                address={token as Address}
+                                address={token.id as Address}
                                 className="self-center rounded-full"
                                 width={24}
                                 height={24}
                               />
                               <AddressExplorerLink
-                                address={token}
+                                address={token.id}
                                 shortenLength={4}
                               />
                             </div>
@@ -197,19 +197,19 @@ const OngoingAuction = ({
                           content: (
                             <TokenDisplay
                               amount={
-                                (auctionLots?.get(token) ?? 0n) > 0n
-                                  ? auctionLots?.get(token)
+                                (auctionLots?.get(token.id) ?? 0n) > 0n
+                                  ? auctionLots?.get(token.id)
                                   : BigInt(amount)
                               }
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
-                                  token,
+                                  token.id,
                                 ) ?? 18
                               }
                               unitLabel={
                                 uniqueAuctionCollection.collateralSymbolMap.get(
-                                  token,
+                                  token.id,
                                 ) ?? ""
                               }
                               className={
@@ -265,8 +265,8 @@ const OngoingAuction = ({
                         },
                       ],
                     ]}
-                    id={token}
-                    key={token}
+                    id={token.id}
+                    key={token.id}
                     action={{
                       title: compareAddress(highestBidder, address)
                         ? "Top up"
@@ -294,7 +294,7 @@ const OngoingAuction = ({
               ({ startTime, highestBid, token, amount, highestBidder }) => (
                 <AuctionCard
                   auctionType="ongoing"
-                  isPulsing={pulsingTokens.has(token as Address)}
+                  isPulsing={pulsingTokens.has(token.id as Address)}
                   data={[
                     [
                       {
@@ -302,13 +302,13 @@ const OngoingAuction = ({
                         content: (
                           <div className="flex items-baseline gap-2">
                             <TokenImage
-                              address={token as Address}
+                              address={token.id as Address}
                               className="self-center rounded-full"
                               width={24}
                               height={24}
                             />
                             <AddressExplorerLink
-                              address={token}
+                              address={token.id}
                               shortenLength={4}
                             />
                           </div>
@@ -321,19 +321,19 @@ const OngoingAuction = ({
                         content: (
                           <TokenDisplay
                             amount={
-                              (auctionLots?.get(token) ?? 0n) > 0n
-                                ? auctionLots?.get(token)
+                              (auctionLots?.get(token.id) ?? 0n) > 0n
+                                ? auctionLots?.get(token.id)
                                 : BigInt(amount)
                             }
                             amountSize="large"
                             decimals={
                               uniqueAuctionCollection.collateralDecimalsMap.get(
-                                token,
+                                token.id,
                               ) ?? 18
                             }
                             unitLabel={
                               uniqueAuctionCollection.collateralSymbolMap.get(
-                                token,
+                                token.id,
                               ) ?? ""
                             }
                             className={
@@ -384,8 +384,8 @@ const OngoingAuction = ({
                       },
                     ],
                   ]}
-                  key={token}
-                  id={token}
+                  key={token.id}
+                  id={token.id}
                   action={{
                     title: "Bid",
                     onClick: (id) => {

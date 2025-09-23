@@ -8,6 +8,7 @@ import { BurnTableRow } from "./burnTableRow";
 import useCheckUserHasPositions from "./hooks/useCheckUserHasPositions";
 import Show from "@/components/shared/show";
 import BurnTableRowSkeleton from "./burnTableRowSkeleton";
+import type { TUserPosition } from "@/server/queries/vaults";
 
 export default function BurnTable({
   filter,
@@ -29,14 +30,39 @@ export default function BurnTable({
   const tea = api.user.getTeaPositions.useQuery({ address });
 
   const selectedRowParamsApe = useMemo(() => {
-    return ape.data?.apePositions.find(
-      (r) => r.vaultId === selectedRow?.vaultId && selectedRow.isApe,
+    const position = ape.data?.apePositions.find(
+      (r) => r.vault.id === selectedRow?.vaultId && selectedRow.isApe,
     );
+    if (!position) return undefined;
+    // Transform to TUserPosition with flattened properties
+    return {
+      ...position,
+      vaultId: position.vault.id,
+      leverageTier: position.vault.leverageTier.toString(),
+      collateralToken: position.vault.collateralToken.id,
+      collateralSymbol: position.vault.collateralToken.symbol ?? 'Unknown',
+      decimals: position.vault.ape?.decimals ?? position.vault.collateralToken.decimals,
+      debtToken: position.vault.debtToken.id,
+      debtSymbol: position.vault.debtToken.symbol ?? 'Unknown',
+    } as TUserPosition;
   }, [ape.data?.apePositions, selectedRow]);
+
   const selectedRowParamsTea = useMemo(() => {
-    return tea.data?.teaPositions.find(
-      (r) => r.vaultId === selectedRow?.vaultId && !selectedRow.isApe,
+    const position = tea.data?.teaPositions.find(
+      (r) => r.vault.id === selectedRow?.vaultId && !selectedRow.isApe,
     );
+    if (!position) return undefined;
+    // Transform to TUserPosition with flattened properties
+    return {
+      ...position,
+      vaultId: position.vault.id,
+      leverageTier: position.vault.leverageTier.toString(),
+      collateralToken: position.vault.collateralToken.id,
+      collateralSymbol: position.vault.collateralToken.symbol ?? 'Unknown',
+      decimals: position.vault.collateralToken.decimals,
+      debtToken: position.vault.debtToken.id,
+      debtSymbol: position.vault.debtToken.symbol ?? 'Unknown',
+    } as TUserPosition;
   }, [selectedRow, tea.data?.teaPositions]);
 
   const apeLength = ape?.data?.apePositions?.length ?? 0;
@@ -57,30 +83,29 @@ export default function BurnTable({
     <BurnTableRow
       setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
         setSelectedRow({
-          vaultId: r.vaultId,
+          vaultId: r.vault.id,
           isApe: true,
           mode,
         })
       }
-      key={(r.vaultId || index) + "ape"}
+      key={(r.vault.id || index) + "ape"}
       row={{
-        id: r.vaultId,
-        balance: r.balance,
-        user: r.user,
-        decimals: r.decimals,
-        collateralSymbol: r.collateralSymbol,
-        debtSymbol: r.debtSymbol,
-        collateralToken: r.collateralToken,
-        debtToken: r.debtToken,
-        leverageTier: r.leverageTier,
-        vaultId: r.vaultId,
+        ...r,
+        // Flattened properties for backwards compatibility
+        decimals: r.vault.ape?.decimals ?? r.vault.collateralToken.decimals,
+        collateralSymbol: r.vault.collateralToken.symbol || 'Unknown',
+        debtSymbol: r.vault.debtToken.symbol || 'Unknown',
+        collateralToken: r.vault.collateralToken.id,
+        debtToken: r.vault.debtToken.id,
+        leverageTier: r.vault.leverageTier.toString(),
+        vaultId: r.vault.id,
       }}
       isApe={true}
-      apeAddress={r.ape}
-      apeBal={userBalancesInVaults?.apeBalances[Number(r.vaultId) - 1]}
-      teaBal={userBalancesInVaults?.teaBalances[Number(r.vaultId) - 1]}
+      apeAddress={r.vault.ape.id}
+      apeBal={userBalancesInVaults?.apeBalances[Number(r.vault.id) - 1]}
+      teaBal={userBalancesInVaults?.teaBalances[Number(r.vault.id) - 1]}
       teaRewards={
-        userBalancesInVaults?.unclaimedSirRewards[Number(r.vaultId) - 1]
+        userBalancesInVaults?.unclaimedSirRewards[Number(r.vault.id) - 1]
       }
     />
   ));
@@ -120,7 +145,7 @@ export default function BurnTable({
           mode={selectedRow.mode}
           isApe
           params={selectedRowParamsApe}
-          apeAddress={selectedRowParamsApe?.ape}
+          apeAddress={selectedRowParamsApe?.vault.ape?.id}
           close={() => {
             setSelectedRow(undefined);
           }}
@@ -173,31 +198,39 @@ export default function BurnTable({
                   {tea.data?.teaPositions.map((r, index) => {
                     return (
                       <BurnTableRow
-                        key={(r.vaultId || index) + "tea"}
+                        key={(r.vault.id || index) + "tea"}
                         row={{
                           ...r,
+                          // Flattened properties for backwards compatibility
+                          decimals: r.vault.collateralToken.decimals,
+                          collateralSymbol: r.vault.collateralToken.symbol ?? 'Unknown',
+                          debtSymbol: r.vault.debtToken.symbol ?? 'Unknown',
+                          collateralToken: r.vault.collateralToken.id,
+                          debtToken: r.vault.debtToken.id,
+                          leverageTier: r.vault.leverageTier.toString(),
+                          vaultId: r.vault.id,
                         }}
                         isApe={false}
                         setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
                           setSelectedRow({
-                            vaultId: r.vaultId,
+                            vaultId: r.vault.id,
                             isApe: false,
                             mode,
                           })
                         }
                         apeBal={
                           userBalancesInVaults?.apeBalances[
-                            Number(r.vaultId) - 1
+                            Number(r.vault.id) - 1
                           ]
                         }
                         teaBal={
                           userBalancesInVaults?.teaBalances[
-                            Number(r.vaultId) - 1
+                            Number(r.vault.id) - 1
                           ]
                         }
                         teaRewards={
                           userBalancesInVaults?.unclaimedSirRewards[
-                            Number(r.vaultId) - 1
+                            Number(r.vault.id) - 1
                           ]
                         }
                       />

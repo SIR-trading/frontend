@@ -186,7 +186,7 @@ export function useAuctionRpcPolling({
     const newBidsDetected: Address[] = [];
 
     const merged = serverAuctions.map(serverAuction => {
-      const token = serverAuction.token as Address;
+      const token = serverAuction.token.id as Address;
       const rpcUpdate = auctionUpdates.get(token);
       const lastKnown = lastKnownBids.current.get(token);
 

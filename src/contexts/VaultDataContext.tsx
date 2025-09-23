@@ -24,23 +24,23 @@ export function VaultDataProvider({ children }: { children: ReactNode }) {
   );
 
   // Extract vaults array from the response
-  const allVaults = data?.vaults as TVault[] | undefined;
+  const allVaults = data?.vaults;
 
   // Memoized helper functions
   const getVaultById = useMemo(() =>
-    (vaultId: string) => allVaults?.find((v: TVault) => v.vaultId === vaultId),
+    (vaultId: string) => allVaults?.find((v: TVault) => v.id === vaultId),
     [allVaults]
   );
 
   const getVaultsByCollateral = useMemo(() =>
     (collateralToken: string) =>
-      allVaults?.filter((v: TVault) => v.collateralToken.toLowerCase() === collateralToken.toLowerCase()) ?? [],
+      allVaults?.filter((v: TVault) => v.collateralToken.id.toLowerCase() === collateralToken.toLowerCase()) ?? [],
     [allVaults]
   );
 
   const getVaultsByDebt = useMemo(() =>
     (debtToken: string) =>
-      allVaults?.filter((v: TVault) => v.debtToken.toLowerCase() === debtToken.toLowerCase()) ?? [],
+      allVaults?.filter((v: TVault) => v.debtToken.id.toLowerCase() === debtToken.toLowerCase()) ?? [],
     [allVaults]
   );
 
@@ -80,8 +80,8 @@ export function useVaults(filters?: {
     if (!filters) return allVaults;
 
     return allVaults.filter(vault => {
-      if (filters.filterDebtToken && vault.debtToken !== filters.filterDebtToken) return false;
-      if (filters.filterCollateralToken && vault.collateralToken !== filters.filterCollateralToken) return false;
+      if (filters.filterDebtToken && vault.debtToken.id !== filters.filterDebtToken) return false;
+      if (filters.filterCollateralToken && vault.collateralToken.id !== filters.filterCollateralToken) return false;
       if (filters.filterLeverage && vault.leverageTier !== parseInt(filters.filterLeverage)) return false;
       return true;
     });

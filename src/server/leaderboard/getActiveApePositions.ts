@@ -13,19 +13,19 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
 
   const { apeTokens, totalSupplyContracts, vaultIds } = apePositions.reduce(
     (acc, position) => {
-      if (!acc.collateralTokenSet.has(position.collateralToken)) {
-        acc.collateralTokenSet.add(position.collateralToken);
+      if (!acc.collateralTokenSet.has(position.vault.collateralToken.id)) {
+        acc.collateralTokenSet.add(position.vault.collateralToken.id);
         acc.apeTokens.push({
           network: "eth-mainnet",
-          address: position.collateralToken,
+          address: position.vault.collateralToken.id,
         });
       }
       acc.totalSupplyContracts.push({
-        address: position.apeAddress,
+        address: position.vault.ape.id,
         abi: ApeContract.abi,
         functionName: "totalSupply" as const,
       });
-      acc.vaultIds.push(fromHex(position.vaultId, "number"));
+      acc.vaultIds.push(fromHex(position.vault.id, "number"));
       return acc;
     },
     {
@@ -96,17 +96,11 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
   apePositions.forEach(
     (
       {
-        apeBalance,
+        balance,
         user,
-        collateralToken,
-        collateralSymbol,
-        debtToken,
-        debtSymbol,
         dollarTotal,
         collateralTotal,
-        apeDecimals,
-        leverageTier,
-        vaultId,
+        vault,
       },
       index,
     ) => {
@@ -118,32 +112,35 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
       if (apeTotalSupplyInVault === 0n || vaultCollateralReserves === 0n) return;
       
       // Step 1: Calculate user's share of vault collateral
-      // User owns (apeBalance / totalSupply) of the vault's collateral
-      const userApeBalance = BigInt(apeBalance);
+      // User owns (balance / totalSupply) of the vault's collateral
+      const userApeBalance = BigInt(balance);
       const userShareOfVaultCollateral =
         (userApeBalance * vaultCollateralReserves) / apeTotalSupplyInVault;
       
       // Step 2: Apply leverage adjustment to get net position
       // Higher leverage tiers have higher fees, reducing net collateral
       // Formula: 10000 + (2^leverageTier * baseFeeInBasisPoints)
-      const leverageFeeMultiplier = BigInt(10000 + 2 ** leverageTier * baseFeeInBasisPoints);
+      const leverageFeeMultiplier = BigInt(10000 + 2 ** vault.leverageTier * baseFeeInBasisPoints);
       const netCollateralAfterFees =
         (userShareOfVaultCollateral * 10000n) / leverageFeeMultiplier;
       
       // Step 3: Convert positions to human-readable numbers
       const currentCollateralAmount = +formatUnits(
         netCollateralAfterFees,
-        apeDecimals,
+        vault.ape.decimals,
       );
+      // collateralTotal is a BigInt string from the subgraph (in smallest units)
+      // Need to format it with the proper decimals
       const originalCollateralDeposited = +formatUnits(
         BigInt(collateralTotal),
-        apeDecimals,
+        vault.collateralToken.decimals,
       );
-      
+
       // Step 4: Calculate USD values using current market prices
-      const currentTokenPrice = +(prices[collateralToken] ?? "0");
+      const currentTokenPrice = +(prices[vault.collateralToken.id] ?? "0");
       const currentPositionValueUsd = currentCollateralAmount * currentTokenPrice;
-      const originalDepositValueUsd = +formatUnits(BigInt(dollarTotal), 6);
+      // dollarTotal is now a BigDecimal string from the subgraph
+      const originalDepositValueUsd = parseFloat(dollarTotal);
       
       // Step 5: Calculate PnL (Profit and Loss)
       // PnL in USD
@@ -162,20 +159,20 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
 
       // Store calculated position data
       allPositions.push({
-        vaultId,
-        apeBalance: formatUnits(userApeBalance, apeDecimals),
-        collateralToken,
-        collateralSymbol,
-        debtToken,
-        debtSymbol,
+        vaultId: vault.id,
+        apeBalance: formatUnits(userApeBalance, vault.ape.decimals),
+        collateralToken: vault.collateralToken.id,
+        collateralSymbol: vault.collateralToken.symbol ?? undefined,
+        debtToken: vault.debtToken.id,
+        debtSymbol: vault.debtToken.symbol ?? undefined,
         pnlUsd,
         pnlUsdPercentage,
         pnlCollateral,
         pnlCollateralPercentage,
-        leverageTier,
+        leverageTier: vault.leverageTier,
         netCollateralPosition: currentPositionValueUsd,
         dollarTotal: originalDepositValueUsd,
-        collateralTotal: formatUnits(BigInt(collateralTotal), apeDecimals),
+        collateralTotal: originalCollateralDeposited.toString(),
         user: getAddress(user),
       });
     },

@@ -27,7 +27,7 @@ import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 
 export function VaultTableRow({
-  pool,
+  pool: vault,
   isApe,
   badgeVariant: _badgeVariant,
   number: _number,
@@ -49,7 +49,7 @@ export function VaultTableRow({
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
 
-  const fee = calculateApeVaultFee(pool.leverageTier, BASE_FEE) * 100;
+  const fee = calculateApeVaultFee(vault.leverageTier, BASE_FEE) * 100;
 
   // Calculate fee color intensity (max fee is ~49% for tier 2)
   const MAX_FEE = 49; // Maximum possible fee percentage
@@ -90,19 +90,19 @@ export function VaultTableRow({
 
   // Calculate POL (Protocol Owned Liquidity)
   const POL = useMemo(() => {
-    const totalLocked = parseUnits(pool.totalTea, 0);
-    const lockedLiquidity = parseUnits(pool.lockedLiquidity, 0);
+    const totalLocked = parseUnits(vault.teaSupply, 0);
+    const lockedLiquidity = parseUnits(vault.lockedLiquidity, 0);
     if (lockedLiquidity > 0n && totalLocked > 0n) {
       const percent = (lockedLiquidity * 10000n) / totalLocked;
       return parseFloat(percent.toString()) / 100;
     } else {
       return 0;
     }
-  }, [pool.lockedLiquidity, pool.totalTea]);
+  }, [vault.lockedLiquidity, vault.teaSupply]);
 
   // Remove individual APY query since we get it from props now
   // const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
-  //   { vaultId: pool.vaultId },
+  //   { vaultId: vault.vaultId },
   //   {
   //     enabled: !isApe, // Only fetch if we need to show APY (Liquidity page)
   //     refetchOnMount: false,
@@ -170,7 +170,7 @@ export function VaultTableRow({
   // // Hydrate with server data
   // const { data: reservesData } = api.vault.getReserve.useQuery(
   //   {
-  //     vaultId: Number.parseInt(pool.vaultId),
+  //     vaultId: Number.parseInt(vault.vaultId),
   //   },
   //   {
   //     // Dont fetch data on component mount
@@ -178,8 +178,8 @@ export function VaultTableRow({
   //     refetchOnMount: false,
   //     initialData: [
   //       {
-  //         reserveApes: pool.apeCollateral,
-  //         reserveLPers: pool.teaCollateral,
+  //         reserveApes: vault.apeCollateral,
+  //         reserveLPers: vault.teaCollateral,
   //         tickPriceX42: 0n,
   //       },
   //     ],
@@ -189,13 +189,13 @@ export function VaultTableRow({
   const reservesData = useMemo(() => {
     const a = [
       {
-        reserveApes: pool.apeCollateral,
-        reserveLPers: pool.teaCollateral,
+        reserveApes: BigInt(vault.reserveApes ?? 0),
+        reserveLPers: BigInt(vault.reserveLPers ?? 0),
         tickPriceX42: 0n,
       },
     ];
     return a;
-  }, [pool.apeCollateral, pool.teaCollateral]);
+  }, [vault.reserveApes, vault.reserveLPers]);
 
   // Get both form contexts - one might be null depending on which page we're on
   const { setValue: setMintValue } = useMintFormProviderApi();
@@ -215,16 +215,16 @@ export function VaultTableRow({
   const setValue = calculatorSetValue ?? setMintValue;
 
   const teaCollateral = parseFloat(
-    formatUnits(reservesData[0]?.reserveLPers ?? 0n, 18),
+    formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.collateralToken.decimals),
   );
   const apeCollateral = parseFloat(
-    formatUnits(reservesData[0]?.reserveApes ?? 0n, 18),
+    formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.collateralToken.decimals),
   );
   const tvl = apeCollateral + teaCollateral;
   const realLeverage = tvl / apeCollateral;
   const variant = useCalculateVaultHealth({
     isApe,
-    leverageTier: pool.leverageTier,
+    leverageTier: vault.leverageTier,
     apeCollateral: reservesData[0]?.reserveApes ?? 0n,
     teaCollateral: reservesData[0]?.reserveLPers ?? 0n,
   });
@@ -273,21 +273,21 @@ export function VaultTableRow({
     }
     return false;
   };
-  const parsedRateAmount = parseUnits(String(pool.rate || "0"), 0); // CONVERT rate
+  const parsedRateAmount = parseUnits(String(vault.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
 
   // Get Dune chart configuration for this vault
-  const { embedUrl, hasChart } = useDuneCharts(pool.vaultId);
+  const { embedUrl, hasChart } = useDuneCharts(vault.id);
   return (
     <tr
       onClick={() => {
-        setValue("versus", pool.debtToken + "," + pool.debtSymbol);
-        setValue("long", pool.collateralToken + "," + pool.collateralSymbol);
-        setValue("leverageTier", pool.leverageTier.toString());
+        setValue("versus", vault.debtToken.id + "," + (vault.debtToken.symbol ?? ''));
+        setValue("long", vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ''));
+        setValue("leverageTier", vault.leverageTier.toString());
         setAll(
-          pool.leverageTier.toString(),
-          pool.debtToken + "," + pool.debtSymbol,
-          pool.collateralToken + "," + pool.collateralSymbol,
+          vault.leverageTier.toString(),
+          vault.debtToken.id + "," + (vault.debtToken.symbol ?? ''),
+          vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ''),
         );
       }}
       className="relative flex cursor-pointer items-center justify-between rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
@@ -315,7 +315,7 @@ export function VaultTableRow({
                       transform: "translateX(-40%) rotate(8deg)",
                     }}
                   />
-                  <span className="pt-1">{pool.vaultId}</span>
+                  <span className="pt-1">{parseInt(vault.id).toString()}</span>
                 </div>
               }
             >
@@ -329,7 +329,7 @@ export function VaultTableRow({
               </span>
             </HoverPopupMobile>
           ) : (
-            <span>{pool.vaultId}</span>
+            <span>{parseInt(vault.id).toString()}</span>
           )}
         </div>
       </td>
@@ -337,7 +337,7 @@ export function VaultTableRow({
         {/* Mobile view - compact logos only with leverage */}
         <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
           <TokenImage
-            address={pool.collateralToken as TAddressString}
+            address={vault.collateralToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
@@ -345,7 +345,7 @@ export function VaultTableRow({
           />
           <span className="mx-1 font-normal">/</span>
           <TokenImage
-            address={pool.debtToken as TAddressString}
+            address={vault.debtToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
@@ -360,20 +360,20 @@ export function VaultTableRow({
                 <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
                   {showPercent()
                     ? getRealLeverage()
-                    : getLeverageRatio(pool.leverageTier)}
+                    : getLeverageRatio(vault.leverageTier)}
                 </sup>
               }
             >
               <div className="text-[13px] font-medium">
                 Insufficient liquidity for constant ^
-                {getLeverageRatio(pool.leverageTier)} leverage
+                {getLeverageRatio(vault.leverageTier)} leverage
               </div>
             </HoverPopupMobile>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
               {showPercent()
                 ? getRealLeverage()
-                : getLeverageRatio(pool.leverageTier)}
+                : getLeverageRatio(vault.leverageTier)}
             </sup>
           )}
           {isApe && hasChart && embedUrl && (
@@ -386,22 +386,22 @@ export function VaultTableRow({
         {/* Medium view (650px to lg, and 1130px to xl) - logos + symbols + leverage */}
         <div className="hidden items-center min-[650px]:flex lg:hidden min-[1130px]:flex xl:hidden">
           <TokenImage
-            address={pool.collateralToken as TAddressString}
+            address={vault.collateralToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
             alt="Collateral token"
           />
-          <span className="ml-1 font-normal">{pool.collateralSymbol}</span>
+          <span className="ml-1 font-normal">{vault.collateralToken.symbol ?? ''}</span>
           <span className="mx-1 font-normal">/</span>
           <TokenImage
-            address={pool.debtToken as TAddressString}
+            address={vault.debtToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
             alt="Debt token"
           />
-          <span className="ml-1 font-normal">{pool.debtSymbol}</span>
+          <span className="ml-1 font-normal">{vault.debtToken.symbol ?? ''}</span>
           {variant.variant === "red" ? (
             <HoverPopupMobile
               size="200"
@@ -411,20 +411,20 @@ export function VaultTableRow({
                 <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
                   {showPercent()
                     ? getRealLeverage()
-                    : getLeverageRatio(pool.leverageTier)}
+                    : getLeverageRatio(vault.leverageTier)}
                 </sup>
               }
             >
               <div className="text-[13px] font-medium">
                 Insufficient liquidity for constant ^
-                {getLeverageRatio(pool.leverageTier)} leverage
+                {getLeverageRatio(vault.leverageTier)} leverage
               </div>
             </HoverPopupMobile>
           ) : (
             <sup className="ml-0.5 text-[10px] font-semibold">
               {showPercent()
                 ? getRealLeverage()
-                : getLeverageRatio(pool.leverageTier)}
+                : getLeverageRatio(vault.leverageTier)}
             </sup>
           )}
           {isApe && hasChart && embedUrl && (
@@ -437,22 +437,22 @@ export function VaultTableRow({
         {/* XL and above view - full names without leverage (shown in separate column) */}
         <div className="hidden items-center xl:flex">
           <TokenImage
-            address={pool.collateralToken as TAddressString}
+            address={vault.collateralToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
             alt="Collateral token"
           />
-          <span className="ml-1 font-normal">{pool.collateralSymbol}</span>
+          <span className="ml-1 font-normal">{vault.collateralToken.symbol ?? ''}</span>
           <span className="mx-1 font-normal">/</span>
           <TokenImage
-            address={pool.debtToken as TAddressString}
+            address={vault.debtToken.id}
             className="h-6 w-6 rounded-full"
             width={28}
             height={28}
             alt="Debt token"
           />
-          <span className="ml-1 font-normal">{pool.debtSymbol}</span>
+          <span className="ml-1 font-normal">{vault.debtToken.symbol ?? ''}</span>
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
               <DuneChartPopup embedUrl={embedUrl} />
@@ -545,7 +545,7 @@ export function VaultTableRow({
                 variant={variant.variant}
                 className="text-nowrap text-[10px]"
               >
-                ^{getLeverageRatio(pool.leverageTier)}
+                ^{getLeverageRatio(vault.leverageTier)}
                 {showPercent() && (
                   <>
                     {" (^"}
@@ -561,7 +561,7 @@ export function VaultTableRow({
             <DisplayBadgeInfo
               variant={variant}
               isApe={isApe}
-              leverageRatio={getLeverageRatio(pool.leverageTier).toString()}
+              leverageRatio={getLeverageRatio(vault.leverageTier).toString()}
             ></DisplayBadgeInfo>
           </div>
         </HoverPopupMobile>
@@ -579,9 +579,9 @@ export function VaultTableRow({
             >
               <TokenDisplay
                 amountSize="small"
-                amount={parseUnits(pool.totalValue, 0)}
-                decimals={pool.apeDecimals}
-                unitLabel={pool.collateralSymbol}
+                amount={parseUnits(vault.totalValue, 0)}
+                decimals={vault.ape.decimals}
+                unitLabel={vault.collateralToken.symbol ?? ''}
               />
             </motion.div>
           }
@@ -594,8 +594,8 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveApes ?? 0n}
                   amountSize="small"
-                  unitLabel={pool.collateralSymbol}
-                  decimals={pool.apeDecimals}
+                  unitLabel={vault.collateralToken.symbol ?? ''}
+                  decimals={vault.ape.decimals}
                 />
                 <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>
@@ -606,8 +606,8 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveLPers ?? 0n}
                   amountSize="small"
-                  unitLabel={pool.collateralSymbol}
-                  decimals={pool.apeDecimals}
+                  unitLabel={vault.collateralToken.symbol ?? ''}
+                  decimals={vault.ape.decimals}
                 />
                 <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>

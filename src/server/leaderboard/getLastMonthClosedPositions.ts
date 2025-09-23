@@ -12,20 +12,25 @@ const calculatePercentage = (withdrawn: number, deposited: number) =>
 const lastMonthClosedPositionsQuery = gql`
   #graphql
   query LastMonthClosedPositionsQuery($startTimestamp: Int, $endTimestamp: Int) {
-    closedApePositions(
-      where: { 
+    apePositionCloseds(
+      where: {
         timestamp_gte: $startTimestamp,
-        timestamp_lt: $endTimestamp 
+        timestamp_lt: $endTimestamp
       }
     ) {
+      id
       collateralDeposited
       collateralWithdrawn
       dollarDeposited
       dollarWithdrawn
       user
-      vaultId
+      vault {
+        id
+        collateralToken {
+          decimals
+        }
+      }
       timestamp
-      decimal
     }
   }
 `;
@@ -43,15 +48,15 @@ export async function getLastMonthClosedPositions(): Promise<TClosedApePositions
   const startTimestamp = Math.floor(firstDayOfLastMonth.getTime() / 1000);
   const endTimestamp = Math.floor(firstDayOfCurrentMonth.getTime() / 1000);
 
-  const queryResponse = await graphqlClient.request<{ closedApePositions: ClosedApePositionFragment[] }>(
-    lastMonthClosedPositionsQuery, 
+  const queryResponse = await graphqlClient.request<{ apePositionCloseds: ClosedApePositionFragment[] }>(
+    lastMonthClosedPositionsQuery,
     {
       startTimestamp,
       endTimestamp
     }
   );
 
-  const closedApePositions = queryResponse.closedApePositions;
+  const closedApePositions = queryResponse.apePositionCloseds;
   
   const groupedPositions = groupBy(closedApePositions, (position) =>
     getAddress(position.user),
@@ -65,20 +70,15 @@ export async function getLastMonthClosedPositions(): Promise<TClosedApePositions
         (res, position) => {
           const collateralDeposited = +formatUnits(
             BigInt(position.collateralDeposited),
-            Number(position.decimal),
+            position.vault.collateralToken.decimals,
           );
           const collateralWithdrawn = +formatUnits(
             BigInt(position.collateralWithdrawn),
-            Number(position.decimal),
+            position.vault.collateralToken.decimals,
           );
-          const dollarDeposited = +formatUnits(
-            BigInt(position.dollarDeposited),
-            6,
-          );
-          const dollarWithdrawn = +formatUnits(
-            BigInt(position.dollarWithdrawn),
-            6,
-          );
+          // dollarDeposited and dollarWithdrawn are now BigDecimal strings
+          const dollarDeposited = parseFloat(position.dollarDeposited);
+          const dollarWithdrawn = parseFloat(position.dollarWithdrawn);
           const pnlUsd = calculatePnl(dollarWithdrawn, dollarDeposited);
           const pnlCollateral = calculatePnl(
             collateralWithdrawn,
@@ -100,7 +100,7 @@ export async function getLastMonthClosedPositions(): Promise<TClosedApePositions
             dollarDeposited,
             collateralDeposited,
             timestamp: +position.timestamp,
-            vaultId: position.vaultId,
+            vaultId: position.vault.id,
           });
           res.total.dollarWithdrawn += dollarWithdrawn;
           res.total.dollarDeposited += dollarDeposited;

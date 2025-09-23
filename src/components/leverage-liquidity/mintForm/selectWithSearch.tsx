@@ -55,15 +55,15 @@ export default function SelectWithSearch({ name, title, items }: Props) {
   ].map((e) => {
     if (type === "collateral") {
       return {
-        label: e.collateralSymbol,
-        value: e.collateralToken + "," + e.collateralSymbol,
-        imageUrl: getLogoWithFallback(e.collateralToken),
+        label: e.collateralToken.symbol ?? 'Unknown',
+        value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
+        imageUrl: getLogoWithFallback(e.collateralToken.id),
       };
     } else {
       return {
-        label: e.debtSymbol,
-        value: e.debtToken + "," + e.debtSymbol,
-        imageUrl: getLogoWithFallback(e.debtToken),
+        label: e.debtToken.symbol ?? 'Unknown',
+        value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),
+        imageUrl: getLogoWithFallback(e.debtToken.id),
       };
     }
   });

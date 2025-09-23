@@ -16,11 +16,8 @@ import { VaultContract } from "@/contracts/vault";
 import { SirContract } from "@/contracts/sir";
 import { WethContract } from "@/contracts/weth";
 
-// Extended vault interface that includes the fields from GraphQL that are missing in VaultFieldFragment
-interface VaultWithCollateral extends VaultFieldFragment {
-  apeCollateral: string;
-  teaCollateral: string;
-}
+// Extended vault interface for backward compatibility
+type VaultWithCollateral = VaultFieldFragment;
 const ZVaultFilters = z.object({
   filterLeverage: z.string().optional(),
   filterDebtToken: z.string().optional(),
@@ -53,7 +50,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
   try {
     // Get vault information to get the rate and collateral token
     const vaults = await executeVaultsQuery({});
-    const vault = vaults.vaults.find(v => v.vaultId === vaultId) as VaultWithCollateral | undefined;
+    const vault = vaults.vaults.find(v => v.id === vaultId);
     
     if (!vault?.rate || parseFloat(vault.rate) === 0) {
       return 0; // No SIR rewards for this vault
@@ -85,7 +82,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     // Convert SIR price to vault's collateral token
     const sirPriceInCollateral = await convertWrappedNativeTokenPriceToCollateral(
       sirPriceInWrappedNativeToken,
-      vault.collateralToken as TAddressString
+      vault.collateralToken.id
     );
 
     if (sirPriceInCollateral === 0) {
@@ -93,8 +90,8 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
       return 0;
     }
 
-    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
-    const gentlemenCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
+    // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
+    const gentlemenCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
     
     if (gentlemenCollateral === 0) {
       return 0; // No collateral, can't calculate APY
@@ -285,19 +282,19 @@ async function calculateSirRewardsApyWithCachedPrices(
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
     
-    // Get vault collateral belonging to LPers (teaCollateral) and scale with decimals
-    const vaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, vault.apeDecimals);
+    // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
+    const vaultCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
     
     if (vaultCollateral === 0) {
       return 0; // No collateral, can't calculate APY
     }
 
     // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
-    if (vault.collateralToken.toLowerCase() === SirContract.address.toLowerCase()) {
+    if (vault.collateralToken.id.toLowerCase() === SirContract.address.toLowerCase()) {
       // For SIR collateral vaults, no price conversion needed
       // APY is simply: (annual SIR rewards / SIR collateral) * 100
-      // Note: SIR has 12 decimals, so we need to adjust the collateral scaling
-      const sirVaultCollateral = parseFloat(vault.teaCollateral) / Math.pow(10, 12);
+      // Use the collateral token's decimals from the subgraph
+      const sirVaultCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
       const apy = (annualSirRewards / sirVaultCollateral) * 100;
       return apy;
     }
@@ -310,7 +307,7 @@ async function calculateSirRewardsApyWithCachedPrices(
     // Convert SIR price to vault's collateral token using cached prices
     const sirPriceInCollateral = convertWrappedNativeTokenPriceToCollateralCached(
       sirPriceInWrappedNativeToken,
-      vault.collateralToken as TAddressString,
+      vault.collateralToken.id,
       tokenPrices
     );
 
@@ -717,7 +714,7 @@ export const vaultRouter = createTRPCRouter({
       try {
         // Fetch all vault data once
         const vaults = await executeVaultsQuery({});
-        const vaultMap = new Map(vaults.vaults.map(v => [v.vaultId, v as VaultWithCollateral]));
+        const vaultMap = new Map(vaults.vaults.map(v => [v.id, v]));
         
         // Get SIR price in wrapped native token once (shared across all vaults, cached)
         const sirPriceInWrappedNativeToken = await getCachedSirPrice();
@@ -732,7 +729,7 @@ export const vaultRouter = createTRPCRouter({
         
         // Get unique collateral tokens to batch price conversions
         const uniqueCollateralTokens = new Set(
-          vaultIds.map(id => vaultMap.get(id)?.collateralToken).filter(Boolean)
+          vaultIds.map(id => vaultMap.get(id)?.collateralToken.id).filter(Boolean)
         );
         
         // Batch fetch all token prices from Alchemy
@@ -759,7 +756,7 @@ export const vaultRouter = createTRPCRouter({
               const totalLpApy = feesData.fees.reduce((prod, fee) => {
                 return prod * (1 + parseFloat(fee.lpApy));
               }, 1);
-              
+
               const feesApy = (totalLpApy ** (365 / 30) - 1) * 100;
               
               // Calculate SIR rewards APY using cached prices

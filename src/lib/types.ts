@@ -42,28 +42,34 @@ export type TPool = {
 };
 
 export interface VaultFieldFragment {
-  debtToken: string;
-  debtSymbol: string;
-  collateralToken: string;
-  collateralSymbol: string;
-  taxAmount: string;
-  rate: string;
-  vaultId: string;
-  leverageTier: number;
-  lockedLiquidity: string;
-  totalTea: string;
-  totalValue: string;
-  apeDecimals: number;
-  apeAddress: TAddressString;
-  apeSupply?: string;
-  teaSupply?: string;
   id: string;
   exists: boolean;
+  leverageTier: number;
+  teaSupply: string;
+  totalValue: string;
+  totalValueUsd: string;
+  lockedLiquidity: string;
+  tax: string;
+  rate: string;
+  reserveApes: string;
+  reserveLPers: string;
+  collateralToken: {
+    id: TAddressString;
+    symbol: string | null;
+    decimals: number;
+  };
+  debtToken: {
+    id: TAddressString;
+    symbol: string | null;
+    decimals: number;
+  };
+  ape: {
+    id: TAddressString;
+    symbol: string | null;
+    decimals: number;
+  };
 }
-export type TVault = VaultFieldFragment & {
-  apeCollateral: bigint;
-  teaCollateral: bigint;
-};
+export type TVault = VaultFieldFragment;
 export type TVaults =
   | {
       vaults: TVault[];
@@ -110,7 +116,11 @@ export type TVaultsCollateralToken = {
 
 export type AuctionFieldFragment = {
   id: string;
-  token: string;
+  token: {
+    id: string;
+    symbol: string | null;
+    decimals: number;
+  };
   amount: string;
   highestBid: string;
   highestBidder: string;
@@ -139,25 +149,42 @@ export type ClosedApePositionFragment = {
   collateralWithdrawn: string;
   dollarDeposited: string;
   dollarWithdrawn: string;
-  vaultId: `0x${string}`;
   user: string;
   timestamp: string;
-  decimal: string;
+  vault: {
+    id: `0x${string}`;
+    leverageTier: number;
+    collateralToken: {
+      decimals: number;
+    };
+  };
 };
 
 export type CurrentApePositionFragment = {
-  vaultId: `0x${string}`;
   user: string;
   collateralTotal: string;
   dollarTotal: string;
-  apeBalance: string;
-  apeAddress: `0x${string}`;
-  apeDecimals: number;
-  leverageTier: number;
-  collateralToken: `0x${string}`;
-  collateralSymbol?: string;
-  debtToken?: `0x${string}`;
-  debtSymbol?: string;
+  debtTokenTotal: string;
+  balance: string;
+  vault: {
+    id: `0x${string}`;
+    leverageTier: number;
+    collateralToken: {
+      id: `0x${string}`;
+      symbol: string | null;
+      decimals: number;
+    };
+    debtToken: {
+      id: `0x${string}`;
+      symbol: string | null;
+      decimals: number;
+    };
+    ape: {
+      id: `0x${string}`;
+      symbol: string | null;
+      decimals: number;
+    };
+  };
 };
 
 export type TClosedApePositions = Record<

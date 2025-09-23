@@ -40,7 +40,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   
   // Extract vault IDs for batch APY query
   const vaultIds = useMemo(() => {
-    return currentPageVaults.map(vault => vault.vaultId);
+    return currentPageVaults.map(vault => vault.id);
   }, [currentPageVaults]);
   
   // Batch fetch APY data for all vaults on current page (only for liquidity page and after mount)
@@ -99,14 +99,14 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
           {currentPageVaults.map((pool, ind) => {
               return (
                 <VaultTableRow
-                  key={pool.vaultId}
+                  key={pool.id}
                   pool={pool}
                   number={ind.toString()}
                   badgeVariant={{
                     variant: ind % 2 === 0 ? "yellow" : "default",
                   }}
                   isApe={isApe}
-                  apyData={batchApyData?.[pool.vaultId]}
+                  apyData={batchApyData?.[pool.id]}
                   isApyLoading={isBatchApyLoading}
                 />
               );

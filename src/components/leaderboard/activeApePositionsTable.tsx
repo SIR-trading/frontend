@@ -66,7 +66,7 @@ export const ActiveApePositionsTable: React.FC<
 
   const getUserApePosition = (vaultId: number) => {
     return apePositions?.apePositions.find(
-      (pos) => fromHex(pos.vaultId as `0x${string}`, "number") === vaultId,
+      (pos) => fromHex(pos.vault.id as `0x${string}`, "number") === vaultId,
     );
   };
 
@@ -95,10 +95,10 @@ export const ActiveApePositionsTable: React.FC<
       }
       
       // Find the vault by its actual vaultId, not by array index
-      const vaultData = vaults?.vaults.find(v => parseInt(v.vaultId) === vaultId);
+      const vaultData = vaults?.vaults.find(v => parseInt(v.id) === vaultId);
       
       if (!vaultData) {
-        console.warn(`Vault not found for vaultId: ${vaultId}. Available vaults:`, vaults?.vaults?.map(v => v.vaultId));
+        console.warn(`Vault not found for vaultId: ${vaultId}. Available vaults:`, vaults?.vaults?.map(v => v.id));
         return {
           vaultId,
           collateralSymbol: "Unknown",
@@ -110,14 +110,12 @@ export const ActiveApePositionsTable: React.FC<
         };
       }
       
-      const { collateralSymbol, debtSymbol, collateralToken, debtToken } =
-        vaultData;
       return {
         vaultId,
-        collateralSymbol,
-        debtSymbol,
-        collateralToken: collateralToken as TAddressString,
-        debtToken: debtToken as TAddressString,
+        collateralSymbol: vaultData.collateralToken.symbol ?? 'Unknown',
+        debtSymbol: vaultData.debtToken.symbol ?? 'Unknown',
+        collateralToken: vaultData.collateralToken.id,
+        debtToken: vaultData.debtToken.id,
       };
     },
     [vaults],
@@ -233,22 +231,21 @@ export const ActiveApePositionsTable: React.FC<
           <BurnForm
             balance={getUserApeBalance(parseInt(selectedPosition.vaultId))}
             row={{
-              id: selectedApePosition.vaultId,
-              balance: selectedApePosition.balance,
-              user: selectedApePosition.user,
-              decimals: selectedApePosition.decimals,
-              collateralSymbol: selectedApePosition.collateralSymbol,
-              debtSymbol: selectedApePosition.debtSymbol,
-              collateralToken: selectedApePosition.collateralToken,
-              debtToken: selectedApePosition.debtToken,
-              leverageTier: selectedApePosition.leverageTier,
-              vaultId: selectedApePosition.vaultId,
+              ...selectedApePosition,
+              // Flattened properties for backwards compatibility
+              decimals: selectedApePosition.vault.ape?.decimals ?? selectedApePosition.vault.collateralToken.decimals,
+              collateralSymbol: selectedApePosition.vault.collateralToken.symbol ?? 'Unknown',
+              debtSymbol: selectedApePosition.vault.debtToken.symbol ?? 'Unknown',
+              collateralToken: selectedApePosition.vault.collateralToken.id,
+              debtToken: selectedApePosition.vault.debtToken.id,
+              leverageTier: selectedApePosition.vault.leverageTier.toString(),
+              vaultId: selectedApePosition.vault.id,
             }}
             isApe={true}
             close={() => setSelectedPosition(null)}
             teaRewardBalance={0n}
             isClaiming={false}
-            levTier={selectedApePosition.leverageTier}
+            levTier={selectedApePosition.vault.leverageTier.toString()}
           />
         </BurnFormModal>
       )}

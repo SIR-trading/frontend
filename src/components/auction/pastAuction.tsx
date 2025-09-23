@@ -184,13 +184,13 @@ const PastAuction = ({
                           content: (
                             <div className="flex items-baseline gap-2">
                               <TokenImage
-                                address={token as Address}
+                                address={token.id as Address}
                                 className="rounded-full self-center"
                                 width={24}
                                 height={24}
                               />
                               <AddressExplorerLink
-                                address={token}
+                                address={token.id}
                                 shortenLength={4}
                               />
                             </div>
@@ -202,20 +202,20 @@ const PastAuction = ({
                           content: (
                             <TokenDisplay
                               amount={
-                                (auctionLots?.get(token) ?? 0n) > 0n
-                                  ? auctionLots?.get(token)
+                                (auctionLots?.get(token.id) ?? 0n) > 0n
+                                  ? auctionLots?.get(token.id)
                                   : BigInt(amount)
                               }
                               
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
-                                  token,
+                                  token.id,
                                 ) ?? 18
                               }
                               unitLabel={
                                 uniqueAuctionCollection.collateralSymbolMap.get(
-                                  token,
+                                  token.id,
                                 ) ?? ""
                               }
                               className={
@@ -266,19 +266,19 @@ const PastAuction = ({
                         },
                       ],
                     ]}
-                    key={token}
+                    key={token.id}
                     action={
                       compareAddress(highestBidder, address)
                         ? {
                             title: isClaimed ? "Claimed" : "Claim",
                             onClick: () => {
-                              handleGetAuctionLot(token);
+                              handleGetAuctionLot(token.id);
                             },
                           }
                         : undefined
                     }
                     disabled={isClaimed}
-                    id={token}
+                    id={token.id}
                   />
                 ),
               )}

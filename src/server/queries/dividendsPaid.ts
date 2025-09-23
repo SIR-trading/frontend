@@ -7,7 +7,7 @@ const DividendsPaidSchema = z.object({
   ethAmount: z.string(),
   timestamp: z.string(),
   stakedAmount: z.string(),
-  sirEthPrice: z.string(),
+  sirEthPrice: z.string().nullable(),
 });
 
 const GetDividendsPaidSchema = z.object({

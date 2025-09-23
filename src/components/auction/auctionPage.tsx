@@ -46,11 +46,11 @@ const AuctionPage = () => {
     }
 
     vaults.vaults.forEach((vault) => {
-      const token = vault.collateralToken;
+      const token = vault.collateralToken.id;
       if (!uniqueCollateralToken.has(token)) {
         uniqueCollateralToken.add(token);
-        collateralSymbolMap.set(token, vault.collateralSymbol);
-        collateralDecimalsMap.set(token, vault.apeDecimals);
+        collateralSymbolMap.set(token, vault.collateralToken.symbol ?? '');
+        collateralDecimalsMap.set(token, vault.ape.decimals);
       }
     });
 
@@ -77,7 +77,7 @@ const AuctionPage = () => {
 
     // Check existing auctions that can be restarted
     allExistingAuctions.forEach((auction) => {
-      const amount = tokenWithFeesMap.get(auction.token);
+      const amount = tokenWithFeesMap.get(auction.token.id);
       if (amount && amount > BigInt(0)) {
         const timeToStart = +auction.startTime + AUCTION_COOLDOWN;
         if (timeToStart <= currentTime) {
@@ -88,7 +88,7 @@ const AuctionPage = () => {
 
     // Check new tokens that have never had an auction
     uniqueAuctionCollection.uniqueCollateralToken.forEach((token) => {
-      if (!allExistingAuctions.some((auction) => auction.token === token)) {
+      if (!allExistingAuctions.some((auction) => auction.token.id === token)) {
         const amount = tokenWithFeesMap.get(token);
         if (amount && amount > BigInt(0)) {
           count++;

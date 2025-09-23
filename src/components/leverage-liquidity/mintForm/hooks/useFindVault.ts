@@ -20,8 +20,8 @@ export function useFindVault() {
   
   const result = vaultQuery?.vaults.find((v) => {
     if (
-      v.collateralToken === collateralToken &&
-      v.debtToken === debtToken &&
+      v.collateralToken.id === collateralToken &&
+      v.debtToken.id === debtToken &&
       leverageTier === v.leverageTier
     ) {
       return true;

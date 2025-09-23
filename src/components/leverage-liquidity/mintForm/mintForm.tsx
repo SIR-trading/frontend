@@ -141,10 +141,10 @@ export default function MintForm({ isApe }: Props) {
     });
 
   useSetDepositTokenDefault({
-    collToken: selectedVault.result?.collateralToken,
+    collToken: selectedVault.result?.collateralToken.id,
   });
   const { tokenReceived } = useGetReceivedTokens({
-    apeAddress: selectedVault.result?.apeAddress ?? "0x",
+    apeAddress: selectedVault.result?.ape.id ?? "0x",
     logs: transactionData?.logs,
     isApe,
   });
@@ -163,20 +163,20 @@ export default function MintForm({ isApe }: Props) {
 
   // Always calculate vault health to check for red status
   const vaultHealthResult = useCalculateVaultHealth({
-    vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
+    vaultId: Number.parseInt(selectedVault.result?.id ?? "-1"),
     isApe: true,
     leverageTier: selectedVault.result?.leverageTier,
-    apeCollateral: selectedVault.result?.apeCollateral,
-    teaCollateral: selectedVault.result?.teaCollateral,
+    apeCollateral: selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : undefined,
+    teaCollateral: selectedVault.result ? BigInt(selectedVault.result.reserveLPers || 0) : undefined,
   });
 
   // Check if vault is already in red status (only when vault is selected and data is loaded)
   const isVaultRed = useMemo(() => {
-    if (!selectedVault.result?.vaultId || vaultHealthResult.isLoading)
+    if (!selectedVault.result?.id || vaultHealthResult.isLoading)
       return false;
     return vaultHealthResult.variant === "red";
   }, [
-    selectedVault.result?.vaultId,
+    selectedVault.result?.id,
     vaultHealthResult.variant,
     vaultHealthResult.isLoading,
   ]);
@@ -189,9 +189,9 @@ export default function MintForm({ isApe }: Props) {
     usingDebtToken,
     collateralDecimals: collateralDecimals ?? 18,
     vaultId: shouldCalculateMax
-      ? Number.parseInt(selectedVault.result?.vaultId ?? "-1")
+      ? Number.parseInt(selectedVault.result?.id ?? "-1")
       : -1,
-    taxAmount: selectedVault.result?.taxAmount ?? "0",
+    taxAmount: selectedVault.result?.tax ?? "0",
   });
 
   // Determine which results to use based on page type and vault status
@@ -360,8 +360,8 @@ export default function MintForm({ isApe }: Props) {
     needsApproval,
   });
   const depositTokenSymbol = !usingDebtToken
-    ? selectedVault.result?.collateralSymbol
-    : selectedVault.result?.debtSymbol;
+    ? selectedVault.result?.collateralToken.symbol
+    : selectedVault.result?.debtToken.symbol;
   return (
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -393,7 +393,7 @@ export default function MintForm({ isApe }: Props) {
               needs0Approval={needs0Approval ?? false}
               transactionHash={hash}
               needsApproval={needsApproval}
-              vaultId={selectedVault.result?.vaultId ?? "0"}
+              vaultId={selectedVault.result?.id ?? "0"}
               decimals={collateralDecimals ?? 18}
               isConfirmed={isConfirmed}
               isApproving={needsApproval}
@@ -555,29 +555,29 @@ export default function MintForm({ isApe }: Props) {
               <Show when={hasVaultInfo}>
                 <Dropdown.Item
                   tokenAddress={
-                    selectedVault.result?.collateralToken ??
+                    selectedVault.result?.collateralToken.id ??
                     longTokenAddress ??
                     ""
                   }
                   value={
-                    selectedVault.result?.collateralToken ??
+                    selectedVault.result?.collateralToken.id ??
                     longTokenAddress ??
                     ""
                   }
                 >
-                  {selectedVault.result?.collateralSymbol ??
+                  {selectedVault.result?.collateralToken.symbol ??
                     longTokenSymbol ??
                     ""}
                 </Dropdown.Item>
                 <Dropdown.Item
                   tokenAddress={
-                    selectedVault.result?.debtToken ?? versusTokenAddress ?? ""
+                    selectedVault.result?.debtToken.id ?? versusTokenAddress ?? ""
                   }
                   value={
-                    selectedVault.result?.debtToken ?? versusTokenAddress ?? ""
+                    selectedVault.result?.debtToken.id ?? versusTokenAddress ?? ""
                   }
                 >
-                  {selectedVault.result?.debtSymbol ?? versusTokenSymbol ?? ""}
+                  {selectedVault.result?.debtToken.symbol ?? versusTokenSymbol ?? ""}
                 </Dropdown.Item>
               </Show>
             </Dropdown.Root>
@@ -686,7 +686,7 @@ export default function MintForm({ isApe }: Props) {
           isApe={isApe}
           disabled={!Boolean(amountTokens)}
           ape={formatUnits(amountTokens ?? 0n, collateralDecimals ?? 18)}
-          vaultId={selectedVault.result?.vaultId}
+          vaultId={selectedVault.result?.id}
         />
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
@@ -703,7 +703,7 @@ export default function MintForm({ isApe }: Props) {
                 (parseFloat(fee ?? "0") / 100)
               ).toString()}
               feePercent={fee}
-              symbol={depositTokenSymbol}
+              symbol={depositTokenSymbol ?? undefined}
               deposit={deposit}
             />
           </MintFormSubmit.Root>

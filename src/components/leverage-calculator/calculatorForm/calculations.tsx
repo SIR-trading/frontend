@@ -40,8 +40,8 @@ export default function Calculations({
   
   // Use reserves from props when provided (parent handles liquidity multiplier)
   // Only calculate as fallback when props are not provided
-  const apeReserve = propsApeReserve ?? selectedVault.result?.apeCollateral ?? 0n;
-  const teaReserve = propsTeaReserve ?? selectedVault.result?.teaCollateral ?? 0n;
+  const apeReserve = propsApeReserve ?? (selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : 0n);
+  const teaReserve = propsTeaReserve ?? (selectedVault.result ? BigInt(selectedVault.result.reserveLPers || 0) : 0n);
   
   // Use the currentPrice passed from parent component (calculatorForm.tsx)
   const marketPrice = currentPrice ?? 0;

@@ -68,10 +68,10 @@ export default function VaultParamsInputSelects({
         name="long"
         title="Go long"
         items={long.map((e) => {
-          const logos = getLogoAssetWithFallback(e.collateralToken as `0x${string}`, tokenlist);
+          const logos = getLogoAssetWithFallback(e.collateralToken.id, tokenlist);
           return {
-            label: e.collateralSymbol,
-            value: e.collateralToken + "," + e.collateralSymbol,
+            label: e.collateralToken.symbol ?? 'Unknown',
+            value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
             imageUrl: logos.fallback ?? logos.primary,
           };
         })}
@@ -80,10 +80,10 @@ export default function VaultParamsInputSelects({
         name="versus"
         title="Versus"
         items={versus.map((e) => {
-          const logos = getLogoAssetWithFallback(e.debtToken as `0x${string}`, tokenlist);
+          const logos = getLogoAssetWithFallback(e.debtToken.id, tokenlist);
           return {
-            label: e.debtSymbol,
-            value: e.debtToken + "," + e.debtSymbol,
+            label: e.debtToken.symbol ?? 'Unknown',
+            value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),
             imageUrl: logos.fallback ?? logos.primary,
           };
         })}

@@ -51,7 +51,7 @@ export const getVaultsForTable = async (
   } else {
     pageVaults = vaultQuery?.vaults;
   }
-  const vaultIds = pageVaults?.map((v) => parseInt(v.vaultId));
+  const vaultIds = pageVaults?.map((v) => parseInt(v.id));
   // const vaultIdHash = createHash("md5")
   //   .update(JSON.stringify(vaultIds))
   //   .digest("hex");
@@ -78,8 +78,8 @@ export const getVaultsForTable = async (
   vaultQuery = {
     vaults: vaultQuery?.vaults.map((v, i) => ({
       ...v,
-      apeCollateral: collateral[i]?.reserveApes ?? 0n,
-      teaCollateral: collateral[i]?.reserveLPers ?? 0n,
+      reserveApes: (collateral[i]?.reserveApes ?? 0n).toString(),
+      reserveLPers: (collateral[i]?.reserveLPers ?? 0n).toString(),
     })),
   } as TVaults;
   return { vaultQuery };

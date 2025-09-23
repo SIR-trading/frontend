@@ -83,13 +83,13 @@ const NewAuction = ({
     const currentTime = Math.floor(Date.now() / 1000);
 
     allExistingAuctions?.forEach((auction) => {
-      const amount = tokenWithFeesMap?.get(auction.token);
+      const amount = tokenWithFeesMap?.get(auction.token.id);
 
       if (amount && amount > BigInt(0)) {
         const newData: TNewAuctionData = {
           amount,
           timeToStart: +auction.startTime + AUCTION_COOLDOWN,
-          token: auction.token,
+          token: auction.token.id,
         };
 
         if (newData.timeToStart > currentTime) {
@@ -102,7 +102,7 @@ const NewAuction = ({
     uniqueAuctionCollection.uniqueCollateralToken.forEach((token) => {
       if (
         allExistingAuctions &&
-        !allExistingAuctions?.some((auction) => auction.token === token)
+        !allExistingAuctions?.some((auction) => auction.token.id === token)
       ) {
         const amount = tokenWithFeesMap?.get(token);
         if (amount && amount > BigInt(0))

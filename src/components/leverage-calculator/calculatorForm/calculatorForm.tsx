@@ -52,12 +52,12 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
 
   // Ensure depositToken default is set when vault changes
   useSetDepositTokenDefault({
-    collToken: selectedVault.result?.collateralToken,
+    collToken: selectedVault.result?.collateralToken.id,
   });
 
   // Fetch token pair price from Uniswap pools
-  const debtToken: string = selectedVault.result?.debtToken ?? "";
-  const collateralToken: string = selectedVault.result?.collateralToken ?? "";
+  const debtToken: string = selectedVault.result?.debtToken.id ?? "";
+  const collateralToken: string = selectedVault.result?.collateralToken.id ?? "";
   
   // Get the direct pool price for the token pair
   const { data: poolPrice } = api.quote.getMostLiquidPoolPrice.useQuery(
@@ -100,7 +100,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
       let isDebtToken = false;
       if (
         depositToken &&
-        depositToken === selectedVault.result.debtToken &&
+        depositToken === selectedVault.result.debtToken.id &&
         collateralInDebtToken
       ) {
         // If deposit token is the debt token, use inverted price (1/collateralInDebtToken)
@@ -141,7 +141,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   ]);
 
   const { isLoading } = useCalculateVaultHealth({
-    vaultId: Number.parseInt(selectedVault.result?.vaultId ?? "-1"),
+    vaultId: Number.parseInt(selectedVault.result?.id ?? "-1"),
     isApe: true,
   });
 
@@ -153,8 +153,8 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   const liquidityMultiplier = formData.liquidityMultiplier ?? 1;
   
   // Get base reserves from vault
-  const baseApeReserve = selectedVault.result?.apeCollateral ?? 0n;
-  const baseTeaReserve = selectedVault.result?.teaCollateral ?? 0n;
+  const baseApeReserve = selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : 0n;
+  const baseTeaReserve = selectedVault.result ? BigInt(selectedVault.result.reserveLPers || 0) : 0n;
   
   // When liquidityMultiplier is 0, simulate an empty vault (both reserves = 0)
   // Otherwise, scale the TEA/LP reserve by the multiplier
@@ -175,7 +175,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     // Check for 0 TVL (empty vault) or 0x liquidity multiplier
     if (apeReserve === 0n && teaReserve === 0n) {
       const isDebtTokenSelected = depositToken && selectedVault.result && 
-                                  depositToken === selectedVault.result.debtToken;
+                                  depositToken === selectedVault.result.debtToken.id;
       // For empty vaults: 0 for collateral, infinity for debt token
       return isDebtTokenSelected ? Infinity : 0;
     }
@@ -184,8 +184,8 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     const baseSaturationPrice = calculateSaturationPrice(collateralInDebtToken, apeReserve, teaReserve, leverageRatio);
     
     // Invert the saturation price if debt token is selected as deposit token
-    const isDebtTokenSelected = depositToken && selectedVault.result && 
-                                depositToken === selectedVault.result.debtToken;
+    const isDebtTokenSelected = depositToken && selectedVault.result &&
+                                depositToken === selectedVault.result.debtToken.id;
     
     return isDebtTokenSelected && baseSaturationPrice > 0 ? 1 / baseSaturationPrice : baseSaturationPrice;
   }, [collateralInDebtToken, apeReserve, teaReserve, leverageRatio, depositToken, selectedVault.result]);
@@ -230,7 +230,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
                   tokenAddress={longTokenAddress}
                   value={longTokenAddress}
                 >
-                  {selectedVault.result?.collateralSymbol ?? longTokenSymbol ?? ""}
+                  {selectedVault.result?.collateralToken.symbol ?? longTokenSymbol ?? ""}
                 </Dropdown.Item>
               )}
               {versusTokenAddress && (
@@ -238,7 +238,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
                   tokenAddress={versusTokenAddress}
                   value={versusTokenAddress}
                 >
-                  {selectedVault.result?.debtSymbol ?? versusTokenSymbol ?? ""}
+                  {selectedVault.result?.debtToken.symbol ?? versusTokenSymbol ?? ""}
                 </Dropdown.Item>
               )}
             </Dropdown.Root>
@@ -251,7 +251,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
             disabled={disabledPriceInputs}
             saturationPrice={saturationPrice}
             inPowerZone={inPowerZone}
-            isInverted={Boolean(depositToken && selectedVault.result && depositToken === selectedVault.result.debtToken)}
+            isInverted={Boolean(depositToken && selectedVault.result && depositToken === selectedVault.result.debtToken.id)}
           />
         </PriceInputs.Root>
         <Calculations 
