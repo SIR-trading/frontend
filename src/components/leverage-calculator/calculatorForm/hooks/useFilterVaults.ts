@@ -59,12 +59,12 @@ export function useFilterVaults({ vaultsQuery }: Props) {
     const matchingFetchPools = vaultsToUse;
     const long = [
       ...new Map(
-        matchingFetchPools?.map((item) => [item.collateralToken, item]),
+        matchingFetchPools?.map((item) => [item.collateralToken.id, item]),
       ).values(),
     ];
     const versus = [
       ...new Map(
-        matchingFetchPools?.map((item) => [item.debtToken, item]),
+        matchingFetchPools?.map((item) => [item.debtToken.id, item]),
       ).values(),
     ];
     const leverageTiers = [
