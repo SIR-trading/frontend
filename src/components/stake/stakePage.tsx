@@ -10,12 +10,22 @@ import ContributorRewardsCard from "../portfolio/contributorRewardsCard";
 import ClaimCard from "../shared/claimCard";
 import { SirCard } from "../portfolio/sirCard";
 import { UnstakeCard } from "../portfolio/unstakeCard";
+import { StakeCardWrapper } from "./stakeCardWrapper";
+import { useAccount } from "wagmi";
+import { api } from "@/trpc/react";
+import Image from "next/image";
 
-const stakePage = () => {
+const StakePage = () => {
+  const { isConnected, address } = useAccount();
+  const { data: unclaimedData } = api.user.getUnclaimedContributorRewards.useQuery(
+    { user: address },
+    { enabled: isConnected },
+  );
+  const hasContributorRewards = unclaimedData && unclaimedData > 0n;
   return (
     <div className="">
       <PageHeadingSpace />
-      <Container className="lg:w-[900px] space-y-6">
+      <Container className="space-y-6 lg:w-[900px]">
         <Explainer page={EPage.STAKE} />
 
         {/* Stats Section */}
@@ -24,20 +34,51 @@ const stakePage = () => {
         </StakeData>
 
         {/* Your Position Section */}
-        <Card className="rounded-[4px] md:py-6 md:px-6 card-shadow bg-secondary p-4">
-          <h2 className="flex items-center gap-x-1 pb-4 text-sm">Your Position</h2>
+        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
+          <h2 className="flex items-center gap-x-1 pb-4 text-sm">
+            Your Position
+          </h2>
           <div className="grid gap-6 md:grid-cols-2">
-            <SirCard />
-            <UnstakeCard />
+            <StakeCardWrapper>
+              <SirCard />
+            </StakeCardWrapper>
+            <StakeCardWrapper>
+              <UnstakeCard />
+            </StakeCardWrapper>
           </div>
         </Card>
 
         {/* Claimable Rewards Section */}
-        <Card className="rounded-[4px] md:py-6 md:px-6 card-shadow bg-secondary p-4">
-          <h2 className="flex items-center gap-x-1 pb-4 text-sm">Claimable Rewards</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <ContributorRewardsCard />
-            <ClaimCard />
+        <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
+          {/* Background frog image - behind everything - only show when no contributor rewards */}
+          {!hasContributorRewards && (
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-end">
+              <div className="relative h-2/5 md:h-full w-auto">
+                <Image
+                  src="/Frog_blue.jpg"
+                  alt="Background"
+                  fill
+                  className="hidden object-contain object-right-bottom dark:block"
+                />
+                <Image
+                  src="/Frog_beige.jpg"
+                  alt="Background"
+                  fill
+                  className="object-contain object-right-bottom dark:hidden"
+                />
+              </div>
+            </div>
+          )}
+          <h2 className="relative flex items-center gap-x-1 pb-4 text-sm">
+            Claimable Rewards
+          </h2>
+          <div className="relative grid gap-6 md:grid-cols-2">
+            <StakeCardWrapper>
+              <ClaimCard />
+            </StakeCardWrapper>
+            <StakeCardWrapper>
+              <ContributorRewardsCard />
+            </StakeCardWrapper>
           </div>
         </Card>
       </Container>
@@ -45,4 +86,4 @@ const stakePage = () => {
   );
 };
 
-export default stakePage;
+export default StakePage;

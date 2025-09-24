@@ -139,10 +139,7 @@ export default function ContributorRewardsCard() {
         </div>
       ) : (
         <div className="flex h-full min-h-[80px] items-center justify-center p-2">
-          <p className="text-sm text-muted-foreground">
-            Stake your {getSirSymbol()} to earn {getNativeCurrencySymbol()}{" "}
-            dividends.
-          </p>
+          {/* Empty state - no text */}
         </div>
       )}
     </div>

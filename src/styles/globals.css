@@ -188,6 +188,14 @@ html {
   scroll-behavior: smooth;
   /*scrollbar-gutter: stable;*/
 }
+
+/* Stake page specific card backgrounds */
+.stake-card-wrapper .bg-primary\/5 {
+  background-color: #F9F4FF !important;
+}
+html.dark .stake-card-wrapper .dark\:bg-primary {
+  background-color: hsl(236, 37%, 17%) !important;
+}
 ::-webkit-scrollbar {
   width: 4px;
 }
