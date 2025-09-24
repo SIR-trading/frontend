@@ -12,7 +12,6 @@ import { SirRewardsClaimModal } from "../shared/SirRewardsClaimModal";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
 import { getSirSymbol } from "@/lib/assets";
-import { getNativeCurrencySymbol } from "@/lib/chains";
 
 export default function ContributorRewardsCard() {
   const { isConnected, address } = useAccount();

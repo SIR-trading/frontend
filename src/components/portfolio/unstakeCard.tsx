@@ -20,7 +20,6 @@ export function UnstakeCard() {
     );
 
   const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
-  const totalStake = stakedSir.unlockedStake + stakedSir.lockedStake;
 
   return (
     <div className=" border-secondary-300">

@@ -4,7 +4,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
-import type { TVault, TAddressString } from "@/lib/types";
+import type { TVault } from "@/lib/types";
 import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";

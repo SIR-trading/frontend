@@ -53,18 +53,18 @@ const StakePage = () => {
           {/* Background frog image - behind everything - only show when no contributor rewards */}
           {!hasContributorRewards && (
             <div className="pointer-events-none absolute inset-0 flex items-end justify-end">
-              <div className="relative h-2/5 md:h-full w-auto">
-                <Image
+              <div className="relative h-2/5 md:h-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/Frog_blue.jpg"
                   alt="Background"
-                  fill
-                  className="hidden object-contain object-right-bottom dark:block"
+                  className="hidden h-full w-auto object-contain object-right-bottom dark:block"
                 />
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/Frog_beige.jpg"
                   alt="Background"
-                  fill
-                  className="object-contain object-right-bottom dark:hidden"
+                  className="h-full w-auto object-contain object-right-bottom dark:hidden"
                 />
               </div>
             </div>

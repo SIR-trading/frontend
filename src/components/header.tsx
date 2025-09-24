@@ -17,7 +17,6 @@ const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
 export function Header() {
   // Check for claimable balances
   const {
-    hasClaimableBalances,
     hasDividendsAboveThreshold,
     hasContributorRewardsAboveThreshold,
     hasVaultRewardsAboveThreshold
