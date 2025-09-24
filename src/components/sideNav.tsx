@@ -21,10 +21,11 @@ import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
   const pathname = usePathname();
-  const { hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances() as {
-    hasDividendsAboveThreshold: boolean;
-    hasRewardsAboveThreshold: boolean;
-  };
+  const {
+    hasDividendsAboveThreshold,
+    hasContributorRewardsAboveThreshold,
+    hasVaultRewardsAboveThreshold
+  } = useClaimableBalances();
 
   const menuItems = [
     {
@@ -83,33 +84,42 @@ export default function SideNav() {
                         >
                           <Icon className="h-4 w-4" />
                           {item.label}
-                          {item.url === "/portfolio" && (hasRewardsAboveThreshold || hasDividendsAboveThreshold) && (
-                            <span className="ml-1 inline-flex flex-col gap-1">
-                              {hasRewardsAboveThreshold && (
-                                <span
-                                  className="inline-block rounded-full animate-pulse"
-                                  style={{
-                                    width: '4px',
-                                    height: '4px',
-                                    backgroundColor: '#c6a85b',
-                                    minWidth: '4px',
-                                    minHeight: '4px'
-                                  }}
-                                />
-                              )}
-                              {hasDividendsAboveThreshold && (
-                                <span
-                                  className="inline-block rounded-full animate-pulse"
-                                  style={{
-                                    width: '4px',
-                                    height: '4px',
-                                    backgroundColor: '#22c55e',
-                                    minWidth: '4px',
-                                    minHeight: '4px'
-                                  }}
-                                />
-                              )}
-                            </span>
+                          {item.url === "/portfolio" && hasVaultRewardsAboveThreshold && (
+                            <span
+                              className="ml-auto inline-block rounded-full animate-pulse"
+                              style={{
+                                width: '6px',
+                                height: '6px',
+                                backgroundColor: '#c6a85b',
+                                minWidth: '6px',
+                                minHeight: '6px'
+                              }}
+                            />
+                          )}
+                          {item.url === "/stake" && hasContributorRewardsAboveThreshold && (
+                            <span
+                              className="ml-auto inline-block rounded-full animate-pulse"
+                              style={{
+                                width: '6px',
+                                height: '6px',
+                                backgroundColor: '#c6a85b',
+                                minWidth: '6px',
+                                minHeight: '6px'
+                              }}
+                            />
+                          )}
+                          {item.url === "/stake" && hasDividendsAboveThreshold && (
+                            <span
+                              className="inline-block rounded-full animate-pulse"
+                              style={{
+                                width: '6px',
+                                height: '6px',
+                                backgroundColor: '#22c55e',
+                                minWidth: '6px',
+                                minHeight: '6px',
+                                marginLeft: hasContributorRewardsAboveThreshold ? '4px' : 'auto'
+                              }}
+                            />
                           )}
                         </Link>
                       </li>

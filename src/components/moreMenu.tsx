@@ -10,24 +10,40 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
+import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 
 interface MoreMenuProps {
   variant?: "medium" | "large";
 }
 
+interface MenuItem {
+  url: string;
+  label: string;
+  icon: typeof Coins;
+  hasContributorRewards?: boolean;
+  hasDividends?: boolean;
+}
+
 export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { hasDividendsAboveThreshold, hasContributorRewardsAboveThreshold } = useClaimableBalances();
 
-  const mediumItems = [
-    { url: "/stake", label: "Stake", icon: Coins },
+  const mediumItems: MenuItem[] = [
+    {
+      url: "/stake",
+      label: "Stake",
+      icon: Coins,
+      hasContributorRewards: hasContributorRewardsAboveThreshold,
+      hasDividends: hasDividendsAboveThreshold
+    },
     { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { url: "/auctions", label: "Auctions", icon: Gavel },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
 
-  const largeItems = [
+  const largeItems: MenuItem[] = [
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
@@ -64,6 +80,31 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
+                {item.hasContributorRewards && (
+                  <span
+                    className="ml-auto inline-block rounded-full animate-pulse"
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      backgroundColor: '#c6a85b',
+                      minWidth: '6px',
+                      minHeight: '6px'
+                    }}
+                  />
+                )}
+                {item.hasDividends && (
+                  <span
+                    className="ml-auto inline-block rounded-full animate-pulse"
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      backgroundColor: '#22c55e',
+                      minWidth: '6px',
+                      minHeight: '6px',
+                      marginLeft: item.hasContributorRewards ? '4px' : 'auto'
+                    }}
+                  />
+                )}
               </Link>
             </DropdownMenuItem>
           );
