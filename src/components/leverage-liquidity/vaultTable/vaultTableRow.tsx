@@ -277,7 +277,7 @@ export function VaultTableRow({
   const setAll = useVaultFilterStore((state) => state.setAll);
 
   // Get Dune chart configuration for this vault
-  const { embedUrl, hasChart } = useDuneCharts(vault.id);
+  const { embedUrl, hasChart } = useDuneCharts(parseInt(vault.id).toString());
   return (
     <tr
       onClick={() => {
