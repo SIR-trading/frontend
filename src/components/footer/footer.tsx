@@ -49,7 +49,7 @@ export default function Footer() {
 
           {/* Network badge for medium screens (768px - 1580px) */}
           <div className="hidden md:block custom-lg:hidden">
-            <NetworkBadge variant="full" className="max-w-[180px]" />
+            <NetworkBadge variant="compact" className="max-w-[180px]" />
           </div>
 
           <nav className="flex items-center gap-x-4 text-[14px] text-muted-foreground">
