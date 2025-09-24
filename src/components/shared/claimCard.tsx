@@ -63,7 +63,9 @@ export default function ClaimCard() {
 
   useEffect(() => {
     if (isConfirmed)
-      utils.user.getUserSirDividends.invalidate().catch((e: unknown) => console.log(e));
+      utils.user.getUserSirDividends
+        .invalidate()
+        .catch((e: unknown) => console.log(e));
   }, [isConfirmed, utils.user.getUserSirDividends]);
   return (
     <div className=" border-secondary-300">
@@ -76,10 +78,14 @@ export default function ClaimCard() {
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
             <div className="space-y-4 px-6 pb-6 pt-4">
-              <h2 className="text-center text-xl font-semibold mb-4">Claim {getNativeCurrencySymbol()} Dividends</h2>
+              <h2 className="mb-4 text-center text-xl font-semibold">
+                Claim {getNativeCurrencySymbol()} Dividends
+              </h2>
               <div className="pt-2">
                 <div className="mb-2">
-                  <label className="text-sm text-muted-foreground">Amount</label>
+                  <label className="text-sm text-muted-foreground">
+                    Amount
+                  </label>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xl">
@@ -89,7 +95,9 @@ export default function ClaimCard() {
                     />
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl text-muted-foreground">{getNativeCurrencySymbol()}</span>
+                    <span className="text-xl text-muted-foreground">
+                      {getNativeCurrencySymbol()}
+                    </span>
                     <TokenImage
                       address={WRAPPED_NATIVE_TOKEN_ADDRESS}
                       alt={getNativeCurrencySymbol()}
@@ -123,7 +131,9 @@ export default function ClaimCard() {
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
-      <div className={`rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary ${dividends && dividends >= glowThreshold ? 'claim-card-subtle-glow' : ''}`}>
+      <div
+        className={`rounded-md bg-primary/5 p-4 dark:bg-primary ${dividends && dividends >= glowThreshold ? "claim-card-subtle-glow" : ""}`}
+      >
         <div className="flex justify-between rounded-md text-2xl">
           <div className="flex gap-x-2">
             <div className="flex w-full justify-between">
@@ -131,21 +141,24 @@ export default function ClaimCard() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   Dividends
                 </h2>
-                <div className="flex justify-between text-3xl min-h-[32px]">
+                <div className="flex min-h-[32px] justify-between text-3xl">
                   <div className="flex items-end gap-x-1">
-                    <Show 
-                      when={isConnected && !dividendsLoading} 
+                    <Show
+                      when={isConnected && !dividendsLoading}
                       fallback={
                         isConnected ? (
-                          <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+                          <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
                         ) : (
-                          <div className="text-sm text-foreground italic">
+                          <div className="text-sm italic text-foreground">
                             Connect to claim dividends
                           </div>
                         )
                       }
                     >
-                      <TokenDisplay amount={dividends ?? 0n} unitLabel={getNativeCurrencySymbol()} />
+                      <TokenDisplay
+                        amount={dividends ?? 0n}
+                        unitLabel={getNativeCurrencySymbol()}
+                      />
                     </Show>
                   </div>
                 </div>
@@ -159,7 +172,7 @@ export default function ClaimCard() {
               onClick={() => {
                 if (isValid.isValid) setOpenModal(true);
               }}
-              className="py-2 w-20"
+              className="w-20 py-2"
             >
               Claim
             </Button>

@@ -20,13 +20,14 @@ export function UnstakeCard() {
     );
 
   const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
+  const totalStake = stakedSir.unlockedStake + stakedSir.lockedStake;
 
   return (
     <div className=" border-secondary-300">
       <UnstakeFormProvider>
         <UnstakeModal open={openModal} setOpen={setOpenModal} />
       </UnstakeFormProvider>
-      <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
+      <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
         <div className="flex justify-between rounded-md text-2xl">
           <div className="flex gap-x-2">
             <div className="flex w-full justify-between">
@@ -34,7 +35,7 @@ export function UnstakeCard() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   Your Stake
                 </h2>
-                <div className="flex justify-between text-3xl min-h-[32px]">
+                <div className="flex min-h-[32px] justify-between text-3xl">
                   <div className="flex items-end gap-x-1">
                     <Show
                       when={isConnected && !stakedPositionLoading}
@@ -48,7 +49,7 @@ export function UnstakeCard() {
                         )
                       }
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <div className="flex items-center gap-1">
                           <HoverPopup
                             trigger={
@@ -64,7 +65,7 @@ export function UnstakeCard() {
                             size="200"
                           >
                             <div className="text-xs font-normal">
-                              Available to withdraw anytime
+                              Available to withdraw
                             </div>
                           </HoverPopup>
                           <span className="text-2xl text-muted-foreground">
@@ -88,7 +89,7 @@ export function UnstakeCard() {
                             </div>
                           </HoverPopup>
                         </div>
-                        <span className="ml-1 text-xl text-muted-foreground">
+                        <span className="text-xl text-muted-foreground">
                           {getSirSymbol()}
                         </span>
                       </div>

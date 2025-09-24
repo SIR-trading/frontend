@@ -3,63 +3,30 @@ import { Button } from "../ui/button";
 import { StakeModal } from "../shared/stake/stakeModal";
 import StakeFormProvider from "../providers/stakeFormProvider";
 import { useAccount } from "wagmi";
-import { TokenDisplay } from "../ui/token-display";
-import Show from "../shared/show";
-import { getSirSymbol } from "@/lib/assets";
 import { useStaking } from "@/contexts/StakingContext";
 
 export default function StakeCard() {
   const [openModal, setOpenModal] = useState(false);
   const { isConnected } = useAccount();
-  const { unstakedBalance: userUnstakedSir, unstakedLoading: unstakedSirLoading } = useStaking();
+  const { unstakedBalance: userUnstakedSir } = useStaking();
   return (
-    <div className="rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary">
+    <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
       <StakeFormProvider>
         <StakeModal open={openModal} setOpen={setOpenModal} />
       </StakeFormProvider>
-      <div className="flex justify-between rounded-md text-2xl">
-        <div className="flex gap-x-2">
-          <div className="flex w-full justify-between">
-            <div>
-              <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked Balance
-              </h2>
-              <div className="flex justify-between text-3xl">
-                <div className="flex items-end gap-x-1">
-                  <Show 
-                    when={isConnected && !unstakedSirLoading} 
-                    fallback={
-                      isConnected ? (
-                        <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
-                      ) : (
-                        <div className="text-sm text-foreground italic">
-                          Connect to start staking
-                        </div>
-                      )
-                    }
-                  >
-                    <TokenDisplay
-                      amount={userUnstakedSir}
-                      decimals={12}
-                      unitLabel={getSirSymbol()}
-                    />
-                  </Show>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-end">
-          <Button
-            onClick={() => {
-              setOpenModal(true);
-            }}
-            disabled={!isConnected || !Number(userUnstakedSir)}
-            className="py-2 w-20"
-          >
-            Stake
-          </Button>
-        </div>
+      <div className="flex flex-col items-center gap-4">
+        <h2 className="text-sm text-muted-foreground">
+          Stake More SIR
+        </h2>
+        <Button
+          onClick={() => {
+            setOpenModal(true);
+          }}
+          disabled={!isConnected || !Number(userUnstakedSir)}
+          className="w-full"
+        >
+          Stake
+        </Button>
       </div>
     </div>
   );

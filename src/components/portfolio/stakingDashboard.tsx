@@ -12,7 +12,11 @@ import TransactionSuccess from "../shared/transactionSuccess";
 import ContributorClaim from "./contributorClaim";
 import Show from "../shared/show";
 import { api } from "@/trpc/react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { useClaim } from "../stake/hooks/useClaim";
 import { useEffect } from "react";
 import { Coins, TrendingDown, Wallet, Lock, LockOpen } from "lucide-react";
@@ -27,7 +31,7 @@ export default function StakingDashboard() {
   const [stakeModal, setStakeModal] = useState(false);
   const [unstakeModal, setUnstakeModal] = useState(false);
   const [claimModal, setClaimModal] = useState(false);
-  
+
   const { isConnected, address } = useAccount();
 
   // Use StakingContext for all staking-related queries
@@ -44,50 +48,56 @@ export default function StakingDashboard() {
     unstakedSupplyLoading,
     aprLoading,
   } = useStaking();
-  
-  const { data: dividends, isLoading: dividendsLoading } = api.user.getUserSirDividends.useQuery(
-    { user: address },
-    { enabled: isConnected }
-  );
-  
+
+  const { data: dividends, isLoading: dividendsLoading } =
+    api.user.getUserSirDividends.useQuery(
+      { user: address },
+      { enabled: isConnected },
+    );
+
   const stakedSir = stakedPosition ?? { unlockedStake: 0n, lockedStake: 0n };
-  
+
   // Claim logic
   const { claimData } = useClaim();
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
-  const { isSuccess: isConfirmed, isLoading: isConfirming } = useWaitForTransactionReceipt({ hash });
+  const { isSuccess: isConfirmed, isLoading: isConfirming } =
+    useWaitForTransactionReceipt({ hash });
   const utils = api.useUtils();
-  
+
   const onClaim = () => {
     if (claimData?.request) {
       writeContract(claimData?.request);
     }
   };
-  
+
   useEffect(() => {
     if (isConfirmed && !claimModal) {
       reset();
     }
   }, [isConfirmed, reset, claimModal]);
-  
+
   useEffect(() => {
     if (isConfirmed) {
       utils.user.getUserSirDividends.invalidate().catch((e) => console.log(e));
     }
   }, [isConfirmed, utils.user.getUserSirDividends]);
-  
-  
+
   return (
     <Card className="w-full">
       <div className="p-6">
         {/* Protocol Stats */}
-        <div className="rounded-lg bg-secondary/30 dark:bg-secondary/20 p-4 mb-8">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Protocol Statistics</h3>
+        <div className="mb-8 rounded-lg bg-secondary/30 p-4 dark:bg-secondary/20">
+          <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+            Protocol Statistics
+          </h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg bg-background/50 dark:bg-background/30 p-4">
-              <div className="text-sm text-muted-foreground mb-1">Total Staked</div>
-              {(unstakedSupplyLoading || totalSupplyLoading) && (totalSupply === undefined || unstakedSupply === undefined) ? (
-                <div className="h-8 w-32 bg-foreground/10 rounded animate-pulse"></div>
+            <div className="rounded-lg bg-background/50 p-4 dark:bg-background/30">
+              <div className="mb-1 text-sm text-muted-foreground">
+                Total Staked
+              </div>
+              {(unstakedSupplyLoading || totalSupplyLoading) &&
+              (totalSupply === undefined || unstakedSupply === undefined) ? (
+                <div className="h-8 w-32 animate-pulse rounded bg-foreground/10"></div>
               ) : (
                 <div className="text-xl font-semibold">
                   <TokenDisplay
@@ -99,19 +109,22 @@ export default function StakingDashboard() {
                 </div>
               )}
             </div>
-            <div className="rounded-lg bg-background/50 dark:bg-background/30 p-4">
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-sm text-muted-foreground">Staking APR</span>
+            <div className="rounded-lg bg-background/50 p-4 dark:bg-background/30">
+              <div className="mb-1 flex items-center gap-1">
+                <span className="text-sm text-muted-foreground">
+                  Staking APR
+                </span>
                 <ToolTip size="300">
                   <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
                     <span>
-                      The APR is estimated using the past 30 days&apos; dividend data.
+                      The APR is estimated using the past 30 days&apos; dividend
+                      data.
                     </span>
                   </div>
                 </ToolTip>
               </div>
               {aprLoading ? (
-                <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+                <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
               ) : (
                 <div className="text-xl font-semibold">
                   {apr && parseFloat(apr.apr) > 0 ? (
@@ -119,36 +132,42 @@ export default function StakingDashboard() {
                       <DisplayFormattedNumber num={apr.apr} />%
                     </>
                   ) : (
-                    'N/A'
+                    "N/A"
                   )}
                 </div>
               )}
             </div>
           </div>
         </div>
-        
+
         {/* Personal Balance Overview */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Your Balances</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+            Your Balances
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Unstaked Balance */}
-            <div className="rounded-lg bg-primary/5 dark:bg-primary p-4 flex flex-col justify-between">
+            <div className="flex flex-col justify-between rounded-lg bg-primary/5 p-4 dark:bg-primary">
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2 flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Unstaked</span>
+                  <span className="text-sm text-muted-foreground">
+                    Unstaked
+                  </span>
                 </div>
-                <Show 
-                  when={isConnected && !unstakedLoading} 
+                <Show
+                  when={isConnected && !unstakedLoading}
                   fallback={
                     isConnected ? (
-                      <div className="h-7 w-24 bg-foreground/10 rounded animate-pulse mb-8"></div>
+                      <div className="mb-8 h-7 w-24 animate-pulse rounded bg-foreground/10"></div>
                     ) : (
-                      <div className="text-sm text-muted-foreground italic mb-8">Connect wallet</div>
+                      <div className="mb-8 text-sm italic text-muted-foreground">
+                        Connect wallet
+                      </div>
                     )
                   }
                 >
-                  <div className="text-2xl font-semibold mb-3">
+                  <div className="mb-3 text-2xl font-semibold">
                     <TokenDisplay
                       amount={unstakedBalance}
                       decimals={12}
@@ -166,28 +185,30 @@ export default function StakingDashboard() {
                 Stake
               </Button>
             </div>
-            
+
             {/* Staked Balance */}
-            <div className="rounded-lg bg-primary/5 dark:bg-primary p-4 flex flex-col justify-between">
+            <div className="flex flex-col justify-between rounded-lg bg-primary/5 p-4 dark:bg-primary">
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2 flex items-center gap-2">
                   <Coins className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Staked</span>
                 </div>
-                <Show 
-                  when={isConnected && !stakedLoading} 
+                <Show
+                  when={isConnected && !stakedLoading}
                   fallback={
                     isConnected ? (
-                      <div className="h-7 w-24 bg-foreground/10 rounded animate-pulse mb-8"></div>
+                      <div className="mb-8 h-7 w-24 animate-pulse rounded bg-foreground/10"></div>
                     ) : (
-                      <div className="text-sm text-muted-foreground italic mb-8">Connect wallet</div>
+                      <div className="mb-8 text-sm italic text-muted-foreground">
+                        Connect wallet
+                      </div>
                     )
                   }
                 >
-                  <div className="space-y-1 mb-3">
+                  <div className="mb-3 space-y-1">
                     <HoverPopup
                       trigger={
-                        <div className="text-2xl font-semibold flex items-center gap-1 cursor-default">
+                        <div className="flex cursor-default items-center gap-1 text-2xl font-semibold">
                           <LockOpen className="h-4 w-4 text-muted-foreground" />
                           <TokenDisplay
                             amount={stakedSir.unlockedStake}
@@ -200,12 +221,12 @@ export default function StakingDashboard() {
                       size="200"
                     >
                       <div className="text-xs font-normal">
-                        Available to withdraw anytime
+                        Available to withdraw
                       </div>
                     </HoverPopup>
                     <HoverPopup
                       trigger={
-                        <div className="text-2xl font-semibold flex items-center gap-1 cursor-default">
+                        <div className="flex cursor-default items-center gap-1 text-2xl font-semibold">
                           <Lock className="h-4 w-4 text-muted-foreground" />
                           <TokenDisplay
                             amount={stakedSir.lockedStake}
@@ -233,25 +254,29 @@ export default function StakingDashboard() {
                 Unstake
               </Button>
             </div>
-            
+
             {/* Claimable Rewards */}
-            <div className="rounded-lg bg-primary/5 dark:bg-primary p-4 flex flex-col justify-between">
+            <div className="flex flex-col justify-between rounded-lg bg-primary/5 p-4 dark:bg-primary">
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2 flex items-center gap-2">
                   <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Dividends</span>
+                  <span className="text-sm text-muted-foreground">
+                    Dividends
+                  </span>
                 </div>
-                <Show 
-                  when={isConnected && !dividendsLoading} 
+                <Show
+                  when={isConnected && !dividendsLoading}
                   fallback={
                     isConnected ? (
-                      <div className="h-7 w-24 bg-foreground/10 rounded animate-pulse mb-8"></div>
+                      <div className="mb-8 h-7 w-24 animate-pulse rounded bg-foreground/10"></div>
                     ) : (
-                      <div className="text-sm text-muted-foreground italic mb-8">Connect wallet</div>
+                      <div className="mb-8 text-sm italic text-muted-foreground">
+                        Connect wallet
+                      </div>
                     )
                   }
                 >
-                  <div className="text-2xl font-semibold mb-3">
+                  <div className="mb-3 text-2xl font-semibold">
                     <TokenDisplay
                       amount={dividends}
                       decimals={18}
@@ -272,22 +297,22 @@ export default function StakingDashboard() {
             </div>
           </div>
         </div>
-        
+
         {/* Contributor Claim - if applicable */}
         <div>
           <ContributorClaim />
         </div>
       </div>
-      
+
       {/* Modals */}
       <StakeFormProvider>
         <StakeModal setOpen={setStakeModal} open={stakeModal} />
       </StakeFormProvider>
-      
+
       <UnstakeFormProvider>
         <UnstakeModal open={unstakeModal} setOpen={setUnstakeModal} />
       </UnstakeFormProvider>
-      
+
       {/* Claim Modal */}
       <TransactionModal.Root
         title="Claim Rewards"
@@ -297,7 +322,9 @@ export default function StakingDashboard() {
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
           {!isConfirmed && (
             <div className="space-y-2">
-              <h3 className="font-medium">Claiming {getNativeCurrencySymbol()} Rewards</h3>
+              <h3 className="font-medium">
+                Claiming {getNativeCurrencySymbol()} Rewards
+              </h3>
               <div className="text-2xl font-semibold">
                 <TokenDisplay
                   disableRounding

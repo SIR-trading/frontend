@@ -16,6 +16,8 @@ interface ClaimableBalancesContextType {
   isLoading: boolean;
   hasDividendsAboveThreshold: boolean;
   hasRewardsAboveThreshold: boolean;
+  hasContributorRewardsAboveThreshold: boolean;
+  hasVaultRewardsAboveThreshold: boolean;
 }
 
 const ClaimableBalancesContext = createContext<ClaimableBalancesContextType | undefined>(undefined);
@@ -99,10 +101,15 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
   // Check if dividends meet threshold
   const hasDividendsAboveThreshold = Boolean(dividends && dividends >= dividendsThreshold);
 
-  // Check if any rewards meet threshold individually
+  // Check if contributor rewards meet threshold
+  const hasContributorRewardsAboveThreshold = Boolean(
+    contributorRewards && contributorRewards >= rewardsThreshold
+  );
+
+  // Check if any rewards meet threshold individually (for backwards compatibility)
   const hasRewardsAboveThreshold = Boolean(
     /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-    (contributorRewards && contributorRewards >= rewardsThreshold) ||
+    hasContributorRewardsAboveThreshold ||
     hasAnyVaultAboveThreshold
   );
 
@@ -116,6 +123,8 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
     isLoading: !dividends && !claimData && !contributorRewards && !userBalancesInVaults,
     hasDividendsAboveThreshold,
     hasRewardsAboveThreshold,
+    hasContributorRewardsAboveThreshold,
+    hasVaultRewardsAboveThreshold: hasAnyVaultAboveThreshold,
   }), [
     hasClaimableBalances,
     dividends,
@@ -125,6 +134,8 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
     userBalancesInVaults,
     hasDividendsAboveThreshold,
     hasRewardsAboveThreshold,
+    hasContributorRewardsAboveThreshold,
+    hasAnyVaultAboveThreshold,
   ]);
 
   return (

@@ -11,7 +11,7 @@ export default function AprCard() {
   const { data: apr, isLoading } = api.user.getMonthlyApr.useQuery();
 
   return (
-    <Card className="flex flex-col items-center justify-center gap-2 rounded-md bg-secondary py-2">
+    <Card className="flex flex-col items-center justify-center gap-3 rounded-md bg-secondary p-6 hover:bg-secondary/80 transition-colors">
       <div className="flex w-full flex-row items-center justify-center">
         <div className="text-muted-foreground px-2 text-sm">Staking APR</div>
         <ToolTip size="300">
@@ -22,17 +22,15 @@ export default function AprCard() {
           </div>
         </ToolTip>
       </div>
-      <div className="text-2xl font-normal ">
-        <Show 
-          when={!isLoading && !!apr} 
-          fallback={
-            <div className="h-8 w-16 bg-foreground/10 rounded animate-pulse"></div>
-          }
-        >
-          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-          <AprDisplay currentApr={apr} />
-        </Show>
-      </div>
+      <Show
+        when={!isLoading && !!apr}
+        fallback={
+          <div className="h-8 w-24 bg-foreground/10 rounded animate-pulse"></div>
+        }
+      >
+        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+        <AprDisplay currentApr={apr} />
+      </Show>
     </Card>
   );
 }

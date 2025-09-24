@@ -16,7 +16,12 @@ const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
 });
 export function Header() {
   // Check for claimable balances
-  const { hasClaimableBalances, hasDividendsAboveThreshold, hasRewardsAboveThreshold } = useClaimableBalances();
+  const {
+    hasClaimableBalances,
+    hasDividendsAboveThreshold,
+    hasContributorRewardsAboveThreshold,
+    hasVaultRewardsAboveThreshold
+  } = useClaimableBalances();
 
   // Determine if we're on a HyperEVM chain
   const isHyperEVM = useMemo(() => {
@@ -77,9 +82,7 @@ export function Header() {
                 <NavItem
                   url={"/portfolio"}
                   icon={Briefcase}
-                  hasNotification={hasClaimableBalances}
-                  hasRewardsNotification={hasRewardsAboveThreshold}
-                  hasDividendsNotification={hasDividendsAboveThreshold}
+                  hasRewardsNotification={hasVaultRewardsAboveThreshold}
                 >
                   Portfolio
                 </NavItem>
@@ -89,7 +92,14 @@ export function Header() {
                 <div className="mx-3 h-5 w-[2px] bg-foreground/25 rounded-full"></div>
               </div>
               <ul className="hidden lg:flex gap-x-3" aria-label="Secondary Navigation">
-                <NavItem url={"/stake"} icon={Coins}>Stake</NavItem>
+                <NavItem
+                  url={"/stake"}
+                  icon={Coins}
+                  hasRewardsNotification={hasContributorRewardsAboveThreshold}
+                  hasDividendsNotification={hasDividendsAboveThreshold}
+                >
+                  Stake
+                </NavItem>
                 <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
                 <NavItem url={"/auctions"} icon={Gavel}>Auctions</NavItem>
               </ul>

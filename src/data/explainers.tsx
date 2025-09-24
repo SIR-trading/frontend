@@ -47,7 +47,7 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          View and manage all positions: close APE trades, withdraw TEA liquidity, claim {getSirSymbol()} rewards, and stake {getSirSymbol()} for {getNativeCurrencySymbol()} dividends.
+          View and manage all positions: close APE trades, withdraw TEA liquidity, and claim {getSirSymbol()} rewards earned from providing liquidity.
         </p>
       </>
     ),

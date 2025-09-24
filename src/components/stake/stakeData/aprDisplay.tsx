@@ -11,12 +11,10 @@ export default function AprDisplay({
   const APR = parseFloat(currentApr?.apr ?? "0");
 
   return (
-    <div className="text-2xl font-normal ">
-      <Show when={APR > 0} fallback={<h1>N/A</h1>}>
-        <h3>
-          <DisplayFormattedNumber num={APR} />%
-        </h3>
-      </Show>
-    </div>
+    <Show when={APR > 0} fallback={<span className="text-lg">N/A</span>}>
+      <span className="text-2xl">
+        <DisplayFormattedNumber num={APR} />%
+      </span>
+    </Show>
   );
 }

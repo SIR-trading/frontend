@@ -39,7 +39,7 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const tokenAmount = formatUnits(amount ?? 0n, decimals ?? 18);
     return (
-      <h3
+      <span
         ref={ref}
         className={cn(AmountVariants({ amountSize, className }))}
         {...props}
@@ -49,7 +49,7 @@ const TokenDisplay = React.forwardRef<HTMLInputElement, InputProps>(
           significant={disableRounding ? undefined : round}
         />
         <span className={cn("text-muted-foreground", amountSize === "large" ? "text-base" : "")}> {unitLabel}</span>
-      </h3>
+      </span>
     );
   },
 );

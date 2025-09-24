@@ -91,7 +91,9 @@ export default function ContributorRewardsCard() {
       )}
 
       {hasContributorRewards ? (
-        <div className={`rounded-md bg-primary/5 p-2 pb-2 dark:bg-primary h-full relative ${unclaimedRewards >= 100000000000000000n ? 'claim-card-gold-glow' : ''}`}>
+        <div
+          className={`relative h-full rounded-md bg-primary/5 p-4 dark:bg-primary ${unclaimedRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}
+        >
           <div className="flex justify-between rounded-md text-2xl">
             <div className="flex gap-x-2">
               <div className="flex w-full justify-between">
@@ -99,21 +101,25 @@ export default function ContributorRewardsCard() {
                   <h2 className="pb-1 text-sm text-muted-foreground">
                     Contributor Rewards
                   </h2>
-                  <div className="flex justify-between text-3xl min-h-[32px]">
+                  <div className="flex min-h-[32px] justify-between text-3xl">
                     <div className="flex items-end gap-x-1">
                       <Show
                         when={isConnected && !rewardsLoading}
                         fallback={
                           isConnected ? (
-                            <div className="h-8 w-20 bg-foreground/10 rounded animate-pulse"></div>
+                            <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
                           ) : (
-                            <div className="text-sm text-foreground italic">
+                            <div className="text-sm italic text-foreground">
                               Connect to claim rewards
                             </div>
                           )
                         }
                       >
-                        <TokenDisplay amount={unclaimedRewards} decimals={12} unitLabel={getSirSymbol()} />
+                        <TokenDisplay
+                          amount={unclaimedRewards}
+                          decimals={12}
+                          unitLabel={getSirSymbol()}
+                        />
                       </Show>
                     </div>
                   </div>
@@ -124,7 +130,7 @@ export default function ContributorRewardsCard() {
               <Button
                 disabled={!isConnected || !unclaimedRewards || !data?.request}
                 onClick={() => setOpen(true)}
-                className="py-2 w-20"
+                className="w-20 py-2"
               >
                 Claim
               </Button>
@@ -132,9 +138,10 @@ export default function ContributorRewardsCard() {
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-full min-h-[80px] p-2">
+        <div className="flex h-full min-h-[80px] items-center justify-center p-2">
           <p className="text-sm text-muted-foreground">
-            Stake your {getSirSymbol()} to earn {getNativeCurrencySymbol()} dividends.
+            Stake your {getSirSymbol()} to earn {getNativeCurrencySymbol()}{" "}
+            dividends.
           </p>
         </div>
       )}
