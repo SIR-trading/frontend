@@ -170,76 +170,81 @@ export default function BurnTable({
 
       {
         <div className="w-full animate-fade-in">
-          <div className="flex flex-col gap-y-4">
-            <BurnTableHeaders />
-            {/* PLEASE REFACTOR THIS!!! */}
-            <Show
-              when={!loading}
-              fallback={
-                <>
-                  <BurnTableRowSkeleton />
-                  <BurnTableRowSkeleton />
-                  <BurnTableRowSkeleton />
-                </>
-              }
-            >
+          <table className="w-full table-auto">
+            <BurnTableHeaders isApe={filter === "ape"} />
+            <tbody>
               <Show
-                when={hasPositions}
+                when={!loading}
                 fallback={
-                  <IdleContainer>
-                    {isConnected ? "No Positions." : "Connect to see portfolio"}
-                  </IdleContainer>
+                  <>
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                  </>
                 }
               >
-                <Show when={filter === "ape" || filter === "all"}>
-                  {apePosition}
-                </Show>
-                <Show when={filter === "tea" || filter === "all"}>
-                  {tea.data?.teaPositions.map((r, index) => {
-                    return (
-                      <BurnTableRow
-                        key={(r.vault.id || index) + "tea"}
-                        row={{
-                          ...r,
-                          // Flattened properties for backwards compatibility
-                          decimals: r.vault.collateralToken.decimals,
-                          collateralSymbol: r.vault.collateralToken.symbol ?? 'Unknown',
-                          debtSymbol: r.vault.debtToken.symbol ?? 'Unknown',
-                          collateralToken: r.vault.collateralToken.id,
-                          debtToken: r.vault.debtToken.id,
-                          leverageTier: r.vault.leverageTier.toString(),
-                          vaultId: r.vault.id,
-                        }}
-                        isApe={false}
-                        setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
-                          setSelectedRow({
+                <Show
+                  when={hasPositions}
+                  fallback={
+                    <tr>
+                      <td colSpan={6} className="text-center py-6">
+                        <span className="text-foreground italic">
+                          {isConnected ? "No Positions." : "Connect to see portfolio"}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                >
+                  <Show when={filter === "ape" || filter === "all"}>
+                    {apePosition}
+                  </Show>
+                  <Show when={filter === "tea" || filter === "all"}>
+                    {tea.data?.teaPositions.map((r, index) => {
+                      return (
+                        <BurnTableRow
+                          key={(r.vault.id || index) + "tea"}
+                          row={{
+                            ...r,
+                            // Flattened properties for backwards compatibility
+                            decimals: r.vault.collateralToken.decimals,
+                            collateralSymbol: r.vault.collateralToken.symbol ?? 'Unknown',
+                            debtSymbol: r.vault.debtToken.symbol ?? 'Unknown',
+                            collateralToken: r.vault.collateralToken.id,
+                            debtToken: r.vault.debtToken.id,
+                            leverageTier: r.vault.leverageTier.toString(),
                             vaultId: r.vault.id,
-                            isApe: false,
-                            mode,
-                          })
-                        }
-                        apeBal={
-                          userBalancesInVaults?.apeBalances[
-                            Number(r.vault.id) - 1
-                          ]
-                        }
-                        teaBal={
-                          userBalancesInVaults?.teaBalances[
-                            Number(r.vault.id) - 1
-                          ]
-                        }
-                        teaRewards={
-                          userBalancesInVaults?.unclaimedSirRewards[
-                            Number(r.vault.id) - 1
-                          ]
-                        }
-                      />
-                    );
-                  })}
+                          }}
+                          isApe={false}
+                          setSelectedRow={(mode: "burn" | "claim" | "transfer") =>
+                            setSelectedRow({
+                              vaultId: r.vault.id,
+                              isApe: false,
+                              mode,
+                            })
+                          }
+                          apeBal={
+                            userBalancesInVaults?.apeBalances[
+                              Number(r.vault.id) - 1
+                            ]
+                          }
+                          teaBal={
+                            userBalancesInVaults?.teaBalances[
+                              Number(r.vault.id) - 1
+                            ]
+                          }
+                          teaRewards={
+                            userBalancesInVaults?.unclaimedSirRewards[
+                              Number(r.vault.id) - 1
+                            ]
+                          }
+                        />
+                      );
+                    })}
+                  </Show>
                 </Show>
               </Show>
-            </Show>
-          </div>
+            </tbody>
+          </table>
         </div>
       }
     </div>

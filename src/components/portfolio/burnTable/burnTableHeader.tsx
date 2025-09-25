@@ -1,12 +1,113 @@
-export default function BurnTableHeaders() {
+export default function BurnTableHeaders({ isApe }: { isApe?: boolean }) {
+  if (isApe === true) {
+    return (
+      <thead>
+        <tr className="text-left text-[14px] font-thin text-muted-foreground">
+          <th
+            rowSpan={2}
+            className="border-b border-foreground/15 pb-1 pr-4 align-bottom font-normal"
+          >
+            Token
+          </th>
+          <th
+            rowSpan={2}
+            className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+          >
+            Vault
+          </th>
+          <th
+            rowSpan={2}
+            className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+          >
+            Value
+          </th>
+          <th
+            rowSpan={2}
+            className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+          >
+            PnL
+          </th>
+          <th
+            colSpan={3}
+            className="hidden pb-1 pr-4 text-center font-normal md:table-cell"
+            style={{ minWidth: "130px" }}
+          >
+            <div className="text-sm font-normal">Required Price Gain</div>
+          </th>
+          <th
+            rowSpan={2}
+            className="border-b border-foreground/15 pb-1 text-center align-bottom font-normal"
+          >
+            Actions
+          </th>
+        </tr>
+        <tr className="border-b border-foreground/15 text-[10px] text-muted-foreground">
+          <th className="hidden pb-1 pr-2 text-right font-normal md:table-cell">
+            B/E
+          </th>
+          <th className="hidden pb-1 pr-2 text-right font-normal md:table-cell">
+            2x
+          </th>
+          <th className="hidden pb-1 pr-4 text-right font-normal md:table-cell">
+            10x
+          </th>
+        </tr>
+      </thead>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-[0.6fr_1.2fr_1.5fr_0.8fr_0.7fr] md:grid-cols-[0.6fr_0.8fr_1.2fr_1fr_0.8fr_0.7fr] lg:grid-cols-[0.6fr_0.6fr_1fr_0.8fr_0.8fr_0.7fr] gap-x-4 border-b border-foreground/15 pb-1 text-left text-[14px] font-thin text-muted-foreground">
-      <div className="font-normal">Token</div>
-      <div className="hidden font-normal md:block">Balance</div>
-      <div className="font-normal">Vault</div>
-      <div className="font-normal">Value</div>
-      <div className="font-normal">PnL</div>
-      <div className="font-normal text-center">Actions</div>
-    </div>
+    <thead>
+      <tr className="text-left text-[14px] font-thin text-muted-foreground">
+        <th
+          rowSpan={2}
+          className="border-b border-foreground/15 pb-1 pr-4 align-bottom font-normal"
+        >
+          Token
+        </th>
+        <th
+          rowSpan={2}
+          className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+        >
+          Vault
+        </th>
+        <th
+          rowSpan={2}
+          className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+        >
+          Value
+        </th>
+        <th
+          rowSpan={2}
+          className="border-b border-foreground/15 pb-1 pr-4 text-center align-bottom font-normal"
+        >
+          PnL
+        </th>
+        <th
+          colSpan={3}
+          className="hidden pb-1 pr-4 text-center font-normal md:table-cell"
+          style={{ minWidth: "130px" }}
+        >
+          <div className="text-sm font-normal">Required Time</div>
+        </th>
+        <th
+          rowSpan={2}
+          className="border-b border-foreground/15 pb-1 text-center align-bottom font-normal"
+        >
+          Actions
+        </th>
+      </tr>
+      <tr className="border-b border-foreground/15 text-[10px] text-muted-foreground">
+        <th className="hidden pb-1 pr-2 text-right font-normal md:table-cell">
+          B/E
+        </th>
+        <th className="hidden pb-1 pr-2 text-right font-normal md:table-cell">
+          2x
+        </th>
+        <th className="hidden pb-1 pr-4 text-right font-normal md:table-cell">
+          10x
+        </th>
+      </tr>
+    </thead>
   );
 }

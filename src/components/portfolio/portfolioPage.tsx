@@ -20,15 +20,15 @@ export default function PortfolioPage() {
         <Explainer page={EPage.PORTFOLIO} />
 
         {/* APE Tokens Section */}
-        <Card className="p-4">
-          <h2 className="flex items-center gap-x-2 pb-4 lg:pb-8 text-sm">
+        <Card className="p-6">
+          <h2 className="flex items-center gap-x-2 pb-4 text-sm lg:pb-8">
             <FxemojiMonkeyface className="text-xl" />
             <span>My APE Tokens</span>
           </h2>
           <NoSSR
             fallback={
-              <div className="w-full animate-fade-in flex flex-col gap-y-4">
-                <BurnTableHeaders />
+              <div className="flex w-full animate-fade-in flex-col gap-y-4">
+                <BurnTableHeaders isApe={true} />
                 <BurnTableRowSkeleton />
                 <BurnTableRowSkeleton />
                 <BurnTableRowSkeleton />
@@ -40,15 +40,15 @@ export default function PortfolioPage() {
         </Card>
 
         {/* TEA Tokens Section */}
-        <Card className="p-4">
-          <h2 className="flex items-center gap-x-2 pb-4 lg:pb-8 text-sm">
+        <Card className="p-6">
+          <h2 className="flex items-center gap-x-2 pb-4 text-sm lg:pb-8">
             <NotoTeapot className="text-xl" />
             <span>My TEA Tokens</span>
           </h2>
           <NoSSR
             fallback={
-              <div className="w-full animate-fade-in flex flex-col gap-y-4">
-                <BurnTableHeaders />
+              <div className="flex w-full animate-fade-in flex-col gap-y-4">
+                <BurnTableHeaders isApe={false} />
                 <BurnTableRowSkeleton />
                 <BurnTableRowSkeleton />
                 <BurnTableRowSkeleton />
