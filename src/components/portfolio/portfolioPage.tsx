@@ -9,6 +9,8 @@ import NoSSR from "../ui/no-ssr";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
+import { FxemojiMonkeyface } from "../ui/icons/monkey-icon";
+import { NotoTeapot } from "../ui/icons/teapot-icon";
 export default function PortfolioPage() {
   return (
     <div className="lg:w-[900px] ">
@@ -19,8 +21,9 @@ export default function PortfolioPage() {
 
         {/* APE Tokens Section */}
         <Card className="p-4">
-          <h2 className="flex items-center gap-x-1 pb-4 lg:pb-8 text-sm">
-            My APE Tokens
+          <h2 className="flex items-center gap-x-2 pb-4 lg:pb-8 text-sm">
+            <FxemojiMonkeyface className="text-xl" />
+            <span>My APE Tokens</span>
           </h2>
           <NoSSR
             fallback={
@@ -38,8 +41,9 @@ export default function PortfolioPage() {
 
         {/* TEA Tokens Section */}
         <Card className="p-4">
-          <h2 className="flex items-center gap-x-1 pb-4 lg:pb-8 text-sm">
-            My TEA Tokens
+          <h2 className="flex items-center gap-x-2 pb-4 lg:pb-8 text-sm">
+            <NotoTeapot className="text-xl" />
+            <span>My TEA Tokens</span>
           </h2>
           <NoSSR
             fallback={
