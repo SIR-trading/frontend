@@ -99,3 +99,53 @@ When compiling the app and running build scripts, we avoid defensive programming
 - Fix the root cause when compilation errors appear
 
 This applies specifically to the build/compilation process and scripts. At runtime, the app can handle errors gracefully for better UX.
+
+## Price Functions API
+
+The app provides several price fetching mechanisms to get token prices from different sources:
+
+### 1. Uniswap V3 Oracle Prices
+
+- **`api.quote.getMostLiquidPoolPrice`**: Gets exchange rate between any two tokens using Uniswap V3
+  - Parameters: `tokenA`, `tokenB`, `decimalsA`, `decimalsB`
+  - Returns: Object with `price` (how many tokenB per 1 tokenA), `liquidity`, `poolAddress`, `fee`
+  - Finds the most liquid pool across fee tiers (0.05%, 0.3%, 1%)
+  - This is the same oracle the smart contracts use, ensuring price consistency
+
+### 2. USD Price Functions
+
+- **`api.price.getSirPriceInUsd`**: Gets SIR token price in USD
+  - Combines Uniswap V3 price (SIR/WETH or SIR/WHYPE) with wrapped token USD price
+  - Cached for 1 minute to reduce API calls
+
+- **`api.price.getTokenPrice`**: Alchemy-based price fetching (Ethereum chains)
+  - Parameters: `contractAddress`, `chain`
+  - Returns token prices from Alchemy's pricing API
+  - Used for Ethereum mainnet and Sepolia testnet
+
+- **`api.price.getCoinGeckoPrice`**: CoinGecko API integration (HyperEVM chains)
+  - Parameters: `platformId`, `contractAddress`
+  - Returns USD price from CoinGecko
+  - Used for HyperEVM mainnet and testnet
+  - Cached for 1 minute
+
+### 3. Helper Hooks
+
+- **`useTeaAndApePrice`**: React hook for getting position value in USD
+  - Takes collateral amount from `quoteBurn`
+  - Automatically selects the right price source based on chain and token
+  - Returns USD value of the position
+
+### 4. Vault-Specific Functions
+
+- **`api.vault.quoteBurn`**: Gets collateral amount for burning APE/TEA tokens
+  - Parameters: `amount`, `isApe`, `debtToken`, `collateralToken`, `leverageTier`, `decimals`
+  - Returns the amount of collateral tokens you'd receive
+  - This is the "current value" of a position in collateral terms
+
+### Usage Notes
+
+- **For PnL calculations**: Use `quoteBurn` for current collateral amount, compare with `row.collateralTotal` from subgraph
+- **For debt token PnL**: Use `getMostLiquidPoolPrice` to get current exchange rate and convert collateral to debt token terms
+- **For USD values**: Use appropriate price function based on chain (Alchemy for Ethereum, CoinGecko for HyperEVM)
+- All price functions include caching to minimize external API calls
