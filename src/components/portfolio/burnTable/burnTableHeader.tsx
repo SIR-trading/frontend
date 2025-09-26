@@ -32,7 +32,10 @@ export default function BurnTableHeaders({ isApe }: { isApe?: boolean }) {
             className="hidden pb-1 pr-4 text-center font-normal md:table-cell"
             style={{ minWidth: "130px" }}
           >
-            <div className="text-sm font-normal">Required Price Gain</div>
+            <div className="text-sm font-normal">
+              Required Price Gain
+              <sup className="ml-0.5 text-[10px] text-muted-foreground">*</sup>
+            </div>
           </th>
           <th
             rowSpan={2}
@@ -88,7 +91,10 @@ export default function BurnTableHeaders({ isApe }: { isApe?: boolean }) {
           className="hidden pb-1 pr-4 text-center font-normal md:table-cell"
           style={{ minWidth: "130px" }}
         >
-          <div className="text-sm font-normal">Required Time</div>
+          <div className="text-sm font-normal">
+            Required Time
+            <sup className="ml-0.5 text-[10px] text-muted-foreground">†</sup>
+          </div>
         </th>
         <th
           rowSpan={2}

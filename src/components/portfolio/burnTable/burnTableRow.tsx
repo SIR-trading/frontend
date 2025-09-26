@@ -18,9 +18,9 @@ import { MoreVertical, Send, ChevronDown, ChevronUp } from "lucide-react";
 import {
   calculatePriceIncreaseToTarget,
   calculateBreakevenTime,
-  formatBreakevenTime,
 } from "@/lib/utils/breakeven";
 import { PriceIncreaseDisplay } from "./PriceIncreaseDisplay";
+import { TimeDisplay } from "./TimeDisplay";
 import type { TUserPosition } from "@/server/queries/vaults";
 
 export function BurnTableRow({
@@ -125,7 +125,8 @@ export function BurnTableRow({
   };
 
   // Calculate break-even metrics
-  let breakevenDisplay = "—";
+  let breakevenDisplay = "—";  // For APE tokens (price-based)
+  let breakevenTimeDays: number | null = null;  // For TEA tokens (time-based)
 
   // Calculate price increase targets for APE tokens
   const priceIncreaseTargets = {
@@ -208,26 +209,24 @@ export function BurnTableRow({
       },
     );
 
-    if (apyData?.apy !== undefined) {
-      if (apyData.apy === 0) {
-        breakevenDisplay = "∞";
-      } else {
-        const breakevenTime = calculateBreakevenTime(
-          initialCollateral,
-          currentCollateral,
-          apyData.apy,
-        );
-        breakevenDisplay = formatBreakevenTime(breakevenTime);
-      }
+    if (apyData?.apy !== undefined && apyData.apy > 0) {
+      breakevenTimeDays = calculateBreakevenTime(
+        initialCollateral,
+        currentCollateral,
+        apyData.apy,
+      );
     }
   }
 
-  // Calculate time targets for TEA tokens (collateral and debt token)
-  let doubleTimeDisplay = "—";
-  let tenxTimeDisplay = "—";
-  let breakevenDebtTimeDisplay = "—";
-  let doubleDebtTimeDisplay = "—";
-  let tenxDebtTimeDisplay = "—";
+  // Calculate time targets for TEA tokens (collateral and debt token) - store as days
+  let doubleTimeDays: number | null = null;
+  let tenxTimeDays: number | null = null;
+  let breakevenDebtTimeDays: number | null = null;
+  let doubleDebtTimeDays: number | null = null;
+  let tenxDebtTimeDays: number | null = null;
+
+  // Special flag for when APY is 0 (infinite time)
+  let isInfiniteTime = false;
 
   if (!isApe) {
     const { data: apyData } = api.vault.getVaultApy.useQuery(
@@ -239,57 +238,48 @@ export function BurnTableRow({
     );
 
     if (apyData?.apy !== undefined) {
-      // If APY is 0, show infinity symbol
       if (apyData.apy === 0) {
-        doubleTimeDisplay = "∞";
-        tenxTimeDisplay = "∞";
-        breakevenDebtTimeDisplay = "∞";
-        doubleDebtTimeDisplay = "∞";
-        tenxDebtTimeDisplay = "∞";
+        // APY is 0, so time to reach targets is infinite
+        isInfiniteTime = true;
       } else {
         // Calculate time to reach 2x initial value (collateral)
-        const doubleTime = calculateBreakevenTime(
+        doubleTimeDays = calculateBreakevenTime(
           initialCollateral * 2,
           currentCollateral,
           apyData.apy,
         );
-        doubleTimeDisplay = formatBreakevenTime(doubleTime);
 
         // Calculate time to reach 10x initial value (collateral)
-        const tenxTime = calculateBreakevenTime(
+        tenxTimeDays = calculateBreakevenTime(
           initialCollateral * 10,
           currentCollateral,
           apyData.apy,
         );
-        tenxTimeDisplay = formatBreakevenTime(tenxTime);
 
         // For debt token values, we need to account for the exchange rate change
         // The debt token value grows based on collateral growth and exchange rate
         // Since TEA tokens earn yield in collateral, we calculate based on collateral APY
 
         // Break-even for debt token
-        const breakevenDebtTime = calculateBreakevenTime(
+        breakevenDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue,
           currentDebtTokenValue,
           apyData.apy,
         );
-        breakevenDebtTimeDisplay = formatBreakevenTime(breakevenDebtTime);
 
         // 2x for debt token
-        const doubleDebtTime = calculateBreakevenTime(
+        doubleDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue * 2,
           currentDebtTokenValue,
           apyData.apy,
         );
-        doubleDebtTimeDisplay = formatBreakevenTime(doubleDebtTime);
 
         // 10x for debt token
-        const tenxDebtTime = calculateBreakevenTime(
+        tenxDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue * 10,
           currentDebtTokenValue,
           apyData.apy,
         );
-        tenxDebtTimeDisplay = formatBreakevenTime(tenxDebtTime);
       }
     }
   }
@@ -791,29 +781,26 @@ export function BurnTableRow({
 
         {/* Break-even time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
-          <span
-            className={`${breakevenDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {breakevenDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : breakevenTimeDays}
+            className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
 
         {/* 2x time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
-          <span
-            className={`${doubleTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {doubleTimeDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : doubleTimeDays}
+            className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
 
         {/* 10x time column */}
         <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal md:table-cell">
-          <span
-            className={`${tenxTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {tenxTimeDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : tenxTimeDays}
+            className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
 
         {/* Actions column - spans 2 rows */}
@@ -974,29 +961,26 @@ export function BurnTableRow({
 
         {/* Break-even time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
-          <span
-            className={`${breakevenDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {breakevenDebtTimeDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : breakevenDebtTimeDays}
+            className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
 
         {/* 2x time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
-          <span
-            className={`${doubleDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {doubleDebtTimeDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : doubleDebtTimeDays}
+            className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
 
         {/* 10x time column - debt token */}
         <td className="hidden pb-1.5 pr-4 pt-0.5 text-right font-normal md:table-cell">
-          <span
-            className={`${tenxDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {tenxDebtTimeDisplay}
-          </span>
+          <TimeDisplay
+            days={isInfiniteTime ? Infinity : tenxDebtTimeDays}
+            className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+          />
         </td>
       </tr>
 
@@ -1011,21 +995,24 @@ export function BurnTableRow({
                 <div className="space-x-4 text-right">
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
-                    <span className={`${breakevenDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {breakevenDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : breakevenTimeDays}
+                      className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
-                    <span className={`${doubleTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {doubleTimeDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : doubleTimeDays}
+                      className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
-                    <span className={`${tenxTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {tenxTimeDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : tenxTimeDays}
+                      className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                 </div>
               </div>
@@ -1036,21 +1023,24 @@ export function BurnTableRow({
                 <div className="space-x-4 text-right">
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
-                    <span className={`${breakevenDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {breakevenDebtTimeDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : breakevenDebtTimeDays}
+                      className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
-                    <span className={`${doubleDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {doubleDebtTimeDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : doubleDebtTimeDays}
+                      className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
-                    <span className={`${tenxDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                      {tenxDebtTimeDisplay}
-                    </span>
+                    <TimeDisplay
+                      days={isInfiniteTime ? Infinity : tenxDebtTimeDays}
+                      className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                    />
                   </span>
                 </div>
               </div>
