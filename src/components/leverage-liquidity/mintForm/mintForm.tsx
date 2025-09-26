@@ -46,6 +46,14 @@ import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
 import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
 import useVaultFilterStore from "@/lib/store";
+import { api } from "@/trpc/react";
+import {
+  calculatePriceIncreaseToTarget,
+  calculateBreakevenTime,
+} from "@/lib/utils/breakeven";
+import { PriceIncreaseDisplay } from "@/components/portfolio/burnTable/PriceIncreaseDisplay";
+import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
+import { getLeverageRatio } from "@/lib/utils/calculations";
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -166,14 +174,17 @@ export default function MintForm({ isApe }: Props) {
     vaultId: Number.parseInt(selectedVault.result?.id ?? "-1"),
     isApe: true,
     leverageTier: selectedVault.result?.leverageTier,
-    apeCollateral: selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : undefined,
-    teaCollateral: selectedVault.result ? BigInt(selectedVault.result.reserveLPers || 0) : undefined,
+    apeCollateral: selectedVault.result
+      ? BigInt(selectedVault.result.reserveApes || 0)
+      : undefined,
+    teaCollateral: selectedVault.result
+      ? BigInt(selectedVault.result.reserveLPers || 0)
+      : undefined,
   });
 
   // Check if vault is already in red status (only when vault is selected and data is loaded)
   const isVaultRed = useMemo(() => {
-    if (!selectedVault.result?.id || vaultHealthResult.isLoading)
-      return false;
+    if (!selectedVault.result?.id || vaultHealthResult.isLoading) return false;
     return vaultHealthResult.variant === "red";
   }, [
     selectedVault.result?.id,
@@ -362,6 +373,160 @@ export default function MintForm({ isApe }: Props) {
   const depositTokenSymbol = !usingDebtToken
     ? selectedVault.result?.collateralToken.symbol
     : selectedVault.result?.debtToken.symbol;
+
+  const collateralTokenSymbol =
+    selectedVault.result?.collateralToken.symbol ?? "";
+  const debtTokenSymbol = selectedVault.result?.debtToken.symbol ?? "";
+
+  // Fetch APY for TEA positions
+  const { data: apyData } = api.vault.getVaultApy.useQuery(
+    { vaultId: selectedVault.result?.id ?? "" },
+    {
+      enabled: !isApe && Boolean(selectedVault.result?.id),
+      staleTime: 60000, // Cache for 1 minute
+    },
+  );
+
+  // Calculate collateral amount after fees (for stats display)
+  const collateralAmountAfterFees = useMemo(() => {
+    if (!deposit || !fee || !depositDecimals) return undefined;
+
+    const depositAmount = parseFloat(deposit);
+    const feePercent = parseFloat(fee) / 100;
+    const amountAfterFees = depositAmount * (1 - feePercent);
+
+    return amountAfterFees;
+  }, [deposit, fee, depositDecimals]);
+
+  // Calculate stats for Required Price Gain or Required Time
+  const stats = useMemo(() => {
+    // Check if we have valid values to calculate stats
+    if (
+      !deposit ||
+      parseFloat(deposit) === 0 ||
+      !fee ||
+      !collateralAmountAfterFees ||
+      collateralAmountAfterFees === 0
+    ) {
+      return null;
+    }
+
+    const initialDeposit = parseFloat(deposit); // What user actually deposits
+    const collateralValue = collateralAmountAfterFees; // What they get after fees
+
+    if (isApe && leverageTier !== undefined && leverageTier !== "") {
+      const leverageTierNum = parseFloat(leverageTier);
+      if (!isFinite(leverageTierNum)) return null;
+
+      // Convert leverageTier (k) to actual leverage ratio (1 + 2^k)
+      const leverage = getLeverageRatio(leverageTierNum);
+
+      // Calculate for COLLATERAL token (price increase)
+      const collateralBreakeven = calculatePriceIncreaseToTarget(
+        initialDeposit, // target (recover initial deposit)
+        collateralValue, // current (post-fee amount)
+        leverage,
+        true, // isCollateral
+      );
+
+      const collateralDouble = calculatePriceIncreaseToTarget(
+        initialDeposit * 2, // target (2x initial deposit)
+        collateralValue, // current
+        leverage,
+        true,
+      );
+
+      const collateralTenx = calculatePriceIncreaseToTarget(
+        initialDeposit * 10, // target (10x initial deposit)
+        collateralValue, // current
+        leverage,
+        true,
+      );
+
+      // Calculate for DEBT token (price increase needed for profit)
+      // Same formula but with exponent 1/l instead of 1/(l-1)
+      const debtBreakeven = calculatePriceIncreaseToTarget(
+        initialDeposit, // target (recover initial deposit)
+        collateralValue, // current (post-fee amount)
+        leverage,
+        false, // isDebt - will use 1/l exponent
+      );
+
+      const debtDouble = calculatePriceIncreaseToTarget(
+        initialDeposit * 2, // target (2x initial deposit)
+        collateralValue, // current
+        leverage,
+        false,
+      );
+
+      const debtTenx = calculatePriceIncreaseToTarget(
+        initialDeposit * 10, // target (10x initial deposit)
+        collateralValue, // current
+        leverage,
+        false,
+      );
+
+      return {
+        type: "priceGain" as const,
+        collateral: {
+          breakeven: collateralBreakeven ?? 0,
+          double: collateralDouble ?? 0,
+          tenx: collateralTenx ?? 0,
+        },
+        debt: {
+          breakeven: debtBreakeven ?? 0,
+          double: debtDouble ?? 0,
+          tenx: debtTenx ?? 0,
+        },
+      };
+    } else if (!isApe && apyData?.apy !== undefined) {
+      // Calculate Required Time for TEA tokens
+      if (apyData.apy === 0) {
+        return {
+          type: "time" as const,
+          breakeven: Infinity,
+          double: Infinity,
+          tenx: Infinity,
+        };
+      }
+
+      // Break-even: time to recover initial deposit from post-fee amount
+      const breakeven = calculateBreakevenTime(
+        initialDeposit, // target
+        collateralValue, // current (post-fee)
+        apyData.apy,
+      );
+
+      const double = calculateBreakevenTime(
+        initialDeposit * 2,
+        collateralValue,
+        apyData.apy,
+      );
+
+      const tenx = calculateBreakevenTime(
+        initialDeposit * 10,
+        collateralValue,
+        apyData.apy,
+      );
+
+      return {
+        type: "time" as const,
+        breakeven: breakeven ?? 0,
+        double: double,
+        tenx: tenx,
+      };
+    }
+
+    return null;
+  }, [
+    collateralAmountAfterFees,
+    deposit,
+    isApe,
+    leverageTier,
+    apyData?.apy,
+    fee,
+  ]);
+
   return (
     <Card>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -463,13 +628,106 @@ export default function MintForm({ isApe }: Props) {
                   }
                 />
 
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <p>
-                    {isApe
-                      ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
-                      : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
-                  </p>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {isApe
+                    ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
+                    : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
                 </div>
+
+                {/* Stats for Required Price Gain or Required Time */}
+                {stats && (
+                  <>
+                    <div className="mt-2 border-t border-foreground/10 pt-2" />
+                    {stats.type === "priceGain" ? (
+                      <>
+                        {/* Two-column header for APE tokens */}
+                        <div className="text-gray-300 mb-1 flex justify-between text-[11px]">
+                          <div className="w-[140px]">Required Price Gain</div>
+                          <div className="flex gap-4">
+                            <div className="w-[60px] text-right text-foreground/70">
+                              {collateralTokenSymbol}
+                            </div>
+                            <div className="w-[60px] text-right text-foreground/70">
+                              {debtTokenSymbol}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Break-even row */}
+                        <div className="mb-0.5 flex justify-between text-[13px]">
+                          <div className="text-gray-300">to Break-Even</div>
+                          <div className="flex gap-4">
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.collateral.breakeven}
+                              />
+                            </div>
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.debt.breakeven}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 2x row */}
+                        <div className="mb-0.5 flex justify-between text-[13px]">
+                          <div className="text-gray-300">to 2x</div>
+                          <div className="flex gap-4">
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.collateral.double}
+                              />
+                            </div>
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.debt.double}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 10x row */}
+                        <div className="mb-0.5 flex justify-between text-[13px]">
+                          <div className="text-gray-300">to 10x</div>
+                          <div className="flex gap-4">
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.collateral.tenx}
+                              />
+                            </div>
+                            <div className="w-[60px] text-right">
+                              <PriceIncreaseDisplay
+                                percentage={stats.debt.tenx}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Single column for TEA tokens */}
+                        <TransactionModal.StatRow
+                          title="Time to Break-Even"
+                          value={<TimeDisplay days={stats.breakeven} />}
+                        />
+                        <TransactionModal.StatRow
+                          title="Time to 2x"
+                          value={<TimeDisplay days={stats.double} />}
+                        />
+                        <TransactionModal.StatRow
+                          title="Time to 10x"
+                          value={<TimeDisplay days={stats.tenx} />}
+                        />
+                      </>
+                    )}
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {isApe
+                        ? "Price gains assume sufficient vault liquidity."
+                        : "Time calculations assume price and APY remain constant"}
+                    </div>
+                  </>
+                )}
               </TransactionModal.StatContainer>
             </Show>
             <Show when={needsApproval && !needs0Approval && !isConfirmed}>
@@ -571,13 +829,19 @@ export default function MintForm({ isApe }: Props) {
                 </Dropdown.Item>
                 <Dropdown.Item
                   tokenAddress={
-                    selectedVault.result?.debtToken.id ?? versusTokenAddress ?? ""
+                    selectedVault.result?.debtToken.id ??
+                    versusTokenAddress ??
+                    ""
                   }
                   value={
-                    selectedVault.result?.debtToken.id ?? versusTokenAddress ?? ""
+                    selectedVault.result?.debtToken.id ??
+                    versusTokenAddress ??
+                    ""
                   }
                 >
-                  {selectedVault.result?.debtToken.symbol ?? versusTokenSymbol ?? ""}
+                  {selectedVault.result?.debtToken.symbol ??
+                    versusTokenSymbol ??
+                    ""}
                 </Dropdown.Item>
               </Show>
             </Dropdown.Root>
@@ -586,7 +850,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when vault is already in red status */}
         <Show when={isApe && isVaultRed}>
-          <div className="my-3 rounded-md border-2 border-foreground/20 bg-orange-500/10 p-3">
+          <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
               <div className="text-sm">
@@ -604,7 +868,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when exceeding optimal amount for constant leverage (only show if vault is not red) */}
         <Show when={isExceedingOptimal && !isVaultRed}>
-          <div className="my-3 rounded-md border-2 border-foreground/20 bg-yellow-500/10 p-3">
+          <div className="bg-yellow-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-yellow-500">⚠️</div>
               <div className="text-yellow-200 text-sm">
@@ -640,7 +904,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Warning when slippage tolerance is too low */}
         <Show when={slippageWarning?.showWarning ?? false}>
-          <div className="my-3 rounded-md border-2 border-foreground/20 bg-amber-500/10 p-3">
+          <div className="bg-amber-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-amber-500">⚠️</div>
               <div className="text-sm">

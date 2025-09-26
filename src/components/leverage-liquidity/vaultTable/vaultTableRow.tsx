@@ -25,6 +25,7 @@ import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
+import { getSirSymbol } from "@/lib/assets";
 
 export function VaultTableRow({
   pool: vault,
@@ -325,7 +326,7 @@ export function VaultTableRow({
                   num={formatUnits(parsedRateAmount * 24n * 60n * 60n, 12)}
                   significant={3}
                 />{" "}
-                SIR/day.
+                {getSirSymbol()}/day.
               </span>
             </HoverPopupMobile>
           ) : (

@@ -26,6 +26,7 @@ export default function Estimations({
   disabled: boolean;
   vaultId?: string;
 }) {
+
   return (
     <div className={` pt-2 ${disabled ? "opacity-80" : ""}`}>
       <h2 className="font-geist text-sm font-medium text-foreground">
@@ -42,6 +43,7 @@ export default function Estimations({
           {isApe ? "APE" : "TEA"}{vaultId ? `-${getDisplayVaultId(vaultId)}` : ""}
         </span>
       </div>
+
     </div>
   );
 }
