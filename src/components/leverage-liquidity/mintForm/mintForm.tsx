@@ -642,7 +642,9 @@ export default function MintForm({ isApe }: Props) {
                       <>
                         {/* Two-column header for APE tokens */}
                         <div className="text-gray-300 mb-1 flex justify-between text-[11px]">
-                          <div className="w-[140px]">Required Price Gain</div>
+                          <div className="flex-1">
+                            Required Price Gain of {collateralTokenSymbol}/{debtTokenSymbol}
+                          </div>
                           <div className="flex gap-4">
                             <div className="w-[60px] text-right text-foreground/70">
                               {collateralTokenSymbol}
@@ -655,7 +657,7 @@ export default function MintForm({ isApe }: Props) {
 
                         {/* Break-even row */}
                         <div className="mb-0.5 flex justify-between text-[13px]">
-                          <div className="text-gray-300">to Break-Even</div>
+                          <div className="text-gray-300">to break-even</div>
                           <div className="flex gap-4">
                             <div className="w-[60px] text-right">
                               <PriceIncreaseDisplay
