@@ -596,7 +596,7 @@ export function VaultTableRow({
                   <span>$0</span>
                 ) : tvlUsd !== null && tvlUsd >= 0 ? (
                   <span>
-                    $<DisplayFormattedNumber num={tvlUsd.toString()} significant={2} />
+                    $<DisplayFormattedNumber num={tvlUsd.toString()} significant={3} />
                   </span>
                 ) : (
                   <span>...</span>
