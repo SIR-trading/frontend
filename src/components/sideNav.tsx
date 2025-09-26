@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
 import NetworkBadge from "./networkBadge";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
+import { useActiveAuctions } from "@/hooks/useActiveAuctions";
 
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
@@ -26,6 +27,7 @@ export default function SideNav() {
     hasContributorRewardsAboveThreshold,
     hasVaultRewardsAboveThreshold
   } = useClaimableBalances();
+  const { hasActiveAuctions } = useActiveAuctions();
 
   const menuItems = [
     {
@@ -118,6 +120,18 @@ export default function SideNav() {
                                 minWidth: '6px',
                                 minHeight: '6px',
                                 marginLeft: hasContributorRewardsAboveThreshold ? '4px' : 'auto'
+                              }}
+                            />
+                          )}
+                          {item.url === "/auctions" && hasActiveAuctions && (
+                            <span
+                              className="ml-auto inline-block rounded-full animate-pulse"
+                              style={{
+                                width: '6px',
+                                height: '6px',
+                                backgroundColor: '#3b82f6',
+                                minWidth: '6px',
+                                minHeight: '6px'
                               }}
                             />
                           )}

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
+import { useActiveAuctions } from "@/hooks/useActiveAuctions";
 
 interface MoreMenuProps {
   variant?: "medium" | "large";
@@ -22,12 +23,14 @@ interface MenuItem {
   icon: typeof Coins;
   hasContributorRewards?: boolean;
   hasDividends?: boolean;
+  hasActiveAuctions?: boolean;
 }
 
 export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { hasDividendsAboveThreshold, hasContributorRewardsAboveThreshold } = useClaimableBalances();
+  const { hasActiveAuctions } = useActiveAuctions();
 
   const mediumItems: MenuItem[] = [
     {
@@ -38,7 +41,7 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
       hasDividends: hasDividendsAboveThreshold
     },
     { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
-    { url: "/auctions", label: "Auctions", icon: Gavel },
+    { url: "/auctions", label: "Auctions", icon: Gavel, hasActiveAuctions },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
@@ -102,6 +105,19 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
                       minWidth: '6px',
                       minHeight: '6px',
                       marginLeft: item.hasContributorRewards ? '4px' : 'auto'
+                    }}
+                  />
+                )}
+                {item.hasActiveAuctions && (
+                  <span
+                    className="ml-auto inline-block rounded-full animate-pulse"
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      backgroundColor: '#3b82f6',
+                      minWidth: '6px',
+                      minHeight: '6px',
+                      marginLeft: (item.hasContributorRewards ?? item.hasDividends) ? '4px' : 'auto'
                     }}
                   />
                 )}

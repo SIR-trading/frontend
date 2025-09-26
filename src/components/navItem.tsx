@@ -34,6 +34,7 @@ interface Props extends VariantProps<typeof navItemVariants> {
   hasNotification?: boolean;
   hasRewardsNotification?: boolean;
   hasDividendsNotification?: boolean;
+  hasActiveAuctionsNotification?: boolean;
 }
 export default function NavItem({
   url,
@@ -46,6 +47,7 @@ export default function NavItem({
   hasNotification,
   hasRewardsNotification,
   hasDividendsNotification,
+  hasActiveAuctionsNotification,
 }: Props) {
   const [active, setActive] = useState(false);
   const pathname = usePathname();
@@ -67,7 +69,7 @@ export default function NavItem({
         {Icon && <Icon className="h-3.5 w-3.5" />}
         {children}
         {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-        {(hasRewardsNotification || hasDividendsNotification) && (
+        {(hasRewardsNotification || hasDividendsNotification || hasActiveAuctionsNotification) && (
           <span className="ml-1.5 inline-flex flex-col gap-1">
             {hasRewardsNotification && (
               <span
@@ -94,7 +96,19 @@ export default function NavItem({
                 }}
               />
             )}
-            {hasNotification && !hasRewardsNotification && !hasDividendsNotification && (
+            {hasActiveAuctionsNotification && (
+              <span
+                className="inline-block rounded-full animate-pulse"
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: '#3b82f6',
+                  minWidth: '4px',
+                  minHeight: '4px'
+                }}
+              />
+            )}
+            {hasNotification && !hasRewardsNotification && !hasDividendsNotification && !hasActiveAuctionsNotification && (
               <span
                 className="inline-block rounded-full animate-pulse"
                 style={{

@@ -30,6 +30,7 @@ import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
 import { useFormSuccessReset } from "@/components/leverage-liquidity/mintForm/hooks/useFormSuccessReset";
+import { getReadableErrorMessage } from "@/lib/utils/errorMessages";
 import { getDexName } from "@/lib/chains";
 export default function CreateVaultForm() {
   const { isConnected } = useAccount();
@@ -172,18 +173,7 @@ export default function CreateVaultForm() {
                     Transaction Failed
                   </p>
                   <p className="text-amber-400/80 text-xs">
-                    {(() => {
-                      const message = writeError.message || "";
-                      // Check for specific errors and provide user-friendly messages
-                      if (message.includes("NoUniswapPool") || message.includes("0x94113d81")) {
-                        return `No ${getDexName()} liquidity pool exists for this token pair. Please choose tokens with existing liquidity pools.`;
-                      }
-                      if (message.includes("user rejected") || message.includes("User denied")) {
-                        return "Transaction was cancelled by the user.";
-                      }
-                      // Return the original message or a generic one
-                      return message || "Transaction failed. Please check your inputs and try again.";
-                    })()}
+                    {getReadableErrorMessage(writeError)}
                   </p>
                 </div>
               </div>

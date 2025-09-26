@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import { env } from "@/env";
 import { useMemo } from "react";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
+import { useActiveAuctions } from "@/hooks/useActiveAuctions";
 
 const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
   ssr: false,
@@ -21,6 +22,9 @@ export function Header() {
     hasContributorRewardsAboveThreshold,
     hasVaultRewardsAboveThreshold
   } = useClaimableBalances();
+
+  // Check for active auctions
+  const { hasActiveAuctions } = useActiveAuctions();
 
   // Determine if we're on a HyperEVM chain
   const isHyperEVM = useMemo(() => {
@@ -100,7 +104,7 @@ export function Header() {
                   Stake
                 </NavItem>
                 <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
-                <NavItem url={"/auctions"} icon={Gavel}>Auctions</NavItem>
+                <NavItem url={"/auctions"} icon={Gavel} hasActiveAuctionsNotification={hasActiveAuctions}>Auctions</NavItem>
               </ul>
               {/* More menu for medium screens (shows all secondary items) */}
               <div className="flex lg:hidden">

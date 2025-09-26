@@ -117,9 +117,9 @@ export default function SearchTokensModal({
                           const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
 
                           // If the token is already selected in the other field, swap them
-                          if (address === otherFieldValue && currentFieldValue) {
-                            // Move the current field's value to the other field
-                            setValue(otherField, currentFieldValue);
+                          if (address === otherFieldValue) {
+                            // Move the current field's value to the other field (or clear it if empty)
+                            setValue(otherField, currentFieldValue ?? "");
                           }
 
                           setValue(tokenSelection, address);
@@ -195,9 +195,9 @@ export default function SearchTokensModal({
                           const otherFieldValue = isLongToken ? selectedTokens[1] : selectedTokens[0];
 
                           // If the token is already selected in the other field, swap them
-                          if (token.address === otherFieldValue && currentFieldValue) {
-                            // Move the current field's value to the other field
-                            setValue(otherField, currentFieldValue);
+                          if (token.address === otherFieldValue) {
+                            // Move the current field's value to the other field (or clear it if empty)
+                            setValue(otherField, currentFieldValue ?? "");
                           }
 
                           setValue(

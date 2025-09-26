@@ -47,10 +47,10 @@ export const useMintFormValidation = ({
 
     if (usingDebtToken(versus, depositToken)) {
       const num = Number.parseFloat(slippage ?? "0");
-      if (num < 0 || num > 10) {
+      if (num < 0 || num > 50) {
         return {
           isValid: false,
-          errorMessage: "Slippage must be between 0% and 10%.",
+          errorMessage: "Slippage must be between 0% and 50%.",
         };
       }
     }
