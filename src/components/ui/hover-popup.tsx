@@ -11,13 +11,13 @@ import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
 const hoverPopupVariants = cva(
-  "rounded-md bg-zinc-950/80 dark:bg-zinc-950/80 backdrop-blur-xl px-2 py-2 text-foreground text-left text-xs border border-black/20 dark:border-white/10 shadow-lg",
+  "rounded-md bg-black/90 dark:bg-white/90 backdrop-blur-sm px-2 py-2 text-white dark:text-black text-left text-xs border border-black/20 dark:border-white/10 shadow-lg",
   {
     variants: {
-      size: { 
-        "200": "max-w-[200px]", 
+      size: {
+        "200": "max-w-[200px]",
         "250": "max-w-[250px]",
-        "300": "max-w-[300px]" 
+        "300": "max-w-[300px]"
       },
     },
     defaultVariants: { size: "250" },
@@ -55,7 +55,7 @@ const HoverPopup: FC<HoverPopupProps> = ({
       <HoverCardContent side={side} alignOffset={alignOffset}>
         <div className={hoverPopupVariants({ size })}>{children}</div>
         <HoverCardArrow
-          className="fill-black/20 dark:fill-white/10"
+          className="fill-black/90 dark:fill-white/90"
           height={15}
           width={14}
         />

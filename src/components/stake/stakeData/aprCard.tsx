@@ -15,11 +15,9 @@ export default function AprCard() {
       <div className="flex w-full flex-row items-center justify-center">
         <div className="text-muted-foreground px-2 text-sm">Staking APR</div>
         <ToolTip size="300">
-          <div className="rounded-sm bg-primary/5 text-[13px] font-medium backdrop-blur-xl dark:bg-primary">
-            <span>
-              The APR is estimated using the past 30 days&apos; dividend data.
-            </span>
-          </div>
+          <span>
+            The APR is estimated using the past 30 days&apos; dividend data.
+          </span>
         </ToolTip>
       </div>
       <Show
