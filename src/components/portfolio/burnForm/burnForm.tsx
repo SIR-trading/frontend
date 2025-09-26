@@ -428,11 +428,11 @@ export default function BurnForm({
                 collateralSymbol={row.collateralSymbol}
                 bg=""
               />
-              {usdValue !== null && usdValue > 0 && (
-                <div className="text-xs text-muted-foreground pt-2">
-                  You will receive ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
-                </div>
-              )}
+              <div className="text-xs text-muted-foreground pt-2 h-4">
+                {usdValue !== null && usdValue > 0 && (
+                  <>You will receive ≈ $<DisplayFormattedNumber num={usdValue.toString()} /></>
+                )}
+              </div>
             </div>
             <div className="pt-2"></div>
           </div>

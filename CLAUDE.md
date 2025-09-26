@@ -149,6 +149,19 @@ The app provides several price fetching mechanisms to get token prices from diff
   - Returns the amount of collateral tokens you'd receive
   - This is the "current value" of a position in collateral terms
 
+### Important Vault Concepts
+
+**Vault TVL (Total Value Locked)**:
+- Vaults ONLY hold collateral tokens (e.g., WETH, USDC)
+- TVL = total amount of collateral tokens in the vault
+- TVL in USD = collateral amount × collateral token USD price
+
+**Debt Tokens**:
+- Debt tokens are NOT held in vaults - they're just accounting units
+- Used to track how much was borrowed by APE holders
+- Used to calculate how to split vault collateral between APE and TEA holders
+- The debt token determines what currency APE holders borrowed in (for P&L calculations)
+
 ### Usage Notes
 
 - **For PnL calculations**: Use `quoteBurn` for current collateral amount, compare with `row.collateralTotal` from subgraph
