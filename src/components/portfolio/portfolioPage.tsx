@@ -27,11 +27,15 @@ export default function PortfolioPage() {
           </h2>
           <NoSSR
             fallback={
-              <div className="flex w-full animate-fade-in flex-col gap-y-4">
-                <BurnTableHeaders isApe={true} />
-                <BurnTableRowSkeleton />
-                <BurnTableRowSkeleton />
-                <BurnTableRowSkeleton />
+              <div className="w-full animate-fade-in">
+                <table className="w-full table-auto">
+                  <BurnTableHeaders isApe={true} />
+                  <tbody>
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                  </tbody>
+                </table>
               </div>
             }
           >
@@ -47,11 +51,15 @@ export default function PortfolioPage() {
           </h2>
           <NoSSR
             fallback={
-              <div className="flex w-full animate-fade-in flex-col gap-y-4">
-                <BurnTableHeaders isApe={false} />
-                <BurnTableRowSkeleton />
-                <BurnTableRowSkeleton />
-                <BurnTableRowSkeleton />
+              <div className="w-full animate-fade-in">
+                <table className="w-full table-auto">
+                  <BurnTableHeaders isApe={false} />
+                  <tbody>
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                    <BurnTableRowSkeleton />
+                  </tbody>
+                </table>
               </div>
             }
           >
