@@ -15,6 +15,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Send, ChevronDown, ChevronUp } from "lucide-react";
+import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+import { parseUnits } from "viem";
+import { useVaultData } from "@/contexts/VaultDataContext";
 import {
   calculatePriceIncreaseToTarget,
   calculateBreakevenTime,
@@ -43,6 +46,10 @@ export function BurnTableRow({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenLg, setDropdownOpenLg] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get vault data from context to get the rate for TEA rewards
+  const { getVaultById } = useVaultData();
+  const vaultData = !isApe ? getVaultById(row.vaultId) : undefined;
 
   // Get current token balance (APE/TEA tokens have their own decimals)
   const currentBalance = isApe ? apeBal : teaBal;
@@ -109,7 +116,7 @@ export function BurnTableRow({
   const apeBalance = formatUnits(apeBal ?? 0n, tokenDecimals);
   const teaBalance = formatUnits(teaBal ?? 0n, tokenDecimals);
 
-  const rewards = Number(formatUnits(teaRewards ?? 0n, 18));
+  const rewards = Number(formatUnits(teaRewards ?? 0n, 12)); // SIR always has 12 decimals
 
   const getDisplayVaultId = (vaultId: string) => {
     // Convert hex string to number if it starts with 0x, otherwise use as-is
@@ -687,9 +694,75 @@ export function BurnTableRow({
             <div className="flex items-center gap-x-1">
               <span className="">TEA</span>
               <span className="text-foreground/70">-</span>
-              <span className="text-xl text-accent-100">
-                {getDisplayVaultId(row.vaultId)}
-              </span>
+              {vaultData && parseUnits(vaultData.rate || "0", 0) > 0n ? (
+                <HoverPopupMobile
+                  size="200"
+                  asChild
+                  trigger={
+                    <div className="relative cursor-pointer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/images/hat.svg"
+                        width="18"
+                        height="18"
+                        className="hat-outline absolute -top-[11px] left-1/2 z-10"
+                        alt="SIR Rewards Hat"
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          minWidth: "18px",
+                          minHeight: "18px",
+                          transform: "translateX(-40%) rotate(8deg)",
+                        }}
+                      />
+                      <span className="pt-1 text-xl text-accent-100">
+                        {getDisplayVaultId(row.vaultId)}
+                      </span>
+                    </div>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    {(() => {
+                      // Calculate user's proportional daily earnings
+                      const parsedRateAmount = parseUnits(vaultData.rate || "0", 0);
+                      const dailyRate = parsedRateAmount * 24n * 60n * 60n;
+
+                      // Get user's TEA balance
+                      const userBalance = teaBal ?? 0n;
+
+                      // Get total supply and vault's locked liquidity (TEA balance that doesn't earn rewards)
+                      const totalSupply = parseUnits(vaultData.teaSupply || "0", 0);
+                      const vaultTeaBalance = parseUnits(vaultData.lockedLiquidity || "0", 0);
+
+                      // Calculate effective supply (total supply minus vault's TEA balance)
+                      // Only TEA tokens held by users (not the vault) participate in rewards
+                      const effectiveSupply = totalSupply > vaultTeaBalance
+                        ? totalSupply - vaultTeaBalance
+                        : 0n;
+
+                      // Calculate user's proportional share of daily SIR rewards
+                      const userDailyEarnings = effectiveSupply > 0n
+                        ? (dailyRate * userBalance) / effectiveSupply
+                        : 0n;
+
+                      return (
+                        <>
+                          You are earning{" "}
+                          <DisplayFormattedNumber
+                            num={formatUnits(userDailyEarnings, 12)}
+                            significant={3}
+                          />{" "}
+                          {getSirSymbol()}/day from this vault.
+                        </>
+                      );
+                    })()}
+                  </span>
+                </HoverPopupMobile>
+              ) : (
+                <span className="text-xl text-accent-100">
+                  {getDisplayVaultId(row.vaultId)}
+                </span>
+              )}
             </div>
             {/* Expand button for mobile */}
             <button

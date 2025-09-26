@@ -12,7 +12,7 @@ export function TimeDisplay({ days, className = "" }: TimeDisplayProps) {
 
   // If infinity or >= 1000 years, show infinity symbol
   if (!isFinite(days) || days / 365 >= 1000) {
-    return <span className="relative top-1 text-lg leading-none">∞</span>;
+    return <span className="relative top-0.5 text-lg leading-none">∞</span>;
   }
 
   // Convert days to appropriate unit
