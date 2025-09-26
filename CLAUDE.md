@@ -129,6 +129,15 @@ The app provides several price fetching mechanisms to get token prices from diff
   - Used for HyperEVM mainnet and testnet
   - Cached for 1 minute
 
+- **`api.price.getTokenPriceWithFallback`**: Comprehensive price fetching with multi-tier fallback
+  - Parameters: `tokenAddress`, `tokenDecimals` (default 18)
+  - Tries external APIs first (Alchemy for Ethereum, CoinGecko for HyperEVM)
+  - Falls back to Uniswap V3 WETH pairs if external API fails
+  - Falls back to USDC pairs if WETH pair not available
+  - Returns USD price or null if no price source available
+  - Cached for 1 minute to reduce API calls
+  - Used automatically by `useTokenUsdPrice` hook when primary sources fail
+
 ### 3. Helper Hooks
 
 - **`useTeaAndApePrice`**: React hook for getting position value in USD

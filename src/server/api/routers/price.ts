@@ -312,4 +312,178 @@ export const priceRouter = createTRPCRouter({
       return null;
     }
   }),
+
+  // Get token price with Uniswap fallback for exotic tokens
+  getTokenPriceWithFallback: publicProcedure
+    .input(
+      z.object({
+        tokenAddress: z.string(),
+        tokenDecimals: z.number().default(18),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { tokenAddress, tokenDecimals } = input;
+      const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
+      // First try external APIs (Alchemy/CoinGecko)
+      const cacheKey = shouldUseCoinGecko(chainId)
+        ? getCacheKey('coingecko', getCoinGeckoPlatformId(chainId), tokenAddress)
+        : getCacheKey('alchemy', getAlchemyChainString(chainId), tokenAddress);
+
+      const now = Date.now();
+      const cached = tokenPriceCache.get(cacheKey);
+
+      if (cached && (now - cached.timestamp) < CACHE_DURATION && cached.price !== null) {
+        return cached.price;
+      }
+
+      // Try external API first
+      let externalPrice: number | null = null;
+
+      if (shouldUseCoinGecko(chainId)) {
+        // Try CoinGecko
+        try {
+          const headers: HeadersInit = {
+            accept: "application/json",
+          };
+
+          if (process.env.COINGECKO_API_KEY) {
+            headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
+          }
+
+          const response = await fetch(
+            `https://api.coingecko.com/api/v3/simple/token_price/${getCoinGeckoPlatformId(chainId)}?contract_addresses=${tokenAddress}&vs_currencies=usd`,
+            { headers }
+          );
+
+          if (response.ok) {
+            const data = (await response.json()) as Record<string, { usd?: number }>;
+            externalPrice = data[tokenAddress.toLowerCase()]?.usd ?? null;
+          }
+        } catch (error) {
+          console.log("CoinGecko price fetch failed, will try Uniswap fallback");
+        }
+      } else {
+        // Try Alchemy
+        try {
+          const options = {
+            method: "POST",
+            headers: {
+              accept: "application/json",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              addresses: [{ network: getAlchemyChainString(chainId), address: tokenAddress }],
+            }),
+          };
+
+          const response = await fetch(
+            `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+            options,
+          );
+
+          if (response.ok) {
+            const result = ZTokenPrices.parse(await response.json());
+            if (result.data?.[0]?.prices?.[0]?.value) {
+              externalPrice = Number(result.data[0].prices[0].value);
+            }
+          }
+        } catch (error) {
+          console.log("Alchemy price fetch failed, will try Uniswap fallback");
+        }
+      }
+
+      if (externalPrice !== null) {
+        // Cache and return external price
+        tokenPriceCache.set(cacheKey, { price: externalPrice, timestamp: now });
+        return externalPrice;
+      }
+
+      // Fallback to Uniswap
+      try {
+        const { getMostLiquidPoolPrice } = await import("./quote");
+        const wrappedTokenAddress = getWrappedNativeTokenAddress(chainId);
+
+        // Common stablecoin addresses (mainnet and common test networks)
+        const USDC_ADDRESSES: Record<number, string> = {
+          1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // Mainnet USDC
+          11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Sepolia USDC
+          998: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff", // HyperEVM mainnet USDC
+          999: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff", // HyperEVM testnet USDC (assumed same)
+        };
+
+        const usdcAddress = USDC_ADDRESSES[chainId];
+
+        // Try WETH pair first
+        let tokenPriceInUsd: number | null = null;
+
+        try {
+          const wethPoolData = await getMostLiquidPoolPrice({
+            tokenA: tokenAddress,
+            tokenB: wrappedTokenAddress,
+            decimalsA: tokenDecimals,
+            decimalsB: 18,
+          });
+
+          if (wethPoolData.price > 0) {
+            // Get WETH price in USD
+            let wethPriceUsd: number | null = null;
+
+            // Try to get WETH price from external API
+            if (shouldUseCoinGecko(chainId)) {
+              try {
+                const response = await fetch(
+                  `https://api.coingecko.com/api/v3/simple/token_price/${getCoinGeckoPlatformId(chainId)}?contract_addresses=${wrappedTokenAddress}&vs_currencies=usd`,
+                  { headers: process.env.COINGECKO_API_KEY ? { "x-cg-demo-api-key": process.env.COINGECKO_API_KEY } : {} }
+                );
+                if (response.ok) {
+                  const data = (await response.json()) as Record<string, { usd?: number }>;
+                  wethPriceUsd = data[wrappedTokenAddress.toLowerCase()]?.usd ?? null;
+                }
+              } catch {}
+            } else {
+              // Use hardcoded fallback prices for wrapped tokens if API fails
+              wethPriceUsd = chainId === 1 || chainId === 11155111 ? 3000 : 0.001; // Approximate ETH and HYPE prices
+            }
+
+            if (wethPriceUsd) {
+              tokenPriceInUsd = wethPoolData.price * wethPriceUsd;
+            }
+          }
+        } catch (error) {
+          console.log("WETH pair not found, trying USDC");
+        }
+
+        // If WETH pair didn't work, try USDC pair
+        if (!tokenPriceInUsd && usdcAddress) {
+          try {
+            const usdcPoolData = await getMostLiquidPoolPrice({
+              tokenA: tokenAddress,
+              tokenB: usdcAddress,
+              decimalsA: tokenDecimals,
+              decimalsB: 6, // USDC has 6 decimals
+            });
+
+            if (usdcPoolData.price > 0) {
+              // USDC price is approximately 1 USD
+              tokenPriceInUsd = usdcPoolData.price;
+            }
+          } catch (error) {
+            console.log("USDC pair not found either");
+          }
+        }
+
+        if (tokenPriceInUsd) {
+          // Cache and return Uniswap price
+          tokenPriceCache.set(cacheKey, { price: tokenPriceInUsd, timestamp: now });
+          return tokenPriceInUsd;
+        }
+      } catch (error) {
+        console.error("Uniswap fallback failed:", error);
+      }
+
+      // Cache null result to avoid repeated failed attempts
+      tokenPriceCache.set(cacheKey, { price: null, timestamp: now });
+      return null;
+    }),
 });

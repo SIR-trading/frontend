@@ -26,6 +26,7 @@ import type { TCalculatorFormFields } from "@/components/providers/calculatorFor
 import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
+import { useTokenUsdPrice } from "../mintForm/hooks/useTokenUsdPrice";
 
 export function VaultTableRow({
   pool: vault,
@@ -34,6 +35,7 @@ export function VaultTableRow({
   number: _number,
   apyData,
   isApyLoading,
+  showTvlInUsd = true,
 }: {
   badgeVariant: VariantProps<typeof badgeVariants>;
   number: string;
@@ -46,6 +48,7 @@ export function VaultTableRow({
     feesCount: number;
   };
   isApyLoading?: boolean;
+  showTvlInUsd?: boolean;
 }) {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -223,6 +226,15 @@ export function VaultTableRow({
   );
   const tvl = apeCollateral + teaCollateral;
   const realLeverage = tvl / apeCollateral;
+
+  // Calculate TVL in USD
+  const tvlFormatted = formatUnits(parseUnits(vault.totalValue, 0), vault.ape.decimals);
+  const { usdValue: tvlUsd } = useTokenUsdPrice(
+    vault.collateralToken.id,
+    tvlFormatted,
+    vault.collateralToken.decimals
+  );
+
   const variant = useCalculateVaultHealth({
     isApe,
     leverageTier: vault.leverageTier,
@@ -577,13 +589,26 @@ export function VaultTableRow({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}
+              className="text-sm"
             >
-              <TokenDisplay
-                amountSize="small"
-                amount={parseUnits(vault.totalValue, 0)}
-                decimals={vault.ape.decimals}
-                unitLabel={vault.collateralToken.symbol ?? ''}
-              />
+              {showTvlInUsd ? (
+                vault.totalValue === "0" ? (
+                  <span>$0</span>
+                ) : tvlUsd !== null && tvlUsd >= 0 ? (
+                  <span>
+                    $<DisplayFormattedNumber num={tvlUsd.toString()} significant={2} />
+                  </span>
+                ) : (
+                  <span>...</span>
+                )
+              ) : (
+                <TokenDisplay
+                  amountSize="small"
+                  amount={parseUnits(vault.totalValue, 0)}
+                  decimals={vault.ape.decimals}
+                  unitLabel={vault.collateralToken.symbol ?? ''}
+                />
+              )}
             </motion.div>
           }
         >

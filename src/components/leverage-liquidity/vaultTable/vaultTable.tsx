@@ -11,6 +11,7 @@ import { getSirSymbol } from "@/lib/assets";
 export default function VaultTable({ isApe }: { isApe: boolean }) {
   const [pagination, setPagination] = useState(1);
   const [hasMounted, setHasMounted] = useState(false);
+  const [showTvlInUsd, setShowTvlInUsd] = useState(true); // Default to USD
   
   // Ensure component has mounted before accessing window or making queries
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
           Popular Vaults
         </caption>
         <tbody className="space-y-2">
-          <VaultTableRowHeaders isApe={isApe} />
+          <VaultTableRowHeaders isApe={isApe} showTvlInUsd={showTvlInUsd} setShowTvlInUsd={setShowTvlInUsd} />
           <VaultRowSkeleton />
           <VaultRowSkeleton />
           <VaultRowSkeleton />
@@ -79,7 +80,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
       </caption>
 
       <tbody className="space-y-2">
-        <VaultTableRowHeaders isApe={isApe} />
+        <VaultTableRowHeaders isApe={isApe} showTvlInUsd={showTvlInUsd} setShowTvlInUsd={setShowTvlInUsd} />
 
         <Show
           when={!isFetching && !!vaults}
@@ -108,6 +109,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
                   isApe={isApe}
                   apyData={batchApyData?.[pool.id]}
                   isApyLoading={isBatchApyLoading}
+                  showTvlInUsd={showTvlInUsd}
                 />
               );
             })}
@@ -117,7 +119,15 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   );
 }
 
-function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
+function VaultTableRowHeaders({
+  isApe,
+  showTvlInUsd,
+  setShowTvlInUsd
+}: {
+  isApe: boolean;
+  showTvlInUsd: boolean;
+  setShowTvlInUsd: (value: boolean) => void;
+}) {
   return (
     <tr className="flex items-center justify-between text-left text-[14px] font-normal text-muted-foreground">
       <th className="font-medium flex-shrink-0 w-12 sm:w-14 pl-3">Id</th>
@@ -153,7 +163,32 @@ function VaultTableRowHeaders({ isApe }: { isApe: boolean }) {
           SIR&apos;s returns increase as (price change)<sup>leverage</sup>.
         </ToolTip>
       </th>
-      <th className="font-medium text-right flex-shrink-0 w-20 min-[450px]:w-28 min-[650px]:w-24 md:w-28 lg:w-24">TVL</th>
+      <th className="font-medium text-right flex-shrink-0 w-20 min-[450px]:w-28 min-[650px]:w-24 md:w-28 lg:w-24">
+        <div className="flex items-center justify-end gap-1">
+          <span>TVL</span>
+          <button
+            onClick={() => setShowTvlInUsd(!showTvlInUsd)}
+            className="cursor-pointer hover:text-foreground transition-colors p-0.5 rounded dark:hover:bg-primary/20"
+            title={showTvlInUsd ? "Click to show in tokens" : "Click to show in USD"}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 2v6h-6" />
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            </svg>
+          </button>
+        </div>
+      </th>
     </tr>
   );
 }

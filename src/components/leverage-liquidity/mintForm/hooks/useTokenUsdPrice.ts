@@ -48,16 +48,37 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     }
   );
 
+  // Fetch price with Uniswap fallback for exotic tokens
+  const { data: fallbackPrice } = api.price.getTokenPriceWithFallback.useQuery(
+    {
+      tokenAddress: tokenAddress ?? "",
+      tokenDecimals: decimals ?? 18,
+    },
+    {
+      enabled: shouldFetchPrice && (
+        (!useCoinGecko && !alchemyPrice?.data?.[0]?.prices?.[0]?.value) ||
+        (useCoinGecko && !coinGeckoPrice)
+      ),
+      staleTime: 60000, // 1 minute cache
+    }
+  );
+
   // Calculate USD value
   const usdValue = useMemo(() => {
     if (!debouncedAmount || !decimals || parseFloat(debouncedAmount) === 0) return null;
 
     let pricePerToken: number | null = null;
 
+    // Try primary sources first
     if (!useCoinGecko && alchemyPrice?.data?.[0]?.prices?.[0]?.value) {
       pricePerToken = Number(alchemyPrice.data[0].prices[0].value);
     } else if (useCoinGecko && coinGeckoPrice) {
       pricePerToken = coinGeckoPrice;
+    }
+
+    // Use fallback price if primary sources failed
+    if (!pricePerToken && fallbackPrice !== null) {
+      pricePerToken = fallbackPrice;
     }
 
     if (!pricePerToken) return null;
@@ -67,11 +88,15 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     const usdAmount = amountInTokens * pricePerToken;
 
     return usdAmount;
-  }, [debouncedAmount, decimals, alchemyPrice, coinGeckoPrice, useCoinGecko]);
+  }, [debouncedAmount, decimals, alchemyPrice, coinGeckoPrice, fallbackPrice, useCoinGecko]);
 
   return {
     usdValue,
-    isLoading: useCoinGecko ? !coinGeckoPrice : !alchemyPrice,
-    pricePerToken: useCoinGecko ? coinGeckoPrice : alchemyPrice?.data?.[0]?.prices?.[0]?.value ? Number(alchemyPrice.data[0].prices[0].value) : null
+    isLoading: false, // We always have fallback, so never truly loading
+    pricePerToken: useCoinGecko
+      ? (coinGeckoPrice ?? fallbackPrice)
+      : (alchemyPrice?.data?.[0]?.prices?.[0]?.value
+          ? Number(alchemyPrice.data[0].prices[0].value)
+          : fallbackPrice)
   };
 }
