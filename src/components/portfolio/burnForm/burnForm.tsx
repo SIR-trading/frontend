@@ -24,6 +24,7 @@ import { VaultContract } from "@/contracts/vault";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { TokenImage } from "@/components/shared/TokenImage";
+import { useTokenUsdPrice } from "@/components/leverage-liquidity/mintForm/hooks/useTokenUsdPrice";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -171,6 +172,13 @@ export default function BurnForm({
   // Check if we have a valid burn amount (greater than 0 and less than or equal to balance)
   const parsedAmount = parseUnits(formData.deposit?.toString() ?? "0", row.decimals);
   const hasValidBurnAmount = parsedAmount > 0n && parsedAmount <= (balance ?? 0n);
+
+  // Get USD value for the collateral amount user will receive
+  const { usdValue } = useTokenUsdPrice(
+    row.collateralToken,
+    quoteBurn && collateralDecimals ? formatUnits(quoteBurn, collateralDecimals) : undefined,
+    collateralDecimals ?? 18
+  );
   
   const onSubmit = () => {
     if (isConfirmed) {
@@ -420,6 +428,11 @@ export default function BurnForm({
                 collateralSymbol={row.collateralSymbol}
                 bg=""
               />
+              {usdValue !== null && usdValue > 0 && (
+                <div className="text-xs text-muted-foreground pt-2">
+                  You will receive ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+                </div>
+              )}
             </div>
             <div className="pt-2"></div>
           </div>

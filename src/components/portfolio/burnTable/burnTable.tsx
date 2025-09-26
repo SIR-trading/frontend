@@ -236,7 +236,7 @@ export default function BurnTable({
           </table>
         </div>
       ) : (
-        <div className="py-6 text-center">
+        <div className="text-center">
           <span className="italic text-foreground">
             {isConnected ? "No Positions" : "Connect wallet to see portfolio"}
           </span>
