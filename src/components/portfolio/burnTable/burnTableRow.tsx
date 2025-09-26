@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Send } from "lucide-react";
+import { MoreVertical, Send, ChevronDown, ChevronUp } from "lucide-react";
 import {
   calculatePriceIncreaseToTarget,
   calculateBreakevenTime,
@@ -42,6 +42,7 @@ export function BurnTableRow({
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenLg, setDropdownOpenLg] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Get current token balance (APE/TEA tokens have their own decimals)
   const currentBalance = isApe ? apeBal : teaBal;
@@ -300,12 +301,26 @@ export function BurnTableRow({
         <tr className="text-left text-foreground">
           {/* Token column - spans 2 rows */}
           <td rowSpan={2} className="py-2 pr-4 font-normal">
-            <div className="flex items-center gap-x-1">
-              <span className="">APE</span>
-              <span className="text-foreground/70">-</span>
-              <span className="text-xl text-accent-100">
-                {getDisplayVaultId(row.vaultId)}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-x-1">
+                <span className="">APE</span>
+                <span className="text-foreground/70">-</span>
+                <span className="text-xl text-accent-100">
+                  {getDisplayVaultId(row.vaultId)}
+                </span>
+              </div>
+              {/* Expand button for mobile */}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="md:hidden p-1 hover:bg-foreground/10 rounded transition-colors"
+                aria-label={isExpanded ? "Collapse" : "Expand"}
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4 text-foreground/60" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-foreground/60" />
+                )}
+              </button>
             </div>
           </td>
 
@@ -596,6 +611,77 @@ export function BurnTableRow({
             )}
           </td>
         </tr>
+
+        {/* Expanded row for mobile - shows hidden columns */}
+        {isExpanded && (
+          <tr className="md:hidden border-b border-foreground/5 bg-foreground/5">
+            <td colSpan={7} className="px-4 py-3">
+              <div className="space-y-3">
+                {/* Collateral Required Price Gain */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/60">Required Price Gain ({row.collateralSymbol})</span>
+                  <div className="space-x-4 text-right">
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">B/E: </span>
+                      <PriceIncreaseDisplay
+                        percentage={priceIncreaseTargets.breakeven.collateral}
+                        className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                      />
+                    </span>
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">2x: </span>
+                      <PriceIncreaseDisplay
+                        percentage={priceIncreaseTargets.double.collateral}
+                        className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                      />
+                    </span>
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">10x: </span>
+                      <PriceIncreaseDisplay
+                        percentage={priceIncreaseTargets.tenx.collateral}
+                        className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                      />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Debt Token Required Price Gain */}
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/60">Required Price Gain ({row.debtSymbol})</span>
+                  <div className="space-x-4 text-right">
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">B/E: </span>
+                      {priceIncreaseTargets.breakeven.debtToken !== null && (
+                        <PriceIncreaseDisplay
+                          percentage={priceIncreaseTargets.breakeven.debtToken}
+                          className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                        />
+                      )}
+                    </span>
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">2x: </span>
+                      {priceIncreaseTargets.double.debtToken !== null && (
+                        <PriceIncreaseDisplay
+                          percentage={priceIncreaseTargets.double.debtToken}
+                          className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                        />
+                      )}
+                    </span>
+                    <span className="inline-block min-w-[50px]">
+                      <span className="text-xs text-foreground/40">10x: </span>
+                      {priceIncreaseTargets.tenx.debtToken !== null && (
+                        <PriceIncreaseDisplay
+                          percentage={priceIncreaseTargets.tenx.debtToken}
+                          className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                        />
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
       </>
     );
   }
@@ -607,12 +693,26 @@ export function BurnTableRow({
       <tr className="text-left text-foreground">
         {/* Token column - spans 2 rows */}
         <td rowSpan={2} className="py-2 pr-4 font-normal">
-          <div className="flex items-center gap-x-1">
-            <span className="">TEA</span>
-            <span className="text-foreground/70">-</span>
-            <span className="text-xl text-accent-100">
-              {getDisplayVaultId(row.vaultId)}
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-x-1">
+              <span className="">TEA</span>
+              <span className="text-foreground/70">-</span>
+              <span className="text-xl text-accent-100">
+                {getDisplayVaultId(row.vaultId)}
+              </span>
+            </div>
+            {/* Expand button for mobile */}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="md:hidden p-1 hover:bg-foreground/10 rounded transition-colors"
+              aria-label={isExpanded ? "Collapse" : "Expand"}
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4 text-foreground/60" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-foreground/60" />
+              )}
+            </button>
           </div>
         </td>
 
@@ -899,6 +999,65 @@ export function BurnTableRow({
           </span>
         </td>
       </tr>
+
+      {/* Expanded row for mobile - shows hidden columns */}
+      {isExpanded && (
+        <tr className="md:hidden border-b border-foreground/5 bg-foreground/5">
+          <td colSpan={7} className="px-4 py-3">
+            <div className="space-y-3">
+              {/* Collateral Required Time */}
+              <div className="flex justify-between text-sm">
+                <span className="text-foreground/60">Required Time ({row.collateralSymbol})</span>
+                <div className="space-x-4 text-right">
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">B/E: </span>
+                    <span className={`${breakevenDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {breakevenDisplay}
+                    </span>
+                  </span>
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">2x: </span>
+                    <span className={`${doubleTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {doubleTimeDisplay}
+                    </span>
+                  </span>
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">10x: </span>
+                    <span className={`${tenxTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {tenxTimeDisplay}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Debt Token Required Time */}
+              <div className="flex justify-between text-sm">
+                <span className="text-foreground/60">Required Time ({row.debtSymbol})</span>
+                <div className="space-x-4 text-right">
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">B/E: </span>
+                    <span className={`${breakevenDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${breakevenDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {breakevenDebtTimeDisplay}
+                    </span>
+                  </span>
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">2x: </span>
+                    <span className={`${doubleDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${doubleDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {doubleDebtTimeDisplay}
+                    </span>
+                  </span>
+                  <span className="inline-block min-w-[50px]">
+                    <span className="text-xs text-foreground/40">10x: </span>
+                    <span className={`${tenxDebtTimeDisplay === "∞" ? "text-lg leading-none" : "text-xs"} ${tenxDebtTimeDisplay === "✓" ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                      {tenxDebtTimeDisplay}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
     </>
   );
 }
