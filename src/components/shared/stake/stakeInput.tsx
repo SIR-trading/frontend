@@ -12,6 +12,7 @@ import { getSirLogo } from "@/lib/assets";
 import Image from "next/image";
 import { inputPatternMatch } from "@/lib/utils/index";
 import DisplayFormattedNumber from "../displayFormattedNumber";
+import { useSirUsdPrice } from "./hooks/useSirUsdPrice";
 
 interface Props {
   form: TUnstakeForm;
@@ -21,6 +22,8 @@ interface Props {
 
 const StakeInput = ({ form, balance, isStaking }: Props) => {
   const logo = getSirLogo();
+  const amount = form.watch("amount");
+  const { usdValue } = useSirUsdPrice(amount);
 
   return (
     <div className="rounded-md bg-primary/5 px-3 py-2 dark:bg-primary">
@@ -53,7 +56,11 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
                   ></Input>
                 </FormControl>
               </FormItem>
-              {/* <h2 className="pt-2 text-sm italic text-foreground/70">{"$20.55"}</h2> */}
+              {usdValue !== null && usdValue > 0 && (
+                <div className="text-xs text-muted-foreground pt-1">
+                  ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+                </div>
+              )}
             </div>
           )}
         />

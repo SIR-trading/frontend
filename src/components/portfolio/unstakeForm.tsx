@@ -26,6 +26,8 @@ import { getNativeCurrencySymbol } from "@/lib/chains";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { TokenImage } from "../shared/TokenImage";
+import { useSirUsdPrice } from "../shared/stake/hooks/useSirUsdPrice";
+import { useNativeTokenUsdPrice } from "../shared/hooks/useNativeTokenUsdPrice";
 
 
 const UnstakeForm = ({
@@ -36,8 +38,21 @@ const UnstakeForm = ({
   const form = useFormContext<TUnstakeFormFields>();
   const formData = form.watch();
 
+  const { usdValue: sirUsdValue } = useSirUsdPrice(formData.amount);
+
   const balance = useGetStakedSir();
   const { address, isConnected } = useAccount();
+
+  // Get dividends amount for USD conversion
+  const { data: dividends } = api.user.getUserSirDividends.useQuery(
+    {
+      user: address,
+    },
+    { enabled: isConnected },
+  );
+
+  const dividendsFormatted = dividends ? formatUnits(dividends, 18) : "0";
+  const { usdValue: dividendsUsdValue } = useNativeTokenUsdPrice(dividendsFormatted);
 
   const [unstakeAndClaimFees, setUnstakeAndClaimFees] = useState(false);
   const { Unstake, isFetching: unstakeFetching } = useUnstake({
@@ -97,12 +112,6 @@ const UnstakeForm = ({
       writeContract(Unstake?.request);
     }
   };
-  const { data: dividends } = api.user.getUserSirDividends.useQuery(
-    {
-      user: address,
-    },
-    { enabled: isConnected },
-  );
 
   useUnstakeError({
     formData,
@@ -181,6 +190,11 @@ const UnstakeForm = ({
                         />
                       </div>
                     </div>
+                    {sirUsdValue !== null && sirUsdValue > 0 && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        ≈ $<DisplayFormattedNumber num={sirUsdValue.toString()} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Claiming Dividends */}
@@ -208,6 +222,11 @@ const UnstakeForm = ({
                           />
                         </div>
                       </div>
+                      {dividendsUsdValue !== null && dividendsUsdValue > 0 && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          ≈ $<DisplayFormattedNumber num={dividendsUsdValue.toString()} />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

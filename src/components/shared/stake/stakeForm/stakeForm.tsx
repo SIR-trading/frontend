@@ -26,12 +26,14 @@ import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import Image from "next/image";
 import DisplayFormattedNumber from "../../displayFormattedNumber";
 import { useStaking } from "@/contexts/StakingContext";
+import { useSirUsdPrice } from "../hooks/useSirUsdPrice";
 
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const form = useFormContext<TUnstakeFormFields>();
   const formData = form.watch();
 
+  const { usdValue } = useSirUsdPrice(formData.amount);
 
   const { unstakedBalance: balance } = useStaking();
   const { stake, isFetching: unstakeFetching } = useStake({
@@ -147,6 +149,11 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
                         />
                       </div>
                     </div>
+                    {usdValue !== null && usdValue > 0 && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+                      </div>
+                    )}
                   </div>
                 </div>
 

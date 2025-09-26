@@ -29,7 +29,7 @@ const StakeData = ({ children }: { children: ReactNode }) => {
             amount={totalValueLocked}
             decimals={12}
             unitLabel={getSirSymbol()}
-            className="text-xl"
+            className="text-2xl"
           />
         </Show>
       </Card>

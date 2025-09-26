@@ -18,6 +18,7 @@ import { TokenImage } from "./TokenImage";
 import { env } from "@/env";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 import { api } from "@/trpc/react";
+import { useNativeTokenUsdPrice } from "./hooks/useNativeTokenUsdPrice";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
@@ -29,6 +30,10 @@ export default function ClaimCard() {
   // Use the context instead of making our own query
   const { dividendsAmount: dividends, isLoading } = useClaimableBalances();
   const dividendsLoading = isLoading;
+
+  // Get USD value for dividends
+  const dividendsFormatted = dividends ? formatUnits(dividends, 18) : "0";
+  const { usdValue: dividendsUsdValue } = useNativeTokenUsdPrice(dividendsFormatted);
 
   // Determine glow threshold based on chain
   const glowThreshold = useMemo(() => {
@@ -107,6 +112,11 @@ export default function ClaimCard() {
                     />
                   </div>
                 </div>
+                {dividendsUsdValue !== null && dividendsUsdValue > 0 && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    ≈ $<DisplayFormattedNumber num={dividendsUsdValue.toString()} />
+                  </div>
+                )}
               </div>
             </div>
           )}
