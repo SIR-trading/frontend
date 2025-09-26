@@ -136,6 +136,12 @@ The app provides several price fetching mechanisms to get token prices from diff
   - Automatically selects the right price source based on chain and token
   - Returns USD value of the position
 
+- **`useTokenUsdPrice`**: React hook for displaying USD values in forms and UI
+  - Parameters: `tokenAddress`, `amount`, `decimals`
+  - Automatically selects between Alchemy (Ethereum chains) and CoinGecko (HyperEVM chains)
+  - Returns: `{ usdValue, isLoading, pricePerToken }`
+  - Used in deposit forms to show real-time USD values
+
 ### 4. Vault-Specific Functions
 
 - **`api.vault.quoteBurn`**: Gets collateral amount for burning APE/TEA tokens

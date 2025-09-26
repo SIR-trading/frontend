@@ -17,6 +17,7 @@ import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import MintFormSettings from "./MintFormSettings";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { useTokenUsdPrice } from "./hooks/useTokenUsdPrice";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -48,6 +49,14 @@ function Inputs({
 }: Props) {
   const form = useFormContext<TMintFormFields>();
   const formData = form.watch();
+
+  // Get USD value for the deposit amount
+  const { usdValue } = useTokenUsdPrice(
+    formData.depositToken,
+    formData.deposit,
+    decimals
+  );
+
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
@@ -92,6 +101,11 @@ function Inputs({
           />
         </Show>
         <div className="space-y-2">
+          {usdValue !== null && usdValue > 0 && (
+            <div className="text-xs text-muted-foreground pt-1">
+              ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+            </div>
+          )}
           {formData.depositToken === WRAPPED_NATIVE_TOKEN_ADDRESS && (
             <div className="flex items-center gap-x-2 pt-1">
               <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
