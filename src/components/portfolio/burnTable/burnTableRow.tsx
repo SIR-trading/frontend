@@ -692,8 +692,6 @@ export function BurnTableRow({
         <td rowSpan={2} className="py-2 pr-4 font-normal">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-1">
-              <span className="">TEA</span>
-              <span className="text-foreground/70">-</span>
               {vaultData && parseUnits(vaultData.rate || "0", 0) > 0n ? (
                 <HoverPopupMobile
                   size="200"
@@ -715,9 +713,7 @@ export function BurnTableRow({
                           transform: "translateX(-40%) rotate(8deg)",
                         }}
                       />
-                      <span className="pt-1 text-xl text-accent-100">
-                        {getDisplayVaultId(row.vaultId)}
-                      </span>
+                      <span className="pt-1">TEA</span>
                     </div>
                   }
                 >
@@ -759,10 +755,12 @@ export function BurnTableRow({
                   </span>
                 </HoverPopupMobile>
               ) : (
-                <span className="text-xl text-accent-100">
-                  {getDisplayVaultId(row.vaultId)}
-                </span>
+                <span className="">TEA</span>
               )}
+              <span className="text-foreground/70">-</span>
+              <span className="text-xl text-accent-100">
+                {getDisplayVaultId(row.vaultId)}
+              </span>
             </div>
             {/* Expand button for mobile */}
             <button
