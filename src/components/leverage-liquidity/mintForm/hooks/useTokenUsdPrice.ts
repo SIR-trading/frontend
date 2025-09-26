@@ -77,7 +77,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     }
 
     // Use fallback price if primary sources failed
-    if (!pricePerToken && fallbackPrice !== null) {
+    if (!pricePerToken && fallbackPrice !== null && fallbackPrice !== undefined) {
       pricePerToken = fallbackPrice;
     }
 
@@ -94,9 +94,9 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     usdValue,
     isLoading: false, // We always have fallback, so never truly loading
     pricePerToken: useCoinGecko
-      ? (coinGeckoPrice ?? fallbackPrice)
+      ? (coinGeckoPrice ?? fallbackPrice ?? null)
       : (alchemyPrice?.data?.[0]?.prices?.[0]?.value
           ? Number(alchemyPrice.data[0].prices[0].value)
-          : fallbackPrice)
+          : fallbackPrice ?? null)
   };
 }
