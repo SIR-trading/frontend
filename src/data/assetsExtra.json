@@ -35,6 +35,13 @@
       "symbol": "CVX",
       "decimals": 18,
       "logoURI": "https://assets.coingecko.com/coins/images/15585/standard/convex.png"
+    },
+    {
+      "name": "PunkStrategy",
+      "address": "0xc50673EDb3A7b94E8CAD8a7d4E0cD68864E33eDF",
+      "symbol": "PNKSTR",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/69249/standard/PNKSTR.png?1758014976"
     }
   ],
   "11155111": [
