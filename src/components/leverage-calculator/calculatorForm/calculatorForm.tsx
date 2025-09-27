@@ -19,6 +19,8 @@ import useCalculateVaultHealth from "@/components/leverage-liquidity/vaultTable/
 import useVaultFilterStore from "@/lib/store";
 import { calculateSaturationPrice, getLeverageRatio, isVaultInPowerZone } from "@/lib/utils/calculations";
 import { useMemo } from "react";
+import useFormFee from "./hooks/useFormFee";
+import useIsDebtToken from "./hooks/useIsDebtToken";
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed
@@ -146,22 +148,51 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   });
 
   const disabledPriceInputs = !Boolean(selectedVault.result);
-  
+
   // Get form values for calculations
   const leverageTier = formData.leverageTier;
   const considerLiquidity = formData.considerLiquidity ?? true;
+  const considerDeposit = formData.considerDeposit ?? false;
   const liquidityMultiplier = formData.liquidityMultiplier ?? 1;
-  
+  const deposit = formData.deposit;
+
+  // Calculate deposit impact
+  const isDebtToken = useIsDebtToken();
+  const strFee = useFormFee({
+    leverageTier: formData.leverageTier,
+    isApe: true,
+  });
+  const fee = Number(strFee);
+  const depositAmount = Number(deposit ?? 0);
+  const depositInCollateral = isDebtToken
+    ? depositAmount / Number(formData.entryPrice ?? 1)
+    : depositAmount;
+  const feeAmount = depositInCollateral * (fee / 100);
+  const depositAfterFee = depositInCollateral - feeAmount;
+
+  // Get vault decimals
+  const vaultDecimals = selectedVault.result?.collateralToken?.decimals ?? 18;
+
   // Get base reserves from vault
   const baseApeReserve = selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : 0n;
   const baseTeaReserve = selectedVault.result ? BigInt(selectedVault.result.reserveLPers || 0) : 0n;
-  
-  // When liquidityMultiplier is 0, simulate an empty vault (both reserves = 0)
-  // Otherwise, scale the TEA/LP reserve by the multiplier
-  const apeReserve = considerLiquidity && liquidityMultiplier === 0 ? 0n : baseApeReserve;
-  const teaReserve = considerLiquidity 
+
+  // Apply liquidity multiplier first
+  const liquidityAdjustedApeReserve = considerLiquidity && liquidityMultiplier === 0 ? 0n : baseApeReserve;
+  const liquidityAdjustedTeaReserve = considerLiquidity
     ? BigInt(Math.floor(Number(baseTeaReserve) * liquidityMultiplier))
     : baseTeaReserve;
+
+  // Then apply deposit impact if enabled
+  const shouldConsiderDeposit = considerLiquidity && considerDeposit && depositInCollateral > 0;
+
+  const apeReserve = shouldConsiderDeposit
+    ? liquidityAdjustedApeReserve + BigInt(Math.floor(depositAfterFee * Math.pow(10, vaultDecimals)))
+    : liquidityAdjustedApeReserve;
+
+  const teaReserve = shouldConsiderDeposit
+    ? liquidityAdjustedTeaReserve + BigInt(Math.floor(feeAmount * Math.pow(10, vaultDecimals)))
+    : liquidityAdjustedTeaReserve;
   
   
   const leverageRatio = useMemo(() => {

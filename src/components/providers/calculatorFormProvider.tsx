@@ -16,6 +16,7 @@ const CalculatorSchema = z.object({
   entryPrice: z.string().optional(),
   exitPrice: z.string().optional(),
   considerLiquidity: z.boolean().optional(),
+  considerDeposit: z.boolean().optional(),
   liquidityMultiplier: z.number().optional(),
 });
 
@@ -43,6 +44,7 @@ export default function CalculatorFormProvider({
       entryPrice: "",
       exitPrice: "",
       considerLiquidity: true,
+      considerDeposit: false,
       liquidityMultiplier: 1,
     },
   });
