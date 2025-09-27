@@ -27,6 +27,7 @@ import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
 import { useTokenUsdPrice } from "../mintForm/hooks/useTokenUsdPrice";
+import { FeeExplanation } from "@/components/shared/FeeExplanation";
 
 export function VaultTableRow({
   pool: vault,
@@ -532,12 +533,15 @@ export function VaultTableRow({
             </div>
           </HoverPopupMobile>
         ) : (
-          <h4
-            className="text-[13px] font-normal"
-            style={{ color: getFeeColor() }}
-          >
-            {roundDown(fee, 0)}%
-          </h4>
+          <div className="flex items-center gap-1">
+            <h4
+              className="text-[13px] font-normal"
+              style={{ color: getFeeColor() }}
+            >
+              {roundDown(fee, 0)}%
+            </h4>
+            {isApe && <FeeExplanation leverageTier={vault.leverageTier.toString()} compact />}
+          </div>
         )}
       </td>
       <td className="hidden w-16 flex-shrink-0 pl-2 text-[13px] font-normal text-foreground/80 min-[450px]:block">

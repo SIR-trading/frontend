@@ -1,4 +1,5 @@
 import { fromHex } from "viem";
+import { FeeExplanation } from "@/components/shared/FeeExplanation";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -20,11 +21,15 @@ export default function Estimations({
   disabled,
   isApe,
   vaultId,
+  leverageTier,
+  fee,
 }: {
   ape: string;
   isApe: boolean;
   disabled: boolean;
   vaultId?: string;
+  leverageTier?: string;
+  fee?: number;
 }) {
 
   return (
@@ -44,6 +49,12 @@ export default function Estimations({
         </span>
       </div>
 
+      {/* Show fee explanation for APE tokens */}
+      {isApe && fee && fee > 10 && leverageTier && (
+        <div className="mt-4">
+          <FeeExplanation leverageTier={leverageTier} />
+        </div>
+      )}
     </div>
   );
 }
