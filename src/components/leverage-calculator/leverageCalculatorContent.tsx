@@ -8,12 +8,24 @@ import VaultTable from "../leverage-liquidity/vaultTable/vaultTable";
 import VaultPagination from "@/components/shared/leverage/VaultPagination";
 import { api } from "@/trpc/react";
 import NoSSR from "../ui/no-ssr";
+import { useVaultData } from "@/contexts/VaultDataContext";
+import { useMemo } from "react";
 
 export default function LeverageCalculatorContent({
   isApe,
 }: {
   isApe: boolean;
 }) {
+  // Use VaultDataContext to get ALL vaults for the calculator form
+  const { allVaults } = useVaultData();
+
+  // Transform to match expected format for CalculatorForm
+  const allVaultsQuery = useMemo(() => {
+    if (!allVaults) return undefined;
+    return { vaults: allVaults };
+  }, [allVaults]);
+
+  // Still use paginated query for the table display
   const { data: vaultQuery } = api.vault.getTableVaults.useQuery(
     {
       offset: 0,
@@ -29,8 +41,8 @@ export default function LeverageCalculatorContent({
     <Container>
       <Explainer page={EPage.CALCULATOR} />
       <div className="grid w-full gap-x-[16px] gap-y-4 lg:grid-cols-2">
-        {/* Always show the form immediately - it handles its own loading states */}
-        <CalculatorForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
+        {/* Use ALL vaults for the form to ensure filtering works with all vaults */}
+        <CalculatorForm vaultsQuery={allVaultsQuery} isApe={isApe} />
 
         <Card>
           <div className="flex h-full flex-col justify-between">
