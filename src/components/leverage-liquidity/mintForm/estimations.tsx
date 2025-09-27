@@ -48,13 +48,6 @@ export default function Estimations({
           {isApe ? "APE" : "TEA"}{vaultId ? `-${getDisplayVaultId(vaultId)}` : ""}
         </span>
       </div>
-
-      {/* Show fee explanation for APE tokens */}
-      {isApe && fee && fee > 10 && leverageTier && (
-        <div className="mt-4">
-          <FeeExplanation leverageTier={leverageTier} />
-        </div>
-      )}
     </div>
   );
 }
