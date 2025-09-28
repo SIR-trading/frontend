@@ -216,12 +216,19 @@ export function BurnTableRow({
       },
     );
 
-    if (apyData?.apy !== undefined && apyData.apy > 0) {
-      breakevenTimeDays = calculateBreakevenTime(
-        initialCollateral,
-        currentCollateral,
-        apyData.apy,
-      );
+    if (apyData?.apy !== undefined) {
+      if (currentCollateral >= initialCollateral) {
+        // Already at or above break-even
+        breakevenTimeDays = 0;
+      } else if (apyData.apy > 0) {
+        breakevenTimeDays = calculateBreakevenTime(
+          initialCollateral,
+          currentCollateral,
+          apyData.apy,
+        );
+      }
+      // If APY is 0 and not at break-even, breakevenTimeDays stays null
+      // which will be handled later as infinite
     }
   }
 
@@ -245,43 +252,84 @@ export function BurnTableRow({
     );
 
     if (apyData?.apy !== undefined) {
-      if (apyData.apy === 0) {
-        // APY is 0, so time to reach targets is infinite
+      // Check if targets are already achieved (current >= target)
+      // If so, set time to 0 (which will display as checkmark)
+
+      // For collateral targets
+      if (currentCollateral >= initialCollateral) {
+        // Break-even already achieved for collateral
+        breakevenTimeDays = 0;
+      } else if (apyData.apy === 0) {
         isInfiniteTime = true;
       } else {
-        // Calculate time to reach 2x initial value (collateral)
+        breakevenTimeDays = calculateBreakevenTime(
+          initialCollateral,
+          currentCollateral,
+          apyData.apy,
+        );
+      }
+
+      if (currentCollateral >= initialCollateral * 2) {
+        // 2x already achieved for collateral
+        doubleTimeDays = 0;
+      } else if (apyData.apy === 0) {
+        // Only set infinite if not already achieved
+        isInfiniteTime = true;
+      } else {
         doubleTimeDays = calculateBreakevenTime(
           initialCollateral * 2,
           currentCollateral,
           apyData.apy,
         );
+      }
 
-        // Calculate time to reach 10x initial value (collateral)
+      if (currentCollateral >= initialCollateral * 10) {
+        // 10x already achieved for collateral
+        tenxTimeDays = 0;
+      } else if (apyData.apy === 0) {
+        isInfiniteTime = true;
+      } else {
         tenxTimeDays = calculateBreakevenTime(
           initialCollateral * 10,
           currentCollateral,
           apyData.apy,
         );
+      }
 
-        // For debt token values, we need to account for the exchange rate change
-        // The debt token value grows based on collateral growth and exchange rate
-        // Since TEA tokens earn yield in collateral, we calculate based on collateral APY
-
-        // Break-even for debt token
+      // For debt token targets
+      if (currentDebtTokenValue >= initialDebtTokenValue) {
+        // Break-even already achieved for debt token
+        breakevenDebtTimeDays = 0;
+      } else if (apyData.apy === 0) {
+        // Only set infinite if not already achieved
+        // Note: isInfiniteTime already set above if APY is 0
+      } else {
         breakevenDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue,
           currentDebtTokenValue,
           apyData.apy,
         );
+      }
 
-        // 2x for debt token
+      if (currentDebtTokenValue >= initialDebtTokenValue * 2) {
+        // 2x already achieved for debt token
+        doubleDebtTimeDays = 0;
+      } else if (apyData.apy === 0) {
+        // Only set infinite if not already achieved
+      } else {
         doubleDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue * 2,
           currentDebtTokenValue,
           apyData.apy,
         );
+      }
 
-        // 10x for debt token
+      if (currentDebtTokenValue >= initialDebtTokenValue * 10) {
+        // 10x already achieved for debt token
+        tenxDebtTimeDays = 0;
+      } else if (apyData.apy === 0) {
+        // Only set infinite if not already achieved
+      } else {
         tenxDebtTimeDays = calculateBreakevenTime(
           initialDebtTokenValue * 10,
           currentDebtTokenValue,
@@ -853,7 +901,7 @@ export function BurnTableRow({
         {/* Break-even time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : breakevenTimeDays}
+            days={isInfiniteTime && breakevenTimeDays !== 0 ? Infinity : breakevenTimeDays}
             className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -861,7 +909,7 @@ export function BurnTableRow({
         {/* 2x time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : doubleTimeDays}
+            days={isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays}
             className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -869,7 +917,7 @@ export function BurnTableRow({
         {/* 10x time column */}
         <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : tenxTimeDays}
+            days={isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays}
             className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1033,7 +1081,7 @@ export function BurnTableRow({
         {/* Break-even time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : breakevenDebtTimeDays}
+            days={isInfiniteTime && breakevenDebtTimeDays !== 0 ? Infinity : breakevenDebtTimeDays}
             className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1041,7 +1089,7 @@ export function BurnTableRow({
         {/* 2x time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : doubleDebtTimeDays}
+            days={isInfiniteTime && doubleDebtTimeDays !== 0 ? Infinity : doubleDebtTimeDays}
             className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1049,7 +1097,7 @@ export function BurnTableRow({
         {/* 10x time column - debt token */}
         <td className="hidden pb-1.5 pr-4 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime ? Infinity : tenxDebtTimeDays}
+            days={isInfiniteTime && tenxDebtTimeDays !== 0 ? Infinity : tenxDebtTimeDays}
             className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1067,21 +1115,21 @@ export function BurnTableRow({
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : breakevenTimeDays}
+                      days={isInfiniteTime && breakevenTimeDays !== 0 ? Infinity : breakevenTimeDays}
                       className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : doubleTimeDays}
+                      days={isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays}
                       className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : tenxTimeDays}
+                      days={isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays}
                       className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
@@ -1095,21 +1143,21 @@ export function BurnTableRow({
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : breakevenDebtTimeDays}
+                      days={isInfiniteTime && breakevenDebtTimeDays !== 0 ? Infinity : breakevenDebtTimeDays}
                       className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : doubleDebtTimeDays}
+                      days={isInfiniteTime && doubleDebtTimeDays !== 0 ? Infinity : doubleDebtTimeDays}
                       className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime ? Infinity : tenxDebtTimeDays}
+                      days={isInfiniteTime && tenxDebtTimeDays !== 0 ? Infinity : tenxDebtTimeDays}
                       className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
