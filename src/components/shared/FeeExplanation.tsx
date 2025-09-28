@@ -58,9 +58,12 @@ export function FeeExplanation({
     (100 - feePercentage) * Math.pow(5, leverageRatio) - 100,
   );
 
-  if (compact) {
-    // Custom inline tooltip with better visibility
-    const triggerElement = (
+  if (!compact) {
+    return null; // Full version not currently used
+  }
+
+  // Custom inline tooltip with better visibility
+  const triggerElement = (
       <div className="inline-flex cursor-pointer items-center justify-center align-middle text-foreground">
         <Info size={14} strokeWidth={2} />
       </div>
@@ -95,9 +98,12 @@ export function FeeExplanation({
           <div className="flex items-start gap-2">
             <span>•</span>
             <div>
-              <div className="font-medium">No volatility decay</div>
+              <div className="font-medium">No volatility decay*</div>
               <div className="text-xs opacity-80">
                 No decay even in choppy/sideways markets
+              </div>
+              <div className="text-[10px] opacity-60 italic mt-0.5">
+                *May occur if price exceeds saturation price (depends on liquidity)
               </div>
             </div>
           </div>
@@ -114,9 +120,9 @@ export function FeeExplanation({
                 <div>+50% price change = {gain50}% gain</div>
                 <div>+100% price change = {gain100}% gain</div>
                 <div>+400% price change = {gain400}% gain</div>
-                <div className="pt-1 text-xs italic opacity-60">
-                  *Assumes sufficient vault liquidity
-                </div>
+              </div>
+              <div className="text-[10px] opacity-60 italic mt-0.5">
+                *Assumes sufficient vault liquidity
               </div>
             </div>
           </div>
@@ -124,8 +130,7 @@ export function FeeExplanation({
 
         <div className="border-t border-white/10 pt-2 dark:border-black/10">
           <div className="text-xs opacity-70">
-            Traditional leveraged ETFs: Daily fees + volatility decay + linear
-            gains
+            Margin trading, perps, leveraged ETFs: Daily fees + liquidations + linear gains or volatility decay
           </div>
           <div className="mt-1 text-xs font-medium">
             SIR: One-time fee + no decay + exponential gains + no liquidation
@@ -161,88 +166,4 @@ export function FeeExplanation({
         {content}
       </HoverPopup>
     );
-  }
-
-  // Full version for dedicated sections
-  return (
-    <div className="bg-card space-y-3 rounded-lg border border-border p-4">
-      <div className="flex items-center gap-2">
-        <Info className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold">Understanding the fee structure</h3>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-primary">SIR Protocol</h4>
-          <ul className="space-y-2 text-sm">
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>One-time fee only</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Zero liquidation risk</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>No volatility decay</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Exponential gains* (^{leverageRatio} leverage)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-green-500">✓</span>
-              <span>Hold indefinitely</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            Traditional Leverage
-          </h4>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-start gap-2">
-              <span className="text-red-500">✗</span>
-              <span>Daily funding fees (0.01-0.3%)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500">✗</span>
-              <span>Liquidation at margin call</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500">✗</span>
-              <span>Volatility decay in choppy markets</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500">✗</span>
-              <span>Linear gains only</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-red-500">✗</span>
-              <span>Time decay from fees</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="rounded-md bg-primary/10 p-3 text-sm">
-        <strong>
-          Example with {leverageRatio}x leverage (after {feePercentage}% fee):
-        </strong>
-        <div className="mt-2 space-y-1">
-          <div>• -80% price change = {gainNeg80}% gain</div>
-          <div>• -50% price change = {gainNeg50}% gain</div>
-          <div>• 0% price change = {gain0}% gain</div>
-          <div>• +50% price change = {gain50}% gain</div>
-          <div>• +100% price change = {gain100}% gain</div>
-          <div>• +400% price change = {gain400}% gain</div>
-          <div className="pt-2 text-xs italic opacity-70">
-            *Assumes sufficient vault liquidity
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
