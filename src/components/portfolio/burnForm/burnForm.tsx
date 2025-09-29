@@ -257,7 +257,7 @@ export default function BurnForm({
   return (
     <FormProvider {...form}>
       <TransactionModal.Root
-        title={`Burn ${isApe ? 'APE' : 'TEA'}-${getDisplayVaultId(row.vaultId)}`}
+        title={`Close ${isApe ? 'APE' : 'TEA'}-${getDisplayVaultId(row.vaultId)}`}
         open={open}
         setOpen={(value) => {
           setOpen(value);
@@ -284,7 +284,7 @@ export default function BurnForm({
             {!isConfirmed && (
               <>
                 <TransactionStatus
-                  action="Burn"
+                  action="Close"
                   waitForSign={isPending}
                   showLoading={isConfirming}
                 />
@@ -294,7 +294,7 @@ export default function BurnForm({
                     {/* Burning Amount */}
                     <div className="pt-2">
                       <div className="mb-2">
-                        <label className="text-sm text-muted-foreground">Burning Amount</label>
+                        <label className="text-sm text-muted-foreground">Closing Amount</label>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xl">
@@ -380,7 +380,7 @@ export default function BurnForm({
             onClick={() => onSubmit()}
             isConfirmed={isConfirmed}
           >
-            Confirm Burn
+            Confirm Close
           </TransactionModal.SubmitButton>
         </TransactionModal.StatSubmitContainer>
       </TransactionModal.Root>
@@ -388,7 +388,7 @@ export default function BurnForm({
         <div className="w-[320px] space-y-2  p-2 md:w-full">
           <div className="flex justify-between">
             <h2 className="w-full pl-[24px] text-center font-geist text-[24px]">
-              Burn
+              Close
             </h2>
 
             <button
@@ -446,7 +446,7 @@ export default function BurnForm({
               className="w-full"
               type="button"
             >
-              {`Burn ${isApe ? "APE" : "TEA"}`}
+              {`Close ${isApe ? "APE" : "TEA"}`}
             </Button>
             {<ErrorMessage>{error}</ErrorMessage>}
           </div>

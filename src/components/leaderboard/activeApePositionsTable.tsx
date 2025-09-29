@@ -492,7 +492,7 @@ export const ActiveApePositionsTable: React.FC<
                           >
                             <Show
                               when={!!isUserPosition}
-                              fallback={<span className={"w-[45px]"}></span>}
+                              fallback={<span className={"w-[48px]"}></span>}
                             >
                               <Button
                                 onClick={() =>
@@ -504,9 +504,9 @@ export const ActiveApePositionsTable: React.FC<
                                   })
                                 }
                                 type="button"
-                                className="h-7 w-[45px] -translate-x-2 rounded-full p-1 text-[12px] md:-translate-x-4"
+                                className="h-7 w-[48px] -translate-x-2 rounded-md p-1 text-[12px] md:-translate-x-4"
                               >
-                                Burn
+                                Close
                               </Button>
                             </Show>
                           </div>

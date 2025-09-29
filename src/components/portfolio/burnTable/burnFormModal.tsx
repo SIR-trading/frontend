@@ -7,7 +7,7 @@ interface Props {
 export function BurnFormModal({ reset, children }: Props) {
   return (
     <Dialog open={true} onOpenChange={() => reset()}>
-      <DialogContent title="Mint Modal" className="bg-transparent">
+      <DialogContent title="Close Position" className="bg-transparent">
         <div
           className={`relative rounded-xl border border-foreground/10 bg-secondary  px-4 py-2 transition-all duration-700`}
         >

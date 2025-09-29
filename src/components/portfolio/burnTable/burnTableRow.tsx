@@ -505,7 +505,7 @@ export function BurnTableRow({
                     }
                     className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
                   >
-                    Burn
+                    Close
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-foreground/10" />
                   <DropdownMenuItem
@@ -527,7 +527,7 @@ export function BurnTableRow({
               </DropdownMenu>
             </div>
 
-            {/* Large screens: Burn button + More dropdown */}
+            {/* Large screens: Close button + More dropdown */}
             <div className="hidden justify-center space-x-1 lg:flex">
               <Button
                 onClick={() => {
@@ -539,9 +539,9 @@ export function BurnTableRow({
                     : parseFloat(teaBalance) === 0
                 }
                 type="button"
-                className="h-7 rounded-md px-4 text-[12px]"
+                className="h-7 rounded-md px-3 text-[12px]"
               >
-                Burn
+                Close
               </Button>
               {/* More dropdown for additional actions */}
               <DropdownMenu
@@ -961,7 +961,7 @@ export function BurnTableRow({
                   }
                   className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
                 >
-                  Burn
+                  Close
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-foreground/10" />
                 <DropdownMenuItem
@@ -983,7 +983,7 @@ export function BurnTableRow({
             </DropdownMenu>
           </div>
 
-          {/* Large screens: Burn button + More dropdown */}
+          {/* Large screens: Close button + More dropdown */}
           <div className="hidden justify-center space-x-1 lg:flex">
             <Button
               onClick={() => {
@@ -995,9 +995,9 @@ export function BurnTableRow({
                   : parseFloat(teaBalance) === 0
               }
               type="button"
-              className="h-7 rounded-md px-4 text-[12px]"
+              className="h-7 rounded-md px-3 text-[12px]"
             >
-              Burn
+              Close
             </Button>
             {/* More dropdown for additional actions */}
             <DropdownMenu
