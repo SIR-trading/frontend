@@ -297,15 +297,15 @@ export default function Calculations({
           />
           <label
             htmlFor="considerLiquidity"
-            className="flex cursor-pointer items-center gap-1 text-sm text-foreground/80"
+            className="cursor-pointer text-sm text-foreground/80"
           >
             Consider current liquidity
-            <ToolTip size="300">
-              As leveraged positions grow, LP fees increase, attracting more
-              liquidity to the vault. Use the slider to simulate different
-              liquidity levels.
-            </ToolTip>
           </label>
+          <ToolTip size="300">
+            As leveraged positions grow, LP fees increase, attracting more
+            liquidity to the vault. Use the slider to simulate different
+            liquidity levels.
+          </ToolTip>
         </div>
 
         {(formData.considerLiquidity ?? true) && (
@@ -320,13 +320,13 @@ export default function Calculations({
             />
             <label
               htmlFor="considerDeposit"
-              className="flex cursor-pointer items-center gap-1 text-sm text-foreground/80"
+              className="cursor-pointer text-sm text-foreground/80"
             >
               Consider deposit impact
-              <ToolTip size="300">
-                Accounts for how your deposit will change the vault&apos;s liquidity.
-              </ToolTip>
             </label>
+            <ToolTip size="300">
+              Accounts for how your deposit will change the vault&apos;s liquidity.
+            </ToolTip>
           </div>
         )}
       </div>
