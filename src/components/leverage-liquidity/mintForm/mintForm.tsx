@@ -955,6 +955,9 @@ export default function MintForm({ isApe }: Props) {
           vaultId={selectedVault.result?.id}
           leverageTier={leverageTier}
           fee={fee ? parseFloat(fee) : undefined}
+          collateralSymbol={collateralTokenSymbol}
+          debtSymbol={debtTokenSymbol}
+          hasSirRewards={!isApe && apyData?.sirRewardsApy !== undefined ? apyData.sirRewardsApy > 0 : undefined}
         />
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>

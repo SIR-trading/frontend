@@ -25,11 +25,11 @@ export const Explainers: Partial<ExplainersMap> = {
     ),
   },
   [EPage.LIQUIDITY]: {
-    title: "Provide liquidity, collect fees",
+    title: "Provide liquidity, earn from traders",
     description: (
       <>
         <p>
-          Mint TEA tokens to provide liquidity and earn fees from APE traders. Selected vaults also reward{" "}
+          Mint TEA tokens to provide liquidity and earn fees from APE leverage traders. Selected vaults also reward{" "}
           <a
             href="https://docs.sir.trading/protocol-overview/sir-a-dividend-paying-token"
             className="underline"
@@ -37,7 +37,7 @@ export const Explainers: Partial<ExplainersMap> = {
           >
             {getSirSymbol()} tokens
           </a>
-          . TEA maintains balanced exposure between paired assets.
+          . TEA holders earn from trading activity while maintaining balanced exposure to vault assets.
         </p>
       </>
     ),

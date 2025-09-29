@@ -1,5 +1,5 @@
 import { fromHex } from "viem";
-import { FeeExplanation } from "@/components/shared/FeeExplanation";
+import ToolTip from "@/components/ui/tooltip";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string | undefined): string => {
@@ -21,8 +21,9 @@ export default function Estimations({
   disabled,
   isApe,
   vaultId,
-  leverageTier,
-  fee,
+  collateralSymbol,
+  debtSymbol,
+  hasSirRewards,
 }: {
   ape: string;
   isApe: boolean;
@@ -30,7 +31,13 @@ export default function Estimations({
   vaultId?: string;
   leverageTier?: string;
   fee?: number;
+  collateralSymbol?: string;
+  debtSymbol?: string;
+  hasSirRewards?: boolean;
 }) {
+  // Use fallbacks when symbols are empty or undefined
+  const tokenSymbol = collateralSymbol && collateralSymbol.length > 0 ? collateralSymbol : 'collateral';
+  const debtTokenSymbol = debtSymbol && debtSymbol.length > 0 ? debtSymbol : 'debt tokens';
 
   return (
     <div className={` pt-2 ${disabled ? "opacity-80" : ""}`}>
@@ -44,8 +51,21 @@ export default function Estimations({
         >
           {ape}
         </h2>
-        <span className="text-sm text-foreground/80 md:text-xl">
-          {isApe ? "APE" : "TEA"}{vaultId ? `-${getDisplayVaultId(vaultId)}` : ""}
+        <span className="flex items-center gap-1 text-sm text-foreground/80 md:text-xl">
+          <span>{isApe ? "APE" : "TEA"}{vaultId ? `-${getDisplayVaultId(vaultId)}` : ""}</span>
+          {!isApe && (
+            <ToolTip iconSize={16} size="300">
+              <div className="space-y-1.5">
+                <div>TEA holders provide liquidity and earn fees from APE traders.</div>
+                <div>Your position acts like a mix of {tokenSymbol} + {debtTokenSymbol}. Similar to Uniswap&apos;s impermanent loss: you &quot;sell&quot; {tokenSymbol} for {debtTokenSymbol} as price rises (to pay APE gains) and &quot;buy&quot; as it falls.</div>
+                <div>This creates dampened exposure - less upside than spot, but also less downside.</div>
+                <div className="pt-1 font-semibold">
+                  Think: {tokenSymbol}<sup>x</sup> (where x oscillates between 0-1) + fees
+                  {hasSirRewards === true ? " + SIR rewards" : hasSirRewards === undefined ? " + potential SIR rewards" : ""}.
+                </div>
+              </div>
+            </ToolTip>
+          )}
         </span>
       </div>
     </div>

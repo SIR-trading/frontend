@@ -177,3 +177,30 @@ The app provides several price fetching mechanisms to get token prices from diff
 - **For debt token PnL**: Use `getMostLiquidPoolPrice` to get current exchange rate and convert collateral to debt token terms
 - **For USD values**: Use appropriate price function based on chain (Alchemy for Ethereum, CoinGecko for HyperEVM)
 - All price functions include caching to minimize external API calls
+
+## UI Component Guidelines
+
+### Tooltip Component Usage
+
+The app uses a consistent `ToolTip` component throughout. Important implementation notes:
+
+**Component Pattern:**
+```tsx
+<ToolTip iconSize={16} size="300">
+  Content here
+</ToolTip>
+```
+
+**Key Lessons Learned:**
+1. **Always use the existing ToolTip component** - Don't create custom tooltip implementations
+2. **Portal rendering is critical** - The HoverCard component must use `HoverCardPrimitive.Portal` to render tooltips outside the DOM hierarchy, preventing parent styles from affecting tooltip appearance
+3. **Z-index must be high** - Use `z-[9999]` to ensure tooltips appear above all other elements
+4. **Consistent styling** - All tooltips should have the same background (`bg-black/90 dark:bg-white/90`), text color (`text-white dark:text-black`), and border styling
+5. **Icon sizing** - Match icon size to surrounding text (e.g., `iconSize={16}` for normal text, `iconSize={14}` for smaller text)
+6. **Content formatting** - For longer explanations, wrap in a div with `space-y-1.5` for proper paragraph spacing
+7. **Width control** - Use `size="300"` for wider content, `size="250"` (default) for medium, `size="200"` for narrow
+
+**Common Issues and Fixes:**
+- **Transparent/affected backgrounds**: Ensure HoverCard uses Portal rendering
+- **Text appears as wall of text**: Use div wrappers with proper spacing classes
+- **Icon too small/large**: Adjust iconSize to match surrounding text size
