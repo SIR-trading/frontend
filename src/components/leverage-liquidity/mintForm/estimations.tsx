@@ -56,8 +56,10 @@ export default function Estimations({
           {!isApe && (
             <ToolTip iconSize={16} size="300">
               <div className="space-y-1.5">
-                <div>TEA holders provide liquidity and earn fees from APE traders.</div>
-                <div>Your position acts like a mix of {tokenSymbol} + {debtTokenSymbol}. Similar to Uniswap&apos;s impermanent loss: you &quot;sell&quot; {tokenSymbol} for {debtTokenSymbol} as price rises (to pay APE gains) and &quot;buy&quot; as it falls.</div>
+                <div>
+                  {vaultId ? `TEA-${getDisplayVaultId(vaultId)}` : 'TEA'} holders provide liquidity and earn fees from {vaultId ? `APE-${getDisplayVaultId(vaultId)}` : 'APE'} traders.
+                </div>
+                <div>Your position acts like a mix of {tokenSymbol} + {debtTokenSymbol}. Similar to Uniswap&apos;s impermanent loss: you &quot;sell&quot; {tokenSymbol} for {debtTokenSymbol} as price rises (to pay {vaultId ? `APE-${getDisplayVaultId(vaultId)}` : 'APE'} gains) and &quot;buy&quot; as it falls.</div>
                 <div>This creates dampened exposure - less upside than spot, but also less downside.</div>
                 <div className="pt-1 font-semibold">
                   Think: {tokenSymbol}<sup>x</sup> (where x oscillates between 0-1) + fees
