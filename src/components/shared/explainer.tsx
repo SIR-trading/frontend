@@ -9,15 +9,15 @@ interface Props {
 }
 
 export default function Explainer({ page }: Props) {
-  const explainer = Explainers[page]
-  if (!explainer) return null
+  const explainer = Explainers[page];
+  if (!explainer) return null;
 
   return (
     <div className="w-full pb-8">
       <h1 className="text-[24px] font-semibold md:text-[32px] lg:text-[42px]">
         {explainer.title}
       </h1>
-      <div className="pt-2 text-[16px] leading-5 opacity-75 [&>p+p]:mt-4">
+      <div className="pt-2 text-[16px] leading-5 opacity-75 lg:pr-40 [&>p+p]:mt-4">
         {explainer.description}
       </div>
     </div>

@@ -9,6 +9,8 @@ import VaultPagination from "@/components/shared/leverage/VaultPagination";
 import VaultRowSkeleton from "./vaultTable/vaultRowSkeleton";
 import NoSSR from "@/components/ui/no-ssr";
 import { api } from "@/trpc/react";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function LeverageLiquidityContent({
   isApe,
@@ -17,6 +19,7 @@ export default function LeverageLiquidityContent({
   isApe: boolean;
   offset?: number;
 }) {
+  const { theme, systemTheme } = useTheme();
   const { data: vaultQuery } = api.vault.getTableVaults.useQuery(
     {
       offset,
@@ -38,7 +41,18 @@ export default function LeverageLiquidityContent({
         {/* Always show the form immediately - it handles its own loading states */}
         <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
 
-        <Card className={"md:px-5"}>
+        <Card className={"relative overflow-visible md:px-5"}>
+          <NoSSR>
+            {!isApe && (
+              <Image
+                src={(theme === "light" || (!theme && systemTheme === "light")) ? "/Gorilla_drinking_tea_white.png" : "/Gorilla_drinking_tea.png"}
+                alt="Gorilla drinking tea"
+                width={180}
+                height={180}
+                className="pointer-events-none absolute -top-[6.7rem] right-0 z-10 hidden lg:block"
+              />
+            )}
+          </NoSSR>
           <div className="flex h-full flex-col justify-between">
             {/* Wrap VaultTable in NoSSR to prevent SSR issues */}
             <NoSSR
