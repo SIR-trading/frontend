@@ -45,11 +45,28 @@ export default function LeverageLiquidityContent({
           <NoSSR>
             {!isApe && (
               <Image
-                src={(theme === "light" || (!theme && systemTheme === "light")) ? "/Gorilla_drinking_tea_white.png" : "/Gorilla_drinking_tea.png"}
+                src={
+                  theme === "light" || (!theme && systemTheme === "light")
+                    ? "/Gorilla_drinking_tea_white.png"
+                    : "/Gorilla_drinking_tea.png"
+                }
                 alt="Gorilla drinking tea"
                 width={180}
                 height={180}
                 className="pointer-events-none absolute -top-[6.7rem] right-0 z-10 hidden lg:block"
+              />
+            )}
+            {isApe && (
+              <Image
+                src={
+                  theme === "light" || (!theme && systemTheme === "light")
+                    ? "/Monkey_drinking_whiskey_white.png"
+                    : "/Monkey_drinking_whiskey.png"
+                }
+                alt="Monkey drinking whiskey"
+                width={220}
+                height={220}
+                className="pointer-events-none absolute -right-[2.3rem] -top-[6.8rem] z-10 hidden lg:block"
               />
             )}
           </NoSSR>
