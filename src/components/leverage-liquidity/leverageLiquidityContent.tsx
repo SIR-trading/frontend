@@ -37,7 +37,10 @@ export default function LeverageLiquidityContent({
       <Explainer page={isApe ? EPage.LEVERAGE : EPage.LIQUIDITY} />
       <div className="grid w-full gap-x-[16px] gap-y-4 lg:grid-cols-2">
         {/* Always show the form immediately - it handles its own loading states */}
-        <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
+        {/* Add margin-top on mobile to prevent image overlap with explainer text */}
+        <div className="mt-10 lg:mt-0">
+          <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
+        </div>
 
         <Card className={"relative overflow-visible md:px-5"}>
           <NoSSR>

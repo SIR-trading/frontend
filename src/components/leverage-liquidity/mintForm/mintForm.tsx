@@ -45,6 +45,8 @@ import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
 import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
 import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
+import Image from "next/image";
+import NoSSR from "@/components/ui/no-ssr";
 import useVaultFilterStore from "@/lib/store";
 import { api } from "@/trpc/react";
 import {
@@ -528,7 +530,48 @@ export default function MintForm({ isApe }: Props) {
   ]);
 
   return (
-    <Card>
+    <Card className="relative overflow-visible">
+      {/* Mobile images - visible on small screens, positioned in minting box */}
+      <NoSSR>
+        {!isApe && (
+          <>
+            {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
+            <Image
+              src="/Gorilla_drinking_tea.png"
+              alt="Gorilla drinking tea"
+              width={120}
+              height={120}
+              className="pointer-events-none absolute -top-[4.5rem] right-0 z-10 hidden dark:block dark:lg:hidden"
+            />
+            <Image
+              src="/Gorilla_drinking_tea_white.png"
+              alt="Gorilla drinking tea"
+              width={120}
+              height={120}
+              className="pointer-events-none absolute -top-[4.5rem] right-0 z-10 block lg:hidden dark:hidden"
+            />
+          </>
+        )}
+        {isApe && (
+          <>
+            {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
+            <Image
+              src="/Monkey_drinking_whiskey.png"
+              alt="Monkey drinking whiskey"
+              width={147}
+              height={147}
+              className="pointer-events-none absolute -top-[4.5rem] right-[-1.5rem] z-10 hidden dark:block dark:lg:hidden"
+            />
+            <Image
+              src="/Monkey_drinking_whiskey_white.png"
+              alt="Monkey drinking whiskey"
+              width={147}
+              height={147}
+              className="pointer-events-none absolute -top-[4.5rem] right-[-1.5rem] z-10 block lg:hidden dark:hidden"
+            />
+          </>
+        )}
+      </NoSSR>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
           title="Mint"
@@ -643,7 +686,8 @@ export default function MintForm({ isApe }: Props) {
                         {/* Two-column header for APE tokens */}
                         <div className="text-gray-300 mb-1 flex justify-between text-[11px]">
                           <div className="flex-1">
-                            Required Price Gain of {collateralTokenSymbol}/{debtTokenSymbol}
+                            Required Price Gain of {collateralTokenSymbol}/
+                            {debtTokenSymbol}
                           </div>
                           <div className="flex gap-4">
                             <div className="w-[60px] text-right text-foreground/70">
@@ -957,7 +1001,11 @@ export default function MintForm({ isApe }: Props) {
           fee={fee ? parseFloat(fee) : undefined}
           collateralSymbol={collateralTokenSymbol}
           debtSymbol={debtTokenSymbol}
-          hasSirRewards={!isApe && apyData?.sirRewardsApy !== undefined ? apyData.sirRewardsApy > 0 : undefined}
+          hasSirRewards={
+            !isApe && apyData?.sirRewardsApy !== undefined
+              ? apyData.sirRewardsApy > 0
+              : undefined
+          }
         />
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>

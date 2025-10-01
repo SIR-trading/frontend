@@ -248,18 +248,30 @@ The app uses CSS-based image switching for instant theme transitions without loa
 **Current Theme-Based Images:**
 1. **Leverage Page** (`/leverage`):
    - Monkey images: `/Monkey_drinking_whiskey.png` (dark) and `/Monkey_drinking_whiskey_white.png` (light)
-   - Position: Top-right corner of the vault table card
+   - Position:
+     - Desktop (lg screens): Top-right corner of the vault table card
+     - Mobile (< lg screens): Top-right corner of the minting form card
 
 2. **Liquidity Page** (`/liquidity`):
    - Gorilla images: `/Gorilla_drinking_tea.png` (dark) and `/Gorilla_drinking_tea_white.png` (light)
-   - Position: Top-right corner of the vault table card
+   - Position:
+     - Desktop (lg screens): Top-right corner of the vault table card
+     - Mobile (< lg screens): Top-right corner of the minting form card
 
 3. **Stake Page** (`/stake`):
    - Frog images: `/Frog_blue.jpg` (dark) and `/Frog_beige.jpg` (light)
    - Position: Bottom-right corner of the claimable rewards card (only visible when no contributor rewards)
+
+**Responsive Positioning Strategy:**
+For the monkey and gorilla images on leverage/liquidity pages:
+- **Desktop (lg breakpoint)**: Images appear on the "Popular Vaults" card to avoid overlapping form content
+- **Mobile (< lg breakpoint)**: Images move to the minting form card since the layout stacks vertically
+- This ensures images are always visible and never overlap important content
+- Both sets of images (for each position) are loaded in their respective components
 
 **Why This Pattern:**
 - Eliminates theme switching lag - both images preload, only CSS visibility changes
 - No JavaScript theme detection needed - pure CSS solution
 - Prevents image flicker during theme transitions
 - Better performance than conditional rendering with JavaScript
+- Responsive positioning ensures optimal layout on all screen sizes
