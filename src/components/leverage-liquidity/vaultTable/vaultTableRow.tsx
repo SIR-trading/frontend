@@ -220,20 +220,29 @@ export function VaultTableRow({
   const setValue = calculatorSetValue ?? setMintValue;
 
   const teaCollateral = parseFloat(
-    formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.collateralToken.decimals),
+    formatUnits(
+      reservesData[0]?.reserveLPers ?? 0n,
+      vault.collateralToken.decimals,
+    ),
   );
   const apeCollateral = parseFloat(
-    formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.collateralToken.decimals),
+    formatUnits(
+      reservesData[0]?.reserveApes ?? 0n,
+      vault.collateralToken.decimals,
+    ),
   );
   const tvl = apeCollateral + teaCollateral;
   const realLeverage = tvl / apeCollateral;
 
   // Calculate TVL in USD
-  const tvlFormatted = formatUnits(parseUnits(vault.totalValue, 0), vault.ape.decimals);
+  const tvlFormatted = formatUnits(
+    parseUnits(vault.totalValue, 0),
+    vault.ape.decimals,
+  );
   const { usdValue: tvlUsd } = useTokenUsdPrice(
     vault.collateralToken.id,
     tvlFormatted,
-    vault.collateralToken.decimals
+    vault.collateralToken.decimals,
   );
 
   const variant = useCalculateVaultHealth({
@@ -295,13 +304,19 @@ export function VaultTableRow({
   return (
     <tr
       onClick={() => {
-        setValue("versus", vault.debtToken.id + "," + (vault.debtToken.symbol ?? ''));
-        setValue("long", vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ''));
+        setValue(
+          "versus",
+          vault.debtToken.id + "," + (vault.debtToken.symbol ?? ""),
+        );
+        setValue(
+          "long",
+          vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ""),
+        );
         setValue("leverageTier", vault.leverageTier.toString());
         setAll(
           vault.leverageTier.toString(),
-          vault.debtToken.id + "," + (vault.debtToken.symbol ?? ''),
-          vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ''),
+          vault.debtToken.id + "," + (vault.debtToken.symbol ?? ""),
+          vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ""),
         );
       }}
       className="relative flex cursor-pointer items-center justify-between rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
@@ -406,7 +421,9 @@ export function VaultTableRow({
             height={28}
             alt="Collateral token"
           />
-          <span className="ml-1 font-normal">{vault.collateralToken.symbol ?? ''}</span>
+          <span className="ml-1 font-normal">
+            {vault.collateralToken.symbol ?? ""}
+          </span>
           <span className="mx-1 font-normal">/</span>
           <TokenImage
             address={vault.debtToken.id}
@@ -415,7 +432,9 @@ export function VaultTableRow({
             height={28}
             alt="Debt token"
           />
-          <span className="ml-1 font-normal">{vault.debtToken.symbol ?? ''}</span>
+          <span className="ml-1 font-normal">
+            {vault.debtToken.symbol ?? ""}
+          </span>
           {variant.variant === "red" ? (
             <HoverPopupMobile
               size="200"
@@ -457,7 +476,9 @@ export function VaultTableRow({
             height={28}
             alt="Collateral token"
           />
-          <span className="ml-1 font-normal">{vault.collateralToken.symbol ?? ''}</span>
+          <span className="ml-1 font-normal">
+            {vault.collateralToken.symbol ?? ""}
+          </span>
           <span className="mx-1 font-normal">/</span>
           <TokenImage
             address={vault.debtToken.id}
@@ -466,7 +487,9 @@ export function VaultTableRow({
             height={28}
             alt="Debt token"
           />
-          <span className="ml-1 font-normal">{vault.debtToken.symbol ?? ''}</span>
+          <span className="ml-1 font-normal">
+            {vault.debtToken.symbol ?? ""}
+          </span>
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
               <DuneChartPopup embedUrl={embedUrl} />
@@ -540,7 +563,12 @@ export function VaultTableRow({
             >
               {roundDown(fee, 0)}%
             </h4>
-            {isApe && <FeeExplanation leverageTier={vault.leverageTier.toString()} compact />}
+            {isApe && (
+              <FeeExplanation
+                leverageTier={vault.leverageTier.toString()}
+                compact
+              />
+            )}
           </div>
         )}
       </td>
@@ -600,7 +628,11 @@ export function VaultTableRow({
                   <span>$0</span>
                 ) : tvlUsd !== null && tvlUsd >= 0 ? (
                   <span>
-                    $<DisplayFormattedNumber num={tvlUsd.toString()} significant={3} />
+                    $
+                    <DisplayFormattedNumber
+                      num={tvlUsd.toString()}
+                      significant={3}
+                    />
                   </span>
                 ) : (
                   <span>...</span>
@@ -610,7 +642,7 @@ export function VaultTableRow({
                   amountSize="small"
                   amount={parseUnits(vault.totalValue, 0)}
                   decimals={vault.ape.decimals}
-                  unitLabel={vault.collateralToken.symbol ?? ''}
+                  unitLabel={vault.collateralToken.symbol ?? ""}
                 />
               )}
             </motion.div>
@@ -624,7 +656,7 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveApes ?? 0n}
                   amountSize="small"
-                  unitLabel={vault.collateralToken.symbol ?? ''}
+                  unitLabel={vault.collateralToken.symbol ?? ""}
                   decimals={vault.ape.decimals}
                 />
                 <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
@@ -636,7 +668,7 @@ export function VaultTableRow({
                 <TokenDisplay
                   amount={reservesData[0]?.reserveLPers ?? 0n}
                   amountSize="small"
-                  unitLabel={vault.collateralToken.symbol ?? ''}
+                  unitLabel={vault.collateralToken.symbol ?? ""}
                   decimals={vault.ape.decimals}
                 />
                 <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
@@ -667,14 +699,16 @@ function DisplayBadgeInfo({
   }
   if (variant.variant === "yellow") {
     return isApe ? (
-      <span>Not enough liquidity for new minters</span>
+      <span>Nearing saturation - leverage gains becoming linear</span>
     ) : (
       <span>Good for LPing</span>
     );
   }
   if (variant.variant === "red") {
     return isApe ? (
-      <span>Insufficient liquidity for constant ^{leverageRatio} leverage</span>
+      <span>
+        Non-constant leverage - varies between 1x and ^{leverageRatio}
+      </span>
     ) : (
       <span>Minimally profitable</span>
     );
