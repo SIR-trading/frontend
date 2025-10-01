@@ -54,16 +54,19 @@ const StakePage = () => {
           {!hasContributorRewards && (
             <div className="pointer-events-none absolute inset-0 flex items-end justify-end">
               <div className="relative h-2/5 md:h-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
+                <Image
                   src="/Frog_blue.jpg"
                   alt="Background"
+                  width={400}
+                  height={400}
                   className="hidden h-full w-auto object-contain object-right-bottom dark:block"
                 />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/Frog_beige.jpg"
                   alt="Background"
+                  width={400}
+                  height={400}
                   className="h-full w-auto object-contain object-right-bottom dark:hidden"
                 />
               </div>

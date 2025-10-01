@@ -204,3 +204,62 @@ The app uses a consistent `ToolTip` component throughout. Important implementati
 - **Transparent/affected backgrounds**: Ensure HoverCard uses Portal rendering
 - **Text appears as wall of text**: Use div wrappers with proper spacing classes
 - **Icon too small/large**: Adjust iconSize to match surrounding text size
+
+### Theme-Based Image Switching
+
+The app uses CSS-based image switching for instant theme transitions without loading lag:
+
+**Implementation Pattern:**
+```tsx
+{/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
+<>
+  {/* Dark mode image - visible only in dark mode */}
+  <Image
+    src="/image_dark.png"
+    alt="Description"
+    width={200}
+    height={200}
+    className="hidden dark:block"
+  />
+  {/* Light mode image - visible only in light mode */}
+  <Image
+    src="/image_light.png"
+    alt="Description"
+    width={200}
+    height={200}
+    className="block dark:hidden"
+  />
+</>
+```
+
+**Key Benefits:**
+1. **Zero lag** - Both images preload on mount, switching is instant
+2. **No flicker** - CSS classes toggle visibility immediately
+3. **Better UX** - Smooth theme transitions without image loading delays
+4. **Simple maintenance** - No JavaScript theme detection needed
+
+**Important Notes:**
+- Always load both images in the DOM
+- Use Tailwind's `dark:` variant for theme-specific visibility
+- Apply same positioning/sizing to both images
+- Always use Next.js `Image` component instead of regular `<img>` tags for better performance
+- This pattern is used for all theme-dependent images in the app
+
+**Current Theme-Based Images:**
+1. **Leverage Page** (`/leverage`):
+   - Monkey images: `/Monkey_drinking_whiskey.png` (dark) and `/Monkey_drinking_whiskey_white.png` (light)
+   - Position: Top-right corner of the vault table card
+
+2. **Liquidity Page** (`/liquidity`):
+   - Gorilla images: `/Gorilla_drinking_tea.png` (dark) and `/Gorilla_drinking_tea_white.png` (light)
+   - Position: Top-right corner of the vault table card
+
+3. **Stake Page** (`/stake`):
+   - Frog images: `/Frog_blue.jpg` (dark) and `/Frog_beige.jpg` (light)
+   - Position: Bottom-right corner of the claimable rewards card (only visible when no contributor rewards)
+
+**Why This Pattern:**
+- Eliminates theme switching lag - both images preload, only CSS visibility changes
+- No JavaScript theme detection needed - pure CSS solution
+- Prevents image flicker during theme transitions
+- Better performance than conditional rendering with JavaScript
