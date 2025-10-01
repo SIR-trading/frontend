@@ -180,6 +180,41 @@ The app provides several price fetching mechanisms to get token prices from diff
 
 ## UI Component Guidelines
 
+### DisplayFormattedNumber Component
+
+The app uses a consistent `DisplayFormattedNumber` component for displaying numerical values with intelligent formatting:
+
+**Features:**
+- **Large numbers**: Automatically adds comma separators (e.g., 1,234,567)
+- **Very small numbers** (< 0.001): Uses HTML subscript notation (e.g., 0.0<sub>3</sub>456)
+- **Significant digits**: Configurable precision (default: 3)
+- **Input flexibility**: Accepts number, string, or bigint
+
+**Usage:**
+```tsx
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+
+// Basic usage
+<DisplayFormattedNumber num={1234.567} />
+// Output: 1,230
+
+// With custom significant digits
+<DisplayFormattedNumber num={position.pnlCollateral} significant={4} />
+// Output: 0.03692
+
+// Very small numbers render with subscript
+<DisplayFormattedNumber num={0.000456} significant={3} />
+// Renders as: 0.0₃456
+```
+
+**When to use:**
+- Displaying token amounts in tables and forms
+- Showing PnL values
+- Rendering TVL, APR, and other metrics
+- Any place where consistent number formatting is needed
+
+**Note**: For tweet text or other plain text contexts where HTML formatting isn't supported, use the `formatNumber` utility directly from `@/lib/utils`.
+
 ### Tooltip Component Usage
 
 The app uses a consistent `ToolTip` component throughout. Important implementation notes:
@@ -204,6 +239,52 @@ The app uses a consistent `ToolTip` component throughout. Important implementati
 - **Transparent/affected backgrounds**: Ensure HoverCard uses Portal rendering
 - **Text appears as wall of text**: Use div wrappers with proper spacing classes
 - **Icon too small/large**: Adjust iconSize to match surrounding text size
+
+### HoverPopupMobile Component Usage
+
+The app uses `HoverPopupMobile` for hover tooltips and information popups throughout the interface.
+
+**Component Pattern:**
+```tsx
+import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+
+<HoverPopupMobile
+  size="200"  // Width in pixels: "200", "250", "300"
+  trigger={
+    <button>Hover me</button>  // The element that triggers the popup on hover
+  }
+>
+  <span className="text-[13px] font-medium">
+    Popup content here
+  </span>
+</HoverPopupMobile>
+```
+
+**Key Features:**
+- **Mobile-friendly**: Works on both hover (desktop) and tap (mobile)
+- **Customizable width**: Use `size` prop for different content widths
+- **Flexible trigger**: Any element can be the trigger
+- **Consistent styling**: Automatically styled to match the app's design system
+
+**Common Use Cases:**
+1. **Information tooltips**: Explaining features or showing additional data
+2. **Interactive hints**: "Click to share", "Tweet about your gains", etc.
+3. **Data breakdowns**: Showing detailed calculations or breakdowns
+4. **Contextual help**: Providing help text for complex features
+
+**Example from Portfolio:**
+```tsx
+<HoverPopupMobile
+  size="200"
+  trigger={
+    <button className="emoji-button">🚀</button>
+  }
+>
+  <span className="text-[13px] font-medium">
+    Tweet about your 150% WETH gains! 🎉
+  </span>
+</HoverPopupMobile>
+```
 
 ### Theme-Based Image Switching
 

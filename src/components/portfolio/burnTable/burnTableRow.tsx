@@ -25,12 +25,14 @@ import {
 import { PriceIncreaseDisplay } from "./PriceIncreaseDisplay";
 import { TimeDisplay } from "./TimeDisplay";
 import type { TUserPosition } from "@/server/queries/vaults";
+import { TwitterIcon } from "@/components/ui/icons/twitter-icon";
+import { SharePositionModal } from "./SharePositionModal";
 
 export function BurnTableRow({
   row,
   isApe,
   setSelectedRow,
-  apeAddress,
+  apeAddress: _apeAddress,
   teaBal,
   apeBal,
   teaRewards,
@@ -46,6 +48,7 @@ export function BurnTableRow({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenLg, setDropdownOpenLg] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Get vault data from context to get the rate for TEA rewards
   const { getVaultById } = useVaultData();
@@ -132,8 +135,7 @@ export function BurnTableRow({
   };
 
   // Calculate break-even metrics
-  let breakevenDisplay = "—";  // For APE tokens (price-based)
-  let breakevenTimeDays: number | null = null;  // For TEA tokens (time-based)
+  let breakevenTimeDays: number | null = null; // For TEA tokens (time-based)
 
   // Calculate price increase targets for APE tokens
   const priceIncreaseTargets = {
@@ -200,12 +202,6 @@ export function BurnTableRow({
       leverage,
       false,
     );
-
-    breakevenDisplay =
-      priceIncreaseTargets.breakeven.collateral !== null &&
-      priceIncreaseTargets.breakeven.collateral <= 0
-        ? "✓"
-        : "—";
   } else {
     // For TEA tokens: calculate break-even time
     const { data: apyData } = api.vault.getVaultApy.useQuery(
@@ -339,9 +335,9 @@ export function BurnTableRow({
     }
   }
 
-  if (isApe) {
-    return (
-      <>
+  // Render content based on position type
+  const content = isApe ? (
+    <>
         {/* First row - collateral values */}
         <tr className="text-left text-foreground">
           {/* Token column - spans 2 rows */}
@@ -357,7 +353,7 @@ export function BurnTableRow({
               {/* Expand button for mobile */}
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="md:hidden p-1 hover:bg-foreground/10 rounded transition-colors"
+                className="rounded p-1 transition-colors hover:bg-foreground/10 md:hidden"
                 aria-label={isExpanded ? "Collapse" : "Expand"}
               >
                 {isExpanded ? (
@@ -430,7 +426,7 @@ export function BurnTableRow({
           </td>
 
           {/* PnL column - collateral */}
-          <td className="pb-0.5 pr-4 pt-1.5 text-right font-normal">
+          <td className="relative pb-0.5 pr-4 pt-1.5 text-right font-normal">
             <span
               className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
             >
@@ -440,6 +436,42 @@ export function BurnTableRow({
                 {row.collateralSymbol}
               </span>
             </span>
+            {/* Floating emoji for profitable positions - positioned between rows */}
+            {pnlCollateral >= 0 && (
+              <HoverPopupMobile
+                size="200"
+                trigger={
+                  <button
+                    onClick={() => setShareModalOpen(true)}
+                    className="absolute -right-2 bottom-[-8px] z-10 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
+                  >
+                    {(() => {
+                      const percentGain =
+                        initialCollateral > 0
+                          ? (pnlCollateral / initialCollateral) * 100
+                          : 0;
+
+                      if (percentGain >= 200) return "🚀"; // 200%+ gains - rocket
+                      if (percentGain >= 100) return "💎"; // 100-200% gains - diamond hands
+                      if (percentGain >= 50) return "🔥"; // 50-100% gains - fire
+                      if (percentGain >= 20) return "⚡"; // 20-50% gains - lightning
+                      return "✨"; // 0-20% gains - sparkles
+                    })()}
+                  </button>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Tweet about your {(() => {
+                    const percentGain = initialCollateral > 0
+                      ? (pnlCollateral / initialCollateral) * 100
+                      : 0;
+                    return percentGain >= 1
+                      ? `${percentGain.toFixed(0)}%`
+                      : `${percentGain.toFixed(1)}%`;
+                  })()} {row.collateralSymbol} gains! 🎉
+                </span>
+              </HoverPopupMobile>
+            )}
           </td>
 
           {/* Break-even column - collateral */}
@@ -483,6 +515,20 @@ export function BurnTableRow({
                   align="end"
                   className="border-foreground/10 bg-secondary"
                 >
+                  {/* Share option - only show if position has reached break-even */}
+                  <Show when={pnlCollateral >= 0}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        setShareModalOpen(true);
+                      }}
+                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                    >
+                      <TwitterIcon className="mr-2 h-3 w-3" />
+                      Share Gains
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-foreground/10" />
+                  </Show>
                   <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                     <DropdownMenuItem
                       onClick={() => setSelectedRow("claim")}
@@ -560,6 +606,20 @@ export function BurnTableRow({
                   align="end"
                   className="border-foreground/10 bg-secondary"
                 >
+                  {/* Share option - only show if position has reached break-even */}
+                  <Show when={pnlCollateral >= 0}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDropdownOpenLg(false);
+                        setShareModalOpen(true);
+                      }}
+                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                    >
+                      <TwitterIcon className="mr-2 h-3 w-3" />
+                      Share Gains
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-foreground/10" />
+                  </Show>
                   <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                     <DropdownMenuItem
                       onClick={() => {
@@ -659,12 +719,14 @@ export function BurnTableRow({
 
         {/* Expanded row for mobile - shows hidden columns */}
         {isExpanded && (
-          <tr className="md:hidden border-b border-foreground/5 bg-foreground/5">
+          <tr className="border-b border-foreground/5 bg-foreground/5 md:hidden">
             <td colSpan={7} className="px-4 py-3">
               <div className="space-y-3">
                 {/* Collateral Required Price Gain */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-foreground/60">Required Price Gain ({row.collateralSymbol})</span>
+                  <span className="text-foreground/60">
+                    Required Price Gain ({row.collateralSymbol})
+                  </span>
                   <div className="space-x-4 text-right">
                     <span className="inline-block min-w-[50px]">
                       <span className="text-xs text-foreground/40">B/E: </span>
@@ -692,7 +754,9 @@ export function BurnTableRow({
 
                 {/* Debt Token Required Price Gain */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-foreground/60">Required Price Gain ({row.debtSymbol})</span>
+                  <span className="text-foreground/60">
+                    Required Price Gain ({row.debtSymbol})
+                  </span>
                   <div className="space-x-4 text-right">
                     <span className="inline-block min-w-[50px]">
                       <span className="text-xs text-foreground/40">B/E: </span>
@@ -728,11 +792,8 @@ export function BurnTableRow({
           </tr>
         )}
       </>
-    );
-  }
-
-  // TEA token rows (2 rows)
-  return (
+  ) : (
+    // TEA token rows (2 rows)
     <>
       {/* First row - collateral values */}
       <tr className="text-left text-foreground">
@@ -768,26 +829,37 @@ export function BurnTableRow({
                   <span className="text-[13px] font-medium">
                     {(() => {
                       // Calculate user's proportional daily earnings
-                      const parsedRateAmount = parseUnits(vaultData.rate || "0", 0);
+                      const parsedRateAmount = parseUnits(
+                        vaultData.rate || "0",
+                        0,
+                      );
                       const dailyRate = parsedRateAmount * 24n * 60n * 60n;
 
                       // Get user's TEA balance
                       const userBalance = teaBal ?? 0n;
 
                       // Get total supply and vault's locked liquidity (TEA balance that doesn't earn rewards)
-                      const totalSupply = parseUnits(vaultData.teaSupply || "0", 0);
-                      const vaultTeaBalance = parseUnits(vaultData.lockedLiquidity || "0", 0);
+                      const totalSupply = parseUnits(
+                        vaultData.teaSupply || "0",
+                        0,
+                      );
+                      const vaultTeaBalance = parseUnits(
+                        vaultData.lockedLiquidity || "0",
+                        0,
+                      );
 
                       // Calculate effective supply (total supply minus vault's TEA balance)
                       // Only TEA tokens held by users (not the vault) participate in rewards
-                      const effectiveSupply = totalSupply > vaultTeaBalance
-                        ? totalSupply - vaultTeaBalance
-                        : 0n;
+                      const effectiveSupply =
+                        totalSupply > vaultTeaBalance
+                          ? totalSupply - vaultTeaBalance
+                          : 0n;
 
                       // Calculate user's proportional share of daily SIR rewards
-                      const userDailyEarnings = effectiveSupply > 0n
-                        ? (dailyRate * userBalance) / effectiveSupply
-                        : 0n;
+                      const userDailyEarnings =
+                        effectiveSupply > 0n
+                          ? (dailyRate * userBalance) / effectiveSupply
+                          : 0n;
 
                       return (
                         <>
@@ -813,7 +885,7 @@ export function BurnTableRow({
             {/* Expand button for mobile */}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="md:hidden p-1 hover:bg-foreground/10 rounded transition-colors"
+              className="rounded p-1 transition-colors hover:bg-foreground/10 md:hidden"
               aria-label={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? (
@@ -886,7 +958,7 @@ export function BurnTableRow({
         </td>
 
         {/* PnL column - collateral */}
-        <td className="pb-0.5 pr-4 pt-1.5 text-right font-normal">
+        <td className="relative pb-0.5 pr-4 pt-1.5 text-right font-normal">
           <span
             className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           >
@@ -896,12 +968,52 @@ export function BurnTableRow({
               {row.collateralSymbol}
             </span>
           </span>
+          {/* Floating emoji for profitable positions - positioned between rows */}
+          {pnlCollateral >= 0 && (
+            <HoverPopupMobile
+              size="200"
+              trigger={
+                <button
+                  onClick={() => setShareModalOpen(true)}
+                  className="absolute -right-2 bottom-[-8px] z-10 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
+                >
+                  {(() => {
+                    const percentGain =
+                      initialCollateral > 0
+                        ? (pnlCollateral / initialCollateral) * 100
+                        : 0;
+
+                    if (percentGain >= 200) return "🚀"; // 200%+ gains - rocket
+                    if (percentGain >= 100) return "💎"; // 100-200% gains - diamond hands
+                    if (percentGain >= 50) return "🔥"; // 50-100% gains - fire
+                    if (percentGain >= 20) return "⚡"; // 20-50% gains - lightning
+                    return "✨"; // 0-20% gains - sparkles
+                  })()}
+                </button>
+              }
+            >
+              <span className="text-[13px] font-medium">
+                Tweet about your {(() => {
+                  const percentGain = initialCollateral > 0
+                    ? (pnlCollateral / initialCollateral) * 100
+                    : 0;
+                  return percentGain >= 1
+                    ? `${percentGain.toFixed(0)}%`
+                    : `${percentGain.toFixed(1)}%`;
+                })()} {row.collateralSymbol} gains! 🎉
+              </span>
+            </HoverPopupMobile>
+          )}
         </td>
 
         {/* Break-even time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && breakevenTimeDays !== 0 ? Infinity : breakevenTimeDays}
+            days={
+              isInfiniteTime && breakevenTimeDays !== 0
+                ? Infinity
+                : breakevenTimeDays
+            }
             className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -909,7 +1021,9 @@ export function BurnTableRow({
         {/* 2x time column */}
         <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays}
+            days={
+              isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays
+            }
             className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -917,7 +1031,9 @@ export function BurnTableRow({
         {/* 10x time column */}
         <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays}
+            days={
+              isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
+            }
             className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1081,7 +1197,11 @@ export function BurnTableRow({
         {/* Break-even time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && breakevenDebtTimeDays !== 0 ? Infinity : breakevenDebtTimeDays}
+            days={
+              isInfiniteTime && breakevenDebtTimeDays !== 0
+                ? Infinity
+                : breakevenDebtTimeDays
+            }
             className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1089,7 +1209,11 @@ export function BurnTableRow({
         {/* 2x time column - debt token */}
         <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && doubleDebtTimeDays !== 0 ? Infinity : doubleDebtTimeDays}
+            days={
+              isInfiniteTime && doubleDebtTimeDays !== 0
+                ? Infinity
+                : doubleDebtTimeDays
+            }
             className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1097,7 +1221,11 @@ export function BurnTableRow({
         {/* 10x time column - debt token */}
         <td className="hidden pb-1.5 pr-4 pt-0.5 text-right font-normal md:table-cell">
           <TimeDisplay
-            days={isInfiniteTime && tenxDebtTimeDays !== 0 ? Infinity : tenxDebtTimeDays}
+            days={
+              isInfiniteTime && tenxDebtTimeDays !== 0
+                ? Infinity
+                : tenxDebtTimeDays
+            }
             className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           />
         </td>
@@ -1105,31 +1233,45 @@ export function BurnTableRow({
 
       {/* Expanded row for mobile - shows hidden columns */}
       {isExpanded && (
-        <tr className="md:hidden border-b border-foreground/5 bg-foreground/5">
+        <tr className="border-b border-foreground/5 bg-foreground/5 md:hidden">
           <td colSpan={7} className="px-4 py-3">
             <div className="space-y-3">
               {/* Collateral Required Time */}
               <div className="flex justify-between text-sm">
-                <span className="text-foreground/60">Required Time ({row.collateralSymbol})</span>
+                <span className="text-foreground/60">
+                  Required Time ({row.collateralSymbol})
+                </span>
                 <div className="space-x-4 text-right">
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && breakevenTimeDays !== 0 ? Infinity : breakevenTimeDays}
+                      days={
+                        isInfiniteTime && breakevenTimeDays !== 0
+                          ? Infinity
+                          : breakevenTimeDays
+                      }
                       className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays}
+                      days={
+                        isInfiniteTime && doubleTimeDays !== 0
+                          ? Infinity
+                          : doubleTimeDays
+                      }
                       className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays}
+                      days={
+                        isInfiniteTime && tenxTimeDays !== 0
+                          ? Infinity
+                          : tenxTimeDays
+                      }
                       className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
@@ -1138,26 +1280,40 @@ export function BurnTableRow({
 
               {/* Debt Token Required Time */}
               <div className="flex justify-between text-sm">
-                <span className="text-foreground/60">Required Time ({row.debtSymbol})</span>
+                <span className="text-foreground/60">
+                  Required Time ({row.debtSymbol})
+                </span>
                 <div className="space-x-4 text-right">
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">B/E: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && breakevenDebtTimeDays !== 0 ? Infinity : breakevenDebtTimeDays}
+                      days={
+                        isInfiniteTime && breakevenDebtTimeDays !== 0
+                          ? Infinity
+                          : breakevenDebtTimeDays
+                      }
                       className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">2x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && doubleDebtTimeDays !== 0 ? Infinity : doubleDebtTimeDays}
+                      days={
+                        isInfiniteTime && doubleDebtTimeDays !== 0
+                          ? Infinity
+                          : doubleDebtTimeDays
+                      }
                       className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
                   <span className="inline-block min-w-[50px]">
                     <span className="text-xs text-foreground/40">10x: </span>
                     <TimeDisplay
-                      days={isInfiniteTime && tenxDebtTimeDays !== 0 ? Infinity : tenxDebtTimeDays}
+                      days={
+                        isInfiniteTime && tenxDebtTimeDays !== 0
+                          ? Infinity
+                          : tenxDebtTimeDays
+                      }
                       className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                     />
                   </span>
@@ -1167,6 +1323,30 @@ export function BurnTableRow({
           </td>
         </tr>
       )}
+    </>
+  );
+
+  // Return the content with the modal
+  return (
+    <>
+      {content}
+      {/* Share Position Modal */}
+      <SharePositionModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        position={{
+          isApe,
+          collateralSymbol: row.collateralSymbol,
+          debtSymbol: row.debtSymbol,
+          leverageTier: row.leverageTier,
+          pnlCollateral,
+          pnlDebtToken,
+          currentCollateral,
+          currentDebtTokenValue,
+          initialCollateral,
+          initialDebtTokenValue,
+        }}
+      />
     </>
   );
 }
