@@ -42,7 +42,6 @@ export function SharePositionModal({
       ? (position.pnlCollateral / position.initialCollateral) * 100
       : 0;
 
-
   // Generate the default tweet text
   const defaultTweet = useMemo(() => {
     // Helper to format numbers for tweet (plain text, no HTML)
@@ -174,8 +173,8 @@ Earning fees from leveraged traders 💰`;
           {/* Header */}
           <div className="px-6 pb-4 pt-6">
             <h1 className="flex items-center justify-center gap-2 text-center font-geist text-2xl">
+              Share Your {position.isApe ? "Gains" : "Position"} on
               <TwitterIcon className="h-5 w-5" />
-              Share Your {position.isApe ? "Gains" : "Position"}
             </h1>
             <p className="mt-2 text-center text-sm text-muted-foreground">
               Customize your tweet or use the suggested text below
@@ -271,8 +270,7 @@ Earning fees from leveraged traders 💰`;
                 className="flex min-w-[140px] items-center gap-2"
                 variant="modal"
               >
-                <TwitterIcon className="h-4 w-4" />
-                Share on 𝕏
+                Share on <TwitterIcon className="h-4 w-4" />
               </Button>
             </div>
           </TransactionModal.StatSubmitContainer>
