@@ -227,7 +227,9 @@ export default function MintForm({ isApe }: Props) {
   const minCollateralOut = useMemo(() => {
     if (!amountCollateralIdeal || amountCollateralIdeal === 0n) return 0n;
 
-    const userSlippage = parseFloat(slippage?.trim() ?? "0.5");
+    const trimmedSlippage = slippage?.trim() ?? "0.5";
+    // Handle edge cases like "." or empty values
+    const userSlippage = parseFloat(trimmedSlippage) || 0.5;
     const slippageBasisPoints = Math.floor(userSlippage * 100);
     const slippageAmount =
       (amountCollateralIdeal * BigInt(slippageBasisPoints)) / 10000n;
@@ -249,8 +251,20 @@ export default function MintForm({ isApe }: Props) {
     const expectedSlippagePercent =
       Number((expectedSlippageAmount * 10000n) / amountCollateralIdeal) / 100;
 
-    // Get user's selected slippage
-    const userSlippage = parseFloat(slippage?.trim() ?? "0.5");
+    // Get user's selected slippage (handle edge cases like "." or empty values)
+    const trimmedSlippage = slippage?.trim() ?? "0.5";
+    const userSlippage = parseFloat(trimmedSlippage) || 0.5;
+
+    // Check if expected slippage exceeds 40% - prevent minting
+    if (expectedSlippagePercent > 40) {
+      return {
+        showWarning: false,
+        showError: true,
+        expectedSlippage: expectedSlippagePercent.toFixed(1),
+        userSlippage: userSlippage.toFixed(1),
+        errorMessage: `Estimated slippage of ${expectedSlippagePercent.toFixed(1)}% exceeds the maximum allowed 40%. Please reduce your deposit amount or try a different vault.`,
+      };
+    }
 
     // Check if user's slippage is less than expected slippage * 1.2 (20% buffer)
     // Round up to 1 decimal place
@@ -260,7 +274,8 @@ export default function MintForm({ isApe }: Props) {
     if (userSlippage < minimumRequiredSlippage) {
       return {
         showWarning: true,
-        expectedSlippage: expectedSlippagePercent,
+        showError: false,
+        expectedSlippage: expectedSlippagePercent.toFixed(1),
         suggestedSlippage: minimumRequiredSlippage.toFixed(1),
         userSlippage: userSlippage.toFixed(1),
       };
@@ -979,6 +994,21 @@ export default function MintForm({ isApe }: Props) {
           </div>
         </Show>
 
+        {/* Error when slippage exceeds 40% */}
+        <Show when={slippageWarning?.showError ?? false}>
+          <div className="bg-red-500/10 my-3 rounded-md border-2 border-red-500/50 p-3">
+            <div className="flex items-start gap-2">
+              <div className="text-red-500">🚫</div>
+              <div className="text-sm">
+                <strong className="text-red-400">Slippage Too High:</strong>
+                <span className="ml-1 text-foreground/80">
+                  {slippageWarning?.errorMessage}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Show>
+
         {
           /* Calculator link */
           isApe && (
@@ -1027,18 +1057,22 @@ export default function MintForm({ isApe }: Props) {
             />
           </MintFormSubmit.Root>
           <SubmitButton
-            disabled={!isValid}
+            disabled={!isValid || (slippageWarning?.showError ?? false)}
             onClick={() => {
-              if (isValid) {
+              if (isValid && !slippageWarning?.showError) {
                 setOpenTransactionModal(true);
               }
             }}
           >
-            <Show when={!needsApproval} fallback={"Approve"}>
-              <span className="flex items-center gap-x-1">
-                <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
-                <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
-              </span>
+            <Show when={slippageWarning?.showError ?? false} fallback={
+              <Show when={!needsApproval} fallback={"Approve"}>
+                <span className="flex items-center gap-x-1">
+                  <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+                  <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
+                </span>
+              </Show>
+            }>
+              <span>Slippage Too High</span>
             </Show>
           </SubmitButton>
         </motion.div>

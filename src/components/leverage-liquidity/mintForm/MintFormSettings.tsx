@@ -57,15 +57,33 @@ export default function MintFormSettings() {
                           placeholder="0"
                           {...field}
                           onChange={(e) => {
-                            if (e.target.value === "") {
-                              return field.onChange(e.target.value);
+                            const inputValue = e.target.value;
+
+                            // Allow empty string
+                            if (inputValue === "") {
+                              return field.onChange("");
                             }
-                            const value = parseFloat(e.target.value);
-                            if (
-                              value <= 10 &&
-                              inputPatternMatch(e.target.value, 1)
-                            ) {
-                              return field.onChange(e.target.value);
+
+                            // Check pattern first to allow intermediate states like "." or "1."
+                            if (!inputPatternMatch(inputValue, 1)) {
+                              return; // Don't update if pattern doesn't match
+                            }
+
+                            // Parse the value for validation
+                            const value = parseFloat(inputValue);
+
+                            // Allow intermediate states that result in NaN (like "." or ending with ".")
+                            if (isNaN(value)) {
+                              // Only allow if it's a valid intermediate state
+                              if (inputValue === "." || inputValue.endsWith(".")) {
+                                return field.onChange(inputValue);
+                              }
+                              return;
+                            }
+
+                            // Check max value
+                            if (value <= 50) {
+                              return field.onChange(inputValue);
                             }
                           }}
                         />
