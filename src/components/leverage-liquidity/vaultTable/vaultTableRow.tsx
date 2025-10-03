@@ -301,6 +301,10 @@ export function VaultTableRow({
 
   // Get Dune chart configuration for this vault
   const { embedUrl, hasChart } = useDuneCharts(parseInt(vault.id).toString());
+
+  // Check if this is extreme leverage (tier 2 = ^5 or tier 5 = ^32)
+  const isExtremeLeverage =
+    vault.leverageTier === 2 || vault.leverageTier === 5;
   return (
     <tr
       onClick={() => {
@@ -402,16 +406,35 @@ export function VaultTableRow({
                 between x1 and x{getLeverageRatio(vault.leverageTier)}.
               </div>
             </HoverPopupMobile>
+          ) : showPercent() ? (
+            <span className="ml-0.5 text-[10px] font-semibold">
+              x{getRealLeverage()}
+            </span>
           ) : (
-            showPercent() ? (
-              <span className="ml-0.5 text-[10px] font-semibold">
-                x{getRealLeverage()}
-              </span>
-            ) : (
-              <sup className="ml-0.5 text-[10px] font-semibold">
-                {getLeverageRatio(vault.leverageTier)}
-              </sup>
-            )
+            <sup className="ml-0.5 text-[10px] font-semibold">
+              {getLeverageRatio(vault.leverageTier)}
+            </sup>
+          )}
+          {isExtremeLeverage && (
+            <HoverPopupMobile
+              size="250"
+              alignOffset={4}
+              asChild
+              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
+            >
+              <div className="text-[13px] font-medium">
+                <div className="text-amber-500 font-semibold">
+                  Extreme Leverage Warning
+                </div>
+                <div className="mt-1">
+                  This vault&apos;s leverage is ^
+                  {getLeverageRatio(vault.leverageTier)}.
+                  {isApe
+                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    : " Impermanent loss may be exacerbated due to extreme leverage."}
+                </div>
+              </div>
+            </HoverPopupMobile>
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -465,16 +488,35 @@ export function VaultTableRow({
                 between x1 and x{getLeverageRatio(vault.leverageTier)}.
               </div>
             </HoverPopupMobile>
+          ) : showPercent() ? (
+            <span className="ml-0.5 text-[10px] font-semibold">
+              x{getRealLeverage()}
+            </span>
           ) : (
-            showPercent() ? (
-              <span className="ml-0.5 text-[10px] font-semibold">
-                x{getRealLeverage()}
-              </span>
-            ) : (
-              <sup className="ml-0.5 text-[10px] font-semibold">
-                {getLeverageRatio(vault.leverageTier)}
-              </sup>
-            )
+            <sup className="ml-0.5 text-[10px] font-semibold">
+              {getLeverageRatio(vault.leverageTier)}
+            </sup>
+          )}
+          {isExtremeLeverage && (
+            <HoverPopupMobile
+              size="250"
+              alignOffset={4}
+              asChild
+              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
+            >
+              <div className="text-[13px] font-medium">
+                <div className="text-amber-500 font-semibold">
+                  Extreme Leverage Warning
+                </div>
+                <div className="mt-1">
+                  This vault&apos;s leverage is ^
+                  {getLeverageRatio(vault.leverageTier)}.
+                  {isApe
+                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    : " Impermanent loss may be exacerbated due to extreme leverage."}
+                </div>
+              </div>
+            </HoverPopupMobile>
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -506,6 +548,27 @@ export function VaultTableRow({
           <span className="ml-1 font-normal">
             {vault.debtToken.symbol ?? ""}
           </span>
+          {isExtremeLeverage && (
+            <HoverPopupMobile
+              size="250"
+              alignOffset={4}
+              asChild
+              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
+            >
+              <div className="text-[13px] font-medium">
+                <div className="text-amber-500 font-semibold">
+                  Extreme Leverage Warning
+                </div>
+                <div className="mt-1">
+                  This vault&apos;s leverage is ^
+                  {getLeverageRatio(vault.leverageTier)}.
+                  {isApe
+                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    : " Impermanent loss may be exacerbated due to extreme leverage."}
+                </div>
+              </div>
+            </HoverPopupMobile>
+          )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
               <DuneChartPopup embedUrl={embedUrl} />
