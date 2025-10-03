@@ -386,24 +386,32 @@ export function VaultTableRow({
               alignOffset={4}
               asChild
               trigger={
-                <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
-                  {showPercent()
-                    ? getRealLeverage()
-                    : getLeverageRatio(vault.leverageTier)}
-                </sup>
+                showPercent() ? (
+                  <span className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
+                    x{getRealLeverage()}
+                  </span>
+                ) : (
+                  <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
+                    {getLeverageRatio(vault.leverageTier)}
+                  </sup>
+                )
               }
             >
               <div className="text-[13px] font-medium">
-                Insufficient liquidity for constant ^
-                {getLeverageRatio(vault.leverageTier)} leverage
+                Not enough liquidity for convex payoff. Leverage can vary
+                between x1 and x{getLeverageRatio(vault.leverageTier)}.
               </div>
             </HoverPopupMobile>
           ) : (
-            <sup className="ml-0.5 text-[10px] font-semibold">
-              {showPercent()
-                ? getRealLeverage()
-                : getLeverageRatio(vault.leverageTier)}
-            </sup>
+            showPercent() ? (
+              <span className="ml-0.5 text-[10px] font-semibold">
+                x{getRealLeverage()}
+              </span>
+            ) : (
+              <sup className="ml-0.5 text-[10px] font-semibold">
+                {getLeverageRatio(vault.leverageTier)}
+              </sup>
+            )
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -441,24 +449,32 @@ export function VaultTableRow({
               alignOffset={4}
               asChild
               trigger={
-                <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
-                  {showPercent()
-                    ? getRealLeverage()
-                    : getLeverageRatio(vault.leverageTier)}
-                </sup>
+                showPercent() ? (
+                  <span className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
+                    x{getRealLeverage()}
+                  </span>
+                ) : (
+                  <sup className="ml-0.5 cursor-help text-[10px] font-semibold text-red">
+                    {getLeverageRatio(vault.leverageTier)}
+                  </sup>
+                )
               }
             >
               <div className="text-[13px] font-medium">
-                Insufficient liquidity for constant ^
-                {getLeverageRatio(vault.leverageTier)} leverage
+                Not enough liquidity for convex payoff. Leverage can vary
+                between x1 and x{getLeverageRatio(vault.leverageTier)}.
               </div>
             </HoverPopupMobile>
           ) : (
-            <sup className="ml-0.5 text-[10px] font-semibold">
-              {showPercent()
-                ? getRealLeverage()
-                : getLeverageRatio(vault.leverageTier)}
-            </sup>
+            showPercent() ? (
+              <span className="ml-0.5 text-[10px] font-semibold">
+                x{getRealLeverage()}
+              </span>
+            ) : (
+              <sup className="ml-0.5 text-[10px] font-semibold">
+                {getLeverageRatio(vault.leverageTier)}
+              </sup>
+            )
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -593,7 +609,7 @@ export function VaultTableRow({
                 ^{getLeverageRatio(vault.leverageTier)}
                 {showPercent() && (
                   <>
-                    {" (^"}
+                    {" (x"}
                     {getRealLeverage()}
                     {")"}
                   </>
@@ -707,7 +723,8 @@ function DisplayBadgeInfo({
   if (variant.variant === "red") {
     return isApe ? (
       <span>
-        Non-constant leverage - varies between 1x and ^{leverageRatio}
+        Not enough liquidity for convex payoff. Leverage can vary between x1 and
+        x{leverageRatio}.
       </span>
     ) : (
       <span>Minimally profitable</span>
