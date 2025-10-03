@@ -48,6 +48,50 @@ When vault count exceeds 500:
 
 ---
 
+## Token Asset Handling
+
+### Proper Logo/Icon Implementation
+
+**Always use the centralized asset functions** from `@/lib/assets` for consistency:
+
+```typescript
+import { getLogoAssetWithFallback } from "@/lib/assets";
+
+// Correct way to get token logos
+const logos = getLogoAssetWithFallback(tokenAddress, tokenlist);
+const logoUrl = logos.fallback ?? logos.primary;
+```
+
+**Why use `getLogoAssetWithFallback`:**
+1. **Special SIR handling**: Correctly handles SIR token icons for both mainnet and HyperEVM
+2. **Consistent fallbacks**: Uses curated token list first, then reliable fallbacks
+3. **Chain-aware**: Handles different logos for different chains
+4. **Centralized updates**: Changes to logo logic only need to be made in one place
+
+**DO NOT create custom logo resolution logic** like:
+```typescript
+// ❌ Bad - Don't do this
+const getLogoWithFallback = (address: string) => {
+  const token = tokenlist?.find(t => t.address.toLowerCase() === address.toLowerCase());
+  if (token?.logoURI) return token.logoURI;
+  return `https://raw.githubusercontent.com/trustwallet/assets/master/...`;
+};
+```
+
+### Available Asset Functions
+
+- **`getLogoAssetWithFallback(address, tokenlist)`**: Returns logo URLs with primary and fallback options
+- **`getSirSymbol(chainId?)`**: Returns "SIR" or "HyperSIR" based on chain
+- **`getSirLogo(chainId?)`**: Returns appropriate SIR logo for the chain
+- **`getSirTokenMetadata()`**: Returns complete SIR token metadata
+
+### Key Asset Files
+- `src/lib/assets.ts`: Centralized asset management functions
+- `public/images/sir-logo.svg`: SIR logo for Ethereum chains
+- `public/images/sir-logo-hyperevm.svg`: SIR logo for HyperEVM chains
+
+---
+
 # Claude Development Guidelines
 
 ## App Overview

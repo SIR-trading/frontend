@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import Show from "@/components/shared/show";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import { useFormContext } from "react-hook-form";
+import { getLogoAssetWithFallback } from "@/lib/assets";
 interface Props {
   long: VaultFieldFragment[];
   versus: VaultFieldFragment[];
@@ -37,22 +38,9 @@ export default function VaultParamsInputSelects({
       storeVersus ||
       storeLeverageTier
     );
-  }, [formData.leverageTier, formData.long, formData.versus, 
+  }, [formData.leverageTier, formData.long, formData.versus,
       storeLong, storeVersus, storeLeverageTier]);
-  
-  // Helper function to get logo with fallback from tokenlist
-  const getLogoWithFallback = (address: string) => {
-    // First try to find from tokenlist (which has curated logoURIs)
-    const token = tokenlist?.find(
-      (t) => t.address.toLowerCase() === address.toLowerCase()
-    );
-    if (token?.logoURI) {
-      return token.logoURI;
-    }
-    // Fall back to Trust Wallet
-    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`;
-  };
-  
+
   const resetStore = useVaultFilterStore((store) => store.resetStore);
   return (
     <div className="relative grid gap-x-4 pb-5 pt-4 md:grid-cols-3">
@@ -81,20 +69,26 @@ export default function VaultParamsInputSelects({
       <SelectWithSearch
         name="long"
         title="Go long"
-        items={long.map((e) => ({
-          label: e.collateralToken.symbol ?? 'Unknown',
-          value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
-          imageUrl: getLogoWithFallback(e.collateralToken.id),
-        }))}
+        items={long.map((e) => {
+          const logos = getLogoAssetWithFallback(e.collateralToken.id, tokenlist);
+          return {
+            label: e.collateralToken.symbol ?? 'Unknown',
+            value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
+            imageUrl: logos.fallback ?? logos.primary,
+          };
+        })}
       />
       <SelectWithSearch
         name="versus"
         title="Versus"
-        items={versus.map((e) => ({
-          label: e.debtToken.symbol ?? 'Unknown',
-          value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),
-          imageUrl: getLogoWithFallback(e.debtToken.id),
-        }))}
+        items={versus.map((e) => {
+          const logos = getLogoAssetWithFallback(e.debtToken.id, tokenlist);
+          return {
+            label: e.debtToken.symbol ?? 'Unknown',
+            value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),
+            imageUrl: logos.fallback ?? logos.primary,
+          };
+        })}
       />
       <Select
         placeholder="Select Leverage"
