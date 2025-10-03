@@ -17,7 +17,9 @@ export default function Pagination({
   if (max < 1) {
     max = 10;
   }
-  // let page = pagination ? parseInt(pagination) : 1;
+  // Disable next button when current page has less items than max (indicates last page)
+  const isLastPage = length < max;
+
   return (
     <div className="flex items-center justify-end gap-x-3 pt-4">
       <div className="flex items-center gap-x-3">
@@ -40,7 +42,7 @@ export default function Pagination({
           <button
             role="link"
             aria-label="Scroll Vaults Right"
-            disabled={length !== max}
+            disabled={isLastPage}
             className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
             onClick={() => nextPage()}
           >

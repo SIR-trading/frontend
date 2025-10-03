@@ -1,5 +1,55 @@
 # Claude Development Guidelines
 
+## Vault Pagination Strategy
+
+### Current Implementation (Client-Side Pagination)
+
+The app uses **client-side pagination** for vault tables with a 300-vault limit for optimal performance:
+
+1. **Data Fetching**:
+   - GraphQL fetches up to 300 vaults at once (configured in `src/server/queries/vaults.ts`)
+   - Single API call serves both VaultDataContext and paginated tables
+   - No duplicate requests between different components
+
+2. **Pagination Logic**:
+   - VaultProvider fetches all vaults (up to 300) from the backend
+   - VaultTable component slices the array client-side: `vaults.slice((page - 1) * 10, page * 10)`
+   - Instant page changes with no network delay
+
+3. **Memory Optimization**:
+   - 300 vault limit = ~300KB memory usage (acceptable for all devices)
+   - Good balance between performance and functionality
+   - Supports current vault count with room for growth
+
+4. **Why Client-Side Over Server-Side**:
+   - **Instant UX**: No loading delay when changing pages
+   - **Reduced complexity**: No server/client state sync issues
+   - **Fewer API calls**: One fetch serves multiple components
+   - **Calculator needs**: All vaults available for instant filtering/searching
+
+5. **Components Using This Strategy**:
+   - **VaultTable** (`leverage-liquidity/vaultTable`): Displays paginated vaults
+   - **VaultProvider**: Manages vault data and pagination state
+   - **VaultDataContext**: Provides all vaults globally for filtering/searching
+
+### Future Optimization Path
+
+When vault count exceeds 500:
+1. Implement virtual scrolling for large lists
+2. Add search/autocomplete API for Calculator
+3. Use IndexedDB for client-side caching
+4. Progressive loading (first 100, then rest on demand)
+
+### Key Files
+- `src/lib/getVaults.ts`: Fetches vault data (up to 300)
+- `src/components/providers/vaultProvider.tsx`: Manages pagination state
+- `src/components/leverage-liquidity/vaultTable/vaultTable.tsx`: Implements client-side slicing
+- `src/server/queries/vaults.ts`: GraphQL query with 300 vault limit
+
+---
+
+# Claude Development Guidelines
+
 ## App Overview
 
 SIR is a DeFi protocol frontend for leveraged trading without liquidation risk. The app is built with Next.js 14, TypeScript, and integrates with blockchain networks (Ethereum mainnet and HyperEVM testnet).

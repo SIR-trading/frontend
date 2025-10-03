@@ -16,7 +16,7 @@ const VaultDataContext = createContext<VaultDataContextType | undefined>(undefin
 export function VaultDataProvider({ children }: { children: ReactNode }) {
   // Fetch all vaults once - this replaces the 5 separate calls
   const { data, isLoading: allVaultsLoading } = api.vault.getVaults.useQuery(
-    { sortbyVaultId: true },
+    { sortbyVaultId: true, first: 300 }, // Fetch up to 300 vaults (optimized limit)
     {
       staleTime: 1000 * 60 * 5, // 5 minutes
       refetchOnWindowFocus: false,

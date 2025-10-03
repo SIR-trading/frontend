@@ -8,19 +8,22 @@ const getVaults = async ({
   filterCollateralToken,
   filterDebtToken,
   skip,
+  first,
 }: {
   filterLeverage?: string;
   skip?: number;
+  first?: number;
   filterDebtToken?: string;
   filterCollateralToken?: string;
 }) => {
-  const vaults = await executeVaultsQuery({
+  const result = await executeVaultsQuery({
     filterLeverage,
     filterCollateralToken,
     filterDebtToken,
     skip,
+    first,
   });
-  return { vaults };
+  return result;
 };
 const getCollateralAmounts = async (vaultIds: number[]) => {
   if (vaultIds.length === 0) return [];
@@ -40,17 +43,15 @@ export const getVaultsForTable = async (
     filterCollateralToken?: string;
   },
 ) => {
-  let vaultQuery;
-  const v = await getVaults(filters ?? {});
+  // Fetch all vaults (up to 300) for client-side pagination
+  const v = await getVaults({
+    filterLeverage: filters?.filterLeverage,
+    filterDebtToken: filters?.filterDebtToken,
+    filterCollateralToken: filters?.filterCollateralToken,
+    // No skip or first - let it use the default 300 limit
+  });
 
-  vaultQuery = v.vaults;
-
-  let pageVaults: VaultFieldFragment[] | undefined;
-  if (isFinite(offset)) {
-    pageVaults = vaultQuery?.vaults.slice(offset, offset + 10);
-  } else {
-    pageVaults = vaultQuery?.vaults;
-  }
+  const pageVaults = v.vaults;
   const vaultIds = pageVaults?.map((v) => parseInt(v.id));
   // const vaultIdHash = createHash("md5")
   //   .update(JSON.stringify(vaultIds))
@@ -75,12 +76,12 @@ export const getVaultsForTable = async (
     }
   }
 
-  vaultQuery = {
-    vaults: vaultQuery?.vaults.map((v, i) => ({
+  const vaultQuery = {
+    vaults: pageVaults?.map((v, i) => ({
       ...v,
       reserveApes: (collateral[i]?.reserveApes ?? 0n).toString(),
       reserveLPers: (collateral[i]?.reserveLPers ?? 0n).toString(),
-    })),
+    })) ?? [],
   } as TVaults;
   return { vaultQuery };
 };

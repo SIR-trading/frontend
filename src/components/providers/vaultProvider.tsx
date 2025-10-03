@@ -47,7 +47,7 @@ export const VaultProvider = ({ children }: Props) => {
     {
       filters: {
         ...vaultFilters,
-        skip: (page - 1) * 10,
+        // No skip - fetch all vaults for client-side pagination
       },
     },
     {
@@ -103,22 +103,16 @@ export const VaultProvider = ({ children }: Props) => {
     queryClient,
   ]);
   const nextPage = () => {
-    const length = data?.vaultQuery?.vaults.length;
-    const vaults = data?.vaultQuery?.vaults;
+    const totalVaults = data?.vaultQuery?.vaults.length ?? 0;
+    const totalPages = Math.ceil(totalVaults / 10);
 
-    if (length === 10 && vaults) {
-      if (vaults?.[length - 1]?.id) {
-        setPage((page) => page + 1);
-      }
+    if (page < totalPages) {
+      setPage((page) => page + 1);
     }
   };
   const prevPage = () => {
     if (page > 1) {
-      if (page - 1 === 1) {
-        setPage(1);
-      } else {
-        setPage(page - 1);
-      }
+      setPage(page - 1);
     }
   };
   return (

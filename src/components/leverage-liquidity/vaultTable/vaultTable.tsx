@@ -9,35 +9,23 @@ import { api } from "@/trpc/react";
 import { getSirSymbol } from "@/lib/assets";
 
 export default function VaultTable({ isApe }: { isApe: boolean }) {
-  const [pagination, setPagination] = useState(1);
   const [hasMounted, setHasMounted] = useState(false);
   const [showTvlInUsd, setShowTvlInUsd] = useState(true); // Default to USD
-  
+
   // Ensure component has mounted before accessing window or making queries
   useEffect(() => {
     setHasMounted(true);
   }, []);
-  
-  // Get pagination from URL search params on client side only
-  useEffect(() => {
-    if (typeof window !== "undefined" && hasMounted) {
-      const params = new URLSearchParams(window.location.search);
-      const vaultPage = params.get("vault-page");
-      if (vaultPage) {
-        const x = Number.parseInt(vaultPage);
-        if (isFinite(x)) {
-          setPagination(x);
-        }
-      }
-    }
-  }, [hasMounted]);
-  
-  const { vaults, isFetching } = useVaultProvider();
-  
-  // Get current page vaults
+
+  const { vaults, isFetching, page } = useVaultProvider();
+
+  // Client-side pagination: slice the vaults array based on current page
   const currentPageVaults = useMemo(() => {
-    return vaults?.vaults.slice(pagination * 10 - 10, pagination * 10) ?? [];
-  }, [vaults, pagination]);
+    const allVaults = vaults?.vaults ?? [];
+    const startIndex = (page - 1) * 10;
+    const endIndex = startIndex + 10;
+    return allVaults.slice(startIndex, endIndex);
+  }, [vaults, page]);
   
   // Extract vault IDs for batch APY query
   const vaultIds = useMemo(() => {
@@ -98,11 +86,13 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
           }
         >
           {currentPageVaults.map((pool, ind) => {
+              // Calculate the correct row number based on current page
+              const rowNumber = ((page - 1) * 10) + ind + 1;
               return (
                 <VaultTableRow
                   key={pool.id}
                   pool={pool}
-                  number={ind.toString()}
+                  number={rowNumber.toString()}
                   badgeVariant={{
                     variant: ind % 2 === 0 ? "yellow" : "default",
                   }}

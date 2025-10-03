@@ -5,7 +5,7 @@ const vaults = (
   filterCollateral: boolean,
   filterDebt: boolean,
   filterLeverage: boolean,
-  first = 1000, // Increased default limit to fetch all vaults
+  first = 300, // Fetch up to 300 vaults for client-side pagination
   sortbyVaultId = false,
 ) => {
   // I have to make where clase optional

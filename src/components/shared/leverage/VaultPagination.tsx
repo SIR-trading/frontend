@@ -5,9 +5,16 @@ import Pagination from "@/components/shared/pagination";
 
 const VaultPagination = ({}: { max: number }) => {
   const { nextPage, vaultLength, prevPage, page } = useVaultProvider();
+
+  // Calculate the number of items on the current page
+  const itemsPerPage = 10;
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageLength = Math.min(itemsPerPage, Math.max(0, vaultLength - startIndex));
+
   return (
     <Pagination
-      length={vaultLength}
+      length={currentPageLength}
       nextPage={nextPage}
       page={page}
       prevPage={prevPage}
