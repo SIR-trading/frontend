@@ -23,11 +23,19 @@ export default function AprCard() {
       <Show
         when={!isLoading && !!apr}
         fallback={
-          <div className="h-8 w-24 bg-foreground/10 rounded animate-pulse"></div>
+          <div className="space-y-2">
+            <div className="h-8 w-24 bg-foreground/10 rounded animate-pulse"></div>
+            <div className="h-4 w-20 bg-foreground/10 rounded animate-pulse"></div>
+          </div>
         }
       >
-        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-        <AprDisplay currentApr={apr} />
+        <div className="space-y-2 text-center">
+          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
+          <AprDisplay currentApr={apr} />
+          <div className="text-xs text-muted-foreground">
+            30-day average
+          </div>
+        </div>
       </Show>
     </Card>
   );

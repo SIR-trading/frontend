@@ -1,5 +1,95 @@
 # Claude Development Guidelines
 
+## Button Styling Guidelines
+
+### Button Component Overview
+
+The app uses a centralized Button component (`src/components/ui/button.tsx`) built with class-variance-authority (CVA) for consistent styling across the application.
+
+### Available Button Variants
+
+1. **`default`** (Primary actions):
+   - Style: `bg-accent/60 hover:bg-accent text-accent-foreground`
+   - Use for: Main CTAs, primary actions, navigation buttons
+   - Example: Most buttons in the app use this variant
+
+2. **`outline`** (Secondary actions):
+   - Style: `border border-border bg-transparent hover:bg-accent/50`
+   - Use for: Secondary actions, less prominent buttons
+   - Example: Alternative actions, "View More" buttons
+
+3. **`submit`** (Form submissions):
+   - Style: `w-full bg-gold hover:bg-gold/90 text-black font-semibold`
+   - Use for: Full-width form submit buttons, important actions
+   - Example: Mint, Stake, Unstake forms
+
+4. **`modal`** (Modal dialogs):
+   - Style: Similar to default but full-width
+   - Use for: Actions within modal dialogs
+
+### Button Sizing
+
+- **`sm`**: `h-8 px-3 text-xs` - Compact UI elements
+- **`default`**: `h-9 px-4 py-2` - Standard buttons (most common)
+- **`lg`**: `h-10 px-8` - Large, prominent actions
+- **`icon`**: `h-9 w-9` - Icon-only buttons
+
+### Implementation Best Practices
+
+#### Standard Button
+```tsx
+<Button onClick={handleClick}>
+  Click Me
+</Button>
+```
+
+#### Button as Link (using asChild)
+```tsx
+<Button asChild>
+  <a href="/path" target="_blank" rel="noopener noreferrer">
+    External Link
+  </a>
+</Button>
+```
+
+#### Simple Text Link (no button styling)
+```tsx
+<a
+  href={url}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+>
+  Link Text
+  <ExternalLink className="h-3.5 w-3.5" />
+</a>
+```
+
+### Styling Rules
+
+1. **Default variant is preferred**: Don't specify `variant="outline"` unless needed
+2. **Avoid custom styling**: Don't add `rounded-full` or other shape modifiers
+3. **Consistent icon spacing**: Use `gap-1.5` for text + icon combinations
+4. **Icon sizing convention**:
+   - Small buttons: `h-3 w-3`
+   - Default buttons: `h-3.5 w-3.5` or `h-4 w-4`
+   - Large buttons: `h-4 w-4` or `h-5 w-5`
+
+### When to Use Links vs Buttons
+
+- **Use Button component**: For actions that change state or navigate internally
+- **Use plain links**: For simple external navigation where button styling isn't needed
+- **Use Button with asChild**: For external links that need button prominence
+
+### Common Patterns
+
+- **Form submissions**: `variant="submit"` for full-width gold buttons
+- **External links**: Can use plain anchor tags with appropriate text styling
+- **Navigation**: Default variant buttons
+- **Secondary actions**: `variant="outline"` for less prominence
+
+---
+
 ## Vault Pagination Strategy
 
 ### Current Implementation (Client-Side Pagination)

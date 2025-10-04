@@ -4,7 +4,6 @@ import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import { Container } from "../ui/container";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
-import AprCard from "./stakeData/aprCard";
 import { Card } from "../ui/card";
 import ContributorRewardsCard from "../portfolio/contributorRewardsCard";
 import ClaimCard from "../shared/claimCard";
@@ -29,9 +28,7 @@ const StakePage = () => {
         <Explainer page={EPage.STAKE} />
 
         {/* Stats Section */}
-        <StakeData>
-          <AprCard />
-        </StakeData>
+        <StakeData />
 
         {/* Your Position Section */}
         <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">

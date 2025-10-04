@@ -6,10 +6,14 @@ import { useStaking } from "@/contexts/StakingContext";
 import { useSirUsdPrice } from "@/components/shared/stake/hooks/useSirUsdPrice";
 import { BuySirButton } from "@/components/buySirButton";
 import { formatUnits } from "viem";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export default function SirTokenMetrics() {
-  const { totalSupply, unstakedSupply, totalSupplyLoading, unstakedSupplyLoading } = useStaking();
+  const {
+    totalSupply,
+    unstakedSupply,
+    totalSupplyLoading,
+    unstakedSupplyLoading,
+  } = useStaking();
   const { pricePerToken, isLoading: priceLoading } = useSirUsdPrice();
 
   // Calculate circulating supply (total - staked)
