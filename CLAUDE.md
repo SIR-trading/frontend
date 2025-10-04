@@ -265,11 +265,32 @@ The app provides several price fetching mechanisms to get token prices from diff
 - Used to calculate how to split vault collateral between APE and TEA holders
 - The debt token determines what currency APE holders borrowed in (for P&L calculations)
 
+### 5. Leaderboard Price Handling
+
+The leaderboard (`getActiveApePositions`) uses a smart fallback system for token prices:
+
+1. **Chain-aware primary API selection**:
+   - Ethereum chains (mainnet, Sepolia): Uses Alchemy API
+   - HyperEVM chains (998, 999): Uses CoinGecko API
+
+2. **Automatic fallback for missing prices**:
+   - If a token has no price from the primary API (returns null or "0")
+   - Automatically uses `getTokenPriceWithFallback` which:
+     - Tries Uniswap V3 pools paired with WETH/WHYPE
+     - Falls back to USDC pairs if WETH pair unavailable
+     - Converts pool prices to USD using wrapped token USD price
+
+3. **This handles exotic tokens like SIR automatically**:
+   - No special-casing needed for specific tokens
+   - Works for any token not listed on external price APIs
+   - Ensures accurate PnL calculations for all positions
+
 ### Usage Notes
 
 - **For PnL calculations**: Use `quoteBurn` for current collateral amount, compare with `row.collateralTotal` from subgraph
 - **For debt token PnL**: Use `getMostLiquidPoolPrice` to get current exchange rate and convert collateral to debt token terms
 - **For USD values**: Use appropriate price function based on chain (Alchemy for Ethereum, CoinGecko for HyperEVM)
+- **For leaderboard/positions**: The system automatically handles price fallbacks for exotic tokens
 - All price functions include caching to minimize external API calls
 
 ## UI Component Guidelines
