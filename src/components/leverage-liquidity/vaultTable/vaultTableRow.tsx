@@ -402,8 +402,9 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                Not enough liquidity for convex payoff. Leverage can vary
-                between x1 and x{getLeverageRatio(vault.leverageTier)}.
+                Leverage can vary between x1 and x
+                {getLeverageRatio(vault.leverageTier)}, and you may suffer
+                volatility decay.
               </div>
             </HoverPopupMobile>
           ) : showPercent() ? (
@@ -430,7 +431,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    ? " Both gains and losses are significantly amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
@@ -484,8 +485,9 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                Not enough liquidity for convex payoff. Leverage can vary
-                between x1 and x{getLeverageRatio(vault.leverageTier)}.
+                Leverage can vary between x1 and x
+                {getLeverageRatio(vault.leverageTier)}, and you may suffer
+                volatility decay.
               </div>
             </HoverPopupMobile>
           ) : showPercent() ? (
@@ -512,7 +514,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    ? " Both gains and losses are significantly amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
@@ -563,7 +565,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified. During saturation periods, volatility decay may erode returns."
+                    ? " Both gains and losses are significantly amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
@@ -786,8 +788,8 @@ function DisplayBadgeInfo({
   if (variant.variant === "red") {
     return isApe ? (
       <span>
-        Not enough liquidity for convex payoff. Leverage can vary between x1 and
-        x{leverageRatio}.
+        Leverage can vary between x1 and x{leverageRatio}, and you may suffer
+        volatility decay.
       </span>
     ) : (
       <span>Minimally profitable</span>
