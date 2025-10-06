@@ -206,4 +206,30 @@ export const quoteRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => getMostLiquidPoolPrice(input)),
+
+  // Get most liquid SIR pool for chart display
+  getMostLiquidSirPool: publicProcedure
+    .query(async () => {
+      const { getWrappedNativeTokenAddress } = await import("@/config/chains");
+      const buildData = (await import("@/../public/build-data.json")).default;
+      const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
+      const sirAddress = buildData.contractAddresses.sir;
+      const wrappedTokenAddress = getWrappedNativeTokenAddress(chainId);
+
+      try {
+        const poolData = await getMostLiquidPoolPrice({
+          tokenA: sirAddress,
+          tokenB: wrappedTokenAddress,
+          decimalsA: 12, // SIR has 12 decimals
+          decimalsB: 18, // Wrapped tokens have 18 decimals
+        });
+
+        return poolData;
+      } catch (error) {
+        // If no pool found, return null
+        console.error("Failed to find SIR pool:", error);
+        return null;
+      }
+    }),
 });

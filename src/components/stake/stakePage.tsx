@@ -1,5 +1,6 @@
 "use client";
 import StakeData from "@/components/stake/stakeData/stakeData";
+import SirPriceChart from "@/components/stake/stakeData/sirPriceChart";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import { Container } from "../ui/container";
@@ -81,6 +82,9 @@ const StakePage = () => {
             </StakeCardWrapper>
           </div>
         </Card>
+
+        {/* Price Chart Section */}
+        <SirPriceChart />
       </Container>
     </div>
   );
