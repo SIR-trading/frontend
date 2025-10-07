@@ -97,13 +97,20 @@ export function VaultTableRow({
   const POL = useMemo(() => {
     const totalLocked = parseUnits(vault.teaSupply, 0);
     const lockedLiquidity = parseUnits(vault.lockedLiquidity, 0);
+    const totalValue = parseUnits(vault.totalValue, 0);
+
+    // If TVL is non-zero but TEA supply is 0, then POL is 100%
+    if (totalValue > 0n && totalLocked === 0n) {
+      return 100;
+    }
+
     if (lockedLiquidity > 0n && totalLocked > 0n) {
       const percent = (lockedLiquidity * 10000n) / totalLocked;
       return parseFloat(percent.toString()) / 100;
     } else {
       return 0;
     }
-  }, [vault.lockedLiquidity, vault.teaSupply]);
+  }, [vault.lockedLiquidity, vault.teaSupply, vault.totalValue]);
 
   // Remove individual APY query since we get it from props now
   // const { data: apyData, isLoading: isApyLoading } = api.vault.getVaultApy.useQuery(
@@ -260,25 +267,8 @@ export function VaultTableRow({
       return "1";
     }
 
-    // Custom rounding: show 2 significant digits after the "1."
-    // e.g., 1.5232 -> 1.52, 1.00889 -> 1.0089
-    const fractionalPart = realLeverage - 1;
-
-    if (fractionalPart === 0) {
-      return "1";
-    }
-
-    // Find how many decimal places we need to show 2 significant digits
-    const absValue = Math.abs(fractionalPart);
-    let decimals = 2;
-
-    // Count leading zeros after decimal point
-    if (absValue < 0.1) {
-      const log = Math.floor(Math.log10(absValue));
-      decimals = 2 - log - 1;
-    }
-
-    return realLeverage.toFixed(decimals);
+    // Always round to 2 decimal places (1.XX format)
+    return realLeverage.toFixed(2);
   };
 
   const showPercent = () => {
@@ -402,9 +392,15 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                Leverage can vary between x1 and x
-                {getLeverageRatio(vault.leverageTier)}, and you may suffer
-                volatility decay.
+                {tvl === 0 ? (
+                  "No liquidity for leverage long."
+                ) : (
+                  <>
+                    Current leverage is x{getRealLeverage()} and fluctuates
+                    between x1 and x{getLeverageRatio(vault.leverageTier)}{" "}
+                    because the vault is in saturation.
+                  </>
+                )}
               </div>
             </HoverPopupMobile>
           ) : showPercent() ? (
@@ -485,9 +481,15 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                Leverage can vary between x1 and x
-                {getLeverageRatio(vault.leverageTier)}, and you may suffer
-                volatility decay.
+                {tvl === 0 ? (
+                  "No liquidity for leverage long."
+                ) : (
+                  <>
+                    Current leverage is x{getRealLeverage()} and fluctuates
+                    between x1 and x{getLeverageRatio(vault.leverageTier)}{" "}
+                    because the vault is in saturation.
+                  </>
+                )}
               </div>
             </HoverPopupMobile>
           ) : showPercent() ? (
@@ -688,6 +690,8 @@ export function VaultTableRow({
               variant={variant}
               isApe={isApe}
               leverageRatio={getLeverageRatio(vault.leverageTier).toString()}
+              tvl={tvl}
+              realLeverage={getRealLeverage()}
             ></DisplayBadgeInfo>
           </div>
         </HoverPopupMobile>
@@ -766,31 +770,39 @@ function DisplayBadgeInfo({
   variant,
   isApe,
   leverageRatio,
+  tvl,
+  realLeverage,
 }: {
   variant: VariantProps<typeof badgeVariants>;
   isApe: boolean;
   leverageRatio?: string;
+  tvl?: number;
+  realLeverage?: string;
 }) {
   if (variant.variant === "green") {
     return isApe ? (
-      <span>Healthy, more than enough liquidity</span>
+      <span>Healthy, enough liquidity for constant leverage.</span>
     ) : (
       <span>Great for LPing</span>
     );
   }
   if (variant.variant === "yellow") {
     return isApe ? (
-      <span>Nearing saturation - leverage gains becoming linear</span>
+      <span>Nearing saturation where leverage can fluctuate.</span>
     ) : (
       <span>Good for LPing</span>
     );
   }
   if (variant.variant === "red") {
     return isApe ? (
-      <span>
-        Leverage can vary between x1 and x{leverageRatio}, and you may suffer
-        volatility decay.
-      </span>
+      tvl === 0 ? (
+        <span>No liquidity for leverage long.</span>
+      ) : (
+        <span>
+          Current leverage is x{realLeverage} and fluctuates between x1 and x
+          {leverageRatio} because the vault is in saturation.
+        </span>
+      )
     ) : (
       <span>Minimally profitable</span>
     );
