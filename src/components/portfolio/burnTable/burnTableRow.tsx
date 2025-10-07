@@ -77,29 +77,15 @@ export function BurnTableRow({
 
   // Current collateral amount (what you'd get if you burn now)
   const currentCollateralAmount = quoteBurn
-    ? formatUnits(quoteBurn, row.vault.collateralToken.decimals)
+    ? formatUnits(quoteBurn[0], row.vault.collateralToken.decimals)
     : "0";
   const currentCollateral = parseFloat(currentCollateralAmount);
 
-  // Exchange rate from the API (how many debt tokens per 1 collateral token)
-  const { data: exchangeRateData } = api.quote.getMostLiquidPoolPrice.useQuery(
-    {
-      tokenA: row.collateralToken,
-      tokenB: row.debtToken,
-      decimalsA: row.vault.collateralToken.decimals,
-      decimalsB: row.vault.debtToken.decimals,
-    },
-    {
-      staleTime: 1000 * 60, // Cache for 1 minute
-      enabled: Boolean(row.collateralToken && row.debtToken),
-    },
-  );
-
-  // Calculate current debt token value
-  // exchangeRateData.price = debt tokens per 1 collateral token
-  const currentDebtTokenValue = exchangeRateData?.price
-    ? currentCollateral * exchangeRateData.price
-    : 0;
+  // Current debt token amount directly from quoteBurn
+  const currentDebtTokenAmount = quoteBurn
+    ? formatUnits(quoteBurn[1], row.vault.debtToken.decimals)
+    : "0";
+  const currentDebtTokenValue = parseFloat(currentDebtTokenAmount);
 
   // Initial values from subgraph (need to scale down by decimals)
   const initialCollateral = parseFloat(

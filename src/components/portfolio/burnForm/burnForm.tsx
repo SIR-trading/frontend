@@ -176,7 +176,7 @@ export default function BurnForm({
   // Get USD value for the collateral amount user will receive
   const { usdValue } = useTokenUsdPrice(
     row.collateralToken,
-    quoteBurn && collateralDecimals ? formatUnits(quoteBurn, collateralDecimals) : undefined,
+    quoteBurn && collateralDecimals ? formatUnits(quoteBurn[0], collateralDecimals) : undefined,
     collateralDecimals ?? 18
   );
   
@@ -320,7 +320,7 @@ export default function BurnForm({
                         <div className="flex items-center justify-between">
                           <span className="text-xl">
                             <DisplayFormattedNumber
-                              num={formatUnits(quoteBurn, row.decimals)}
+                              num={formatUnits(quoteBurn[0], row.decimals)}
                               significant={3}
                             />
                           </span>
@@ -424,7 +424,7 @@ export default function BurnForm({
                   collateralToken: row.collateralToken,
                   debtToken: row.debtToken,
                 }}
-                amount={formatUnits(quoteBurn ?? 0n, row.decimals)}
+                amount={formatUnits(quoteBurn?.[0] ?? 0n, row.decimals)}
                 collateralSymbol={row.collateralSymbol}
                 bg=""
               />

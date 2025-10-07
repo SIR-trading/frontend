@@ -74,27 +74,93 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     const sirPriceInWrappedNativeToken = await getCachedSirPrice();
     console.log("SIR price in wrapped native token:", sirPriceInWrappedNativeToken);
     
+    // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
+    const gentlemenCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
+
+    if (gentlemenCollateral === 0) {
+      return 0; // No collateral, can't calculate APY
+    }
+
+    // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
+    if (vault.collateralToken.id.toLowerCase() === SirContract.address.toLowerCase()) {
+      // For SIR collateral vaults, no price conversion needed
+      // APY is simply: (annual SIR rewards / SIR collateral) * 100
+      const apy = (annualSirRewards / gentlemenCollateral) * 100;
+      console.log(`Vault ${vaultId} - SIR collateral APY:`, apy);
+      return apy;
+    }
+
+    // For non-SIR collateral vaults, need price conversion
     if (sirPriceInWrappedNativeToken === 0) {
       console.warn("Could not fetch SIR price from Uniswap");
       return 0;
     }
 
-    // Convert SIR price to vault's collateral token
-    const sirPriceInCollateral = await convertWrappedNativeTokenPriceToCollateral(
-      sirPriceInWrappedNativeToken,
-      vault.collateralToken.id
-    );
+    // Try to convert SIR price to vault's collateral token
+    // This may fail for tokens without Alchemy price data
+    let sirPriceInCollateral = 0;
+    try {
+      sirPriceInCollateral = await convertWrappedNativeTokenPriceToCollateral(
+        sirPriceInWrappedNativeToken,
+        vault.collateralToken.id
+      );
+    } catch (error) {
+      // If conversion fails (token not in Alchemy), try fallback to Uniswap
+      console.log(`Alchemy price not available for ${vault.collateralToken.id}, attempting Uniswap fallback`);
 
-    if (sirPriceInCollateral === 0) {
-      console.warn("Could not convert SIR price to collateral token");
-      return 0;
+      try {
+        const { getMostLiquidPoolPrice } = await import("./quote");
+        // Try to get direct pool price between collateral and wrapped native token
+        const poolData = await getMostLiquidPoolPrice({
+          tokenA: vault.collateralToken.id,
+          tokenB: WethContract.address,
+          decimalsA: vault.collateralToken.decimals,
+          decimalsB: 18,
+        });
+
+        if (poolData.price > 0) {
+          // poolData.price is collateral/WETH, we need to convert using WETH USD price
+          // First get WETH USD price from Alchemy
+          const response = await fetch(
+            `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+            {
+              method: "POST",
+              headers: {
+                "accept": "application/json",
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                addresses: [
+                  { network: "eth-mainnet", address: WethContract.address },
+                ],
+              }),
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json() as {
+              data: Array<{
+                address: string;
+                prices: Array<{ value: string; currency: string }>;
+              }>;
+            };
+            const wethUsdPrice = parseFloat(data.data[0]?.prices[0]?.value ?? "0");
+            if (wethUsdPrice > 0) {
+              // Convert: SIR -> WETH -> USD -> Collateral
+              const sirUsdPrice = sirPriceInWrappedNativeToken * wethUsdPrice;
+              const collateralUsdPrice = poolData.price * wethUsdPrice;
+              sirPriceInCollateral = sirUsdPrice / collateralUsdPrice;
+            }
+          }
+        }
+      } catch (fallbackError) {
+        console.log("Uniswap fallback also failed:", fallbackError);
+      }
     }
 
-    // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
-    const gentlemenCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
-    
-    if (gentlemenCollateral === 0) {
-      return 0; // No collateral, can't calculate APY
+    if (sirPriceInCollateral === 0) {
+      console.warn(`Could not convert SIR price to collateral token ${vault.collateralToken.symbol} for vault ${vaultId}`);
+      return 0;
     }
 
     // Calculate annual SIR rewards value in collateral token
