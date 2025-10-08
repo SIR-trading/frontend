@@ -8,6 +8,7 @@ import {
   shouldUseCoinGecko,
 } from "@/lib/chains";
 import { SirContract } from "@/contracts/sir";
+import { useSirPrice } from "@/contexts/SirPriceContext";
 
 export function useTeaAndApePrice({
   quoteBurn,
@@ -32,13 +33,8 @@ export function useTeaAndApePrice({
   const alchemyChain = getAlchemyChainString(chainId);
   const coinGeckoPlatform = getCoinGeckoPlatformId(chainId);
 
-  // Fetch SIR price in USD (only when collateral is SIR)
-  const { data: sirPriceInUsd } = api.price.getSirPriceInUsd.useQuery(
-    undefined,
-    {
-      enabled: isSirToken,
-    },
-  );
+  // Get SIR price from context
+  const { sirPrice: sirPriceInUsd } = useSirPrice();
 
   // Fetch price from Alchemy (only when not using CoinGecko and not SIR)
   const { data: alchemyData } = api.price.getTokenPrice.useQuery(

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { getDexName } from "@/lib/chains";
 import { useChainId } from "wagmi";
 import { api } from "@/trpc/react";
@@ -52,7 +51,7 @@ export default function SirPriceChart() {
       theme: chartTheme,
       chartTheme: chartTheme,
       chartType: "usd",
-      interval: "15", // 15 minute candles
+      interval: "60", // 1 hour candles
       chartStyle: "1", // 0=bars, 1=candles, 2=line
       chartDefaultOnMobile: "1",
       info: "0", // Hide info panel
@@ -70,7 +69,7 @@ export default function SirPriceChart() {
 
   if (!chartUrl) {
     return (
-      <Card className="col-span-full rounded-md bg-secondary p-6">
+      <div className="rounded-md bg-primary/5 p-6 dark:bg-primary">
         <div className="flex items-center justify-between mb-4">
           <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
@@ -80,18 +79,18 @@ export default function SirPriceChart() {
         <div className="flex h-[400px] items-center justify-center text-muted-foreground">
           <p className="text-sm">Loading chart data...</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
     <>
-      {/* Main chart card */}
-      <Card className="col-span-full rounded-md bg-secondary p-6 transition-colors hover:bg-secondary/80">
+      {/* Main chart */}
+      <div className="rounded-md bg-primary/5 p-6 dark:bg-primary">
         <div className="flex items-center justify-between mb-4">
           <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            SIR Price Chart • Live price data from {dexName}
+            SIR Price Chart • Live data from {dexName}
           </h3>
           <button
             onClick={() => setIsExpanded(true)}
@@ -115,7 +114,7 @@ export default function SirPriceChart() {
             style={{ border: 0 }}
           />
         </div>
-      </Card>
+      </div>
 
       {/* Expanded modal view */}
       <AnimatePresence>

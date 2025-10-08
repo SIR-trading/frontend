@@ -18,6 +18,7 @@ import FloatingNetworkBadge from "@/components/floatingNetworkBadge";
 import { ClaimableBalancesProvider } from "@/contexts/ClaimableBalancesContext";
 import { VaultDataProvider } from "@/contexts/VaultDataContext";
 import { StakingProvider } from "@/contexts/StakingContext";
+import { SirPriceProvider } from "@/contexts/SirPriceContext";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -76,9 +77,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <EvmProvider>
                   <VaultDataProvider>
                     <StakingProvider>
-                      <ClaimableBalancesProvider>
-                        <VaultProvider>
-                          <MintFormProvider>
+                      <SirPriceProvider>
+                        <ClaimableBalancesProvider>
+                          <VaultProvider>
+                            <MintFormProvider>
                         <div className=" flex min-h-screen flex-col">
                           <Header />
                           <Warning />
@@ -96,9 +98,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                           <Footer />
                           <FloatingNetworkBadge />
                         </div>
-                          </MintFormProvider>
-                        </VaultProvider>
-                      </ClaimableBalancesProvider>
+                            </MintFormProvider>
+                          </VaultProvider>
+                        </ClaimableBalancesProvider>
+                      </SirPriceProvider>
                     </StakingProvider>
                   </VaultDataProvider>
                 </EvmProvider>

@@ -1,6 +1,5 @@
-import { api } from "@/trpc/react";
 import { useMemo, useState, useEffect } from "react";
-import { parseUnits } from "viem";
+import { useSirPrice } from "@/contexts/SirPriceContext";
 
 export function useSirUsdPrice(amount?: string) {
   // Debounced amount to prevent excessive API calls while typing
@@ -14,13 +13,8 @@ export function useSirUsdPrice(amount?: string) {
     return () => clearTimeout(timer);
   }, [amount]);
 
-  // Fetch SIR price in USD
-  const { data: sirPriceUsd, isLoading } = api.price.getSirPriceInUsd.useQuery(
-    undefined,
-    {
-      staleTime: 60000, // 1 minute cache
-    }
-  );
+  // Get SIR price from context
+  const { sirPrice: sirPriceUsd, isLoading } = useSirPrice();
 
   // Calculate USD value
   const usdValue = useMemo(() => {

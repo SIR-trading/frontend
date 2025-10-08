@@ -16,7 +16,9 @@
     },
     "contracts": {
       "uniswapV3Factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
+      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54",
+      "uniswapV3Staker": "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65",
+      "sirWethPool1Percent": "0x0000000000000000000000000000000000000000"
     },
     "coingecko": {
       "platformId": "ethereum"
@@ -44,7 +46,9 @@
     },
     "contracts": {
       "uniswapV3Factory": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
-      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54"
+      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54",
+      "uniswapV3Staker": "0x0000000000000000000000000000000000000000",
+      "sirWethPool1Percent": "0x0000000000000000000000000000000000000000"
     },
     "coingecko": {
       "platformId": null
@@ -72,7 +76,9 @@
     },
     "contracts": {
       "uniswapV3Factory": "0x22B0768972bB7f1F5ea7a8740BB8f94b32483826",
-      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
+      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb",
+      "uniswapV3Staker": "0x0000000000000000000000000000000000000000",
+      "sirWethPool1Percent": "0x0000000000000000000000000000000000000000"
     },
     "coingecko": {
       "platformId": null
@@ -100,7 +106,9 @@
     },
     "contracts": {
       "uniswapV3Factory": "0xB1c0fa0B789320044A6F623cFe5eBda9562602E3",
-      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb"
+      "uniswapV3PoolInitCodeHash": "0xe3572921be1688dba92df30c6781b8770499ff274d20ae9b325f4242634774fb",
+      "uniswapV3Staker": "0x0000000000000000000000000000000000000000",
+      "sirWethPool1Percent": "0x0000000000000000000000000000000000000000"
     },
     "coingecko": {
       "platformId": "hyperevm"

@@ -33,11 +33,14 @@ const SIR_PRICE_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  */
 async function getCachedSirPrice(): Promise<number> {
   const now = Date.now();
-  
-  if (sirPriceCache && (now - sirPriceCache.timestamp) < SIR_PRICE_CACHE_DURATION) {
+
+  if (
+    sirPriceCache &&
+    now - sirPriceCache.timestamp < SIR_PRICE_CACHE_DURATION
+  ) {
     return sirPriceCache.price;
   }
-  
+
   const price = await getSirPriceInWrappedNativeToken();
   sirPriceCache = { price, timestamp: now };
   return price;
@@ -50,49 +53,50 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
   try {
     // Get vault information to get the rate and collateral token
     const vaults = await executeVaultsQuery({});
-    const vault = vaults.vaults.find(v => v.id === vaultId);
-    
+    const vault = vaults.vaults.find((v) => v.id === vaultId);
+
     if (!vault?.rate || parseFloat(vault.rate) === 0) {
       return 0; // No SIR rewards for this vault
     }
 
     // Convert rate from string to float (rate is already per second, scaled by 10^12)
     const ratePerSecond = parseFloat(vault.rate) / 1e12;
-    // Log the rate for debugging  
+    // Log the rate for debugging
     console.log("Rate per second:", ratePerSecond);
 
     // Log rate per day for debugging
     const SECONDS_IN_DAY = 24 * 60 * 60;
     const dailyRate = ratePerSecond * SECONDS_IN_DAY;
-    console.log("Rate per day:", dailyRate);
-    
+
     // Convert to annual rate (seconds in a year = 365 * 24 * 60 * 60)
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
-    
+
     // Get SIR price in wrapped native token from Uniswap (cached)
     const sirPriceInWrappedNativeToken = await getCachedSirPrice();
-    console.log("SIR price in wrapped native token:", sirPriceInWrappedNativeToken);
-    
+
     // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
-    const gentlemenCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
+    const gentlemenCollateral =
+      parseFloat(vault.reserveLPers) /
+      Math.pow(10, vault.collateralToken.decimals);
 
     if (gentlemenCollateral === 0) {
       return 0; // No collateral, can't calculate APY
     }
 
     // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
-    if (vault.collateralToken.id.toLowerCase() === SirContract.address.toLowerCase()) {
+    if (
+      vault.collateralToken.id.toLowerCase() ===
+      SirContract.address.toLowerCase()
+    ) {
       // For SIR collateral vaults, no price conversion needed
       // APY is simply: (annual SIR rewards / SIR collateral) * 100
       const apy = (annualSirRewards / gentlemenCollateral) * 100;
-      console.log(`Vault ${vaultId} - SIR collateral APY:`, apy);
       return apy;
     }
 
     // For non-SIR collateral vaults, need price conversion
     if (sirPriceInWrappedNativeToken === 0) {
-      console.warn("Could not fetch SIR price from Uniswap");
       return 0;
     }
 
@@ -102,12 +106,10 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     try {
       sirPriceInCollateral = await convertWrappedNativeTokenPriceToCollateral(
         sirPriceInWrappedNativeToken,
-        vault.collateralToken.id
+        vault.collateralToken.id,
       );
     } catch (error) {
       // If conversion fails (token not in Alchemy), try fallback to Uniswap
-      console.log(`Alchemy price not available for ${vault.collateralToken.id}, attempting Uniswap fallback`);
-
       try {
         const { getMostLiquidPoolPrice } = await import("./quote");
         // Try to get direct pool price between collateral and wrapped native token
@@ -126,7 +128,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
             {
               method: "POST",
               headers: {
-                "accept": "application/json",
+                accept: "application/json",
                 "content-type": "application/json",
               },
               body: JSON.stringify({
@@ -134,17 +136,19 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
                   { network: "eth-mainnet", address: WethContract.address },
                 ],
               }),
-            }
+            },
           );
 
           if (response.ok) {
-            const data = await response.json() as {
+            const data = (await response.json()) as {
               data: Array<{
                 address: string;
                 prices: Array<{ value: string; currency: string }>;
               }>;
             };
-            const wethUsdPrice = parseFloat(data.data[0]?.prices[0]?.value ?? "0");
+            const wethUsdPrice = parseFloat(
+              data.data[0]?.prices[0]?.value ?? "0",
+            );
             if (wethUsdPrice > 0) {
               // Convert: SIR -> WETH -> USD -> Collateral
               const sirUsdPrice = sirPriceInWrappedNativeToken * wethUsdPrice;
@@ -159,20 +163,18 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     }
 
     if (sirPriceInCollateral === 0) {
-      console.warn(`Could not convert SIR price to collateral token ${vault.collateralToken.symbol} for vault ${vaultId}`);
+      console.warn(
+        `Could not convert SIR price to collateral token ${vault.collateralToken.symbol} for vault ${vaultId}`,
+      );
       return 0;
     }
 
     // Calculate annual SIR rewards value in collateral token
     const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
 
-    // Log the calculated values for debugging
-    console.log(`Vault ${vaultId} - Annual rewards value:`, annualRewardsValue);
-    console.log(`Vault ${vaultId} - TEA Collateral:`, gentlemenCollateral);
-    
     // Calculate APY as percentage: (annual rewards value / collateral) * 100
     const apy = (annualRewardsValue / gentlemenCollateral) * 100;
-    
+
     return apy;
   } catch (error) {
     console.error("Error calculating SIR rewards APY:", error);
@@ -187,7 +189,7 @@ async function getSirPriceInWrappedNativeToken(): Promise<number> {
   try {
     // Import the direct pool reading function
     const { getMostLiquidPoolPrice } = await import("./quote");
-    
+
     // Get the most liquid pool price for SIR/wrapped native token
     const poolData = await getMostLiquidPoolPrice({
       tokenA: SirContract.address,
@@ -195,7 +197,7 @@ async function getSirPriceInWrappedNativeToken(): Promise<number> {
       decimalsA: 12, // SIR has 12 decimals
       decimalsB: 18, // wrapped native token has 18 decimals
     });
-    
+
     return poolData.price;
   } catch (error) {
     console.error("Error fetching SIR price from Uniswap:", error);
@@ -208,11 +210,14 @@ async function getSirPriceInWrappedNativeToken(): Promise<number> {
  */
 async function convertWrappedNativeTokenPriceToCollateral(
   wrappedNativeTokenPrice: number,
-  collateralTokenAddress: TAddressString
+  collateralTokenAddress: TAddressString,
 ): Promise<number> {
   try {
     // If collateral is wrapped native token, no conversion needed
-    if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
+    if (
+      collateralTokenAddress.toLowerCase() ===
+      WethContract.address.toLowerCase()
+    ) {
       return wrappedNativeTokenPrice;
     }
 
@@ -231,14 +236,14 @@ async function convertWrappedNativeTokenPriceToCollateral(
             { network: "eth-mainnet", address: collateralTokenAddress },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       throw new Error(`Alchemy API error: ${response.status}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       data: Array<{
         address: string;
         prices: Array<{ value: string; currency: string }>;
@@ -246,49 +251,59 @@ async function convertWrappedNativeTokenPriceToCollateral(
     };
 
     const wrappedNativeTokenData = data.data.find(
-      (token) => token.address.toLowerCase() === WethContract.address.toLowerCase()
+      (token) =>
+        token.address.toLowerCase() === WethContract.address.toLowerCase(),
     );
     const collateralData = data.data.find(
-      (token) => token.address.toLowerCase() === collateralTokenAddress.toLowerCase()
+      (token) =>
+        token.address.toLowerCase() === collateralTokenAddress.toLowerCase(),
     );
 
-    if (!wrappedNativeTokenData?.prices[0]?.value || !collateralData?.prices[0]?.value) {
+    if (
+      !wrappedNativeTokenData?.prices[0]?.value ||
+      !collateralData?.prices[0]?.value
+    ) {
       throw new Error("Price data not available");
     }
 
-    const wrappedNativeTokenUsdPrice = parseFloat(wrappedNativeTokenData.prices[0].value);
+    const wrappedNativeTokenUsdPrice = parseFloat(
+      wrappedNativeTokenData.prices[0].value,
+    );
     const collateralUsdPrice = parseFloat(collateralData.prices[0].value);
 
     if (collateralUsdPrice === 0) {
       throw new Error("Collateral price is zero");
     }
 
-
     // Convert: SIR -> wrapped native token -> USD -> Collateral
     const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
     const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
 
-
     return sirCollateralPrice;
   } catch (error) {
-    console.error("Error converting wrapped native token price to collateral:", error);
+    console.error(
+      "Error converting wrapped native token price to collateral:",
+      error,
+    );
     return 0;
   }
 }
 /**
  * Batch fetch token prices from Alchemy to avoid redundant API calls
  */
-async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<Map<string, number>> {
+async function batchGetTokenPrices(
+  collateralTokens: TAddressString[],
+): Promise<Map<string, number>> {
   const priceMap = new Map<string, number>();
-  
+
   if (collateralTokens.length === 0) {
     return priceMap;
   }
-  
+
   try {
     // Add wrapped native token to the list for price conversion
     const tokensToFetch = [WethContract.address, ...collateralTokens];
-    
+
     const response = await fetch(
       `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
       {
@@ -298,16 +313,19 @@ async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          addresses: tokensToFetch.map(addr => ({ network: "eth-mainnet", address: addr })),
+          addresses: tokensToFetch.map((addr) => ({
+            network: "eth-mainnet",
+            address: addr,
+          })),
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       throw new Error(`Alchemy API error: ${response.status}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       data: Array<{
         address: string;
         prices: Array<{ value: string; currency: string }>;
@@ -315,9 +333,12 @@ async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<
     };
 
     // Store USD prices for all tokens
-    data.data.forEach(tokenData => {
+    data.data.forEach((tokenData) => {
       if (tokenData.prices[0]?.value) {
-        priceMap.set(tokenData.address.toLowerCase(), parseFloat(tokenData.prices[0].value));
+        priceMap.set(
+          tokenData.address.toLowerCase(),
+          parseFloat(tokenData.prices[0].value),
+        );
       }
     });
 
@@ -334,7 +355,7 @@ async function batchGetTokenPrices(collateralTokens: TAddressString[]): Promise<
 async function calculateSirRewardsApyWithCachedPrices(
   vault: VaultWithCollateral,
   sirPriceInWrappedNativeToken: number,
-  tokenPrices: Map<string, number>
+  tokenPrices: Map<string, number>,
 ): Promise<number> {
   try {
     if (!vault?.rate || parseFloat(vault.rate) === 0) {
@@ -343,24 +364,31 @@ async function calculateSirRewardsApyWithCachedPrices(
 
     // Convert rate from string to float (rate is already per second, scaled by 10^12)
     const ratePerSecond = parseFloat(vault.rate) / 1e12;
-    
+
     // Convert to annual rate (seconds in a year = 365 * 24 * 60 * 60)
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
-    
+
     // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
-    const vaultCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
-    
+    const vaultCollateral =
+      parseFloat(vault.reserveLPers) /
+      Math.pow(10, vault.collateralToken.decimals);
+
     if (vaultCollateral === 0) {
       return 0; // No collateral, can't calculate APY
     }
 
     // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
-    if (vault.collateralToken.id.toLowerCase() === SirContract.address.toLowerCase()) {
+    if (
+      vault.collateralToken.id.toLowerCase() ===
+      SirContract.address.toLowerCase()
+    ) {
       // For SIR collateral vaults, no price conversion needed
       // APY is simply: (annual SIR rewards / SIR collateral) * 100
       // Use the collateral token's decimals from the subgraph
-      const sirVaultCollateral = parseFloat(vault.reserveLPers) / Math.pow(10, vault.collateralToken.decimals);
+      const sirVaultCollateral =
+        parseFloat(vault.reserveLPers) /
+        Math.pow(10, vault.collateralToken.decimals);
       const apy = (annualSirRewards / sirVaultCollateral) * 100;
       return apy;
     }
@@ -371,11 +399,12 @@ async function calculateSirRewardsApyWithCachedPrices(
     }
 
     // Convert SIR price to vault's collateral token using cached prices
-    const sirPriceInCollateral = convertWrappedNativeTokenPriceToCollateralCached(
-      sirPriceInWrappedNativeToken,
-      vault.collateralToken.id,
-      tokenPrices
-    );
+    const sirPriceInCollateral =
+      convertWrappedNativeTokenPriceToCollateralCached(
+        sirPriceInWrappedNativeToken,
+        vault.collateralToken.id,
+        tokenPrices,
+      );
 
     if (sirPriceInCollateral === 0) {
       return 0;
@@ -383,13 +412,16 @@ async function calculateSirRewardsApyWithCachedPrices(
 
     // Calculate annual SIR rewards value in collateral token
     const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
-    
+
     // Calculate APY as percentage: (annual rewards value / collateral) * 100
     const apy = (annualRewardsValue / vaultCollateral) * 100;
-    
+
     return apy;
   } catch (error) {
-    console.error("Error calculating SIR rewards APY with cached prices:", error);
+    console.error(
+      "Error calculating SIR rewards APY with cached prices:",
+      error,
+    );
     return 0;
   }
 }
@@ -400,18 +432,29 @@ async function calculateSirRewardsApyWithCachedPrices(
 function convertWrappedNativeTokenPriceToCollateralCached(
   wrappedNativeTokenPrice: number,
   collateralTokenAddress: TAddressString,
-  tokenPrices: Map<string, number>
+  tokenPrices: Map<string, number>,
 ): number {
   try {
     // If collateral is wrapped native token, no conversion needed
-    if (collateralTokenAddress.toLowerCase() === WethContract.address.toLowerCase()) {
+    if (
+      collateralTokenAddress.toLowerCase() ===
+      WethContract.address.toLowerCase()
+    ) {
       return wrappedNativeTokenPrice;
     }
 
-    const wrappedNativeTokenUsdPrice = tokenPrices.get(WethContract.address.toLowerCase());
-    const collateralUsdPrice = tokenPrices.get(collateralTokenAddress.toLowerCase());
+    const wrappedNativeTokenUsdPrice = tokenPrices.get(
+      WethContract.address.toLowerCase(),
+    );
+    const collateralUsdPrice = tokenPrices.get(
+      collateralTokenAddress.toLowerCase(),
+    );
 
-    if (!wrappedNativeTokenUsdPrice || !collateralUsdPrice || collateralUsdPrice === 0) {
+    if (
+      !wrappedNativeTokenUsdPrice ||
+      !collateralUsdPrice ||
+      collateralUsdPrice === 0
+    ) {
       console.warn(`Missing price data for ${collateralTokenAddress}`);
       return 0;
     }
@@ -422,7 +465,10 @@ function convertWrappedNativeTokenPriceToCollateralCached(
 
     return sirCollateralPrice;
   } catch (error) {
-    console.error("Error converting wrapped native token price to collateral with cached data:", error);
+    console.error(
+      "Error converting wrapped native token price to collateral with cached data:",
+      error,
+    );
     return 0;
   }
 }
@@ -441,7 +487,6 @@ export const vaultRouter = createTRPCRouter({
         .optional(),
     )
     .query(async ({ input }) => {
-      console.log(input, "INPUT");
       if (input) {
         const {
           filterLeverage,
@@ -714,14 +759,14 @@ export const vaultRouter = createTRPCRouter({
     .input(
       z.object({
         vaultId: z.string(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { vaultId } = input;
-      
+
       // Calculate timestamp for 1 month ago (30 days * 24 hours * 60 minutes * 60 seconds)
-      const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
-      
+      const oneMonthAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
+
       try {
         // Get fees APY
         const feesData = await executeGetVaultFees({
@@ -733,7 +778,7 @@ export const vaultRouter = createTRPCRouter({
         const totalLpApy = feesData.fees.reduce((prod, fee) => {
           return prod * (1 + parseFloat(fee.lpApy));
         }, 1);
-        
+
         // Convert to annualized percentage
         const feesApy = (totalLpApy ** (365 / 30) - 1) * 100;
 
@@ -765,54 +810,74 @@ export const vaultRouter = createTRPCRouter({
     .input(
       z.object({
         vaultIds: z.array(z.string()),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { vaultIds } = input;
-      
+
       if (vaultIds.length === 0) {
         return {};
       }
-      
+
       // Calculate timestamp for 1 month ago
-      const oneMonthAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
-      
+      const oneMonthAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
+
       try {
         // Fetch all vault data once
         const vaults = await executeVaultsQuery({});
-        const vaultMap = new Map(vaults.vaults.map(v => [v.id, v]));
-        
+        const vaultMap = new Map(vaults.vaults.map((v) => [v.id, v]));
+
         // Get SIR price in wrapped native token once (shared across all vaults, cached)
         const sirPriceInWrappedNativeToken = await getCachedSirPrice();
-        
+
         if (sirPriceInWrappedNativeToken === 0) {
           console.warn("Could not fetch SIR price from Uniswap");
           // Return zero APY for all vaults
           return Object.fromEntries(
-            vaultIds.map(id => [id, { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 }])
+            vaultIds.map((id) => [
+              id,
+              { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 },
+            ]),
           );
         }
-        
+
         // Get unique collateral tokens to batch price conversions
         const uniqueCollateralTokens = new Set(
-          vaultIds.map(id => vaultMap.get(id)?.collateralToken.id).filter(Boolean)
+          vaultIds
+            .map((id) => vaultMap.get(id)?.collateralToken.id)
+            .filter(Boolean),
         );
-        
+
         // Batch fetch all token prices from Alchemy
-        const tokenPrices = await batchGetTokenPrices([...uniqueCollateralTokens] as TAddressString[]);
-        
+        const tokenPrices = await batchGetTokenPrices([
+          ...uniqueCollateralTokens,
+        ] as TAddressString[]);
+
         // Process each vault
-        const results: Record<string, { apy: number; feesApy: number; sirRewardsApy: number; feesCount: number }> = {};
-        
+        const results: Record<
+          string,
+          {
+            apy: number;
+            feesApy: number;
+            sirRewardsApy: number;
+            feesCount: number;
+          }
+        > = {};
+
         await Promise.all(
           vaultIds.map(async (vaultId) => {
             try {
               const vault = vaultMap.get(vaultId);
               if (!vault) {
-                results[vaultId] = { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 };
+                results[vaultId] = {
+                  apy: 0,
+                  feesApy: 0,
+                  sirRewardsApy: 0,
+                  feesCount: 0,
+                };
                 return;
               }
-              
+
               // Get fees APY
               const feesData = await executeGetVaultFees({
                 vaultId,
@@ -824,16 +889,17 @@ export const vaultRouter = createTRPCRouter({
               }, 1);
 
               const feesApy = (totalLpApy ** (365 / 30) - 1) * 100;
-              
+
               // Calculate SIR rewards APY using cached prices
-              const sirRewardsApy = await calculateSirRewardsApyWithCachedPrices(
-                vault,
-                sirPriceInWrappedNativeToken,
-                tokenPrices
-              );
-              
+              const sirRewardsApy =
+                await calculateSirRewardsApyWithCachedPrices(
+                  vault,
+                  sirPriceInWrappedNativeToken,
+                  tokenPrices,
+                );
+
               const totalApy = feesApy + sirRewardsApy;
-              
+
               results[vaultId] = {
                 apy: totalApy,
                 feesApy: feesApy,
@@ -841,17 +907,28 @@ export const vaultRouter = createTRPCRouter({
                 feesCount: feesData.fees.length,
               };
             } catch (error) {
-              console.error(`Error calculating APY for vault ${vaultId}:`, error);
-              results[vaultId] = { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 };
+              console.error(
+                `Error calculating APY for vault ${vaultId}:`,
+                error,
+              );
+              results[vaultId] = {
+                apy: 0,
+                feesApy: 0,
+                sirRewardsApy: 0,
+                feesCount: 0,
+              };
             }
-          })
+          }),
         );
-        
+
         return results;
       } catch (error) {
         console.error("Error fetching vaults APY:", error);
         return Object.fromEntries(
-          vaultIds.map(id => [id, { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 }])
+          vaultIds.map((id) => [
+            id,
+            { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 },
+          ]),
         );
       }
     }),

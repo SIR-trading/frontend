@@ -1,18 +1,17 @@
 "use client";
-import StakeData from "@/components/stake/stakeData/stakeData";
 import SirPriceChart from "@/components/stake/stakeData/sirPriceChart";
+import PriceCard from "@/components/stake/stakeData/priceCard";
+import MarketCapCard from "@/components/stake/stakeData/marketCapCard";
 import Explainer from "../shared/explainer";
 import { EPage } from "@/lib/types";
 import { Container } from "../ui/container";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 import ContributorRewardsCard from "../portfolio/contributorRewardsCard";
-import ClaimCard from "../shared/claimCard";
-import { SirCard } from "../portfolio/sirCard";
-import { UnstakeCard } from "../portfolio/unstakeCard";
-import { StakeCardWrapper } from "./stakeCardWrapper";
 import { useAccount } from "wagmi";
 import { api } from "@/trpc/react";
+import { SirStakingArea } from "./sirStaking/SirStakingArea";
+import { LpStakingArea } from "./lpStaking/LpStakingArea";
 import Image from "next/image";
 
 const StakePage = () => {
@@ -22,69 +21,59 @@ const StakePage = () => {
     { enabled: isConnected },
   );
   const hasContributorRewards = unclaimedData && unclaimedData > 0n;
+
   return (
     <div className="">
       <PageHeadingSpace />
-      <Container className="space-y-6 lg:w-[900px]">
+      <Container className="space-y-6 lg:w-[1200px]">
         <Explainer page={EPage.STAKE} />
 
-        {/* Stats Section */}
-        <StakeData />
+        {/* Two-column layout: SIR Staking | LP Staking */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SirStakingArea />
+          <LpStakingArea />
+        </div>
 
-        {/* Your Position Section */}
-        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-          <h2 className="flex items-center gap-x-1 pb-4 text-sm">
-            Your Position
+        {/* Bottom section: Market Data Zone */}
+        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 relative overflow-hidden">
+          <h2 className="pb-4 text-sm font-medium">
+            Market Data
           </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <StakeCardWrapper>
-              <SirCard />
-            </StakeCardWrapper>
-            <StakeCardWrapper>
-              <UnstakeCard />
-            </StakeCardWrapper>
-          </div>
-        </Card>
 
-        {/* Claimable Rewards Section */}
-        <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-          {/* Background frog image - behind everything - only show when no contributor rewards */}
-          {!hasContributorRewards && (
-            <div className="pointer-events-none absolute inset-0 flex items-end justify-end">
-              <div className="relative h-2/5 md:h-full">
-                {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
-                <Image
-                  src="/Frog_blue.jpg"
-                  alt="Background"
-                  width={400}
-                  height={400}
-                  className="hidden h-full w-auto object-contain object-right-bottom dark:block"
-                />
-                <Image
-                  src="/Frog_beige.jpg"
-                  alt="Background"
-                  width={400}
-                  height={400}
-                  className="h-full w-auto object-contain object-right-bottom dark:hidden"
-                />
-              </div>
+          <div className="grid gap-6 lg:grid-cols-3 relative z-10">
+            {/* Left side: Price Chart (takes up 2 columns) */}
+            <div className="lg:col-span-2">
+              <SirPriceChart />
             </div>
-          )}
-          <h2 className="relative flex items-center gap-x-1 pb-4 text-sm">
-            Claimable Rewards
-          </h2>
-          <div className="relative grid gap-6 md:grid-cols-2">
-            <StakeCardWrapper>
-              <ClaimCard />
-            </StakeCardWrapper>
-            <StakeCardWrapper>
-              <ContributorRewardsCard />
-            </StakeCardWrapper>
+
+            {/* Right side: Price, Market Cap, and Contributor Rewards cards */}
+            <div className="flex flex-col gap-3">
+              <PriceCard />
+              <MarketCapCard />
+              {hasContributorRewards && <ContributorRewardsCard />}
+            </div>
+          </div>
+
+          {/* Frog images - bottom right corner */}
+          <div className="absolute bottom-0 right-0 pointer-events-none">
+            {/* Dark mode frog */}
+            <Image
+              src="/Frog_blue.jpg"
+              alt="SIR Mascot"
+              width={560}
+              height={560}
+              className="hidden dark:block opacity-50"
+            />
+            {/* Light mode frog */}
+            <Image
+              src="/Frog_beige.jpg"
+              alt="SIR Mascot"
+              width={560}
+              height={560}
+              className="block dark:hidden opacity-50"
+            />
           </div>
         </Card>
-
-        {/* Price Chart Section */}
-        <SirPriceChart />
       </Container>
     </div>
   );

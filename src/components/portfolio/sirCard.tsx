@@ -17,7 +17,7 @@ export function SirCard() {
           <div className="flex w-full justify-between">
             <div>
               <h2 className="pb-1 text-sm text-muted-foreground">
-                Your Unstaked Balance
+                Balance
               </h2>
               <div className="flex min-h-[32px] justify-between text-3xl">
                 <div className="flex items-end gap-x-1">

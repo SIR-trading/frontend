@@ -25,6 +25,9 @@ async function main() {
     console.log('   SIR:', data.contractAddresses.sir);
     console.log('   Oracle:', data.contractAddresses.oracle);
     console.log('   System Control:', data.contractAddresses.systemControl);
+    console.log('   Uniswap V3 Staker:', data.contractAddresses.uniswapV3Staker);
+    console.log('   NFT Position Manager:', data.contractAddresses.nftPositionManager);
+    console.log('   SIR/WETH 1% Pool:', data.contractAddresses.sirWethPool1Percent);
     console.log('⚙️  System Parameters:');
     console.log('   Base Fee:', `${(data.systemParams.baseFee * 100).toFixed(2)}%`);
     
