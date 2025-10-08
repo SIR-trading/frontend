@@ -10,14 +10,15 @@ import {
 import { CircleCheck } from "lucide-react";
 import { motion } from "motion/react";
 import { formatUnits } from "viem";
+import Image from "next/image";
 import TransactionModal from "@/components/shared/transactionModal";
-import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { UniswapV3StakerContract } from "@/contracts/uniswapV3Staker";
 import { SirContract } from "@/contracts/sir";
-import { getSirSymbol } from "@/lib/assets";
+import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import { env } from "@/env";
+import { useSirPrice } from "@/contexts/SirPriceContext";
 
 interface LpClaimRewardsModalProps {
   open: boolean;
@@ -33,6 +34,8 @@ export function LpClaimRewardsModal({
   const { address } = useAccount();
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const sirSymbol = getSirSymbol(chainId);
+  const sirLogo = getSirLogo(chainId);
+  const { sirPrice } = useSirPrice();
 
   // Read pending rewards
   const { data: pendingRewards, refetch: refetchRewards } = useReadContract({
@@ -90,9 +93,14 @@ export function LpClaimRewardsModal({
 
   const hasRewards = pendingRewards && pendingRewards > 0n;
 
+  // Calculate USD value
+  const usdValue = sirPrice && pendingRewards
+    ? (Number(formatUnits(pendingRewards, 12)) * sirPrice)
+    : 0;
+
   return (
     <TransactionModal.Root
-      title="Claim LP Rewards"
+      title="Claim SIR Rewards"
       open={open}
       setOpen={handleClose}
     >
@@ -103,63 +111,47 @@ export function LpClaimRewardsModal({
       >
         {!isConfirmed ? (
           <>
-            <TransactionStatus
-              action="Claim"
-              waitForSign={isPending}
-              showLoading={isConfirming}
-            />
+            <h2 className="mb-4 text-center text-xl font-semibold">
+              Claim {sirSymbol} Rewards
+            </h2>
 
-            <div className="space-y-4">
-              {/* Rewards Amount */}
-              <div>
+            {hasRewards ? (
+              <div className="pt-2">
                 <div className="mb-2">
                   <label className="text-sm text-muted-foreground">
-                    Available Rewards
+                    Amount
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-semibold">
+                  <span className="text-xl">
                     <DisplayFormattedNumber
                       num={formattedRewards}
-                      significant={6}
+                      significant={4}
                     />
                   </span>
-                  <span className="text-xl text-muted-foreground">
-                    {sirSymbol}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-muted-foreground">
+                      {sirSymbol}
+                    </span>
+                    <Image
+                      src={sirLogo}
+                      alt={sirSymbol}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  </div>
                 </div>
+                {usdValue > 0 && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    ≈ $<DisplayFormattedNumber num={usdValue} significant={3} />
+                  </div>
+                )}
               </div>
-
-              {/* Reward Details */}
-              {hasRewards && (
-                <div>
-                  <div className="mb-2">
-                    <label className="text-sm text-muted-foreground">
-                      Reward Details
-                    </label>
-                  </div>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div>• Earned from providing liquidity</div>
-                    <div>• Rewards accumulate while positions are in range</div>
-                    <div>• Claim anytime, no time limit</div>
-                  </div>
-                </div>
-              )}
-
-              {/* No rewards message */}
-              {!hasRewards && (
-                <div className="text-center text-muted-foreground">
-                  No rewards available to claim at this time.
-                  Keep your positions staked and in range to earn rewards.
-                </div>
-              )}
-            </div>
-
-            {hasRewards && (
-              <div className="px-6 py-4">
-                <TransactionModal.Disclaimer>
-                  Claim your earned {sirSymbol} rewards from LP staking.
-                </TransactionModal.Disclaimer>
+            ) : (
+              <div className="text-center text-muted-foreground py-4">
+                No rewards available to claim at this time.
+                Keep your positions staked and in range to earn rewards.
               </div>
             )}
           </>
@@ -181,12 +173,21 @@ export function LpClaimRewardsModal({
               <span className="text-xl font-semibold">
                 <DisplayFormattedNumber
                   num={formattedRewards}
-                  significant={6}
+                  significant={4}
                 />
               </span>
-              <span className="text-xl text-muted-foreground">
-                {sirSymbol}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl text-muted-foreground">
+                  {sirSymbol}
+                </span>
+                <Image
+                  src={sirLogo}
+                  alt={sirSymbol}
+                  width={24}
+                  height={24}
+                  className="rounded-full"
+                />
+              </div>
             </div>
             <div className="text-center text-muted-foreground">
               Your {sirSymbol} rewards have been sent to your wallet.
@@ -207,7 +208,7 @@ export function LpClaimRewardsModal({
               onClick={handleClaim}
               isConfirmed={isConfirmed}
             >
-              {hasRewards ? "Confirm Claim" : "No Rewards"}
+              Claim
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </>
