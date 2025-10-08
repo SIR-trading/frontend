@@ -20,7 +20,8 @@ export function Header() {
   const {
     hasDividendsAboveThreshold,
     hasContributorRewardsAboveThreshold,
-    hasVaultRewardsAboveThreshold
+    hasVaultRewardsAboveThreshold,
+    hasLpStakingRewardsAboveThreshold
   } = useClaimableBalances();
 
   // Check for active auctions
@@ -98,7 +99,7 @@ export function Header() {
                 <NavItem
                   url={"/stake"}
                   icon={Coins}
-                  hasRewardsNotification={hasContributorRewardsAboveThreshold}
+                  hasRewardsNotification={Boolean(hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold)}
                   hasDividendsNotification={hasDividendsAboveThreshold}
                 >
                   Stake

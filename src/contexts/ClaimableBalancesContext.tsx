@@ -1,10 +1,12 @@
 "use client";
 import React, { createContext, useContext, type ReactNode } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { api } from "@/trpc/react";
 import { useEffect, useState, useMemo } from "react";
 import { useClaim } from "@/components/stake/hooks/useClaim";
 import { env } from "@/env";
+import { UniswapV3StakerContract } from "@/contracts/uniswapV3Staker";
+import { SirContract } from "@/contracts/sir";
 
 interface ClaimableBalancesContextType {
   hasClaimableBalances: boolean;
@@ -13,11 +15,13 @@ interface ClaimableBalancesContextType {
   stakingRewardsAmount: bigint;
   contributorRewardsAmount: bigint;
   teaRewardsAmount: bigint;
+  lpStakingRewardsAmount: bigint;
   isLoading: boolean;
   hasDividendsAboveThreshold: boolean;
   hasRewardsAboveThreshold: boolean;
   hasContributorRewardsAboveThreshold: boolean;
   hasVaultRewardsAboveThreshold: boolean;
+  hasLpStakingRewardsAboveThreshold: boolean;
 }
 
 const ClaimableBalancesContext = createContext<ClaimableBalancesContextType | undefined>(undefined);
@@ -73,6 +77,17 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
     }
   );
 
+  // Get LP staking rewards from Uniswap V3 Staker
+  const { data: lpStakingRewards } = useReadContract({
+    address: UniswapV3StakerContract.address,
+    abi: UniswapV3StakerContract.abi,
+    functionName: 'rewards',
+    args: address ? [SirContract.address, address] : undefined,
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
   // Calculate total TEA vault rewards and check if any single vault meets threshold
   const totalTeaRewards = useMemo(() => {
     if (!userBalancesInVaults?.unclaimedSirRewards) return 0n;
@@ -95,8 +110,9 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
     const hasStakingRewards = Boolean(claimData?.result && claimData.result > 0n);
     const hasContributorRewards = Boolean(contributorRewards && contributorRewards > 0n);
     const hasTeaRewards = Boolean(totalTeaRewards && totalTeaRewards > 0n);
-    setHasClaimableBalances(hasDividends || hasStakingRewards || hasContributorRewards || hasTeaRewards);
-  }, [dividends, claimData?.result, contributorRewards, totalTeaRewards]);
+    const hasLpStaking = Boolean(lpStakingRewards && lpStakingRewards > 0n);
+    setHasClaimableBalances(hasDividends || hasStakingRewards || hasContributorRewards || hasTeaRewards || hasLpStaking);
+  }, [dividends, claimData?.result, contributorRewards, totalTeaRewards, lpStakingRewards]);
 
   // Check if dividends meet threshold
   const hasDividendsAboveThreshold = Boolean(dividends && dividends >= dividendsThreshold);
@@ -106,36 +122,46 @@ export function ClaimableBalancesProvider({ children }: { children: ReactNode })
     contributorRewards && contributorRewards >= rewardsThreshold
   );
 
+  // Check if LP staking rewards meet threshold
+  const hasLpStakingRewardsAboveThreshold = Boolean(
+    lpStakingRewards && lpStakingRewards >= rewardsThreshold
+  );
+
   // Check if any rewards meet threshold individually (for backwards compatibility)
   const hasRewardsAboveThreshold = Boolean(
     /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
     hasContributorRewardsAboveThreshold ||
-    hasAnyVaultAboveThreshold
+    hasAnyVaultAboveThreshold ||
+    hasLpStakingRewardsAboveThreshold
   );
 
   const value = useMemo(() => ({
     hasClaimableBalances,
     dividendsAmount: dividends ?? 0n,
-    rewardsAmount: (claimData?.result ?? 0n) + (contributorRewards ?? 0n) + totalTeaRewards,
+    rewardsAmount: (claimData?.result ?? 0n) + (contributorRewards ?? 0n) + totalTeaRewards + (lpStakingRewards ?? 0n),
     stakingRewardsAmount: claimData?.result ?? 0n,
     contributorRewardsAmount: contributorRewards ?? 0n,
     teaRewardsAmount: totalTeaRewards,
-    isLoading: !dividends && !claimData && !contributorRewards && !userBalancesInVaults,
+    lpStakingRewardsAmount: lpStakingRewards ?? 0n,
+    isLoading: !dividends && !claimData && !contributorRewards && !userBalancesInVaults && !lpStakingRewards,
     hasDividendsAboveThreshold,
     hasRewardsAboveThreshold,
     hasContributorRewardsAboveThreshold,
     hasVaultRewardsAboveThreshold: hasAnyVaultAboveThreshold,
+    hasLpStakingRewardsAboveThreshold,
   }), [
     hasClaimableBalances,
     dividends,
     claimData,
     contributorRewards,
     totalTeaRewards,
+    lpStakingRewards,
     userBalancesInVaults,
     hasDividendsAboveThreshold,
     hasRewardsAboveThreshold,
     hasContributorRewardsAboveThreshold,
     hasAnyVaultAboveThreshold,
+    hasLpStakingRewardsAboveThreshold,
   ]);
 
   return (

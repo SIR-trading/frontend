@@ -29,7 +29,7 @@ interface MenuItem {
 export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { hasDividendsAboveThreshold, hasContributorRewardsAboveThreshold } = useClaimableBalances();
+  const { hasDividendsAboveThreshold, hasContributorRewardsAboveThreshold, hasLpStakingRewardsAboveThreshold } = useClaimableBalances();
   const { hasActiveAuctions } = useActiveAuctions();
 
   const mediumItems: MenuItem[] = [
@@ -37,7 +37,7 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
       url: "/stake",
       label: "Stake",
       icon: Coins,
-      hasContributorRewards: hasContributorRewardsAboveThreshold,
+      hasContributorRewards: Boolean(hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold),
       hasDividends: hasDividendsAboveThreshold
     },
     { url: "/leaderboard", label: "Leaderboard", icon: Trophy },

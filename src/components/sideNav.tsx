@@ -25,7 +25,8 @@ export default function SideNav() {
   const {
     hasDividendsAboveThreshold,
     hasContributorRewardsAboveThreshold,
-    hasVaultRewardsAboveThreshold
+    hasVaultRewardsAboveThreshold,
+    hasLpStakingRewardsAboveThreshold
   } = useClaimableBalances();
   const { hasActiveAuctions } = useActiveAuctions();
 
@@ -98,7 +99,7 @@ export default function SideNav() {
                               }}
                             />
                           )}
-                          {item.url === "/stake" && hasContributorRewardsAboveThreshold && (
+                          {item.url === "/stake" && (hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold) && (
                             <span
                               className="ml-auto inline-block rounded-full animate-pulse"
                               style={{
@@ -119,7 +120,7 @@ export default function SideNav() {
                                 backgroundColor: '#22c55e',
                                 minWidth: '6px',
                                 minHeight: '6px',
-                                marginLeft: hasContributorRewardsAboveThreshold ? '4px' : 'auto'
+                                marginLeft: (hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold) ? '4px' : 'auto'
                               }}
                             />
                           )}

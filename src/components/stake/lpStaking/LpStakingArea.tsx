@@ -333,7 +333,7 @@ export function LpStakingArea() {
 
         {/* SIR Token Rewards */}
         <StakeCardWrapper>
-          <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+          <div className={`rounded-md bg-primary/5 p-4 dark:bg-primary ${userRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}>
             <div className="flex justify-between">
               <div className="flex-1">
                 <h2 className="pb-1 text-sm text-muted-foreground">
