@@ -34,7 +34,7 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveKey[]> = {
       pool: SIR_WETH_POOL_1_PERCENT,
       startTime: 1759892400n,
       endTime: 1762574400n,
-      refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A",
+      refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
     },
   ],
 

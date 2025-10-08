@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useCallback, useMemo, useEffect } from "react";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useAccount,
-  useReadContract,
+  useReadContracts,
 } from "wagmi";
 import { CircleCheck } from "lucide-react";
 import { motion } from "motion/react";
@@ -18,30 +18,31 @@ import {
   UniswapV3StakerContract,
 } from "@/contracts/uniswapV3Staker";
 import { getCurrentActiveIncentives } from "@/data/uniswapIncentives";
+import { encodeAbiParameters, parseAbiParameters, encodeFunctionData } from "viem";
 
-interface LpStakeModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  positionId: bigint;
+interface LpPosition {
+  tokenId: bigint;
   liquidity: bigint;
   tickLower: number;
   tickUpper: number;
   isInRange: boolean;
+  valueUsd: number;
+}
+
+interface LpStakeModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  positions: LpPosition[];
   onSuccess?: () => void;
 }
 
 export function LpStakeModal({
   open,
   setOpen,
-  positionId,
-  liquidity,
-  tickLower: _tickLower,
-  tickUpper: _tickUpper,
-  isInRange,
+  positions,
   onSuccess,
 }: LpStakeModalProps) {
   const { address } = useAccount();
-  const [currentStep, setCurrentStep] = useState<"approve" | "transfer" | "stake">("approve");
 
   // Get the active incentive key
   const incentiveKey = useMemo(() => {
@@ -49,173 +50,125 @@ export function LpStakeModal({
     return activeIncentives[0]; // Use the first active incentive
   }, []);
 
-  // Check if NFT is already approved to the staker
-  const { data: approvedAddress, refetch: refetchApproval } = useReadContract({
-    address: NonfungiblePositionManagerContract.address,
-    abi: NonfungiblePositionManagerContract.abi,
-    functionName: "getApproved",
-    args: [positionId],
+  // Calculate total USD value from positions
+  const totalValueUsd = useMemo(() => {
+    return positions.reduce((sum, p) => sum + (p.valueUsd || 0), 0);
+  }, [positions]);
+
+  // Calculate in-range USD value
+  const inRangeValueUsd = useMemo(() => {
+    return positions.filter(p => p.isInRange).reduce((sum, p) => sum + (p.valueUsd || 0), 0);
+  }, [positions]);
+
+  // Check which positions need approval
+  const { data: approvalData, refetch: refetchApprovals } = useReadContracts({
+    contracts: positions.map((position) => ({
+      address: NonfungiblePositionManagerContract.address,
+      abi: NonfungiblePositionManagerContract.abi,
+      functionName: "getApproved" as const,
+      args: [position.tokenId],
+    })),
+    query: {
+      enabled: positions.length > 0 && !!address,
+    },
   });
 
-  const needsApproval = approvedAddress !== UniswapV3StakerContract.address;
+  // Determine which positions need approval
+  const positionsNeedingApproval = useMemo(() => {
+    if (!approvalData) return positions.map(() => true);
 
-  // Contract write hooks
+    return approvalData.map((result) => {
+      if (result.status === 'failure' || !result.result) return true;
+      return (result.result) !== UniswapV3StakerContract.address;
+    });
+  }, [approvalData, positions]);
+
+  // Contract write for multicall
   const {
-    writeContract: approveNft,
-    data: approveHash,
-    isPending: isApprovePending,
-    reset: resetApprove,
+    writeContract: executeMulticall,
+    data: hash,
+    isPending,
+    reset,
+    error: writeError,
   } = useWriteContract();
 
   const {
-    isLoading: isApproveConfirming,
-    isSuccess: isApproveConfirmed,
-  } = useWaitForTransactionReceipt({ hash: approveHash });
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForTransactionReceipt({ hash });
 
-  const {
-    writeContract: transferNft,
-    data: transferHashData,
-    isPending: isTransferPending,
-    reset: resetTransfer,
-  } = useWriteContract();
+  // Handle multicall staking
+  const handleMulticallStake = useCallback(() => {
+    if (!address || !incentiveKey || positions.length === 0) return;
 
-  const {
-    isLoading: isTransferConfirming,
-    isSuccess: isTransferConfirmed,
-  } = useWaitForTransactionReceipt({ hash: transferHashData });
+    // Encode the incentive key for automatic staking
+    const encodedIncentive = encodeAbiParameters(
+      parseAbiParameters('address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee'),
+      [
+        incentiveKey.rewardToken,
+        incentiveKey.pool,
+        incentiveKey.startTime,
+        incentiveKey.endTime,
+        incentiveKey.refundee,
+      ]
+    );
 
-  const {
-    writeContract: stakeToken,
-    data: stakeHash,
-    isPending: isStakePending,
-    reset: resetStake,
-  } = useWriteContract();
+    // Build the multicall array
+    const calls: `0x${string}`[] = [];
 
-  const {
-    isLoading: isStakeConfirming,
-    isSuccess: isStakeConfirmed,
-  } = useWaitForTransactionReceipt({ hash: stakeHash });
+    // Add approval calls for positions that need it
+    positions.forEach((position, index) => {
+      if (positionsNeedingApproval[index]) {
+        calls.push(
+          encodeFunctionData({
+            abi: NonfungiblePositionManagerContract.abi,
+            functionName: "approve",
+            args: [UniswapV3StakerContract.address, position.tokenId],
+          })
+        );
+      }
+    });
 
-  // Update current step based on confirmations
-  useEffect(() => {
-    if (isApproveConfirmed && !needsApproval) {
-      setCurrentStep("transfer");
-    }
-    if (isTransferConfirmed) {
-      setCurrentStep("stake");
-    }
-  }, [isApproveConfirmed, isTransferConfirmed, needsApproval]);
+    // Add transfer & stake calls for all positions
+    positions.forEach((position) => {
+      calls.push(
+        encodeFunctionData({
+          abi: NonfungiblePositionManagerContract.abi,
+          functionName: "safeTransferFrom",
+          args: [address, UniswapV3StakerContract.address, position.tokenId, encodedIncentive],
+        })
+      );
+    });
 
-  // Handle approval
-  const handleApprove = useCallback(() => {
-    if (!incentiveKey) return;
-
-    void approveNft({
+    // Execute multicall
+    executeMulticall({
       address: NonfungiblePositionManagerContract.address,
       abi: NonfungiblePositionManagerContract.abi,
-      functionName: "approve",
-      args: [UniswapV3StakerContract.address, positionId],
+      functionName: "multicall",
+      args: [calls],
     });
-  }, [approveNft, positionId, incentiveKey]);
-
-  // Handle transfer to staker
-  const handleTransfer = useCallback(() => {
-    if (!address || !incentiveKey) return;
-
-    void transferNft({
-      address: NonfungiblePositionManagerContract.address,
-      abi: NonfungiblePositionManagerContract.abi,
-      functionName: "safeTransferFrom",
-      args: [address, UniswapV3StakerContract.address, positionId],
-    });
-  }, [transferNft, address, positionId, incentiveKey]);
-
-  // Handle staking
-  const handleStake = useCallback(() => {
-    if (!incentiveKey) return;
-
-    void stakeToken({
-      address: UniswapV3StakerContract.address,
-      abi: UniswapV3StakerContract.abi,
-      functionName: "stakeToken",
-      args: [incentiveKey, positionId],
-    });
-  }, [stakeToken, positionId, incentiveKey]);
-
-  // Handle the current action based on step
-  const handleCurrentAction = useCallback(() => {
-    if (needsApproval && currentStep === "approve") {
-      handleApprove();
-    } else if (currentStep === "transfer") {
-      handleTransfer();
-    } else if (currentStep === "stake") {
-      handleStake();
-    }
-  }, [currentStep, needsApproval, handleApprove, handleTransfer, handleStake]);
-
-  // Check if all steps are complete
-  const isComplete = isStakeConfirmed;
-
-  // Get current hash for explorer link
-  const currentHash = useMemo(() => {
-    if (currentStep === "approve") return approveHash;
-    if (currentStep === "transfer") return transferHashData;
-    if (currentStep === "stake") return stakeHash;
-    return undefined;
-  }, [currentStep, approveHash, transferHashData, stakeHash]);
-
-  // Check if current step is confirming
-  const isConfirming = useMemo(() => {
-    if (currentStep === "approve") return isApproveConfirming;
-    if (currentStep === "transfer") return isTransferConfirming;
-    if (currentStep === "stake") return isStakeConfirming;
-    return false;
-  }, [currentStep, isApproveConfirming, isTransferConfirming, isStakeConfirming]);
-
-  // Check if current step is pending
-  const isPending = useMemo(() => {
-    if (currentStep === "approve") return isApprovePending;
-    if (currentStep === "transfer") return isTransferPending;
-    if (currentStep === "stake") return isStakePending;
-    return false;
-  }, [currentStep, isApprovePending, isTransferPending, isStakePending]);
-
-  // Get action name for current step
-  const actionName = useMemo(() => {
-    if (currentStep === "approve") return "Approve NFT";
-    if (currentStep === "transfer") return "Transfer NFT";
-    if (currentStep === "stake") return "Stake Position";
-    return "";
-  }, [currentStep]);
+  }, [executeMulticall, address, positions, incentiveKey, positionsNeedingApproval]);
 
   // Handle success callback
   useEffect(() => {
-    if (isComplete && onSuccess) {
+    if (isConfirmed && onSuccess) {
       onSuccess();
     }
-  }, [isComplete, onSuccess]);
-
-  // Reset function
-  const handleReset = useCallback(() => {
-    resetApprove();
-    resetTransfer();
-    resetStake();
-    setCurrentStep("approve");
-    void refetchApproval();
-  }, [resetApprove, resetTransfer, resetStake, refetchApproval]);
+  }, [isConfirmed, onSuccess]);
 
   // Handle modal close
   const handleClose = useCallback((open: boolean) => {
     setOpen(open);
-    if (!open) {
-      handleReset();
+    if (!open && writeError) {
+      reset();
+      void refetchApprovals();
     }
-  }, [setOpen, handleReset]);
+  }, [setOpen, reset, writeError, refetchApprovals]);
 
   if (!incentiveKey) {
     return (
       <TransactionModal.Root
-        title="Stake LP Position"
+        title="Stake LP Positions"
         open={open}
         setOpen={handleClose}
       >
@@ -229,137 +182,89 @@ export function LpStakeModal({
     );
   }
 
+  const inRangeCount = positions.filter(p => p.isInRange).length;
+
   return (
     <TransactionModal.Root
-      title="Stake LP Position"
+      title={`Stake ${positions.length} LP Position${positions.length > 1 ? 's' : ''}`}
       open={open}
       setOpen={handleClose}
     >
       <TransactionModal.Close setOpen={handleClose} />
       <TransactionModal.InfoContainer
         isConfirming={isConfirming}
-        hash={currentHash}
+        hash={hash}
       >
-        {!isComplete ? (
+        {!isConfirmed ? (
           <>
             <TransactionStatus
-              action={actionName}
+              action="Stake Positions"
               waitForSign={isPending}
               showLoading={isConfirming}
             />
 
             <div className="space-y-4">
-              {/* Position Details */}
-              <div>
-                <div className="mb-2">
-                  <label className="text-sm text-muted-foreground">
-                    LP Position
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">#{positionId.toString()}</span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-block rounded-full ${
-                        isInRange ? "animate-pulse" : ""
-                      }`}
-                      style={{
-                        width: "14px",
-                        height: "14px",
-                        backgroundColor: isInRange ? "#22c55e" : "rgb(107, 114, 128)",
-                      }}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {isInRange ? "In Range" : "Out of Range"}
+              {/* Staking Summary */}
+              <div className="rounded-md bg-muted/30 p-4">
+                <h3 className="text-sm font-medium mb-3">Staking Summary</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Total Positions</span>
+                    <span className="text-sm font-semibold">{positions.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">In Range</span>
+                    <span className="text-sm font-semibold text-green-500">
+                      {inRangeCount} / {positions.length}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Staking Steps */}
-              <div>
-                <div className="mb-2">
-                  <label className="text-sm text-muted-foreground">
-                    Staking Process
-                  </label>
-                </div>
+              {/* Value Breakdown */}
+              <div className="rounded-md bg-muted/30 p-4">
+                <h3 className="text-sm font-medium mb-3">Position Value</h3>
                 <div className="space-y-2">
-                  {/* Step 1: Approve */}
-                  <div className="flex items-center justify-between text-sm">
-                    <span>1. Approve NFT Transfer</span>
-                    {!needsApproval || isApproveConfirmed ? (
-                      <CircleCheck size={18} className="text-green-500" />
-                    ) : (
-                      <span className="text-muted-foreground">Pending</span>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Total Value</span>
+                    <span className="text-lg font-semibold">
+                      {totalValueUsd > 0 ? (
+                        <>
+                          $<DisplayFormattedNumber
+                            num={totalValueUsd}
+                            significant={3}
+                          />
+                        </>
+                      ) : (
+                        <span className="text-sm">Calculating...</span>
+                      )}
+                    </span>
                   </div>
-
-                  {/* Step 2: Transfer */}
-                  <div className="flex items-center justify-between text-sm">
-                    <span>2. Transfer to Staker</span>
-                    {isTransferConfirmed ? (
-                      <CircleCheck size={18} className="text-green-500" />
-                    ) : (
-                      <span className="text-muted-foreground">
-                        {currentStep === "transfer" ? "Processing..." : "Pending"}
+                  {inRangeCount > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">In-Range Value</span>
+                      <span className="text-sm font-medium text-green-500">
+                        ${inRangeValueUsd > 0 ? (
+                          <DisplayFormattedNumber
+                            num={inRangeValueUsd}
+                            significant={3}
+                          />
+                        ) : '0'}
                       </span>
-                    )}
-                  </div>
-
-                  {/* Step 3: Stake */}
-                  <div className="flex items-center justify-between text-sm">
-                    <span>3. Stake in Incentive</span>
-                    {isStakeConfirmed ? (
-                      <CircleCheck size={18} className="text-green-500" />
-                    ) : (
-                      <span className="text-muted-foreground">
-                        {currentStep === "stake" ? "Processing..." : "Pending"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Liquidity Info */}
-              <div>
-                <div className="mb-2">
-                  <label className="text-sm text-muted-foreground">
-                    Position Liquidity
-                  </label>
-                </div>
-                <div className="text-xl">
-                  <DisplayFormattedNumber
-                    num={liquidity.toString()}
-                    significant={6}
-                  />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Action-specific disclaimers */}
-            {currentStep === "approve" && needsApproval && (
-              <div className="px-6 py-4">
-                <TransactionModal.Disclaimer>
-                  Approve the Uniswap V3 Staker contract to manage your LP NFT.
-                </TransactionModal.Disclaimer>
-              </div>
-            )}
-
-            {currentStep === "transfer" && (
-              <div className="px-6 py-4">
-                <TransactionModal.Disclaimer>
-                  Transfer your LP NFT to the staking contract for safekeeping.
-                </TransactionModal.Disclaimer>
-              </div>
-            )}
-
-            {currentStep === "stake" && (
-              <div className="px-6 py-4">
-                <TransactionModal.Disclaimer>
-                  Stake your position to start earning SIR rewards.
-                </TransactionModal.Disclaimer>
-              </div>
-            )}
+            <div className="px-6 py-4">
+              <TransactionModal.Disclaimer>
+                {positions.length === 1
+                  ? "This will approve (if needed), transfer, and stake your LP position in a single transaction."
+                  : `All ${positions.length} positions will be approved (if needed), transferred, and staked in a single transaction.`
+                }
+              </TransactionModal.Disclaimer>
+            </div>
           </>
         ) : (
           // Success state
@@ -373,36 +278,43 @@ export function LpStakeModal({
               <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
             </div>
             <h2 className="text-center text-xl font-semibold">
-              Position Staked Successfully!
+              {positions.length === 1
+                ? "Position Staked Successfully!"
+                : `${positions.length} Positions Staked Successfully!`
+              }
             </h2>
             <div className="text-center text-muted-foreground">
-              LP Position #{positionId.toString()} is now earning SIR rewards.
+              {positions.length === 1
+                ? `LP Position #${positions[0]?.tokenId.toString()} is now earning SIR rewards.`
+                : `All ${positions.length} positions are now earning SIR rewards.`
+              }
             </div>
-            <ExplorerLink transactionHash={stakeHash} />
+            <ExplorerLink transactionHash={hash} />
           </motion.div>
         )}
       </TransactionModal.InfoContainer>
 
-      {!isComplete && (
+      {!isConfirmed && (
         <>
           <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
-              disabled={isPending || isConfirming || !incentiveKey}
+              disabled={isPending || isConfirming || !incentiveKey || positions.length === 0}
               isPending={isPending}
               loading={isConfirming}
-              onClick={handleCurrentAction}
-              isConfirmed={isComplete}
+              onClick={handleMulticallStake}
+              isConfirmed={isConfirmed}
             >
-              {currentStep === "approve" && needsApproval && "Approve"}
-              {currentStep === "transfer" && "Transfer"}
-              {currentStep === "stake" && "Stake"}
+              {positions.length === 1
+                ? "Stake Position"
+                : `Stake ${positions.length} Positions`
+              }
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
         </>
       )}
 
-      {isComplete && (
+      {isConfirmed && (
         <>
           <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>

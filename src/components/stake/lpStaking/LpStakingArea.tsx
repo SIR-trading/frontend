@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LpMetrics } from './LpMetrics';
@@ -14,60 +14,40 @@ import {
 import { LpStakeModal } from './LpStakeModal';
 import { LpUnstakeModal } from './LpUnstakeModal';
 import { LpClaimRewardsModal } from './LpClaimRewardsModal';
+import HoverPopupMobile from '@/components/ui/hover-popup-mobile';
+import DisplayFormattedNumber from '@/components/shared/displayFormattedNumber';
 
 export function LpStakingArea() {
   const {
     unstakedPositions,
     stakedPositions,
     totalValueLockedUsd,
-    isLoading
+    userRewards,
+    isLoading,
+    refetchAll
   } = useUserLpPositions();
 
   // Modal states
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<{
-    tokenId: bigint;
-    liquidity: bigint;
-    tickLower: number;
-    tickUpper: number;
-    isInRange: boolean;
-  } | null>(null);
 
-  // Handle stake button click
+  // Calculate in-range value from staked positions
+  const inRangeValueUsd = useMemo(() => {
+    return stakedPositions.filter(p => p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
+  }, [stakedPositions]);
+
+  // Handle stake button click - stakes all unstaked positions
   const handleStakeClick = useCallback(() => {
     if (unstakedPositions.length > 0) {
-      // Use the first unstaked position
-      const position = unstakedPositions[0];
-      if (position) {
-        setSelectedPosition({
-          tokenId: position.tokenId,
-          liquidity: position.liquidity,
-          tickLower: position.tickLower,
-          tickUpper: position.tickUpper,
-          isInRange: position.isInRange,
-        });
-        setStakeModalOpen(true);
-      }
+      setStakeModalOpen(true);
     }
   }, [unstakedPositions]);
 
-  // Handle unstake button click
+  // Handle unstake button click - unstakes all staked positions
   const handleUnstakeClick = useCallback(() => {
     if (stakedPositions.length > 0) {
-      // Use the first staked position
-      const position = stakedPositions[0];
-      if (position) {
-        setSelectedPosition({
-          tokenId: position.tokenId,
-          liquidity: position.liquidity,
-          tickLower: position.tickLower,
-          tickUpper: position.tickUpper,
-          isInRange: position.isInRange,
-        });
-        setUnstakeModalOpen(true);
-      }
+      setUnstakeModalOpen(true);
     }
   }, [stakedPositions]);
 
@@ -85,6 +65,7 @@ export function LpStakingArea() {
       {/* Metrics at top */}
       <LpMetrics
         totalValueLockedUsd={totalValueLockedUsd}
+        inRangeValueUsd={inRangeValueUsd}
         stakingApr={null} // TBD
       />
 
@@ -105,26 +86,44 @@ export function LpStakingArea() {
                         <div className="flex items-center gap-4">
                           {/* Show first 2 positions */}
                           {unstakedPositions.slice(0, 2).map((position) => (
-                            <div key={position.tokenId.toString()} className="flex items-center gap-1.5">
-                              <span
-                                className={`inline-block rounded-full ${
-                                  position.isInRange
-                                    ? 'animate-pulse'
-                                    : ''
-                                }`}
-                                style={{
-                                  width: '14px',
-                                  height: '14px',
-                                  backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                  minWidth: '14px',
-                                  minHeight: '14px'
-                                }}
-                                title={`Position #${position.tokenId} - ${position.isInRange ? "In range" : "Out of range"}`}
-                              />
-                              <span className="text-sm">
-                                #{position.tokenId.toString()}
-                              </span>
-                            </div>
+                            <HoverPopupMobile
+                              key={position.tokenId.toString()}
+                              size="200"
+                              trigger={
+                                <div className="flex items-center gap-1.5 cursor-pointer">
+                                  <span
+                                    className={`inline-block rounded-full ${
+                                      position.isInRange
+                                        ? 'animate-pulse'
+                                        : ''
+                                    }`}
+                                    style={{
+                                      width: '14px',
+                                      height: '14px',
+                                      backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
+                                      minWidth: '14px',
+                                      minHeight: '14px'
+                                    }}
+                                  />
+                                  <span className="text-sm">
+                                    #{position.tokenId.toString()}
+                                  </span>
+                                </div>
+                              }
+                            >
+                              <div className="space-y-1">
+                                <div className="text-[12px]">
+                                  Status: <span className={position.isInRange ? 'text-green-500' : 'text-yellow-500'}>
+                                    {position.isInRange ? 'In Range' : 'Out of Range'}
+                                  </span>
+                                </div>
+                                <div className="text-[12px]">
+                                  Value: ${position.valueUsd > 0 ? (
+                                    <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                  ) : '0'}
+                                </div>
+                              </div>
+                            </HoverPopupMobile>
                           ))}
                           {/* Show popover for additional positions */}
                           {unstakedPositions.length > 2 && (
@@ -140,27 +139,36 @@ export function LpStakingArea() {
                                     Additional Positions
                                   </div>
                                   {unstakedPositions.slice(2).map((position) => (
-                                    <div key={position.tokenId.toString()} className="flex items-center gap-2 py-1">
-                                      <span
-                                        className={`inline-block rounded-full ${
-                                          position.isInRange
-                                            ? 'animate-pulse'
-                                            : ''
-                                        }`}
-                                        style={{
-                                          width: '14px',
-                                          height: '14px',
-                                          backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                          minWidth: '14px',
-                                          minHeight: '14px'
-                                        }}
-                                      />
-                                      <span className="text-sm">
-                                        #{position.tokenId.toString()}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground ml-auto">
-                                        {position.isInRange ? 'In range' : 'Out of range'}
-                                      </span>
+                                    <div key={position.tokenId.toString()} className="flex items-center justify-between py-1">
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={`inline-block rounded-full ${
+                                            position.isInRange
+                                              ? 'animate-pulse'
+                                              : ''
+                                          }`}
+                                          style={{
+                                            width: '14px',
+                                            height: '14px',
+                                            backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
+                                            minWidth: '14px',
+                                            minHeight: '14px'
+                                          }}
+                                        />
+                                        <span className="text-sm">
+                                          #{position.tokenId.toString()}
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-xs text-muted-foreground">
+                                          {position.isInRange ? 'In range' : 'Out of range'}
+                                        </span>
+                                        <span className="text-xs">
+                                          ${position.valueUsd > 0 ? (
+                                            <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                          ) : '0'}
+                                        </span>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -169,14 +177,9 @@ export function LpStakingArea() {
                           )}
                         </div>
                       ) : (
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            No unstaked positions
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Add liquidity to SIR/WETH 1% pool
-                          </p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          No LP positions
+                        </p>
                       )}
                     </>
                   ) : (
@@ -184,19 +187,17 @@ export function LpStakingArea() {
                   )}
                 </div>
               </div>
-                {unstakedPositions.length > 0 && !isLoading && (
-                  <div className="flex items-end">
-                    <Button
-                      disabled={!unstakedPositions.length}
-                      onClick={handleStakeClick}
-                      type="button"
-                      className="py-2 w-20"
-                    >
-                      Stake
-                    </Button>
-                  </div>
-                )}
+              <div className="flex items-end">
+                <Button
+                  disabled={!unstakedPositions.length}
+                  onClick={handleStakeClick}
+                  type="button"
+                  className="py-2 w-20"
+                >
+                  Stake
+                </Button>
               </div>
+            </div>
             </div>
           </StakeCardWrapper>
 
@@ -215,26 +216,44 @@ export function LpStakingArea() {
                         <div className="flex items-center gap-4">
                           {/* Show first 2 positions */}
                           {stakedPositions.slice(0, 2).map((position) => (
-                            <div key={position.tokenId.toString()} className="flex items-center gap-1.5">
-                              <span
-                                className={`inline-block rounded-full ${
-                                  position.isInRange
-                                    ? 'animate-pulse'
-                                    : ''
-                                }`}
-                                style={{
-                                  width: '14px',
-                                  height: '14px',
-                                  backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                  minWidth: '14px',
-                                  minHeight: '14px'
-                                }}
-                                title={`Position #${position.tokenId} - ${position.isInRange ? "In range" : "Out of range"}`}
-                              />
-                              <span className="text-sm">
-                                #{position.tokenId.toString()}
-                              </span>
-                            </div>
+                            <HoverPopupMobile
+                              key={position.tokenId.toString()}
+                              size="200"
+                              trigger={
+                                <div className="flex items-center gap-1.5 cursor-pointer">
+                                  <span
+                                    className={`inline-block rounded-full ${
+                                      position.isInRange
+                                        ? 'animate-pulse'
+                                        : ''
+                                    }`}
+                                    style={{
+                                      width: '14px',
+                                      height: '14px',
+                                      backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
+                                      minWidth: '14px',
+                                      minHeight: '14px'
+                                    }}
+                                  />
+                                  <span className="text-sm">
+                                    #{position.tokenId.toString()}
+                                  </span>
+                                </div>
+                              }
+                            >
+                              <div className="space-y-1">
+                                <div className="text-[12px]">
+                                  Status: <span className={position.isInRange ? 'text-green-500' : 'text-yellow-500'}>
+                                    {position.isInRange ? 'In Range' : 'Out of Range'}
+                                  </span>
+                                </div>
+                                <div className="text-[12px]">
+                                  Value: ${position.valueUsd > 0 ? (
+                                    <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                  ) : '0'}
+                                </div>
+                              </div>
+                            </HoverPopupMobile>
                           ))}
                           {/* Show popover for additional positions */}
                           {stakedPositions.length > 2 && (
@@ -250,27 +269,36 @@ export function LpStakingArea() {
                                     Additional Positions
                                   </div>
                                   {stakedPositions.slice(2).map((position) => (
-                                    <div key={position.tokenId.toString()} className="flex items-center gap-2 py-1">
-                                      <span
-                                        className={`inline-block rounded-full ${
-                                          position.isInRange
-                                            ? 'animate-pulse'
-                                            : ''
-                                        }`}
-                                        style={{
-                                          width: '14px',
-                                          height: '14px',
-                                          backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                          minWidth: '14px',
-                                          minHeight: '14px'
-                                        }}
-                                      />
-                                      <span className="text-sm">
-                                        #{position.tokenId.toString()}
-                                      </span>
-                                      <span className="text-xs text-muted-foreground ml-auto">
-                                        {position.isInRange ? 'In range' : 'Out of range'}
-                                      </span>
+                                    <div key={position.tokenId.toString()} className="flex items-center justify-between py-1">
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={`inline-block rounded-full ${
+                                            position.isInRange
+                                              ? 'animate-pulse'
+                                              : ''
+                                          }`}
+                                          style={{
+                                            width: '14px',
+                                            height: '14px',
+                                            backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
+                                            minWidth: '14px',
+                                            minHeight: '14px'
+                                          }}
+                                        />
+                                        <span className="text-sm">
+                                          #{position.tokenId.toString()}
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col items-end">
+                                        <span className="text-xs text-muted-foreground">
+                                          {position.isInRange ? 'In range' : 'Out of range'}
+                                        </span>
+                                        <span className="text-xs">
+                                          ${position.valueUsd > 0 ? (
+                                            <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                          ) : '0'}
+                                        </span>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -279,11 +307,9 @@ export function LpStakingArea() {
                           )}
                         </div>
                       ) : (
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            No staked positions
-                          </p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          No staked positions
+                        </p>
                       )}
                     </>
                   ) : (
@@ -313,35 +339,26 @@ export function LpStakingArea() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   SIR Token Rewards
                 </h2>
-                <div className="flex min-h-[32px] items-center text-3xl">
-                  {!isLoading ? (
-                    <>
-                      {stakedPositions.some(p => p.rewardsSir > 0n) ? (
-                        <div>
-                          <div className="text-2xl font-semibold">
-                            {/* Calculate total rewards */}
-                            {stakedPositions.reduce((sum, p) => sum + Number(p.rewardsSir) / 1e12, 0).toFixed(3)} {getSirSymbol()}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Available to claim
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            No rewards available
-                          </p>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Loading...</span>
-                  )}
+                <div className="flex min-h-[32px] justify-between text-3xl">
+                  <div className="flex items-end gap-x-1">
+                    {!isLoading ? (
+                      <span className="text-xl">
+                        {userRewards > 0n ? (
+                          <DisplayFormattedNumber num={Number(userRewards) / 1e12} significant={3} />
+                        ) : (
+                          '0'
+                        )}
+                        <span className=""> {getSirSymbol()}</span>
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Loading...</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-end">
                 <Button
-                  disabled={!stakedPositions.some(p => p.rewardsSir > 0n)}
+                  disabled={!(userRewards > 0n)}
                   onClick={handleClaimClick}
                   type="button"
                   className="py-2 w-20"
@@ -355,43 +372,47 @@ export function LpStakingArea() {
       </div>
 
       {/* Modals */}
-      {selectedPosition && (
-        <LpStakeModal
-          open={stakeModalOpen}
-          setOpen={setStakeModalOpen}
-          positionId={selectedPosition.tokenId}
-          liquidity={selectedPosition.liquidity}
-          tickLower={selectedPosition.tickLower}
-          tickUpper={selectedPosition.tickUpper}
-          isInRange={selectedPosition.isInRange}
-          onSuccess={() => {
-            setStakeModalOpen(false);
-            setSelectedPosition(null);
-            // Refresh positions will happen automatically via query invalidation
-          }}
-        />
-      )}
+      <LpStakeModal
+        open={stakeModalOpen}
+        setOpen={setStakeModalOpen}
+        positions={unstakedPositions}
+        onSuccess={() => {
+          // Wait for blockchain state to update, then refetch
+          setTimeout(() => {
+            void refetchAll().then(() => {
+              // Close modal after refetch to ensure UI updates
+              setStakeModalOpen(false);
+            });
+          }, 3000);
+        }}
+      />
 
-      {selectedPosition && (
-        <LpUnstakeModal
-          open={unstakeModalOpen}
-          setOpen={setUnstakeModalOpen}
-          positionId={selectedPosition.tokenId}
-          liquidity={selectedPosition.liquidity}
-          onSuccess={() => {
-            setUnstakeModalOpen(false);
-            setSelectedPosition(null);
-            // Refresh positions will happen automatically via query invalidation
-          }}
-        />
-      )}
+      <LpUnstakeModal
+        open={unstakeModalOpen}
+        setOpen={setUnstakeModalOpen}
+        positions={stakedPositions}
+        onSuccess={() => {
+          // Wait for blockchain state to update, then refetch
+          setTimeout(() => {
+            void refetchAll().then(() => {
+              // Close modal after refetch to ensure UI updates
+              setUnstakeModalOpen(false);
+            });
+          }, 3000);
+        }}
+      />
 
       <LpClaimRewardsModal
         open={claimModalOpen}
         setOpen={setClaimModalOpen}
         onSuccess={() => {
-          setClaimModalOpen(false);
-          // Refresh rewards will happen automatically via query invalidation
+          // Wait for blockchain state to update, then refetch
+          setTimeout(() => {
+            void refetchAll().then(() => {
+              // Close modal after refetch to ensure UI updates
+              setClaimModalOpen(false);
+            });
+          }, 3000);
         }}
       />
     </Card>

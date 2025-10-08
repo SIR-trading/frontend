@@ -1,5 +1,123 @@
 # Claude Development Guidelines
 
+## LP Staking Implementation
+
+### Overview
+
+The LP staking system allows users to stake Uniswap V3 LP NFT positions in the SIR/WETH 1% pool to earn SIR rewards. The implementation uses a single-transaction multicall pattern for efficiency.
+
+### Key Components
+
+1. **`LpStakingArea.tsx`**: Main component displaying LP positions
+   - Shows unstaked positions, staked positions, and claimable rewards in separate cards
+   - Each card has its own action button (Stake, Unstake, Claim)
+   - Buttons remain visible but disabled when no applicable positions
+
+2. **`useUserLpPositions.ts`**: Hook for fetching LP data
+   - Fetches positions from both user wallet AND UniswapV3Staker contract
+   - Filters for SIR/WETH 1% pool positions only
+   - Detects if positions are in-range using current pool tick
+   - Provides `refetchAll()` function for manual data refresh
+
+3. **`LpStakeModal.tsx`**: Handles staking multiple positions
+   - Uses multicall to batch approve + transfer operations
+   - Encodes incentive key for automatic staking via `safeTransferFrom`
+   - Single transaction for all positions
+
+4. **`LpUnstakeModal.tsx`**: Handles unstaking multiple positions
+   - Uses multicall to batch unstake + withdraw operations
+   - Returns all NFTs to user wallet in one transaction
+
+### Technical Patterns
+
+#### Single-Transaction Multicall
+```typescript
+// Build array of encoded function calls
+const calls: `0x${string}`[] = [];
+
+// Add approval calls if needed
+positions.forEach((position, index) => {
+  if (needsApproval[index]) {
+    calls.push(encodeFunctionData({
+      abi: NonfungiblePositionManagerContract.abi,
+      functionName: "approve",
+      args: [stakingContract, tokenId]
+    }));
+  }
+});
+
+// Add transfer calls for all positions
+positions.forEach((position) => {
+  calls.push(encodeFunctionData({
+    abi: NonfungiblePositionManagerContract.abi,
+    functionName: "safeTransferFrom",
+    args: [from, to, tokenId, encodedIncentiveData]
+  }));
+});
+
+// Execute all in one transaction
+executeMulticall({ functionName: "multicall", args: [calls] });
+```
+
+#### Data Refetching After Transactions
+```typescript
+// Wait for blockchain state to settle before refetching
+onSuccess={async () => {
+  setModalOpen(false);
+  // 2-second delay ensures blockchain state is updated
+  setTimeout(async () => {
+    await refetchAll();
+  }, 2000);
+}}
+```
+
+### Incentive Configuration
+
+Active incentives are configured in `src/data/uniswapIncentives.ts`:
+- Must have correct `startTime` and `endTime` for current timestamp
+- Incentive key is encoded as tuple: `(rewardToken, pool, startTime, endTime, refundee)`
+- Used by staker contract to identify reward program
+
+### Position Detection
+
+The hook checks both:
+1. **User's wallet** (`balanceOf(userAddress)`) - for unstaked positions
+2. **Staker contract** (`balanceOf(stakerAddress)`) - for all staked positions
+   - Then filters by `deposits[tokenId].owner === userAddress`
+
+### In-Range Detection
+
+Positions show a green pulsing indicator when in range:
+```typescript
+const isInRange = currentTick >= tickLower && currentTick < tickUpper;
+```
+
+### SIR Price Context
+
+Added `SirPriceContext` to centralize SIR price fetching:
+- **Location**: `src/contexts/SirPriceContext.tsx`
+- **Purpose**: Eliminates duplicate API calls for SIR price across components
+- **Usage**: Wrap app in `SirPriceProvider`, then use `useSirPrice()` hook
+- **Caching**: 1-minute stale time, no refetch on window focus
+- **Benefits**: Single API call shared across Stake page components (price card, market cap, LP calculations)
+
+```typescript
+// In any component
+const { sirPrice, isLoading, error } = useSirPrice();
+```
+
+### Important Notes
+
+- All stake/unstake operations work on ALL positions at once (no individual selection)
+- Positions with 0 liquidity are filtered out (closed positions)
+- Only SIR/WETH 1% pool positions are shown (fee = 10000)
+- TVL shows approximate USD value of staked positions (simplified calculation)
+- Refetch delay prevents reading stale blockchain data
+- Empty state shows "No LP positions" instead of suggesting to add liquidity
+- SIR price is fetched once and shared via context to prevent duplicate API calls
+
+---
+
 ## Button Styling Guidelines
 
 ### Button Component Overview
@@ -456,7 +574,7 @@ import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 <HoverPopupMobile
   size="200"  // Width in pixels: "200", "250", "300"
   trigger={
-    <button>Hover me</button>  // The element that triggers the popup on hover
+    <button className="cursor-pointer">Hover me</button>  // Always use cursor-pointer, not cursor-help
   }
 >
   <span className="text-[13px] font-medium">
@@ -470,6 +588,11 @@ import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 - **Customizable width**: Use `size` prop for different content widths
 - **Flexible trigger**: Any element can be the trigger
 - **Consistent styling**: Automatically styled to match the app's design system
+
+**Important Cursor Style Convention:**
+- **Always use `cursor-pointer`** on hover trigger elements - shows the finger pointer cursor
+- **Never use `cursor-help`** - the arrow with question mark is not used in this app
+- This provides consistent UX where all interactive elements show the same pointer cursor
 
 **Common Use Cases:**
 1. **Information tooltips**: Explaining features or showing additional data

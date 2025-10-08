@@ -57,7 +57,10 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Stake {getSirSymbol()} to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
+          Stake {getSirSymbol()} tokens to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
+        </p>
+        <p className="mt-2">
+          Additionally, you can stake Uniswap V3 LP positions in the {getSirSymbol()}/W{getNativeCurrencySymbol()} pool to earn {getSirSymbol()} rewards.
         </p>
       </>
     ),
