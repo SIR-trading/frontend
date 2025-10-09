@@ -159,6 +159,8 @@ export function useUserLpPositions() {
   });
 
   // Also get staker's NFT balance (for staked positions)
+  // This is GLOBAL data - all staked positions in the protocol, not user-specific
+  // Must always be enabled to calculate Total Value Staked for all users
   const {
     data: stakerBalance,
     isLoading: isLoadingStakerBalance,
@@ -168,7 +170,7 @@ export function useUserLpPositions() {
     functionName: "balanceOf",
     args: [UniswapV3StakerContract.address],
     query: {
-      enabled: Boolean(address),
+      enabled: true, // Always fetch - this is protocol-wide data
     },
   });
 
