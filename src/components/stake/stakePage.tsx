@@ -35,7 +35,7 @@ const StakePage = () => {
         </div>
 
         {/* Bottom section: Market Data Zone */}
-        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 relative overflow-hidden min-h-[600px] lg:min-h-0">
+        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 relative overflow-hidden">
           <h2 className="pb-4 text-sm font-medium">
             Market Data
           </h2>

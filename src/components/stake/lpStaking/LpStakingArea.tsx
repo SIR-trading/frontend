@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LpMetrics } from "./LpMetrics";
@@ -31,6 +31,20 @@ export function LpStakingArea() {
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+
+  // Timeout refs for cleanup
+  const stakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const unstakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const claimTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (stakeTimeoutRef.current) clearTimeout(stakeTimeoutRef.current);
+      if (unstakeTimeoutRef.current) clearTimeout(unstakeTimeoutRef.current);
+      if (claimTimeoutRef.current) clearTimeout(claimTimeoutRef.current);
+    };
+  }, []);
 
   // Calculate totals for unstaked positions
   const unstakedTotals = useMemo(() => {
@@ -453,7 +467,11 @@ export function LpStakingArea() {
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (stakeTimeoutRef.current) {
+            clearTimeout(stakeTimeoutRef.current);
+          }
+          stakeTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}
@@ -466,7 +484,11 @@ export function LpStakingArea() {
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (unstakeTimeoutRef.current) {
+            clearTimeout(unstakeTimeoutRef.current);
+          }
+          unstakeTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}
@@ -478,7 +500,11 @@ export function LpStakingArea() {
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (claimTimeoutRef.current) {
+            clearTimeout(claimTimeoutRef.current);
+          }
+          claimTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}
