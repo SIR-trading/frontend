@@ -592,7 +592,7 @@ export function useUserLpPositions() {
   // Check if we have staked positions but haven't calculated their value yet
   // This detects the race condition where positions exist but prices aren't ready
   const hasUncalculatedPositions =
-    stakerBalance &&
+    stakerBalance !== undefined &&
     stakerBalance > 0n &&
     globalStakingStats.totalValueStakedUsd === 0 &&
     (!sirPrice || !wethPrice || !sqrtPriceX96);

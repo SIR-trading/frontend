@@ -41,7 +41,7 @@ export function SirMetrics() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-3 pb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
         {/* Staked Supply Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
           <div className="text-xs text-muted-foreground">Staked Supply</div>
@@ -65,7 +65,7 @@ export function SirMetrics() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3 pb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
       {/* Staked Supply Card */}
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Staked Supply</div>

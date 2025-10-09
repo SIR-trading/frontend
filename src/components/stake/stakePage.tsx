@@ -25,17 +25,17 @@ const StakePage = () => {
   return (
     <div className="">
       <PageHeadingSpace />
-      <Container className="space-y-6 lg:w-[1200px]">
+      <Container className="space-y-6 xl:w-[1200px]">
         <Explainer page={EPage.STAKE} />
 
         {/* Two-column layout: SIR Staking | LP Staking */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-2">
           <SirStakingArea />
           <LpStakingArea />
         </div>
 
         {/* Bottom section: Market Data Zone */}
-        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 relative overflow-hidden">
+        <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 relative overflow-hidden min-h-[600px] lg:min-h-0">
           <h2 className="pb-4 text-sm font-medium">
             Market Data
           </h2>

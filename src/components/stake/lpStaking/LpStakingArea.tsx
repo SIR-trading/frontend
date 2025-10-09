@@ -105,10 +105,12 @@ export function LpStakingArea() {
                     only earning from some of the active incentives.
                   </ToolTip>
                 </h2>
-                <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
+                <div className="flex min-h-[32px] justify-between text-3xl">
                   {!isConnected ? (
-                    <div className="text-sm italic text-foreground">
-                      Connect to stake
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground">
+                        Connect to stake
+                      </div>
                     </div>
                   ) : !isLoading ? (
                     <>
@@ -254,10 +256,12 @@ export function LpStakingArea() {
                     incentives.
                   </ToolTip>
                 </h2>
-                <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
+                <div className="flex min-h-[32px] justify-between text-3xl">
                   {!isConnected ? (
-                    <div className="text-sm italic text-foreground">
-                      Connect to unstake
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground">
+                        Connect to unstake
+                      </div>
                     </div>
                   ) : !isLoading ? (
                     <>
@@ -400,25 +404,31 @@ export function LpStakingArea() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   SIR Token Rewards
                 </h2>
-                {!isConnected ? (
-                  <div className="text-sm italic text-foreground">
-                    Connect to claim rewards
-                  </div>
-                ) : !isLoading ? (
-                  <span className="text-xl">
-                    {userRewards > 0n ? (
-                      <DisplayFormattedNumber
-                        num={Number(userRewards) / 1e12}
-                        significant={3}
-                      />
-                    ) : (
-                      "0"
-                    )}
-                    <span className=""> {getSirSymbol()}</span>
-                  </span>
-                ) : (
-                  <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
-                )}
+                <div className="flex min-h-[32px] justify-between text-3xl">
+                  {!isConnected ? (
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground">
+                        Connect to claim rewards
+                      </div>
+                    </div>
+                  ) : !isLoading ? (
+                    <div className="flex items-end gap-x-1">
+                      <span className="text-xl">
+                        {userRewards > 0n ? (
+                          <DisplayFormattedNumber
+                            num={Number(userRewards) / 1e12}
+                            significant={3}
+                          />
+                        ) : (
+                          "0"
+                        )}
+                        <span className=""> {getSirSymbol()}</span>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
+                  )}
+                </div>
               </div>
               <div className="flex items-end">
                 <Button
