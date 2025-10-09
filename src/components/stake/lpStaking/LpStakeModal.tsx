@@ -17,7 +17,7 @@ import {
   NonfungiblePositionManagerContract,
   UniswapV3StakerContract,
 } from "@/contracts/uniswapV3Staker";
-import { getCurrentActiveIncentives } from "@/data/uniswapIncentives";
+import { getCurrentActiveIncentives, type IncentiveKey } from "@/data/uniswapIncentives";
 import { encodeAbiParameters, parseAbiParameters, encodeFunctionData } from "viem";
 
 interface LpPosition {
@@ -27,6 +27,8 @@ interface LpPosition {
   tickUpper: number;
   isInRange: boolean;
   valueUsd: number;
+  isStaked: boolean; // Whether position is in the staker contract
+  missingIncentives: IncentiveKey[]; // Which incentives this position needs to be subscribed to
 }
 
 interface LpStakeModalProps {
@@ -44,11 +46,8 @@ export function LpStakeModal({
 }: LpStakeModalProps) {
   const { address } = useAccount();
 
-  // Get the active incentive key
-  const incentiveKey = useMemo(() => {
-    const activeIncentives = getCurrentActiveIncentives();
-    return activeIncentives[0]; // Use the first active incentive
-  }, []);
+  // Get all active incentive keys
+  const activeIncentives = useMemo(() => getCurrentActiveIncentives(), []);
 
   // Calculate total USD value from positions
   const totalValueUsd = useMemo(() => {
@@ -99,26 +98,22 @@ export function LpStakeModal({
 
   // Handle multicall staking
   const handleMulticallStake = useCallback(() => {
-    if (!address || !incentiveKey || positions.length === 0) return;
+    if (!address || activeIncentives.length === 0 || positions.length === 0) return;
 
-    // Encode the incentive key for automatic staking
-    const encodedIncentive = encodeAbiParameters(
-      parseAbiParameters('address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee'),
-      [
-        incentiveKey.rewardToken,
-        incentiveKey.pool,
-        incentiveKey.startTime,
-        incentiveKey.endTime,
-        incentiveKey.refundee,
-      ]
-    );
+    // Separate positions into two categories
+    const unstakedPositions = positions.filter(p => !p.isStaked);
+    const alreadyStakedPositions = positions.filter(p => p.isStaked);
 
     // Build the multicall array
     const calls: `0x${string}`[] = [];
 
-    // Add approval calls for positions that need it
-    positions.forEach((position, index) => {
-      if (positionsNeedingApproval[index]) {
+    // For truly unstaked positions: approve + transfer to staker (which auto-stakes in ALL incentives)
+    unstakedPositions.forEach((position, index) => {
+      // Find the original index in the full positions array for approval checking
+      const originalIndex = positions.findIndex(p => p.tokenId === position.tokenId);
+
+      // Add approval if needed
+      if (originalIndex >= 0 && positionsNeedingApproval[originalIndex]) {
         calls.push(
           encodeFunctionData({
             abi: NonfungiblePositionManagerContract.abi,
@@ -127,27 +122,68 @@ export function LpStakeModal({
           })
         );
       }
+
+      // For each active incentive, encode and transfer
+      // We'll use the first incentive for the transfer data (staker will handle all)
+      if (activeIncentives.length > 0 && activeIncentives[0]) {
+        const encodedIncentive = encodeAbiParameters(
+          parseAbiParameters('address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee'),
+          [
+            activeIncentives[0].rewardToken,
+            activeIncentives[0].pool,
+            activeIncentives[0].startTime,
+            activeIncentives[0].endTime,
+            activeIncentives[0].refundee,
+          ]
+        );
+
+        calls.push(
+          encodeFunctionData({
+            abi: NonfungiblePositionManagerContract.abi,
+            functionName: "safeTransferFrom",
+            args: [address, UniswapV3StakerContract.address, position.tokenId, encodedIncentive],
+          })
+        );
+      }
     });
 
-    // Add transfer & stake calls for all positions
-    positions.forEach((position) => {
-      calls.push(
-        encodeFunctionData({
-          abi: NonfungiblePositionManagerContract.abi,
-          functionName: "safeTransferFrom",
-          args: [address, UniswapV3StakerContract.address, position.tokenId, encodedIncentive],
-        })
-      );
+    // For already-staked positions: just call stakeToken for each missing incentive
+    alreadyStakedPositions.forEach((position) => {
+      position.missingIncentives.forEach((incentive) => {
+        calls.push(
+          encodeFunctionData({
+            abi: UniswapV3StakerContract.abi,
+            functionName: "stakeToken",
+            args: [
+              {
+                rewardToken: incentive.rewardToken,
+                pool: incentive.pool,
+                startTime: incentive.startTime,
+                endTime: incentive.endTime,
+                refundee: incentive.refundee,
+              },
+              position.tokenId,
+            ],
+          })
+        );
+      });
     });
+
+    // Determine which contract to execute the multicall on
+    // If we have any unstaked positions, use NonfungiblePositionManager
+    // Otherwise use UniswapV3Staker
+    const contractToUse = unstakedPositions.length > 0
+      ? NonfungiblePositionManagerContract
+      : UniswapV3StakerContract;
 
     // Execute multicall
     executeMulticall({
-      address: NonfungiblePositionManagerContract.address,
-      abi: NonfungiblePositionManagerContract.abi,
+      address: contractToUse.address,
+      abi: contractToUse.abi,
       functionName: "multicall",
       args: [calls],
     });
-  }, [executeMulticall, address, positions, incentiveKey, positionsNeedingApproval]);
+  }, [executeMulticall, address, positions, activeIncentives, positionsNeedingApproval]);
 
   // Handle success callback
   useEffect(() => {
@@ -165,7 +201,7 @@ export function LpStakeModal({
     }
   }, [setOpen, reset, writeError, refetchApprovals]);
 
-  if (!incentiveKey) {
+  if (activeIncentives.length === 0) {
     return (
       <TransactionModal.Root
         title="Stake LP Positions"
@@ -299,7 +335,7 @@ export function LpStakeModal({
           <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
-              disabled={isPending || isConfirming || !incentiveKey || positions.length === 0}
+              disabled={isPending || isConfirming || activeIncentives.length === 0 || positions.length === 0}
               isPending={isPending}
               loading={isConfirming}
               onClick={handleMulticallStake}

@@ -1,3 +1,5 @@
+import type { IncentiveKey } from '@/data/uniswapIncentives';
+
 export interface LpPosition {
   tokenId: bigint;
   owner: string;
@@ -12,4 +14,6 @@ export interface LpPosition {
   valueUsd: number;
   rewardsSir: bigint; // Accumulated rewards in SIR
   isInRange: boolean; // Whether position is currently active/in-range
+  stakesPerIncentive: Map<string, bigint>; // Map of incentive ID -> liquidity staked in that incentive
+  missingIncentives: IncentiveKey[]; // Incentives this position is not yet participating in
 }

@@ -1,21 +1,17 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LpMetrics } from "./LpMetrics";
 import { useUserLpPositions } from "./hooks/useUserLpPositions";
 import { StakeCardWrapper } from "../stakeCardWrapper";
 import { getSirSymbol } from "@/lib/assets";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { LpStakeModal } from "./LpStakeModal";
 import { LpUnstakeModal } from "./LpUnstakeModal";
 import { LpClaimRewardsModal } from "./LpClaimRewardsModal";
-import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { CheckCircle2, XCircle } from "lucide-react";
+import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 
 export function LpStakingArea() {
   const {
@@ -31,6 +27,20 @@ export function LpStakingArea() {
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+
+  // Calculate totals for unstaked positions
+  const unstakedTotals = useMemo(() => {
+    const inRange = unstakedPositions.filter(p => p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
+    const outOfRange = unstakedPositions.filter(p => !p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
+    return { inRange, outOfRange };
+  }, [unstakedPositions]);
+
+  // Calculate totals for staked positions
+  const stakedTotals = useMemo(() => {
+    const inRange = stakedPositions.filter(p => p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
+    const outOfRange = stakedPositions.filter(p => !p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
+    return { inRange, outOfRange };
+  }, [stakedPositions]);
 
   // Handle stake button click - stakes all unstaked positions
   const handleStakeClick = useCallback(() => {
@@ -68,149 +78,90 @@ export function LpStakingArea() {
         <StakeCardWrapper>
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
-              <div className="flex-1">
+              <div>
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   LP Positions
                 </h2>
-                <div className="flex min-h-[32px] items-center text-3xl">
+                <div className="flex min-h-[32px] items-baseline gap-2 flex-wrap">
                   {!isLoading ? (
                     <>
                       {unstakedPositions.length > 0 ? (
-                        <div className="flex items-center gap-4">
-                          {/* Show first 2 positions */}
-                          {unstakedPositions.slice(0, 2).map((position) => (
+                        <>
+                          <div className="flex items-baseline gap-1">
                             <HoverPopupMobile
-                              key={position.tokenId.toString()}
-                              size="200"
                               trigger={
-                                <div className="flex cursor-pointer items-center gap-1.5">
-                                  <span
-                                    className={`inline-block rounded-full ${
-                                      position.isInRange ? "animate-pulse" : ""
-                                    }`}
-                                    style={{
-                                      width: "14px",
-                                      height: "14px",
-                                      backgroundColor: position.isInRange
-                                        ? "#22c55e"
-                                        : "rgb(107, 114, 128)",
-                                      minWidth: "14px",
-                                      minHeight: "14px",
-                                    }}
-                                  />
-                                  <span className="text-sm">
-                                    #{position.tokenId.toString()}
+                                <div className="flex cursor-pointer items-baseline gap-1">
+                                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-xl">
+                                    ${unstakedTotals.inRange > 0 ? (
+                                      <DisplayFormattedNumber num={unstakedTotals.inRange} significant={3} />
+                                    ) : "0"}
+                                    <span className=""> </span>
                                   </span>
                                 </div>
                               }
+                              size="200"
                             >
-                              <div className="space-y-1">
-                                <div className="text-[12px]">
-                                  Status:{" "}
-                                  <span
-                                    className={
-                                      position.isInRange
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
-                                    }
-                                  >
-                                    {position.isInRange
-                                      ? "In Range"
-                                      : "Out of Range"}
+                              <span className="text-[13px] font-medium">In range</span>
+                            </HoverPopupMobile>
+                            <span className="text-2xl text-muted-foreground">+</span>
+                            <HoverPopupMobile
+                              trigger={
+                                <div className="flex cursor-pointer items-baseline gap-1">
+                                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-xl">
+                                    ${unstakedTotals.outOfRange > 0 ? (
+                                      <DisplayFormattedNumber num={unstakedTotals.outOfRange} significant={3} />
+                                    ) : "0"}
+                                    <span className=""> </span>
                                   </span>
                                 </div>
-                                <div className="text-[12px]">
-                                  Value: $
-                                  {position.valueUsd > 0 ? (
-                                    <DisplayFormattedNumber
-                                      num={position.valueUsd}
-                                      significant={3}
-                                    />
-                                  ) : (
-                                    "0"
-                                  )}
-                                </div>
-                              </div>
+                              }
+                              size="200"
+                            >
+                              <span className="text-[13px] font-medium">Out of range</span>
                             </HoverPopupMobile>
-                          ))}
-                          {/* Show popover for additional positions */}
-                          {unstakedPositions.length > 2 && (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground">
-                                  +{unstakedPositions.length - 2} more
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="max-h-64 w-64 overflow-y-auto"
-                                align="start"
-                              >
-                                <div className="space-y-2">
-                                  <div className="mb-2 text-xs font-medium text-muted-foreground">
-                                    Additional Positions
+                          </div>
+                          <HoverPopupMobile
+                            trigger={
+                              <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">
+                                ({unstakedPositions.length} {unstakedPositions.length === 1 ? "position" : "positions"})
+                              </span>
+                            }
+                            size="250"
+                          >
+                            <div className="space-y-2">
+                              {unstakedPositions.map((position) => (
+                                <div key={position.tokenId.toString()} className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`inline-block rounded-full ${position.isInRange ? "animate-pulse" : ""}`}
+                                      style={{
+                                        width: "10px",
+                                        height: "10px",
+                                        backgroundColor: position.isInRange ? "#22c55e" : "rgb(107, 114, 128)",
+                                        minWidth: "10px",
+                                        minHeight: "10px",
+                                      }}
+                                    />
+                                    <span className="text-xs">#{position.tokenId.toString()}</span>
                                   </div>
-                                  {unstakedPositions
-                                    .slice(2)
-                                    .map((position) => (
-                                      <div
-                                        key={position.tokenId.toString()}
-                                        className="flex items-center justify-between py-1"
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <span
-                                            className={`inline-block rounded-full ${
-                                              position.isInRange
-                                                ? "animate-pulse"
-                                                : ""
-                                            }`}
-                                            style={{
-                                              width: "14px",
-                                              height: "14px",
-                                              backgroundColor:
-                                                position.isInRange
-                                                  ? "#22c55e"
-                                                  : "rgb(107, 114, 128)",
-                                              minWidth: "14px",
-                                              minHeight: "14px",
-                                            }}
-                                          />
-                                          <span className="text-sm">
-                                            #{position.tokenId.toString()}
-                                          </span>
-                                        </div>
-                                        <div className="flex flex-col items-end">
-                                          <span className="text-xs text-muted-foreground">
-                                            {position.isInRange
-                                              ? "In range"
-                                              : "Out of range"}
-                                          </span>
-                                          <span className="text-xs">
-                                            $
-                                            {position.valueUsd > 0 ? (
-                                              <DisplayFormattedNumber
-                                                num={position.valueUsd}
-                                                significant={3}
-                                              />
-                                            ) : (
-                                              "0"
-                                            )}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    ))}
+                                  <span className="text-xs font-medium whitespace-nowrap">
+                                    ${position.valueUsd > 0 ? (
+                                      <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                    ) : "0"}
+                                  </span>
                                 </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </div>
+                              ))}
+                            </div>
+                          </HoverPopupMobile>
+                        </>
                       ) : (
-                        <p className="text-sm text-muted-foreground">None</p>
+                        <span className="text-xl text-muted-foreground">None</span>
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <span className="text-sm text-muted-foreground">Loading...</span>
                   )}
                 </div>
               </div>
@@ -232,148 +183,90 @@ export function LpStakingArea() {
         <StakeCardWrapper>
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
-              <div className="flex-1">
+              <div>
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   Staked LP Positions
                 </h2>
-                <div className="flex min-h-[32px] items-center text-3xl">
+                <div className="flex min-h-[32px] items-baseline gap-2 flex-wrap">
                   {!isLoading ? (
                     <>
                       {stakedPositions.length > 0 ? (
-                        <div className="flex items-center gap-4">
-                          {/* Show first 2 positions */}
-                          {stakedPositions.slice(0, 2).map((position) => (
+                        <>
+                          <div className="flex items-baseline gap-1">
                             <HoverPopupMobile
-                              key={position.tokenId.toString()}
-                              size="200"
                               trigger={
-                                <div className="flex cursor-pointer items-center gap-1.5">
-                                  <span
-                                    className={`inline-block rounded-full ${
-                                      position.isInRange ? "animate-pulse" : ""
-                                    }`}
-                                    style={{
-                                      width: "14px",
-                                      height: "14px",
-                                      backgroundColor: position.isInRange
-                                        ? "#22c55e"
-                                        : "rgb(107, 114, 128)",
-                                      minWidth: "14px",
-                                      minHeight: "14px",
-                                    }}
-                                  />
-                                  <span className="text-sm">
-                                    #{position.tokenId.toString()}
+                                <div className="flex cursor-pointer items-baseline gap-1">
+                                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-xl">
+                                    ${stakedTotals.inRange > 0 ? (
+                                      <DisplayFormattedNumber num={stakedTotals.inRange} significant={3} />
+                                    ) : "0"}
+                                    <span className=""> </span>
                                   </span>
                                 </div>
                               }
+                              size="200"
                             >
-                              <div className="space-y-1">
-                                <div className="text-[12px]">
-                                  Status:{" "}
-                                  <span
-                                    className={
-                                      position.isInRange
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
-                                    }
-                                  >
-                                    {position.isInRange
-                                      ? "In Range"
-                                      : "Out of Range"}
+                              <span className="text-[13px] font-medium">In range</span>
+                            </HoverPopupMobile>
+                            <span className="text-2xl text-muted-foreground">+</span>
+                            <HoverPopupMobile
+                              trigger={
+                                <div className="flex cursor-pointer items-baseline gap-1">
+                                  <XCircle className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-xl">
+                                    ${stakedTotals.outOfRange > 0 ? (
+                                      <DisplayFormattedNumber num={stakedTotals.outOfRange} significant={3} />
+                                    ) : "0"}
+                                    <span className=""> </span>
                                   </span>
                                 </div>
-                                <div className="text-[12px]">
-                                  Value: $
-                                  {position.valueUsd > 0 ? (
-                                    <DisplayFormattedNumber
-                                      num={position.valueUsd}
-                                      significant={3}
-                                    />
-                                  ) : (
-                                    "0"
-                                  )}
-                                </div>
-                              </div>
+                              }
+                              size="200"
+                            >
+                              <span className="text-[13px] font-medium">Out of range</span>
                             </HoverPopupMobile>
-                          ))}
-                          {/* Show popover for additional positions */}
-                          {stakedPositions.length > 2 && (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground">
-                                  +{stakedPositions.length - 2} more
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="max-h-64 w-64 overflow-y-auto"
-                                align="start"
-                              >
-                                <div className="space-y-2">
-                                  <div className="mb-2 text-xs font-medium text-muted-foreground">
-                                    Additional Positions
+                          </div>
+                          <HoverPopupMobile
+                            trigger={
+                              <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">
+                                ({stakedPositions.length} {stakedPositions.length === 1 ? "position" : "positions"})
+                              </span>
+                            }
+                            size="250"
+                          >
+                            <div className="space-y-2">
+                              {stakedPositions.map((position) => (
+                                <div key={position.tokenId.toString()} className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`inline-block rounded-full ${position.isInRange ? "animate-pulse" : ""}`}
+                                      style={{
+                                        width: "10px",
+                                        height: "10px",
+                                        backgroundColor: position.isInRange ? "#22c55e" : "rgb(107, 114, 128)",
+                                        minWidth: "10px",
+                                        minHeight: "10px",
+                                      }}
+                                    />
+                                    <span className="text-xs">#{position.tokenId.toString()}</span>
                                   </div>
-                                  {stakedPositions.slice(2).map((position) => (
-                                    <div
-                                      key={position.tokenId.toString()}
-                                      className="flex items-center justify-between py-1"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className={`inline-block rounded-full ${
-                                            position.isInRange
-                                              ? "animate-pulse"
-                                              : ""
-                                          }`}
-                                          style={{
-                                            width: "14px",
-                                            height: "14px",
-                                            backgroundColor: position.isInRange
-                                              ? "#22c55e"
-                                              : "rgb(107, 114, 128)",
-                                            minWidth: "14px",
-                                            minHeight: "14px",
-                                          }}
-                                        />
-                                        <span className="text-sm">
-                                          #{position.tokenId.toString()}
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-xs text-muted-foreground">
-                                          {position.isInRange
-                                            ? "In range"
-                                            : "Out of range"}
-                                        </span>
-                                        <span className="text-xs">
-                                          $
-                                          {position.valueUsd > 0 ? (
-                                            <DisplayFormattedNumber
-                                              num={position.valueUsd}
-                                              significant={3}
-                                            />
-                                          ) : (
-                                            "0"
-                                          )}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
+                                  <span className="text-xs font-medium whitespace-nowrap">
+                                    ${position.valueUsd > 0 ? (
+                                      <DisplayFormattedNumber num={position.valueUsd} significant={3} />
+                                    ) : "0"}
+                                  </span>
                                 </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </div>
+                              ))}
+                            </div>
+                          </HoverPopupMobile>
+                        </>
                       ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No staked positions
-                        </p>
+                        <span className="text-xl text-muted-foreground">No staked positions</span>
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <span className="text-sm text-muted-foreground">Loading...</span>
                   )}
                 </div>
               </div>
@@ -397,31 +290,25 @@ export function LpStakingArea() {
             className={`rounded-md bg-primary/5 p-4 dark:bg-primary ${userRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}
           >
             <div className="flex justify-between">
-              <div className="flex-1">
+              <div>
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   SIR Token Rewards
                 </h2>
-                <div className="flex min-h-[32px] justify-between text-3xl">
-                  <div className="flex items-end gap-x-1">
-                    {!isLoading ? (
-                      <span className="text-xl">
-                        {userRewards > 0n ? (
-                          <DisplayFormattedNumber
-                            num={Number(userRewards) / 1e12}
-                            significant={3}
-                          />
-                        ) : (
-                          "0"
-                        )}
-                        <span className=""> {getSirSymbol()}</span>
-                      </span>
+                {!isLoading ? (
+                  <span className="text-xl">
+                    {userRewards > 0n ? (
+                      <DisplayFormattedNumber
+                        num={Number(userRewards) / 1e12}
+                        significant={3}
+                      />
                     ) : (
-                      <span className="text-sm text-muted-foreground">
-                        Loading...
-                      </span>
+                      "0"
                     )}
-                  </div>
-                </div>
+                    <span className=""> {getSirSymbol()}</span>
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Loading...</span>
+                )}
               </div>
               <div className="flex items-end">
                 <Button

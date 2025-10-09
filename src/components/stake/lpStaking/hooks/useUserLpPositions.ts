@@ -9,10 +9,16 @@ import type { Address } from 'viem';
 import buildData from '@/../public/build-data.json';
 import { api } from '@/trpc/react';
 import { useSirPrice } from '@/contexts/SirPriceContext';
+import { getCurrentActiveIncentives, type IncentiveKey } from '@/data/uniswapIncentives';
 
 // Get the SIR/WETH 1% pool address from build data
 const SIR_WETH_POOL_ADDRESS = buildData.contractAddresses.sirWethPool1Percent as `0x${string}`;
 const TARGET_FEE = 10000; // 1% = 10000 (fee is in hundredths of a bip)
+
+// Generate a unique ID for an incentive key
+function getIncentiveId(incentive: IncentiveKey): string {
+  return `${incentive.rewardToken}-${incentive.pool}-${incentive.startTime}-${incentive.endTime}`;
+}
 
 // Uniswap V3 Math Functions
 const Q96 = 2n ** 96n;
@@ -149,21 +155,42 @@ export function useUserLpPositions() {
       .filter((id): id is bigint => id !== undefined);
   }, [tokenIdsData]);
 
+  // Get active incentives
+  const activeIncentives = useMemo(() => getCurrentActiveIncentives(), []);
+
   // Fetch position details for all token IDs
+  // For each tokenId, we fetch: positions, deposits, and stakes for each active incentive
   const positionContracts = useMemo(() => {
     return tokenIds.flatMap((tokenId) => [
+      // 1. Position data from NonfungiblePositionManager
       {
         ...NonfungiblePositionManagerContract,
         functionName: 'positions' as const,
         args: [tokenId] as const,
       },
+      // 2. Deposit data from UniswapV3Staker
       {
         ...UniswapV3StakerContract,
         functionName: 'deposits' as const,
         args: [tokenId] as const,
       },
+      // 3. Stakes data for each active incentive
+      ...activeIncentives.map((incentive) => ({
+        ...UniswapV3StakerContract,
+        functionName: 'stakes' as const,
+        args: [
+          tokenId,
+          {
+            rewardToken: incentive.rewardToken,
+            pool: incentive.pool,
+            startTime: incentive.startTime,
+            endTime: incentive.endTime,
+            refundee: incentive.refundee,
+          }
+        ] as const,
+      })),
     ]);
-  }, [tokenIds]);
+  }, [tokenIds, activeIncentives]);
 
   const { data: positionsData, isLoading: isLoadingPositions, refetch: refetchPositions } = useReadContracts({
     contracts: positionContracts,
@@ -192,9 +219,14 @@ export function useUserLpPositions() {
     let totalValueStakedUsd = 0;
     let inRangeValueStakedUsd = 0;
 
+    // Calculate the number of calls per token ID
+    const callsPerToken = 2 + activeIncentives.length; // positions + deposits + (stakes per incentive)
+
     for (let i = 0; i < tokenIds.length; i++) {
-      const positionIndex = i * 2;
-      const depositIndex = i * 2 + 1;
+      const baseIndex = i * callsPerToken;
+      const positionIndex = baseIndex;
+      const depositIndex = baseIndex + 1;
+      const stakesStartIndex = baseIndex + 2;
 
       const positionResult = positionsData[positionIndex];
       const depositResult = positionsData[depositIndex];
@@ -251,6 +283,36 @@ export function useUserLpPositions() {
       // Calculate if position is in range
       const isInRange = currentTick >= tickLower && currentTick < tickUpper;
 
+      // Extract stakes data for each active incentive
+      const stakesPerIncentive = new Map<string, bigint>();
+      const missingIncentives: IncentiveKey[] = [];
+
+      for (let j = 0; j < activeIncentives.length; j++) {
+        const stakeIndex = stakesStartIndex + j;
+        const stakeResult = positionsData[stakeIndex];
+        const incentive = activeIncentives[j];
+
+        if (!incentive) continue;
+
+        const incentiveId = getIncentiveId(incentive);
+
+        if (stakeResult?.result) {
+          // stakes returns (uint128 liquidity, uint160 secondsPerLiquidityInsideInitialX128)
+          const stakeData = stakeResult.result as readonly [bigint, bigint];
+          const stakedLiquidity = stakeData[0];
+
+          stakesPerIncentive.set(incentiveId, stakedLiquidity);
+
+          // If liquidity is 0, position is not staked in this incentive
+          if (stakedLiquidity === 0n) {
+            missingIncentives.push(incentive);
+          }
+        } else {
+          // If we couldn't fetch stakes, assume it's missing
+          missingIncentives.push(incentive);
+        }
+      }
+
       // Calculate accurate USD value using Uniswap V3 math
       let positionValueUsd = 0;
       if (sirPrice && wethPrice && liquidity > 0n && sqrtPriceX96 > 0n) {
@@ -295,6 +357,8 @@ export function useUserLpPositions() {
         valueUsd: positionValueUsd,
         rewardsSir: 0n, // Will be fetched later for staked positions
         isInRange,
+        stakesPerIncentive,
+        missingIncentives,
       };
 
       // Track global staking stats for ALL staked positions
@@ -305,10 +369,20 @@ export function useUserLpPositions() {
         }
       }
 
-      // Only include user positions in user-specific arrays
+      // Categorize user positions based on stake status and incentive participation
+      // "LP Positions" card: unstaked OR missing some incentives
+      // "Staked LP Positions" card: in staker AND fully subscribed to all incentives
       if (isStakedByUser) {
-        staked.push(lpPosition);
+        // Position is in staker contract
+        if (missingIncentives.length === 0) {
+          // Fully staked in all active incentives
+          staked.push(lpPosition);
+        } else {
+          // Missing some incentives, needs to be shown in "unstaked" to allow subscribing
+          unstaked.push(lpPosition);
+        }
       } else if (isOwnedByUser) {
+        // Not in staker contract at all
         unstaked.push(lpPosition);
       }
     }
@@ -321,7 +395,7 @@ export function useUserLpPositions() {
         inRangeValueStakedUsd,
       }
     };
-  }, [positionsData, tokenIds, address, currentTick, sqrtPriceX96, sirPrice, wethPrice]);
+  }, [positionsData, tokenIds, address, currentTick, sqrtPriceX96, sirPrice, wethPrice, activeIncentives]);
 
   // Fetch rewards for the user (single call)
   const { data: userRewards, refetch: refetchRewards } = useReadContract({

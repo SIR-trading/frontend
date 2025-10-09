@@ -36,6 +36,13 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveKey[]> = {
       endTime: 1762574400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
     },
+    {
+      rewardToken: SIR_ADDRESS,
+      pool: SIR_WETH_POOL_1_PERCENT,
+      startTime: 1760001547n,
+      endTime: 1762683547n,
+      refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
+    },
   ],
 
   // Sepolia Testnet
