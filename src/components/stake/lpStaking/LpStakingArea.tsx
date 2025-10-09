@@ -13,6 +13,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CheckCircle2, XCircle } from "lucide-react";
 import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import ToolTip from "@/components/ui/tooltip";
+import { ManageDexLiquidityButton } from "@/components/manageDexLiquidityButton";
 
 export function LpStakingArea() {
   const {
@@ -53,14 +54,14 @@ export function LpStakingArea() {
 
   // Handle stake button click - stakes all unstaked positions
   const handleStakeClick = useCallback(() => {
-    console.log('Stake button clicked');
-    console.log('unstakedPositions:', unstakedPositions);
-    console.log('unstakedPositions.length:', unstakedPositions.length);
+    console.log("Stake button clicked");
+    console.log("unstakedPositions:", unstakedPositions);
+    console.log("unstakedPositions.length:", unstakedPositions.length);
     if (unstakedPositions.length > 0) {
-      console.log('Opening modal');
+      console.log("Opening modal");
       setStakeModalOpen(true);
     } else {
-      console.log('No unstaked positions - button should be disabled');
+      console.log("No unstaked positions - button should be disabled");
     }
   }, [unstakedPositions]);
 
@@ -78,7 +79,10 @@ export function LpStakingArea() {
 
   return (
     <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-      <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
+      <div className="mb-2 flex flex-col justify-start md:mb-0 md:flex-row md:items-start md:justify-between">
+        <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
+        <ManageDexLiquidityButton />
+      </div>
 
       {/* Metrics at top */}
       <LpMetrics
@@ -94,10 +98,11 @@ export function LpStakingArea() {
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
               <div>
-                <h2 className="pb-1 text-sm text-muted-foreground flex items-center gap-x-1">
+                <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
                   <span>Unstaked & Partially Staked</span>
                   <ToolTip iconSize={12}>
-                    Includes both completely unstaked positions and positions only earning from some of the active incentives.
+                    Includes both completely unstaked positions and positions
+                    only earning from some of the active incentives.
                   </ToolTip>
                 </h2>
                 <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
@@ -241,10 +246,12 @@ export function LpStakingArea() {
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
               <div>
-                <h2 className="pb-1 text-sm text-muted-foreground flex items-center gap-x-1">
+                <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
                   <span>Staked (Fully & Partially)</span>
                   <ToolTip iconSize={12}>
-                    Positions staked in at least one reward program. Partially staked positions are only earning from some of the active incentives.
+                    Positions staked in at least one reward program. Partially
+                    staked positions are only earning from some of the active
+                    incentives.
                   </ToolTip>
                 </h2>
                 <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
