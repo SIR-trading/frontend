@@ -1,10 +1,5 @@
 import type { Address } from "viem";
 import { env } from "@/env";
-import buildData from "../../public/build-data.json";
-
-const SIR_ADDRESS = buildData.contractAddresses.sir as Address;
-const SIR_WETH_POOL_1_PERCENT = buildData.contractAddresses
-  .sirWethPool1Percent as Address;
 
 export interface IncentiveKey {
   rewardToken: Address;
@@ -15,30 +10,35 @@ export interface IncentiveKey {
 }
 
 /**
- * Active incentives by chain ID
+ * Incentive configuration without addresses (addresses come from contract files)
+ */
+export interface IncentiveConfig {
+  startTime: bigint;
+  endTime: bigint;
+  refundee: Address;
+}
+
+/**
+ * Active incentives by chain ID (without rewardToken and pool - those are constant)
  *
  * To add a new incentive:
  * 1. Get the incentive parameters from the createIncentive transaction
  * 2. Add a new entry to the array for your chain with:
- *    - rewardToken: Address of the reward token (usually SIR)
- *    - pool: Address of the SIR/WETH 1% Uniswap V3 pool
  *    - startTime: Unix timestamp when the incentive starts
  *    - endTime: Unix timestamp when the incentive ends
  *    - refundee: Address that can claim unclaimed rewards after end time
+ *
+ * Note: rewardToken and pool are automatically set from build-data.json at runtime
  */
-export const INCENTIVES_BY_CHAIN: Record<number, IncentiveKey[]> = {
+export const INCENTIVES_BY_CHAIN: Record<number, IncentiveConfig[]> = {
   // Ethereum Mainnet
   1: [
     {
-      rewardToken: SIR_ADDRESS,
-      pool: SIR_WETH_POOL_1_PERCENT,
       startTime: 1759892400n,
       endTime: 1762574400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
     },
     {
-      rewardToken: SIR_ADDRESS,
-      pool: SIR_WETH_POOL_1_PERCENT,
       startTime: 1760009400n,
       endTime: 1762691400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
@@ -56,11 +56,56 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveKey[]> = {
 };
 
 /**
- * Get incentives for the current chain
+ * Get raw incentive configs for the current chain (without addresses)
+ * Used by build script which provides addresses separately
  */
-function getChainIncentives(): IncentiveKey[] {
+export function getChainIncentiveConfigs(): IncentiveConfig[] {
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   return INCENTIVES_BY_CHAIN[chainId] ?? [];
+}
+
+/**
+ * Get incentives for the current chain (addresses must be provided by caller)
+ * Used by build script during validation
+ */
+export function getChainIncentivesWithAddresses(
+  sirAddress: Address,
+  poolAddress: Address
+): IncentiveKey[] {
+  const configs = getChainIncentiveConfigs();
+
+  return configs.map(config => ({
+    rewardToken: sirAddress,
+    pool: poolAddress,
+    startTime: config.startTime,
+    endTime: config.endTime,
+    refundee: config.refundee,
+  }));
+}
+
+/**
+ * Get incentives for the current chain at runtime
+ * This function requires build-data.json to exist
+ *
+ * Note: This is exported for use at runtime by components.
+ * Do NOT use this in the build script - use getChainIncentiveConfigs() instead.
+ */
+function getChainIncentives(): IncentiveKey[] {
+  // This file should only be used at runtime after build completes
+  // At runtime, we can safely import files that depend on build-data.json
+
+  // Dynamic imports will be resolved at runtime, not during build script execution
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sirContract = require("@/contracts/sir") as { SirContract: { address: Address } };
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const buildData = require("@/../public/build-data.json") as {
+    contractAddresses: { sir: Address; sirWethPool1Percent: Address };
+  };
+
+  const sirAddress = sirContract.SirContract.address;
+  const poolAddress = buildData.contractAddresses.sirWethPool1Percent;
+
+  return getChainIncentivesWithAddresses(sirAddress, poolAddress);
 }
 
 /**

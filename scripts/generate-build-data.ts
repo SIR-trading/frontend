@@ -7,7 +7,7 @@
 import { fetchBuildTimeData, validateIncentives } from '../src/lib/buildTimeData';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
-import { INCENTIVES_BY_CHAIN } from '../src/data/uniswapIncentives';
+import { getChainIncentiveConfigs } from '../src/data/uniswapIncentives';
 import type { Address } from 'viem';
 
 async function main() {
@@ -30,8 +30,22 @@ async function main() {
     console.log('');
 
     // Validate incentives exist on-chain
-    const chainId = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID ?? '1');
-    const incentives = INCENTIVES_BY_CHAIN[chainId] ?? [];
+    const incentiveConfigs = getChainIncentiveConfigs();
+
+    // Add rewardToken and pool from build-data to each incentive config
+    const incentives: Array<{
+      rewardToken: Address;
+      pool: Address;
+      startTime: bigint;
+      endTime: bigint;
+      refundee: Address;
+    }> = incentiveConfigs.map(config => ({
+      rewardToken: data.contractAddresses.sir,
+      pool: data.contractAddresses.sirWethPool1Percent,
+      startTime: config.startTime,
+      endTime: config.endTime,
+      refundee: config.refundee,
+    }));
 
     await validateIncentives(
       incentives,
