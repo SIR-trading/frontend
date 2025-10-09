@@ -144,6 +144,19 @@ export const UniswapV3StakerContract = {
       ],
       stateMutability: "payable",
     },
+    {
+      type: "function",
+      name: "incentives",
+      inputs: [
+        { name: "incentiveId", type: "bytes32", internalType: "bytes32" },
+      ],
+      outputs: [
+        { name: "totalRewardUnclaimed", type: "uint256", internalType: "uint256" },
+        { name: "totalSecondsClaimedX128", type: "uint160", internalType: "uint160" },
+        { name: "numberOfStakes", type: "uint96", internalType: "uint96" },
+      ],
+      stateMutability: "view",
+    },
   ] as const,
 } as const;
 

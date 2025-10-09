@@ -1,10 +1,10 @@
 "use client";
-import React, { useMemo } from 'react';
-import DisplayFormattedNumber from '@/components/shared/displayFormattedNumber';
-import { useStaking } from '@/contexts/StakingContext';
-import { getSirSymbol } from '@/lib/assets';
-import { formatUnits } from 'viem';
-import { getNativeCurrencySymbol } from '@/lib/chains';
+import React, { useMemo } from "react";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { useStaking } from "@/contexts/StakingContext";
+import { getSirSymbol } from "@/lib/assets";
+import { formatUnits } from "viem";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 
 export function SirMetrics() {
   const {
@@ -12,17 +12,20 @@ export function SirMetrics() {
     totalSupply,
     apr,
     unstakedSupplyLoading,
-    totalSupplyLoading
+    totalSupplyLoading,
+    unstakedSupply,
   } = useStaking();
 
-  const isLoading = unstakedSupplyLoading || totalSupplyLoading;
+  const isLoading = unstakedSupplyLoading || totalSupplyLoading || !totalSupply || !unstakedSupply;
 
   const stakedSupplyFormatted = totalValueLocked
     ? parseFloat(formatUnits(totalValueLocked, 12))
     : 0;
 
   const aprValue = apr ? parseFloat(apr.apr) : 0;
-  const totalEthDistributed = apr?.totalEthDistributed ? BigInt(apr.totalEthDistributed) : 0n;
+  const totalEthDistributed = apr?.totalEthDistributed
+    ? BigInt(apr.totalEthDistributed)
+    : 0n;
 
   const stakedPercentage = useMemo(() => {
     if (!totalSupply || totalSupply === 0n || !totalValueLocked) return 0;
@@ -31,16 +34,32 @@ export function SirMetrics() {
     return (staked / total) * 100;
   }, [totalSupply, totalValueLocked]);
 
-  const ethDistributedFormatted = totalEthDistributed > 0n
-    ? parseFloat(formatUnits(totalEthDistributed, 18))
-    : 0;
+  const ethDistributedFormatted =
+    totalEthDistributed > 0n
+      ? parseFloat(formatUnits(totalEthDistributed, 18))
+      : 0;
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 gap-3 pb-4">
-        <div className="h-[88px] animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
-        <div className="h-[88px] animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
-        <div className="h-[88px] animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
+        {/* Staked Supply Card */}
+        <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+          <div className="text-xs text-muted-foreground">Staked Supply</div>
+          <div className="mt-1 h-7 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <div className="mt-1 h-4 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+        </div>
+        {/* Total Dividends Card */}
+        <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+          <div className="text-xs text-muted-foreground">Total Dividends</div>
+          <div className="mt-1 h-7 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <div className="mt-1 h-4 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+        </div>
+        {/* Staking APR Card */}
+        <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+          <div className="text-xs text-muted-foreground">Staking APR</div>
+          <div className="mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <div className="mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+        </div>
       </div>
     );
   }
@@ -48,30 +67,33 @@ export function SirMetrics() {
   return (
     <div className="grid grid-cols-3 gap-3 pb-4">
       {/* Staked Supply Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
+      <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Staked Supply</div>
         <div className="mt-1 text-lg font-semibold">
-          <DisplayFormattedNumber num={stakedSupplyFormatted} significant={3} /> {getSirSymbol()}
+          <DisplayFormattedNumber num={stakedSupplyFormatted} significant={3} />{" "}
+          {getSirSymbol()}
         </div>
         <div className="text-xs text-muted-foreground">
-          <DisplayFormattedNumber num={stakedPercentage} significant={3} />% of total
+          <DisplayFormattedNumber num={stakedPercentage} significant={3} />% of
+          total
         </div>
       </div>
 
       {/* Total Dividends Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
+      <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Total Dividends</div>
         <div className="mt-1 text-lg font-semibold">
-          <DisplayFormattedNumber num={ethDistributedFormatted} significant={3} />{" "}
+          <DisplayFormattedNumber
+            num={ethDistributedFormatted}
+            significant={3}
+          />{" "}
           {getNativeCurrencySymbol()}
         </div>
-        <div className="text-xs text-muted-foreground">
-          In the last 30 days
-        </div>
+        <div className="text-xs text-muted-foreground">in the last 30 days</div>
       </div>
 
       {/* Staking APR Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
+      <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Staking APR</div>
         <div className="mt-1 text-lg font-semibold">
           {aprValue > 0 ? (
@@ -82,9 +104,7 @@ export function SirMetrics() {
             "0%"
           )}
         </div>
-        <div className="text-xs text-muted-foreground">
-          30-day average
-        </div>
+        <div className="text-xs text-muted-foreground">30-day average</div>
       </div>
     </div>
   );

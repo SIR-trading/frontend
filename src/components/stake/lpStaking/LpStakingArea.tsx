@@ -13,8 +13,10 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CheckCircle2, XCircle } from "lucide-react";
 import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import ToolTip from "@/components/ui/tooltip";
+import { useAccount } from "wagmi";
 
 export function LpStakingArea() {
+  const { isConnected } = useAccount();
   const {
     unstakedPositions,
     stakedPositions,
@@ -22,6 +24,7 @@ export function LpStakingArea() {
     userRewards,
     isLoading,
     refetchAll,
+    stakingApr,
   } = useUserLpPositions();
 
   // Modal states
@@ -53,14 +56,14 @@ export function LpStakingArea() {
 
   // Handle stake button click - stakes all unstaked positions
   const handleStakeClick = useCallback(() => {
-    console.log('Stake button clicked');
-    console.log('unstakedPositions:', unstakedPositions);
-    console.log('unstakedPositions.length:', unstakedPositions.length);
+    console.log("Stake button clicked");
+    console.log("unstakedPositions:", unstakedPositions);
+    console.log("unstakedPositions.length:", unstakedPositions.length);
     if (unstakedPositions.length > 0) {
-      console.log('Opening modal');
+      console.log("Opening modal");
       setStakeModalOpen(true);
     } else {
-      console.log('No unstaked positions - button should be disabled');
+      console.log("No unstaked positions - button should be disabled");
     }
   }, [unstakedPositions]);
 
@@ -84,7 +87,8 @@ export function LpStakingArea() {
       <LpMetrics
         totalValueStakedUsd={globalStakingStats.totalValueStakedUsd}
         inRangeValueStakedUsd={globalStakingStats.inRangeValueStakedUsd}
-        stakingApr={null} // TBD
+        stakingApr={stakingApr}
+        isLoading={isLoading}
       />
 
       {/* LP Position Cards - vertically stacked */}
@@ -94,14 +98,19 @@ export function LpStakingArea() {
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
               <div>
-                <h2 className="pb-1 text-sm text-muted-foreground flex items-center gap-x-1">
-                  <span>Unstaked & Partially Staked</span>
+                <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
+                  <span>LP Balance</span>
                   <ToolTip iconSize={12}>
-                    Includes both completely unstaked positions and positions only earning from some of the active incentives.
+                    Includes both completely unstaked positions and positions
+                    only earning from some of the active incentives.
                   </ToolTip>
                 </h2>
                 <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
-                  {!isLoading ? (
+                  {!isConnected ? (
+                    <div className="text-sm italic text-foreground">
+                      Connect to stake
+                    </div>
+                  ) : !isLoading ? (
                     <>
                       {unstakedPositions.length > 0 ? (
                         <>
@@ -111,7 +120,6 @@ export function LpStakingArea() {
                                 <div className="flex cursor-pointer items-baseline gap-1">
                                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                                   <span className="text-xl">
-                                    $
                                     {unstakedTotals.inRange > 0 ? (
                                       <DisplayFormattedNumber
                                         num={unstakedTotals.inRange}
@@ -120,7 +128,7 @@ export function LpStakingArea() {
                                     ) : (
                                       "0"
                                     )}
-                                    <span className=""> </span>
+                                    <span className=""> USD</span>
                                   </span>
                                 </div>
                               }
@@ -138,7 +146,6 @@ export function LpStakingArea() {
                                 <div className="flex cursor-pointer items-baseline gap-1">
                                   <XCircle className="h-4 w-4 text-muted-foreground" />
                                   <span className="text-xl">
-                                    $
                                     {unstakedTotals.outOfRange > 0 ? (
                                       <DisplayFormattedNumber
                                         num={unstakedTotals.outOfRange}
@@ -147,7 +154,7 @@ export function LpStakingArea() {
                                     ) : (
                                       "0"
                                     )}
-                                    <span className=""> </span>
+                                    <span className=""> USD</span>
                                   </span>
                                 </div>
                               }
@@ -194,7 +201,6 @@ export function LpStakingArea() {
                                     </span>
                                   </div>
                                   <span className="whitespace-nowrap text-xs font-medium">
-                                    $
                                     {position.valueUsd > 0 ? (
                                       <DisplayFormattedNumber
                                         num={position.valueUsd}
@@ -202,7 +208,8 @@ export function LpStakingArea() {
                                       />
                                     ) : (
                                       "0"
-                                    )}
+                                    )}{" "}
+                                    USD
                                   </span>
                                 </div>
                               ))}
@@ -210,15 +217,13 @@ export function LpStakingArea() {
                           </HoverPopupMobile>
                         </>
                       ) : (
-                        <span className="text-xl text-muted-foreground">
-                          None
+                        <span className="text-xl">
+                          0 USD
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
                   )}
                 </div>
               </div>
@@ -241,14 +246,20 @@ export function LpStakingArea() {
           <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
             <div className="flex justify-between">
               <div>
-                <h2 className="pb-1 text-sm text-muted-foreground flex items-center gap-x-1">
-                  <span>Staked (Fully & Partially)</span>
+                <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
+                  <span>Staked LP Balance</span>
                   <ToolTip iconSize={12}>
-                    Positions staked in at least one reward program. Partially staked positions are only earning from some of the active incentives.
+                    Positions staked in at least one reward program. Partially
+                    staked positions are only earning from some of the active
+                    incentives.
                   </ToolTip>
                 </h2>
                 <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
-                  {!isLoading ? (
+                  {!isConnected ? (
+                    <div className="text-sm italic text-foreground">
+                      Connect to unstake
+                    </div>
+                  ) : !isLoading ? (
                     <>
                       {stakedPositions.length > 0 ? (
                         <>
@@ -258,7 +269,6 @@ export function LpStakingArea() {
                                 <div className="flex cursor-pointer items-baseline gap-1">
                                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                                   <span className="text-xl">
-                                    $
                                     {stakedTotals.inRange > 0 ? (
                                       <DisplayFormattedNumber
                                         num={stakedTotals.inRange}
@@ -267,7 +277,7 @@ export function LpStakingArea() {
                                     ) : (
                                       "0"
                                     )}
-                                    <span className=""> </span>
+                                    <span className=""> USD</span>
                                   </span>
                                 </div>
                               }
@@ -285,7 +295,6 @@ export function LpStakingArea() {
                                 <div className="flex cursor-pointer items-baseline gap-1">
                                   <XCircle className="h-4 w-4 text-muted-foreground" />
                                   <span className="text-xl">
-                                    $
                                     {stakedTotals.outOfRange > 0 ? (
                                       <DisplayFormattedNumber
                                         num={stakedTotals.outOfRange}
@@ -294,7 +303,7 @@ export function LpStakingArea() {
                                     ) : (
                                       "0"
                                     )}
-                                    <span className=""> </span>
+                                    <span className=""> USD</span>
                                   </span>
                                 </div>
                               }
@@ -341,7 +350,6 @@ export function LpStakingArea() {
                                     </span>
                                   </div>
                                   <span className="whitespace-nowrap text-xs font-medium">
-                                    $
                                     {position.valueUsd > 0 ? (
                                       <DisplayFormattedNumber
                                         num={position.valueUsd}
@@ -349,7 +357,8 @@ export function LpStakingArea() {
                                       />
                                     ) : (
                                       "0"
-                                    )}
+                                    )}{" "}
+                                    USD
                                   </span>
                                 </div>
                               ))}
@@ -357,15 +366,13 @@ export function LpStakingArea() {
                           </HoverPopupMobile>
                         </>
                       ) : (
-                        <span className="text-xl text-muted-foreground">
-                          No staked positions
+                        <span className="text-xl">
+                          0 USD
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
                   )}
                 </div>
               </div>
@@ -393,7 +400,11 @@ export function LpStakingArea() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   SIR Token Rewards
                 </h2>
-                {!isLoading ? (
+                {!isConnected ? (
+                  <div className="text-sm italic text-foreground">
+                    Connect to claim rewards
+                  </div>
+                ) : !isLoading ? (
                   <span className="text-xl">
                     {userRewards > 0n ? (
                       <DisplayFormattedNumber
@@ -406,9 +417,7 @@ export function LpStakingArea() {
                     <span className=""> {getSirSymbol()}</span>
                   </span>
                 ) : (
-                  <span className="text-sm text-muted-foreground">
-                    Loading...
-                  </span>
+                  <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
                 )}
               </div>
               <div className="flex items-end">

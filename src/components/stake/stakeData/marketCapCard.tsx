@@ -31,11 +31,14 @@ export default function MarketCapCard() {
       <Show
         when={!isLoading && marketCap !== null}
         fallback={
-          <div className="mt-1 h-7 w-24 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <>
+            <div className="mt-1 h-7 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+            <div className="mt-1 h-4 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          </>
         }
       >
         <div className="mt-1 text-lg font-semibold">
-          ${marketCap ? <DisplayFormattedNumber num={marketCap} significant={3} /> : "—"}
+          {marketCap ? <><DisplayFormattedNumber num={marketCap} significant={3} /> USD</> : "—"}
         </div>
         <div className="text-xs text-muted-foreground">
           <a

@@ -185,10 +185,10 @@ export function LpUnstakeModal({
                     <span className="text-lg font-semibold">
                       {totalValueUsd > 0 ? (
                         <>
-                          $<DisplayFormattedNumber
+                          <DisplayFormattedNumber
                             num={totalValueUsd}
                             significant={3}
-                          />
+                          /> USD
                         </>
                       ) : (
                         <span className="text-sm">Calculating...</span>
@@ -199,12 +199,12 @@ export function LpUnstakeModal({
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">In-Range Value</span>
                       <span className="text-sm font-medium text-green-500">
-                        ${inRangeValueUsd > 0 ? (
+                        {inRangeValueUsd > 0 ? (
                           <DisplayFormattedNumber
                             num={inRangeValueUsd}
                             significant={3}
                           />
-                        ) : '0'}
+                        ) : '0'} USD
                       </span>
                     </div>
                   )}

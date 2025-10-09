@@ -110,10 +110,14 @@ function getTokenAmountsFromLiquidity(
  */
 export function useUserLpPositions() {
   const { address } = useAccount();
-  const { sirPrice } = useSirPrice();
+  const { sirPrice, isLoading: isSirPriceLoading } = useSirPrice();
 
   // Get WETH price
-  const { data: wethPrice } = api.price.getTokenPriceWithFallback.useQuery(
+  const {
+    data: wethPrice,
+    isLoading: isWethPriceLoading,
+    isFetching: isWethPriceFetching
+  } = api.price.getTokenPriceWithFallback.useQuery(
     {
       tokenAddress: WrappedNativeTokenContract.address,
       tokenDecimals: 18,
@@ -124,7 +128,11 @@ export function useUserLpPositions() {
   );
 
   // Get current tick and sqrtPriceX96 from the SIR/WETH pool
-  const { data: slot0Data } = useReadContract({
+  const {
+    data: slot0Data,
+    isLoading: isSlot0Loading,
+    isFetching: isSlot0Fetching
+  } = useReadContract({
     address: SIR_WETH_POOL_ADDRESS,
     abi: UniswapV3PoolABI,
     functionName: "slot0",
@@ -223,6 +231,27 @@ export function useUserLpPositions() {
     return incentives;
   }, []);
 
+  // Fetch incentive data for all active incentives
+  const incentiveContracts = useMemo(() => {
+    return activeIncentives.map((incentive) => ({
+      ...UniswapV3StakerContract,
+      functionName: "incentives" as const,
+      args: [computeIncentiveId(incentive)] as const,
+    }));
+  }, [activeIncentives]);
+
+  const {
+    data: incentivesData,
+    isLoading: isIncentivesLoading,
+    isFetching: isIncentivesFetching
+  } = useReadContracts({
+    contracts: incentiveContracts,
+    query: {
+      enabled: incentiveContracts.length > 0,
+      staleTime: 60000, // Cache for 1 minute
+    },
+  });
+
   // Fetch position details for all token IDs
   // For each tokenId, we fetch: positions, deposits, and stakes for each active incentive
   const positionContracts = useMemo(() => {
@@ -262,7 +291,8 @@ export function useUserLpPositions() {
   // Process positions and filter for SIR/WETH 1% pool
   const { unstakedPositions, stakedPositions, globalStakingStats } =
     useMemo(() => {
-      if (!positionsData) {
+      // Check if all required data for calculations is available
+      if (!positionsData || !sirPrice || !wethPrice || !sqrtPriceX96) {
         return {
           unstakedPositions: [],
           stakedPositions: [],
@@ -485,6 +515,67 @@ export function useUserLpPositions() {
       activeIncentives,
     ]);
 
+  // Calculate staking APR from incentive data
+  const stakingApr = useMemo(() => {
+    // Need all required data - return null only when we're sure there's no APR to calculate
+    // If data is still loading, this will naturally return null which shows as "TBD"
+    if (
+      !incentivesData ||
+      !sirPrice ||
+      !sqrtPriceX96 ||
+      !wethPrice ||
+      globalStakingStats.inRangeValueStakedUsd === 0
+    ) {
+      return null;
+    }
+
+    let totalSirPerSecond = 0;
+
+    // Sum up SIR per second across all active incentives
+    for (let i = 0; i < activeIncentives.length; i++) {
+      const incentiveResult = incentivesData[i];
+      const incentive = activeIncentives[i];
+
+      if (!incentiveResult?.result || !incentive) continue;
+
+      // incentives returns [totalRewardUnclaimed, totalSecondsClaimedX128, numberOfStakes]
+      const incentiveData = incentiveResult.result;
+      const totalRewardUnclaimed = incentiveData[0];
+
+      // Convert from bigint with 12 decimals to number
+      const totalRewardSir = Number(totalRewardUnclaimed) / 1e12;
+
+      // Calculate duration in seconds
+      const startTime = Number(incentive.startTime);
+      const endTime = Number(incentive.endTime);
+      const duration = endTime - startTime;
+
+      if (duration <= 0) continue;
+
+      // Calculate SIR per second for this incentive
+      const sirPerSecond = totalRewardSir / duration;
+      totalSirPerSecond += sirPerSecond;
+    }
+
+    if (totalSirPerSecond === 0) return null;
+
+    // Convert to USD per second
+    const usdPerSecond = totalSirPerSecond * sirPrice;
+
+    // Calculate annual USD (seconds in a year)
+    const annualUsd = usdPerSecond * 31536000;
+
+    // Calculate APR as percentage
+    const apr = (annualUsd / globalStakingStats.inRangeValueStakedUsd) * 100;
+
+    return apr;
+  }, [
+    incentivesData,
+    activeIncentives,
+    sirPrice,
+    globalStakingStats.inRangeValueStakedUsd,
+  ]);
+
   // Fetch rewards for the user (single call)
   const { data: userRewards, refetch: refetchRewards } = useReadContract({
     ...UniswapV3StakerContract,
@@ -505,11 +596,35 @@ export function useUserLpPositions() {
     }));
   }, [stakedPositions, userRewards]);
 
+  // Check if we have staked positions but haven't calculated their value yet
+  // This detects the race condition where positions exist but prices aren't ready
+  const hasUncalculatedPositions =
+    stakerBalance &&
+    stakerBalance > 0n &&
+    globalStakingStats.totalValueStakedUsd === 0 &&
+    (!sirPrice || !wethPrice || !sqrtPriceX96);
+
+  // Check if essential data is still loading or fetching
+  // We need to check both isLoading (initial load) and isFetching (refetch/refresh)
+  const essentialDataLoading =
+    isSirPriceLoading ||
+    isWethPriceLoading ||
+    isWethPriceFetching ||
+    isSlot0Loading ||
+    isSlot0Fetching ||
+    (incentiveContracts.length > 0 && (isIncentivesLoading || isIncentivesFetching)) ||
+    !sirPrice ||
+    !wethPrice ||
+    !slot0Data ||
+    (incentiveContracts.length > 0 && !incentivesData);
+
   const isLoading =
     isLoadingBalance ||
     isLoadingStakerBalance ||
-    isLoadingTokenIds ||
-    isLoadingPositions;
+    (tokenIdContracts.length > 0 && isLoadingTokenIds) ||
+    (positionContracts.length > 0 && isLoadingPositions) ||
+    essentialDataLoading ||
+    hasUncalculatedPositions;
 
   // Combined refetch function to refresh all data
   const refetchAll = useCallback(async () => {
@@ -533,5 +648,6 @@ export function useUserLpPositions() {
     globalStakingStats,
     userRewards: userRewards ?? 0n,
     refetchAll,
+    stakingApr,
   };
 }
