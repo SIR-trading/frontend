@@ -11,6 +11,8 @@ import { api } from "@/trpc/react";
 import type { AuctionFieldFragment } from "@/lib/types";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { TokenDisplay } from "@/components/ui/token-display";
+import { TokenDisplayWithUsd } from "@/components/auction/TokenDisplayWithUsd";
+import { BidDisplayWithDiscount } from "@/components/auction/BidDisplayWithDiscount";
 import { AUCTION_DURATION } from "@/components/auction/__constants";
 import Countdown from "react-countdown";
 import { compareAddress } from "@/lib/utils/index";
@@ -23,6 +25,7 @@ import { hexToBigInt } from "viem";
 import { TokenImage } from "@/components/shared/TokenImage";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import { useAuctionRpcPolling } from "@/components/auction/hooks/useAuctionRpcPolling";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
@@ -195,7 +198,7 @@ const OngoingAuction = ({
                           title: AuctionCardTitle.AMOUNT,
                           variant: "large",
                           content: (
-                            <TokenDisplay
+                            <TokenDisplayWithUsd
                               amount={
                                 (auctionLots?.get(token.id) ?? 0n) > 0n
                                   ? auctionLots?.get(token.id)
@@ -212,6 +215,7 @@ const OngoingAuction = ({
                                   token.id,
                                 ) ?? ""
                               }
+                              tokenAddress={token.id}
                               className={
                                 "font-geist text-[24px] font-normal leading-[32px]"
                               }
@@ -235,11 +239,23 @@ const OngoingAuction = ({
                         {
                           title: AuctionCardTitle.HIGHEST_BID,
                           content: (
-                            <TokenDisplay
-                              amount={BigInt(highestBid)}
+                            <BidDisplayWithDiscount
+                              bidAmount={BigInt(highestBid)}
+                              bidDecimals={18}
+                              bidUnitLabel={getNativeCurrencySymbol()}
+                              bidTokenAddress={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                              auctionAmount={
+                                (auctionLots?.get(token.id) ?? 0n) > 0n
+                                  ? auctionLots?.get(token.id) ?? 0n
+                                  : BigInt(amount)
+                              }
+                              auctionDecimals={
+                                uniqueAuctionCollection.collateralDecimalsMap.get(
+                                  token.id,
+                                ) ?? 18
+                              }
+                              auctionTokenAddress={token.id}
                               amountSize="large"
-                              decimals={18}
-                              unitLabel={getNativeCurrencySymbol()}
                               className={"text-lg"}
                             />
                           ),
@@ -319,7 +335,7 @@ const OngoingAuction = ({
                         title: AuctionCardTitle.AMOUNT,
                         variant: "large",
                         content: (
-                          <TokenDisplay
+                          <TokenDisplayWithUsd
                             amount={
                               (auctionLots?.get(token.id) ?? 0n) > 0n
                                 ? auctionLots?.get(token.id)
@@ -336,6 +352,7 @@ const OngoingAuction = ({
                                 token.id,
                               ) ?? ""
                             }
+                            tokenAddress={token.id}
                             className={
                               "font-geist text-[24px] font-normal leading-[32px]"
                             }
@@ -351,11 +368,23 @@ const OngoingAuction = ({
                       {
                         title: AuctionCardTitle.HIGHEST_BID,
                         content: (
-                          <TokenDisplay
-                            amount={BigInt(highestBid)}
+                          <BidDisplayWithDiscount
+                            bidAmount={BigInt(highestBid)}
+                            bidDecimals={18}
+                            bidUnitLabel={getNativeCurrencySymbol()}
+                            bidTokenAddress={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                            auctionAmount={
+                              (auctionLots?.get(token.id) ?? 0n) > 0n
+                                ? auctionLots?.get(token.id) ?? 0n
+                                : BigInt(amount)
+                            }
+                            auctionDecimals={
+                              uniqueAuctionCollection.collateralDecimalsMap.get(
+                                token.id,
+                              ) ?? 18
+                            }
+                            auctionTokenAddress={token.id}
                             amountSize="large"
-                            decimals={18}
-                            unitLabel={getNativeCurrencySymbol()}
                             className={"text-lg"}
                           />
                         ),

@@ -63,7 +63,7 @@ const AuctionCard = ({
   return (
     <Card
       className={cn(
-        "flex w-full max-w-[436px] flex-col gap-8 rounded-2xl p-[18px] max-md:mx-auto",
+        "flex w-full max-w-[436px] flex-col gap-6 rounded-2xl p-[18px] max-md:mx-auto",
         isPulsing && "auction-card-pulse",
         className
       )}

@@ -5,6 +5,7 @@ import AuctionCard, {
 } from "@/components/auction/auctionCard";
 import { api } from "@/trpc/react";
 import { TokenDisplay } from "@/components/ui/token-display";
+import { TokenDisplayWithUsd } from "@/components/auction/TokenDisplayWithUsd";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useStartAuction } from "@/components/auction/hooks/auctionSimulationHooks";
 import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
@@ -372,8 +373,7 @@ const NewAuction = ({
                       {
                         title: AuctionCardTitle.AMOUNT,
                         content: (
-                          <TokenDisplay
-                            
+                          <TokenDisplayWithUsd
                             amountSize="large"
                             amount={auction.amount}
                             decimals={
@@ -386,6 +386,7 @@ const NewAuction = ({
                                 auction.token,
                               ) ?? ""
                             }
+                            tokenAddress={auction.token}
                             className={
                               "font-geist text-[24px] font-normal leading-[32px]"
                             }
@@ -440,8 +441,7 @@ const NewAuction = ({
                     {
                       title: AuctionCardTitle.AMOUNT,
                       content: (
-                        <TokenDisplay
-                          
+                        <TokenDisplayWithUsd
                           amountSize="large"
                           amount={auction.amount}
                           decimals={
@@ -454,6 +454,7 @@ const NewAuction = ({
                               auction.token,
                             ) ?? ""
                           }
+                          tokenAddress={auction.token}
                           className={
                             "font-geist text-[24px] font-normal leading-[32px]"
                           }
@@ -472,11 +473,6 @@ const NewAuction = ({
                   },
                 }}
                 actionDelay={auction.timeToStart}
-                className={
-                  auction.timeToStart > Date.now() / 1000
-                    ? "relative before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-full before:rounded-2xl before:bg-[rgba(255,255,255,0.03)] before:backdrop-blur-[1px]"
-                    : undefined
-                }
               />
             ))}
           </AuctionContentWrapper>
