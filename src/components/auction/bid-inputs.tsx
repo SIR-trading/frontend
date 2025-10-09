@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFormProvider";
 import { BidPercent } from "@/components/auction/bidPercent";
+import { useTokenUsdPrice } from "@/components/leverage-liquidity/mintForm/hooks/useTokenUsdPrice";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -39,6 +41,15 @@ function Inputs({
   isTopUp,
 }: Props) {
   const form = useFormContext<TAuctionBidFormFields>();
+  const formData = form.watch();
+
+  // Get USD value for the bid amount (always WETH/WHYPE)
+  const { usdValue } = useTokenUsdPrice(
+    WRAPPED_NATIVE_TOKEN_ADDRESS,
+    formData.bid,
+    18 // WETH/WHYPE always has 18 decimals
+  );
+
   return (
     <div
       data-state={disabled ? "disabled" : "active"}
@@ -82,6 +93,11 @@ function Inputs({
             )}
           />
         </Show>
+        {usdValue !== null && usdValue > 0 && (
+          <div className="text-xs text-muted-foreground pt-1">
+            ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col items-end">
