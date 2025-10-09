@@ -96,7 +96,7 @@ export function LpMetrics({
           )}
         </div>
         <div className="text-xs text-muted-foreground">
-          {stakingApr !== null ? "30-day average" : "To be determined"}
+          {stakingApr !== null ? "Based on current TVL" : "To be determined"}
         </div>
       </div>
     </div>

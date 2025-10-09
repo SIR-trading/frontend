@@ -520,11 +520,11 @@ export function useUserLpPositions() {
     // Need all required data - return null only when we're sure there's no APR to calculate
     // If data is still loading, this will naturally return null which shows as "TBD"
     if (
-      !incentivesData ||
       !sirPrice ||
       !sqrtPriceX96 ||
       !wethPrice ||
-      globalStakingStats.inRangeValueStakedUsd === 0
+      globalStakingStats.inRangeValueStakedUsd === 0 ||
+      activeIncentives.length === 0
     ) {
       return null;
     }
@@ -532,18 +532,10 @@ export function useUserLpPositions() {
     let totalSirPerSecond = 0;
 
     // Sum up SIR per second across all active incentives
-    for (let i = 0; i < activeIncentives.length; i++) {
-      const incentiveResult = incentivesData[i];
-      const incentive = activeIncentives[i];
-
-      if (!incentiveResult?.result || !incentive) continue;
-
-      // incentives returns [totalRewardUnclaimed, totalSecondsClaimedX128, numberOfStakes]
-      const incentiveData = incentiveResult.result;
-      const totalRewardUnclaimed = incentiveData[0];
-
-      // Convert from bigint with 12 decimals to number
-      const totalRewardSir = Number(totalRewardUnclaimed) / 1e12;
+    for (const incentive of activeIncentives) {
+      // Use the original total rewards from the incentive configuration
+      // NOT totalRewardUnclaimed which decreases as users claim
+      const totalRewardSir = Number(incentive.rewards) / 1e12;
 
       // Calculate duration in seconds
       const startTime = Number(incentive.startTime);
@@ -552,7 +544,7 @@ export function useUserLpPositions() {
 
       if (duration <= 0) continue;
 
-      // Calculate SIR per second for this incentive
+      // Calculate SIR per second for this incentive based on original allocation
       const sirPerSecond = totalRewardSir / duration;
       totalSirPerSecond += sirPerSecond;
     }
@@ -570,9 +562,10 @@ export function useUserLpPositions() {
 
     return apr;
   }, [
-    incentivesData,
     activeIncentives,
     sirPrice,
+    sqrtPriceX96,
+    wethPrice,
     globalStakingStats.inRangeValueStakedUsd,
   ]);
 
