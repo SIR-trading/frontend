@@ -9,17 +9,20 @@ The LP staking system allows users to stake Uniswap V3 LP NFT positions in the S
 ### Key Components
 
 1. **`LpStakingArea.tsx`**: Main component displaying LP positions
+
    - Shows unstaked positions, staked positions, and claimable rewards in separate cards
    - Each card has its own action button (Stake, Unstake, Claim)
    - Buttons remain visible but disabled when no applicable positions
 
 2. **`useUserLpPositions.ts`**: Hook for fetching LP data
+
    - Fetches positions from both user wallet AND UniswapV3Staker contract
    - Filters for SIR/WETH 1% pool positions only
    - Detects if positions are in-range using current pool tick
    - Provides `refetchAll()` function for manual data refresh
 
 3. **`LpStakeModal.tsx`**: Handles staking multiple positions
+
    - Uses multicall to batch approve + transfer operations
    - Encodes incentive key for automatic staking via `safeTransferFrom`
    - Single transaction for all positions
@@ -31,6 +34,7 @@ The LP staking system allows users to stake Uniswap V3 LP NFT positions in the S
 ### Technical Patterns
 
 #### Single-Transaction Multicall
+
 ```typescript
 // Build array of encoded function calls
 const calls: `0x${string}`[] = [];
@@ -38,21 +42,25 @@ const calls: `0x${string}`[] = [];
 // Add approval calls if needed
 positions.forEach((position, index) => {
   if (needsApproval[index]) {
-    calls.push(encodeFunctionData({
-      abi: NonfungiblePositionManagerContract.abi,
-      functionName: "approve",
-      args: [stakingContract, tokenId]
-    }));
+    calls.push(
+      encodeFunctionData({
+        abi: NonfungiblePositionManagerContract.abi,
+        functionName: "approve",
+        args: [stakingContract, tokenId],
+      }),
+    );
   }
 });
 
 // Add transfer calls for all positions
 positions.forEach((position) => {
-  calls.push(encodeFunctionData({
-    abi: NonfungiblePositionManagerContract.abi,
-    functionName: "safeTransferFrom",
-    args: [from, to, tokenId, encodedIncentiveData]
-  }));
+  calls.push(
+    encodeFunctionData({
+      abi: NonfungiblePositionManagerContract.abi,
+      functionName: "safeTransferFrom",
+      args: [from, to, tokenId, encodedIncentiveData],
+    }),
+  );
 });
 
 // Execute all in one transaction
@@ -60,6 +68,7 @@ executeMulticall({ functionName: "multicall", args: [calls] });
 ```
 
 #### Data Refetching After Transactions
+
 ```typescript
 // Wait for blockchain state to settle before refetching
 onSuccess={async () => {
@@ -74,6 +83,7 @@ onSuccess={async () => {
 ### Incentive Configuration
 
 Active incentives are configured in `src/data/uniswapIncentives.ts`:
+
 - Must have correct `startTime` and `endTime` for current timestamp
 - Incentive key is encoded as tuple: `(rewardToken, pool, startTime, endTime, refundee)`
 - Used by staker contract to identify reward program
@@ -81,6 +91,7 @@ Active incentives are configured in `src/data/uniswapIncentives.ts`:
 ### Position Detection
 
 The hook checks both:
+
 1. **User's wallet** (`balanceOf(userAddress)`) - for unstaked positions
 2. **Staker contract** (`balanceOf(stakerAddress)`) - for all staked positions
    - Then filters by `deposits[tokenId].owner === userAddress`
@@ -88,6 +99,7 @@ The hook checks both:
 ### In-Range Detection
 
 Positions show a green pulsing indicator when in range:
+
 ```typescript
 const isInRange = currentTick >= tickLower && currentTick < tickUpper;
 ```
@@ -95,6 +107,7 @@ const isInRange = currentTick >= tickLower && currentTick < tickUpper;
 ### SIR Price Context
 
 Added `SirPriceContext` to centralize SIR price fetching:
+
 - **Location**: `src/contexts/SirPriceContext.tsx`
 - **Purpose**: Eliminates duplicate API calls for SIR price across components
 - **Usage**: Wrap app in `SirPriceProvider`, then use `useSirPrice()` hook
@@ -113,7 +126,7 @@ const { sirPrice, isLoading, error } = useSirPrice();
 - Only SIR/WETH 1% pool positions are shown (fee = 10000)
 - TVL shows approximate USD value of staked positions (simplified calculation)
 - Refetch delay prevents reading stale blockchain data
-- Empty state shows "No LP positions" instead of suggesting to add liquidity
+- Empty state shows "None" instead of suggesting to add liquidity
 - SIR price is fetched once and shared via context to prevent duplicate API calls
 
 ---
@@ -127,16 +140,19 @@ The app uses a centralized Button component (`src/components/ui/button.tsx`) bui
 ### Available Button Variants
 
 1. **`default`** (Primary actions):
+
    - Style: `bg-accent/60 hover:bg-accent text-accent-foreground`
    - Use for: Main CTAs, primary actions, navigation buttons
    - Example: Most buttons in the app use this variant
 
 2. **`outline`** (Secondary actions):
+
    - Style: `border border-border bg-transparent hover:bg-accent/50`
    - Use for: Secondary actions, less prominent buttons
    - Example: Alternative actions, "View More" buttons
 
 3. **`submit`** (Form submissions):
+
    - Style: `w-full bg-gold hover:bg-gold/90 text-black font-semibold`
    - Use for: Full-width form submit buttons, important actions
    - Example: Mint, Stake, Unstake forms
@@ -155,13 +171,13 @@ The app uses a centralized Button component (`src/components/ui/button.tsx`) bui
 ### Implementation Best Practices
 
 #### Standard Button
+
 ```tsx
-<Button onClick={handleClick}>
-  Click Me
-</Button>
+<Button onClick={handleClick}>Click Me</Button>
 ```
 
 #### Button as Link (using asChild)
+
 ```tsx
 <Button asChild>
   <a href="/path" target="_blank" rel="noopener noreferrer">
@@ -171,12 +187,13 @@ The app uses a centralized Button component (`src/components/ui/button.tsx`) bui
 ```
 
 #### Simple Text Link (no button styling)
+
 ```tsx
 <a
   href={url}
   target="_blank"
   rel="noopener noreferrer"
-  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
+  className="text-primary hover:text-primary/80 inline-flex items-center gap-1.5 text-sm transition-colors"
 >
   Link Text
   <ExternalLink className="h-3.5 w-3.5" />
@@ -215,21 +232,25 @@ The app uses a centralized Button component (`src/components/ui/button.tsx`) bui
 The app uses **client-side pagination** for vault tables with a 300-vault limit for optimal performance:
 
 1. **Data Fetching**:
+
    - GraphQL fetches up to 300 vaults at once (configured in `src/server/queries/vaults.ts`)
    - Single API call serves both VaultDataContext and paginated tables
    - No duplicate requests between different components
 
 2. **Pagination Logic**:
+
    - VaultProvider fetches all vaults (up to 300) from the backend
    - VaultTable component slices the array client-side: `vaults.slice((page - 1) * 10, page * 10)`
    - Instant page changes with no network delay
 
 3. **Memory Optimization**:
+
    - 300 vault limit = ~300KB memory usage (acceptable for all devices)
    - Good balance between performance and functionality
    - Supports current vault count with room for growth
 
 4. **Why Client-Side Over Server-Side**:
+
    - **Instant UX**: No loading delay when changing pages
    - **Reduced complexity**: No server/client state sync issues
    - **Fewer API calls**: One fetch serves multiple components
@@ -243,12 +264,14 @@ The app uses **client-side pagination** for vault tables with a 300-vault limit 
 ### Future Optimization Path
 
 When vault count exceeds 500:
+
 1. Implement virtual scrolling for large lists
 2. Add search/autocomplete API for Calculator
 3. Use IndexedDB for client-side caching
 4. Progressive loading (first 100, then rest on demand)
 
 ### Key Files
+
 - `src/lib/getVaults.ts`: Fetches vault data (up to 300)
 - `src/components/providers/vaultProvider.tsx`: Manages pagination state
 - `src/components/leverage-liquidity/vaultTable/vaultTable.tsx`: Implements client-side slicing
@@ -271,16 +294,20 @@ const logoUrl = logos.fallback ?? logos.primary;
 ```
 
 **Why use `getLogoAssetWithFallback`:**
+
 1. **Special SIR handling**: Correctly handles SIR token icons for both mainnet and HyperEVM
 2. **Consistent fallbacks**: Uses curated token list first, then reliable fallbacks
 3. **Chain-aware**: Handles different logos for different chains
 4. **Centralized updates**: Changes to logo logic only need to be made in one place
 
 **DO NOT create custom logo resolution logic** like:
+
 ```typescript
 // ❌ Bad - Don't do this
 const getLogoWithFallback = (address: string) => {
-  const token = tokenlist?.find(t => t.address.toLowerCase() === address.toLowerCase());
+  const token = tokenlist?.find(
+    (t) => t.address.toLowerCase() === address.toLowerCase(),
+  );
   if (token?.logoURI) return token.logoURI;
   return `https://raw.githubusercontent.com/trustwallet/assets/master/...`;
 };
@@ -294,6 +321,7 @@ const getLogoWithFallback = (address: string) => {
 - **`getSirTokenMetadata()`**: Returns complete SIR token metadata
 
 ### Key Asset Files
+
 - `src/lib/assets.ts`: Centralized asset management functions
 - `public/images/sir-logo.svg`: SIR logo for Ethereum chains
 - `public/images/sir-logo-hyperevm.svg`: SIR logo for HyperEVM chains
@@ -417,15 +445,18 @@ The app provides several price fetching mechanisms to get token prices from diff
 ### 2. USD Price Functions
 
 - **`api.price.getSirPriceInUsd`**: Gets SIR token price in USD
+
   - Combines Uniswap V3 price (SIR/WETH or SIR/WHYPE) with wrapped token USD price
   - Cached for 1 minute to reduce API calls
 
 - **`api.price.getTokenPrice`**: Alchemy-based price fetching (Ethereum chains)
+
   - Parameters: `contractAddress`, `chain`
   - Returns token prices from Alchemy's pricing API
   - Used for Ethereum mainnet and Sepolia testnet
 
 - **`api.price.getCoinGeckoPrice`**: CoinGecko API integration (HyperEVM chains)
+
   - Parameters: `platformId`, `contractAddress`
   - Returns USD price from CoinGecko
   - Used for HyperEVM mainnet and testnet
@@ -443,6 +474,7 @@ The app provides several price fetching mechanisms to get token prices from diff
 ### 3. Helper Hooks
 
 - **`useTeaAndApePrice`**: React hook for getting position value in USD
+
   - Takes collateral amount from `quoteBurn`
   - Automatically selects the right price source based on chain and token
   - Returns USD value of the position
@@ -463,11 +495,13 @@ The app provides several price fetching mechanisms to get token prices from diff
 ### Important Vault Concepts
 
 **Vault TVL (Total Value Locked)**:
+
 - Vaults ONLY hold collateral tokens (e.g., WETH, USDC)
 - TVL = total amount of collateral tokens in the vault
 - TVL in USD = collateral amount × collateral token USD price
 
 **Debt Tokens**:
+
 - Debt tokens are NOT held in vaults - they're just accounting units
 - Used to track how much was borrowed by APE holders
 - Used to calculate how to split vault collateral between APE and TEA holders
@@ -478,10 +512,12 @@ The app provides several price fetching mechanisms to get token prices from diff
 The leaderboard (`getActiveApePositions`) uses a smart fallback system for token prices:
 
 1. **Chain-aware primary API selection**:
+
    - Ethereum chains (mainnet, Sepolia): Uses Alchemy API
    - HyperEVM chains (998, 999): Uses CoinGecko API
 
 2. **Automatic fallback for missing prices**:
+
    - If a token has no price from the primary API (returns null or "0")
    - Automatically uses `getTokenPriceWithFallback` which:
      - Tries Uniswap V3 pools paired with WETH/WHYPE
@@ -508,12 +544,14 @@ The leaderboard (`getActiveApePositions`) uses a smart fallback system for token
 The app uses a consistent `DisplayFormattedNumber` component for displaying numerical values with intelligent formatting:
 
 **Features:**
+
 - **Large numbers**: Automatically adds comma separators (e.g., 1,234,567)
 - **Very small numbers** (< 0.001): Uses HTML subscript notation (e.g., 0.0<sub>3</sub>456)
 - **Significant digits**: Configurable precision (default: 3)
 - **Input flexibility**: Accepts number, string, or bigint
 
 **Usage:**
+
 ```tsx
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
@@ -531,6 +569,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 ```
 
 **When to use:**
+
 - Displaying token amounts in tables and forms
 - Showing PnL values
 - Rendering TVL, APR, and other metrics
@@ -543,6 +582,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 The app uses a consistent `ToolTip` component throughout. Important implementation notes:
 
 **Component Pattern:**
+
 ```tsx
 <ToolTip iconSize={16} size="300">
   Content here
@@ -550,6 +590,7 @@ The app uses a consistent `ToolTip` component throughout. Important implementati
 ```
 
 **Key Lessons Learned:**
+
 1. **Always use the existing ToolTip component** - Don't create custom tooltip implementations
 2. **Portal rendering is critical** - The HoverCard component must use `HoverCardPrimitive.Portal` to render tooltips outside the DOM hierarchy, preventing parent styles from affecting tooltip appearance
 3. **Z-index must be high** - Use `z-[9999]` to ensure tooltips appear above all other elements
@@ -559,6 +600,7 @@ The app uses a consistent `ToolTip` component throughout. Important implementati
 7. **Width control** - Use `size="300"` for wider content, `size="250"` (default) for medium, `size="200"` for narrow
 
 **Common Issues and Fixes:**
+
 - **Transparent/affected backgrounds**: Ensure HoverCard uses Portal rendering
 - **Text appears as wall of text**: Use div wrappers with proper spacing classes
 - **Icon too small/large**: Adjust iconSize to match surrounding text size
@@ -568,45 +610,46 @@ The app uses a consistent `ToolTip` component throughout. Important implementati
 The app uses `HoverPopupMobile` for hover tooltips and information popups throughout the interface.
 
 **Component Pattern:**
+
 ```tsx
 import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 
 <HoverPopupMobile
-  size="200"  // Width in pixels: "200", "250", "300"
+  size="200" // Width in pixels: "200", "250", "300"
   trigger={
-    <button className="cursor-pointer">Hover me</button>  // Always use cursor-pointer, not cursor-help
+    <button className="cursor-pointer">Hover me</button> // Always use cursor-pointer, not cursor-help
   }
 >
-  <span className="text-[13px] font-medium">
-    Popup content here
-  </span>
-</HoverPopupMobile>
+  <span className="text-[13px] font-medium">Popup content here</span>
+</HoverPopupMobile>;
 ```
 
 **Key Features:**
+
 - **Mobile-friendly**: Works on both hover (desktop) and tap (mobile)
 - **Customizable width**: Use `size` prop for different content widths
 - **Flexible trigger**: Any element can be the trigger
 - **Consistent styling**: Automatically styled to match the app's design system
 
 **Important Cursor Style Convention:**
+
 - **Always use `cursor-pointer`** on hover trigger elements - shows the finger pointer cursor
 - **Never use `cursor-help`** - the arrow with question mark is not used in this app
 - This provides consistent UX where all interactive elements show the same pointer cursor
 
 **Common Use Cases:**
+
 1. **Information tooltips**: Explaining features or showing additional data
 2. **Interactive hints**: "Click to share", "Tweet about your gains", etc.
 3. **Data breakdowns**: Showing detailed calculations or breakdowns
 4. **Contextual help**: Providing help text for complex features
 
 **Example from Portfolio:**
+
 ```tsx
 <HoverPopupMobile
   size="200"
-  trigger={
-    <button className="emoji-button">🚀</button>
-  }
+  trigger={<button className="emoji-button">🚀</button>}
 >
   <span className="text-[13px] font-medium">
     Tweet about your 150% WETH gains! 🎉
@@ -619,8 +662,11 @@ import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 The app uses CSS-based image switching for instant theme transitions without loading lag:
 
 **Implementation Pattern:**
+
 ```tsx
-{/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
+{
+  /* CSS-based theme switching: Both images loaded, visibility controlled by CSS */
+}
 <>
   {/* Dark mode image - visible only in dark mode */}
   <Image
@@ -638,16 +684,18 @@ The app uses CSS-based image switching for instant theme transitions without loa
     height={200}
     className="block dark:hidden"
   />
-</>
+</>;
 ```
 
 **Key Benefits:**
+
 1. **Zero lag** - Both images preload on mount, switching is instant
 2. **No flicker** - CSS classes toggle visibility immediately
 3. **Better UX** - Smooth theme transitions without image loading delays
 4. **Simple maintenance** - No JavaScript theme detection needed
 
 **Important Notes:**
+
 - Always load both images in the DOM
 - Use Tailwind's `dark:` variant for theme-specific visibility
 - Apply same positioning/sizing to both images
@@ -655,13 +703,16 @@ The app uses CSS-based image switching for instant theme transitions without loa
 - This pattern is used for all theme-dependent images in the app
 
 **Current Theme-Based Images:**
+
 1. **Leverage Page** (`/leverage`):
+
    - Monkey images: `/Monkey_drinking_whiskey.png` (dark) and `/Monkey_drinking_whiskey_white.png` (light)
    - Position:
      - Desktop (lg screens): Top-right corner of the vault table card
      - Mobile (< lg screens): Top-right corner of the minting form card
 
 2. **Liquidity Page** (`/liquidity`):
+
    - Gorilla images: `/Gorilla_drinking_tea.png` (dark) and `/Gorilla_drinking_tea_white.png` (light)
    - Position:
      - Desktop (lg screens): Top-right corner of the vault table card
@@ -673,12 +724,14 @@ The app uses CSS-based image switching for instant theme transitions without loa
 
 **Responsive Positioning Strategy:**
 For the monkey and gorilla images on leverage/liquidity pages:
+
 - **Desktop (lg breakpoint)**: Images appear on the "Popular Vaults" card to avoid overlapping form content
 - **Mobile (< lg breakpoint)**: Images move to the minting form card since the layout stacks vertically
 - This ensures images are always visible and never overlap important content
 - Both sets of images (for each position) are loaded in their respective components
 
 **Why This Pattern:**
+
 - Eliminates theme switching lag - both images preload, only CSS visibility changes
 - No JavaScript theme detection needed - pure CSS solution
 - Prevents image flicker during theme transitions

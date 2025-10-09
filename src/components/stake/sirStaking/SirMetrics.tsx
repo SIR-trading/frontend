@@ -32,8 +32,8 @@ export function SirMetrics() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3 pb-4">
-        <div className="h-20 animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
-        <div className="h-20 animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
+        <div className="h-[88px] animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
+        <div className="h-[88px] animate-pulse rounded-md bg-primary/5 dark:bg-primary" />
       </div>
     );
   }
@@ -41,7 +41,7 @@ export function SirMetrics() {
   return (
     <div className="grid grid-cols-2 gap-3 pb-4">
       {/* Staked Supply Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center">
+      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
         <div className="text-xs text-muted-foreground">Staked Supply</div>
         <div className="mt-1 text-lg font-semibold">
           <DisplayFormattedNumber num={stakedSupplyFormatted} significant={3} /> {getSirSymbol()}
@@ -52,7 +52,7 @@ export function SirMetrics() {
       </div>
 
       {/* Staking APR Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center">
+      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
         <div className="text-xs text-muted-foreground">Staking APR</div>
         <div className="mt-1 text-lg font-semibold">
           {aprValue > 0 ? (

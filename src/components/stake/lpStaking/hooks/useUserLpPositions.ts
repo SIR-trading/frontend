@@ -173,13 +173,24 @@ export function useUserLpPositions() {
   });
 
   // Process positions and filter for SIR/WETH 1% pool
-  const { unstakedPositions, stakedPositions } = useMemo(() => {
-    if (!positionsData || !address) {
-      return { unstakedPositions: [], stakedPositions: [] };
+  const { unstakedPositions, stakedPositions, globalStakingStats } = useMemo(() => {
+    if (!positionsData) {
+      return {
+        unstakedPositions: [],
+        stakedPositions: [],
+        globalStakingStats: {
+          totalValueStakedUsd: 0,
+          inRangeValueStakedUsd: 0,
+        }
+      };
     }
 
     const unstaked: LpPosition[] = [];
     const staked: LpPosition[] = [];
+
+    // Track all staked positions globally (for TVL calculation)
+    let totalValueStakedUsd = 0;
+    let inRangeValueStakedUsd = 0;
 
     for (let i = 0; i < tokenIds.length; i++) {
       const positionIndex = i * 2;
@@ -230,8 +241,8 @@ export function useUserLpPositions() {
 
       // Check if position is staked by the current user
       const isStaked = depositOwner !== '0x0000000000000000000000000000000000000000' && Number(numberOfStakes) > 0;
-      const isStakedByUser = isStaked && depositOwner.toLowerCase() === address.toLowerCase();
-      const isOwnedByUser = !isStaked && (depositOwner === '0x0000000000000000000000000000000000000000' || depositOwner.toLowerCase() === address.toLowerCase());
+      const isStakedByUser = address ? (isStaked && depositOwner.toLowerCase() === address.toLowerCase()) : false;
+      const isOwnedByUser = address ? (!isStaked && (depositOwner === '0x0000000000000000000000000000000000000000' || depositOwner.toLowerCase() === address.toLowerCase())) : false;
 
       // Build position object
       const currentTokenId = tokenIds[i];
@@ -272,7 +283,7 @@ export function useUserLpPositions() {
 
       const lpPosition: LpPosition = {
         tokenId: currentTokenId,
-        owner: isStaked ? depositOwner : address,
+        owner: isStaked ? depositOwner : (address ?? '0x0000000000000000000000000000000000000000' as Address),
         token0,
         token1,
         fee,
@@ -286,7 +297,15 @@ export function useUserLpPositions() {
         isInRange,
       };
 
-      // Only include positions owned/staked by the current user
+      // Track global staking stats for ALL staked positions
+      if (isStaked && positionValueUsd > 0) {
+        totalValueStakedUsd += positionValueUsd;
+        if (isInRange) {
+          inRangeValueStakedUsd += positionValueUsd;
+        }
+      }
+
+      // Only include user positions in user-specific arrays
       if (isStakedByUser) {
         staked.push(lpPosition);
       } else if (isOwnedByUser) {
@@ -294,7 +313,14 @@ export function useUserLpPositions() {
       }
     }
 
-    return { unstakedPositions: unstaked, stakedPositions: staked };
+    return {
+      unstakedPositions: unstaked,
+      stakedPositions: staked,
+      globalStakingStats: {
+        totalValueStakedUsd,
+        inRangeValueStakedUsd,
+      }
+    };
   }, [positionsData, tokenIds, address, currentTick, sqrtPriceX96, sirPrice, wethPrice]);
 
   // Fetch rewards for the user (single call)
@@ -317,11 +343,6 @@ export function useUserLpPositions() {
     }));
   }, [stakedPositions, userRewards]);
 
-  // Calculate total value locked (sum of all staked position values)
-  const totalValueLockedUsd = useMemo(() => {
-    return stakedPositionsWithRewards.reduce((sum, position) => sum + position.valueUsd, 0);
-  }, [stakedPositionsWithRewards]);
-
   const isLoading = isLoadingBalance || isLoadingStakerBalance || isLoadingTokenIds || isLoadingPositions;
 
   // Combined refetch function to refresh all data
@@ -337,7 +358,7 @@ export function useUserLpPositions() {
     unstakedPositions,
     stakedPositions: stakedPositionsWithRewards,
     isLoading,
-    totalValueLockedUsd,
+    globalStakingStats,
     userRewards: userRewards ?? 0n,
     refetchAll,
   };

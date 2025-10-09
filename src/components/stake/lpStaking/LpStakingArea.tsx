@@ -1,41 +1,36 @@
 "use client";
-import React, { useState, useCallback, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LpMetrics } from './LpMetrics';
-import { useUserLpPositions } from './hooks/useUserLpPositions';
-import { StakeCardWrapper } from '../stakeCardWrapper';
-import { getSirSymbol } from '@/lib/assets';
+import React, { useState, useCallback } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LpMetrics } from "./LpMetrics";
+import { useUserLpPositions } from "./hooks/useUserLpPositions";
+import { StakeCardWrapper } from "../stakeCardWrapper";
+import { getSirSymbol } from "@/lib/assets";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { LpStakeModal } from './LpStakeModal';
-import { LpUnstakeModal } from './LpUnstakeModal';
-import { LpClaimRewardsModal } from './LpClaimRewardsModal';
-import HoverPopupMobile from '@/components/ui/hover-popup-mobile';
-import DisplayFormattedNumber from '@/components/shared/displayFormattedNumber';
+} from "@/components/ui/popover";
+import { LpStakeModal } from "./LpStakeModal";
+import { LpUnstakeModal } from "./LpUnstakeModal";
+import { LpClaimRewardsModal } from "./LpClaimRewardsModal";
+import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 
 export function LpStakingArea() {
   const {
     unstakedPositions,
     stakedPositions,
-    totalValueLockedUsd,
+    globalStakingStats,
     userRewards,
     isLoading,
-    refetchAll
+    refetchAll,
   } = useUserLpPositions();
 
   // Modal states
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
-
-  // Calculate in-range value from staked positions
-  const inRangeValueUsd = useMemo(() => {
-    return stakedPositions.filter(p => p.isInRange).reduce((sum, p) => sum + p.valueUsd, 0);
-  }, [stakedPositions]);
 
   // Handle stake button click - stakes all unstaked positions
   const handleStakeClick = useCallback(() => {
@@ -58,14 +53,12 @@ export function LpStakingArea() {
 
   return (
     <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-      <h2 className="pb-4 text-sm font-medium">
-        Uniswap V3 LP Staking
-      </h2>
+      <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
 
       {/* Metrics at top */}
       <LpMetrics
-        totalValueLockedUsd={totalValueLockedUsd}
-        inRangeValueUsd={inRangeValueUsd}
+        totalValueStakedUsd={globalStakingStats.totalValueStakedUsd}
+        inRangeValueStakedUsd={globalStakingStats.inRangeValueStakedUsd}
         stakingApr={null} // TBD
       />
 
@@ -90,19 +83,19 @@ export function LpStakingArea() {
                               key={position.tokenId.toString()}
                               size="200"
                               trigger={
-                                <div className="flex items-center gap-1.5 cursor-pointer">
+                                <div className="flex cursor-pointer items-center gap-1.5">
                                   <span
                                     className={`inline-block rounded-full ${
-                                      position.isInRange
-                                        ? 'animate-pulse'
-                                        : ''
+                                      position.isInRange ? "animate-pulse" : ""
                                     }`}
                                     style={{
-                                      width: '14px',
-                                      height: '14px',
-                                      backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                      minWidth: '14px',
-                                      minHeight: '14px'
+                                      width: "14px",
+                                      height: "14px",
+                                      backgroundColor: position.isInRange
+                                        ? "#22c55e"
+                                        : "rgb(107, 114, 128)",
+                                      minWidth: "14px",
+                                      minHeight: "14px",
                                     }}
                                   />
                                   <span className="text-sm">
@@ -113,14 +106,29 @@ export function LpStakingArea() {
                             >
                               <div className="space-y-1">
                                 <div className="text-[12px]">
-                                  Status: <span className={position.isInRange ? 'text-green-500' : 'text-yellow-500'}>
-                                    {position.isInRange ? 'In Range' : 'Out of Range'}
+                                  Status:{" "}
+                                  <span
+                                    className={
+                                      position.isInRange
+                                        ? "text-green-500"
+                                        : "text-yellow-500"
+                                    }
+                                  >
+                                    {position.isInRange
+                                      ? "In Range"
+                                      : "Out of Range"}
                                   </span>
                                 </div>
                                 <div className="text-[12px]">
-                                  Value: ${position.valueUsd > 0 ? (
-                                    <DisplayFormattedNumber num={position.valueUsd} significant={3} />
-                                  ) : '0'}
+                                  Value: $
+                                  {position.valueUsd > 0 ? (
+                                    <DisplayFormattedNumber
+                                      num={position.valueUsd}
+                                      significant={3}
+                                    />
+                                  ) : (
+                                    "0"
+                                  )}
                                 </div>
                               </div>
                             </HoverPopupMobile>
@@ -129,61 +137,80 @@ export function LpStakingArea() {
                           {unstakedPositions.length > 2 && (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                                <button className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground">
                                   +{unstakedPositions.length - 2} more
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-64 max-h-64 overflow-y-auto" align="start">
+                              <PopoverContent
+                                className="max-h-64 w-64 overflow-y-auto"
+                                align="start"
+                              >
                                 <div className="space-y-2">
-                                  <div className="text-xs font-medium text-muted-foreground mb-2">
+                                  <div className="mb-2 text-xs font-medium text-muted-foreground">
                                     Additional Positions
                                   </div>
-                                  {unstakedPositions.slice(2).map((position) => (
-                                    <div key={position.tokenId.toString()} className="flex items-center justify-between py-1">
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className={`inline-block rounded-full ${
-                                            position.isInRange
-                                              ? 'animate-pulse'
-                                              : ''
-                                          }`}
-                                          style={{
-                                            width: '14px',
-                                            height: '14px',
-                                            backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                            minWidth: '14px',
-                                            minHeight: '14px'
-                                          }}
-                                        />
-                                        <span className="text-sm">
-                                          #{position.tokenId.toString()}
-                                        </span>
+                                  {unstakedPositions
+                                    .slice(2)
+                                    .map((position) => (
+                                      <div
+                                        key={position.tokenId.toString()}
+                                        className="flex items-center justify-between py-1"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <span
+                                            className={`inline-block rounded-full ${
+                                              position.isInRange
+                                                ? "animate-pulse"
+                                                : ""
+                                            }`}
+                                            style={{
+                                              width: "14px",
+                                              height: "14px",
+                                              backgroundColor:
+                                                position.isInRange
+                                                  ? "#22c55e"
+                                                  : "rgb(107, 114, 128)",
+                                              minWidth: "14px",
+                                              minHeight: "14px",
+                                            }}
+                                          />
+                                          <span className="text-sm">
+                                            #{position.tokenId.toString()}
+                                          </span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                          <span className="text-xs text-muted-foreground">
+                                            {position.isInRange
+                                              ? "In range"
+                                              : "Out of range"}
+                                          </span>
+                                          <span className="text-xs">
+                                            $
+                                            {position.valueUsd > 0 ? (
+                                              <DisplayFormattedNumber
+                                                num={position.valueUsd}
+                                                significant={3}
+                                              />
+                                            ) : (
+                                              "0"
+                                            )}
+                                          </span>
+                                        </div>
                                       </div>
-                                      <div className="flex flex-col items-end">
-                                        <span className="text-xs text-muted-foreground">
-                                          {position.isInRange ? 'In range' : 'Out of range'}
-                                        </span>
-                                        <span className="text-xs">
-                                          ${position.valueUsd > 0 ? (
-                                            <DisplayFormattedNumber num={position.valueUsd} significant={3} />
-                                          ) : '0'}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
+                                    ))}
                                 </div>
                               </PopoverContent>
                             </Popover>
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No LP positions
-                        </p>
+                        <p className="text-sm text-muted-foreground">None</p>
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Loading...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Loading...
+                    </span>
                   )}
                 </div>
               </div>
@@ -192,14 +219,14 @@ export function LpStakingArea() {
                   disabled={!unstakedPositions.length}
                   onClick={handleStakeClick}
                   type="button"
-                  className="py-2 w-20"
+                  className="w-20 py-2"
                 >
                   Stake
                 </Button>
               </div>
             </div>
-            </div>
-          </StakeCardWrapper>
+          </div>
+        </StakeCardWrapper>
 
         {/* Staked LP Positions */}
         <StakeCardWrapper>
@@ -220,19 +247,19 @@ export function LpStakingArea() {
                               key={position.tokenId.toString()}
                               size="200"
                               trigger={
-                                <div className="flex items-center gap-1.5 cursor-pointer">
+                                <div className="flex cursor-pointer items-center gap-1.5">
                                   <span
                                     className={`inline-block rounded-full ${
-                                      position.isInRange
-                                        ? 'animate-pulse'
-                                        : ''
+                                      position.isInRange ? "animate-pulse" : ""
                                     }`}
                                     style={{
-                                      width: '14px',
-                                      height: '14px',
-                                      backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                      minWidth: '14px',
-                                      minHeight: '14px'
+                                      width: "14px",
+                                      height: "14px",
+                                      backgroundColor: position.isInRange
+                                        ? "#22c55e"
+                                        : "rgb(107, 114, 128)",
+                                      minWidth: "14px",
+                                      minHeight: "14px",
                                     }}
                                   />
                                   <span className="text-sm">
@@ -243,14 +270,29 @@ export function LpStakingArea() {
                             >
                               <div className="space-y-1">
                                 <div className="text-[12px]">
-                                  Status: <span className={position.isInRange ? 'text-green-500' : 'text-yellow-500'}>
-                                    {position.isInRange ? 'In Range' : 'Out of Range'}
+                                  Status:{" "}
+                                  <span
+                                    className={
+                                      position.isInRange
+                                        ? "text-green-500"
+                                        : "text-yellow-500"
+                                    }
+                                  >
+                                    {position.isInRange
+                                      ? "In Range"
+                                      : "Out of Range"}
                                   </span>
                                 </div>
                                 <div className="text-[12px]">
-                                  Value: ${position.valueUsd > 0 ? (
-                                    <DisplayFormattedNumber num={position.valueUsd} significant={3} />
-                                  ) : '0'}
+                                  Value: $
+                                  {position.valueUsd > 0 ? (
+                                    <DisplayFormattedNumber
+                                      num={position.valueUsd}
+                                      significant={3}
+                                    />
+                                  ) : (
+                                    "0"
+                                  )}
                                 </div>
                               </div>
                             </HoverPopupMobile>
@@ -259,30 +301,38 @@ export function LpStakingArea() {
                           {stakedPositions.length > 2 && (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                                <button className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground">
                                   +{stakedPositions.length - 2} more
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-64 max-h-64 overflow-y-auto" align="start">
+                              <PopoverContent
+                                className="max-h-64 w-64 overflow-y-auto"
+                                align="start"
+                              >
                                 <div className="space-y-2">
-                                  <div className="text-xs font-medium text-muted-foreground mb-2">
+                                  <div className="mb-2 text-xs font-medium text-muted-foreground">
                                     Additional Positions
                                   </div>
                                   {stakedPositions.slice(2).map((position) => (
-                                    <div key={position.tokenId.toString()} className="flex items-center justify-between py-1">
+                                    <div
+                                      key={position.tokenId.toString()}
+                                      className="flex items-center justify-between py-1"
+                                    >
                                       <div className="flex items-center gap-2">
                                         <span
                                           className={`inline-block rounded-full ${
                                             position.isInRange
-                                              ? 'animate-pulse'
-                                              : ''
+                                              ? "animate-pulse"
+                                              : ""
                                           }`}
                                           style={{
-                                            width: '14px',
-                                            height: '14px',
-                                            backgroundColor: position.isInRange ? '#22c55e' : 'rgb(107, 114, 128)',
-                                            minWidth: '14px',
-                                            minHeight: '14px'
+                                            width: "14px",
+                                            height: "14px",
+                                            backgroundColor: position.isInRange
+                                              ? "#22c55e"
+                                              : "rgb(107, 114, 128)",
+                                            minWidth: "14px",
+                                            minHeight: "14px",
                                           }}
                                         />
                                         <span className="text-sm">
@@ -291,12 +341,20 @@ export function LpStakingArea() {
                                       </div>
                                       <div className="flex flex-col items-end">
                                         <span className="text-xs text-muted-foreground">
-                                          {position.isInRange ? 'In range' : 'Out of range'}
+                                          {position.isInRange
+                                            ? "In range"
+                                            : "Out of range"}
                                         </span>
                                         <span className="text-xs">
-                                          ${position.valueUsd > 0 ? (
-                                            <DisplayFormattedNumber num={position.valueUsd} significant={3} />
-                                          ) : '0'}
+                                          $
+                                          {position.valueUsd > 0 ? (
+                                            <DisplayFormattedNumber
+                                              num={position.valueUsd}
+                                              significant={3}
+                                            />
+                                          ) : (
+                                            "0"
+                                          )}
                                         </span>
                                       </div>
                                     </div>
@@ -313,7 +371,9 @@ export function LpStakingArea() {
                       )}
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Loading...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Loading...
+                    </span>
                   )}
                 </div>
               </div>
@@ -322,7 +382,7 @@ export function LpStakingArea() {
                   disabled={!stakedPositions.length}
                   onClick={handleUnstakeClick}
                   type="button"
-                  className="py-2 w-20"
+                  className="w-20 py-2"
                 >
                   Unstake
                 </Button>
@@ -333,7 +393,9 @@ export function LpStakingArea() {
 
         {/* SIR Token Rewards */}
         <StakeCardWrapper>
-          <div className={`rounded-md bg-primary/5 p-4 dark:bg-primary ${userRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}>
+          <div
+            className={`rounded-md bg-primary/5 p-4 dark:bg-primary ${userRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}
+          >
             <div className="flex justify-between">
               <div className="flex-1">
                 <h2 className="pb-1 text-sm text-muted-foreground">
@@ -344,14 +406,19 @@ export function LpStakingArea() {
                     {!isLoading ? (
                       <span className="text-xl">
                         {userRewards > 0n ? (
-                          <DisplayFormattedNumber num={Number(userRewards) / 1e12} significant={3} />
+                          <DisplayFormattedNumber
+                            num={Number(userRewards) / 1e12}
+                            significant={3}
+                          />
                         ) : (
-                          '0'
+                          "0"
                         )}
                         <span className=""> {getSirSymbol()}</span>
                       </span>
                     ) : (
-                      <span className="text-sm text-muted-foreground">Loading...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loading...
+                      </span>
                     )}
                   </div>
                 </div>
@@ -361,7 +428,7 @@ export function LpStakingArea() {
                   disabled={!(userRewards > 0n)}
                   onClick={handleClaimClick}
                   type="button"
-                  className="py-2 w-20"
+                  className="w-20 py-2"
                 >
                   Claim
                 </Button>
