@@ -88,6 +88,40 @@ Active incentives are configured in `src/data/uniswapIncentives.ts`:
 - Incentive key is encoded as tuple: `(rewardToken, pool, startTime, endTime, refundee)`
 - Used by staker contract to identify reward program
 
+#### Build-Time Incentive Validation
+
+**IMPORTANT**: The build script validates that all configured incentives exist on-chain before deployment:
+
+- Located in `scripts/generate-build-data.ts` and `src/lib/buildTimeData.ts`
+- Runs automatically during `pnpm run build` and `pnpm run dev`
+- For each incentive in `uniswapIncentives.ts`:
+  1. Computes the incentive ID: `keccak256(abi.encode(IncentiveKey))`
+  2. Calls `UniswapV3Staker.incentives(incentiveId)` on-chain
+  3. Checks if `totalRewardUnclaimed > 0` (indicates incentive exists)
+- **Build fails immediately** if any incentive doesn't exist on-chain
+- Provides detailed error with incentive parameters and instructions
+
+This prevents deploying with invalid incentive configurations that would cause runtime failures.
+
+**Example validation output:**
+
+```
+🔍 Validating incentives on-chain...
+✅ Incentive 1 exists on-chain (ID: 0xc6026ca...)
+   Total Reward Unclaimed: 9998614530225
+   Number of Stakes: 3
+✅ All incentives validated successfully!
+```
+
+**Error example:**
+
+```
+❌ Incentive 2 does NOT exist on-chain!
+   Incentive ID: 0xf8a4b4e...
+   Start Time: 1760009400
+   This incentive needs to be created with createIncentive() before deployment!
+```
+
 ### Position Detection
 
 The hook checks both:
@@ -128,6 +162,7 @@ const { sirPrice, isLoading, error } = useSirPrice();
 - Refetch delay prevents reading stale blockchain data
 - Empty state shows "None" instead of suggesting to add liquidity
 - SIR price is fetched once and shared via context to prevent duplicate API calls
+- **Build-time validation**: All incentives in `uniswapIncentives.ts` are verified on-chain before deployment - builds fail if incentives don't exist
 
 ---
 

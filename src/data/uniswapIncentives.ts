@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 import { env } from "@/env";
-import buildData from "@/../public/build-data.json";
+import buildData from "../../public/build-data.json";
 
 const SIR_ADDRESS = buildData.contractAddresses.sir as Address;
 const SIR_WETH_POOL_1_PERCENT = buildData.contractAddresses
@@ -39,8 +39,8 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveKey[]> = {
     {
       rewardToken: SIR_ADDRESS,
       pool: SIR_WETH_POOL_1_PERCENT,
-      startTime: 1760001547n,
-      endTime: 1762683547n,
+      startTime: 1760009400n,
+      endTime: 1762691400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
     },
   ],

@@ -8,7 +8,6 @@ import type { TAuctionBidModalState } from "@/components/auction/AuctionBidModal
 import { AuctionBidModal } from "@/components/auction/AuctionBidModal";
 import AuctionBidFormProvider from "@/components/providers/auctionBidFormProvider";
 import { api } from "@/trpc/react";
-import type { AuctionFieldFragment } from "@/lib/types";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { TokenDisplay } from "@/components/ui/token-display";
 import { TokenDisplayWithUsd } from "@/components/auction/TokenDisplayWithUsd";
@@ -84,13 +83,9 @@ const OngoingAuction = ({
     },
   });
 
-  const { userAuction, otherAuction } = useMemo(() => {
-    const initial: {
-      userAuction: AuctionFieldFragment[];
-      otherAuction: AuctionFieldFragment[];
-    } = { userAuction: [], otherAuction: [] };
+  const sortedAuctions = useMemo(() => {
     if (!auctions) {
-      return initial;
+      return [];
     }
 
     const { merged, newBidsDetected } = mergeWithServerData(auctions);
@@ -111,14 +106,15 @@ const OngoingAuction = ({
       }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
     }
 
-    return merged.reduce((acc, auction) => {
-      if (Boolean(auction.isParticipant.length)) {
-        acc.userAuction.push(auction);
-      } else {
-        acc.otherAuction.push(auction);
-      }
-      return acc;
-    }, initial);
+    // Sort auctions: user's auctions first, then others
+    return merged.sort((a, b) => {
+      const aIsParticipant = Boolean(a.isParticipant.length);
+      const bIsParticipant = Boolean(b.isParticipant.length);
+
+      if (aIsParticipant && !bIsParticipant) return -1;
+      if (!aIsParticipant && bIsParticipant) return 1;
+      return 0;
+    });
   }, [auctions, mergeWithServerData]);
 
   const handleTrigger = useCallback(() => {
@@ -151,26 +147,22 @@ const OngoingAuction = ({
 
       <Show
         when={!isLoading && !isLoadingBal}
-        fallback={
-          <>
-            <AuctionContentSkeleton />
-            <div className="h-[64px]" />
-            <AuctionContentSkeleton />
-          </>
-        }
+        fallback={<AuctionContentSkeleton />}
       >
-        {userAuction.length > 0 && (
-          <>
-            <AuctionContentWrapper header={"Ongoing auctions you're part of"}>
-              {userAuction.map(
-                ({
-                  startTime,
-                  highestBid,
-                  highestBidder,
-                  token,
-                  amount,
-                  isParticipant,
-                }) => (
+        {sortedAuctions.length > 0 ? (
+          <AuctionContentWrapper>
+            {sortedAuctions.map(
+              ({
+                startTime,
+                highestBid,
+                highestBidder,
+                token,
+                amount,
+                isParticipant,
+              }) => {
+                const isUserParticipant = Boolean(isParticipant.length);
+
+                return (
                   <AuctionCard
                     auctionType="ongoing"
                     isPulsing={pulsingTokens.has(token.id as Address)}
@@ -226,7 +218,7 @@ const OngoingAuction = ({
                       [
                         {
                           title: AuctionCardTitle.YOUR_BID,
-                          content: (
+                          content: isUserParticipant ? (
                             <TokenDisplay
                               amount={BigInt(isParticipant[0]?.bid ?? "0")}
                               amountSize="large"
@@ -234,6 +226,8 @@ const OngoingAuction = ({
                               unitLabel={getNativeCurrencySymbol()}
                               className={"text-lg"}
                             />
+                          ) : (
+                            "N/A"
                           ),
                         },
                         {
@@ -275,6 +269,9 @@ const OngoingAuction = ({
                           title: AuctionCardTitle.LEADER,
                           content: compareAddress(highestBidder, address) ? (
                             "YOU ARE LEADING"
+                          ) : hexToBigInt(highestBidder as Address) ===
+                            BigInt(0) ? (
+                            "N/A"
                           ) : (
                             <AddressExplorerLink address={highestBidder} />
                           ),
@@ -297,140 +294,11 @@ const OngoingAuction = ({
                       },
                     }}
                   />
-                ),
-              )}
-            </AuctionContentWrapper>
-            <div className="h-[64px]" />
-          </>
-        )}
-
-        {otherAuction.length > 0 && (
-          <AuctionContentWrapper>
-            {otherAuction.map(
-              ({ startTime, highestBid, token, amount, highestBidder }) => (
-                <AuctionCard
-                  auctionType="ongoing"
-                  isPulsing={pulsingTokens.has(token.id as Address)}
-                  data={[
-                    [
-                      {
-                        title: AuctionCardTitle.AUCTION_DETAILS,
-                        content: (
-                          <div className="flex items-baseline gap-2">
-                            <TokenImage
-                              address={token.id as Address}
-                              className="self-center rounded-full"
-                              width={24}
-                              height={24}
-                            />
-                            <AddressExplorerLink
-                              address={token.id}
-                              shortenLength={4}
-                            />
-                          </div>
-                        ),
-                        variant: "large",
-                      },
-                      {
-                        title: AuctionCardTitle.AMOUNT,
-                        variant: "large",
-                        content: (
-                          <TokenDisplayWithUsd
-                            amount={
-                              (auctionLots?.get(token.id) ?? 0n) > 0n
-                                ? auctionLots?.get(token.id)
-                                : BigInt(amount)
-                            }
-                            amountSize="large"
-                            decimals={
-                              uniqueAuctionCollection.collateralDecimalsMap.get(
-                                token.id,
-                              ) ?? 18
-                            }
-                            unitLabel={
-                              uniqueAuctionCollection.collateralSymbolMap.get(
-                                token.id,
-                              ) ?? ""
-                            }
-                            tokenAddress={token.id}
-                            className={
-                              "font-geist text-[24px] font-normal leading-[32px]"
-                            }
-                          />
-                        ),
-                      },
-                    ],
-                    [
-                      {
-                        title: AuctionCardTitle.YOUR_BID,
-                        content: "N/A",
-                      },
-                      {
-                        title: AuctionCardTitle.HIGHEST_BID,
-                        content: (
-                          <BidDisplayWithDiscount
-                            bidAmount={BigInt(highestBid)}
-                            bidDecimals={18}
-                            bidUnitLabel={getNativeCurrencySymbol()}
-                            bidTokenAddress={WRAPPED_NATIVE_TOKEN_ADDRESS}
-                            auctionAmount={
-                              (auctionLots?.get(token.id) ?? 0n) > 0n
-                                ? auctionLots?.get(token.id) ?? 0n
-                                : BigInt(amount)
-                            }
-                            auctionDecimals={
-                              uniqueAuctionCollection.collateralDecimalsMap.get(
-                                token.id,
-                              ) ?? 18
-                            }
-                            auctionTokenAddress={token.id}
-                            amountSize="large"
-                            className={"text-lg"}
-                          />
-                        ),
-                      },
-                    ],
-                    [
-                      {
-                        title: AuctionCardTitle.CLOSES_IN,
-                        content: (
-                          <Countdown
-                            date={(+startTime + AUCTION_DURATION) * 1000}
-                            onComplete={handleTrigger}
-                          />
-                        ),
-                      },
-                      {
-                        title: AuctionCardTitle.LEADER,
-                        content: compareAddress(highestBidder, address) ? (
-                          "YOU ARE LEADING"
-                        ) : hexToBigInt(highestBidder as Address) ===
-                          BigInt(0) ? (
-                          "N/A"
-                        ) : (
-                          <AddressExplorerLink address={highestBidder} />
-                        ),
-                      },
-                    ],
-                  ]}
-                  key={token.id}
-                  id={token.id}
-                  action={{
-                    title: "Bid",
-                    onClick: (id) => {
-                      setOpenModal({
-                        open: true,
-                        id,
-                        bid: BigInt(highestBid),
-                      });
-                    },
-                  }}
-                />
-              ),
+                );
+              },
             )}
           </AuctionContentWrapper>
-        )}
-        {userAuction.length === 0 && otherAuction.length === 0 && (
+        ) : (
           <div className="flex h-[300px] items-center justify-center">
             <p className="text-lg">No active auctions</p>
           </div>

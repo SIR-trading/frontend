@@ -14,7 +14,7 @@ interface StakingContextType {
   totalSupply: bigint | undefined;
   unstakedSupply: bigint | undefined;
   totalValueLocked: bigint;
-  apr: { apr: string; latestTimestamp: number; } | undefined;
+  apr: { apr: string; latestTimestamp: number; totalEthDistributed: string } | undefined;
   totalSupplyLoading: boolean;
   unstakedSupplyLoading: boolean;
   aprLoading: boolean;

@@ -60,6 +60,17 @@ const UNIV3_STAKER_ABI = [
     outputs: [{ name: "", type: "address", internalType: "contract INonfungiblePositionManager" }],
     stateMutability: "view",
   },
+  {
+    type: "function",
+    name: "incentives",
+    inputs: [{ name: "incentiveId", type: "bytes32", internalType: "bytes32" }],
+    outputs: [
+      { name: "totalRewardUnclaimed", type: "uint256", internalType: "uint256" },
+      { name: "totalSecondsClaimedX128", type: "uint160", internalType: "uint160" },
+      { name: "numberOfStakes", type: "uint96", internalType: "uint96" },
+    ],
+    stateMutability: "view",
+  },
 ] as const;
 
 const VAULT_ABI = [
@@ -305,4 +316,128 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
     console.error('Failed to fetch build-time data:', error);
     throw new Error(`Build-time data fetching failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+/**
+ * Computes the incentive ID hash the same way the Uniswap V3 Staker contract does
+ */
+function computeIncentiveId(incentive: {
+  rewardToken: Address;
+  pool: Address;
+  startTime: bigint;
+  endTime: bigint;
+  refundee: Address;
+}): `0x${string}` {
+  const encoded = encodeAbiParameters(
+    [{
+      type: 'tuple',
+      components: [
+        { name: 'rewardToken', type: 'address' },
+        { name: 'pool', type: 'address' },
+        { name: 'startTime', type: 'uint256' },
+        { name: 'endTime', type: 'uint256' },
+        { name: 'refundee', type: 'address' }
+      ]
+    }],
+    [{
+      rewardToken: incentive.rewardToken,
+      pool: incentive.pool,
+      startTime: incentive.startTime,
+      endTime: incentive.endTime,
+      refundee: incentive.refundee
+    }]
+  );
+  return keccak256(encoded);
+}
+
+/**
+ * Validates that all configured incentives exist on-chain
+ * Throws an error if any incentive doesn't exist
+ */
+export async function validateIncentives(
+  incentives: Array<{
+    rewardToken: Address;
+    pool: Address;
+    startTime: bigint;
+    endTime: bigint;
+    refundee: Address;
+  }>,
+  stakerAddress: Address
+): Promise<void> {
+  if (!stakerAddress || stakerAddress === '0x0000000000000000000000000000000000000000') {
+    console.log('⏭️  Skipping incentive validation - no staker address configured');
+    return;
+  }
+
+  if (incentives.length === 0) {
+    console.log('⏭️  No incentives configured to validate');
+    return;
+  }
+
+  const client = createPublicClient({
+    chain: base,
+    transport: http(RPC_URL),
+  });
+
+  console.log('🔍 Validating incentives on-chain...');
+
+  const errors: string[] = [];
+
+  for (let i = 0; i < incentives.length; i++) {
+    const incentive = incentives[i];
+    if (!incentive) continue;
+
+    const incentiveId = computeIncentiveId(incentive);
+
+    try {
+      const result = await client.readContract({
+        address: stakerAddress,
+        abi: UNIV3_STAKER_ABI,
+        functionName: 'incentives',
+        args: [incentiveId],
+      });
+
+      const [totalRewardUnclaimed, totalSecondsClaimedX128, numberOfStakes] = result;
+      const exists = totalRewardUnclaimed > 0n;
+
+      if (!exists) {
+        errors.push(
+          `❌ Incentive ${i + 1} does NOT exist on-chain!\n` +
+          `   Incentive ID: ${incentiveId}\n` +
+          `   Reward Token: ${incentive.rewardToken}\n` +
+          `   Pool: ${incentive.pool}\n` +
+          `   Start Time: ${incentive.startTime} (${new Date(Number(incentive.startTime) * 1000).toISOString()})\n` +
+          `   End Time: ${incentive.endTime} (${new Date(Number(incentive.endTime) * 1000).toISOString()})\n` +
+          `   Refundee: ${incentive.refundee}\n` +
+          `   Total Reward Unclaimed: ${totalRewardUnclaimed}\n` +
+          `   This incentive needs to be created with createIncentive() before deployment!`
+        );
+      } else {
+        console.log(`✅ Incentive ${i + 1} exists on-chain (ID: ${incentiveId})`);
+        console.log(`   Total Reward Unclaimed: ${totalRewardUnclaimed}`);
+        console.log(`   Number of Stakes: ${numberOfStakes}`);
+      }
+    } catch (error) {
+      errors.push(
+        `❌ Failed to check incentive ${i + 1}:\n` +
+        `   Incentive ID: ${incentiveId}\n` +
+        `   Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `\n\n${'='.repeat(80)}\n` +
+      `INCENTIVE VALIDATION FAILED\n` +
+      `${'='.repeat(80)}\n\n` +
+      errors.join('\n\n') +
+      `\n\n${'='.repeat(80)}\n` +
+      `Please create the missing incentives on-chain before deploying.\n` +
+      `Use the createIncentive() function on the UniswapV3Staker contract.\n` +
+      `${'='.repeat(80)}\n`
+    );
+  }
+
+  console.log('✅ All incentives validated successfully!\n');
 }

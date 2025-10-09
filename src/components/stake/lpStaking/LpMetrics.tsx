@@ -24,13 +24,13 @@ export function LpMetrics({ totalValueStakedUsd, inRangeValueStakedUsd, stakingA
           )}{" "}
           <span className="text-[10px] text-muted-foreground/70 font-normal">in-range</span>
         </div>
-        <div className="text-xs text-muted-foreground mt-1">
+        <div className="text-xs text-muted-foreground">
           ${(totalValueStakedUsd - inRangeValueStakedUsd) > 0 ? (
             <DisplayFormattedNumber num={totalValueStakedUsd - inRangeValueStakedUsd} significant={3} />
           ) : (
             "0"
           )}{" "}
-          <span className="text-[10px] text-muted-foreground/70">out-of-range</span>
+          <span className="text-muted-foreground/70">out-of-range</span>
         </div>
       </div>
 
