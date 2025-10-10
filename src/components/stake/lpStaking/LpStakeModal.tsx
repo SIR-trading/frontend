@@ -70,6 +70,19 @@ export function LpStakeModal({
 }: LpStakeModalProps) {
   const { address } = useAccount();
 
+  // Snapshot positions when modal opens to prevent UI from updating when parent refetches
+  const [positionsSnapshot, setPositionsSnapshot] = React.useState<LpPosition[]>([]);
+
+  useEffect(() => {
+    if (open && positions.length > 0) {
+      // Store snapshot when modal opens
+      setPositionsSnapshot(positions);
+    }
+  }, [open, positions]);
+
+  // Use snapshot for all calculations if available, otherwise use live positions
+  const activePositions = positionsSnapshot.length > 0 ? positionsSnapshot : positions;
+
   // Get all active incentive keys
   const activeIncentives = useMemo(() => {
     const incentives = getCurrentActiveIncentives();
@@ -97,36 +110,36 @@ export function LpStakeModal({
 
   // Calculate total USD value from positions
   const totalValueUsd = useMemo(() => {
-    return positions.reduce((sum, p) => sum + (p.valueUsd || 0), 0);
-  }, [positions]);
+    return activePositions.reduce((sum, p) => sum + (p.valueUsd || 0), 0);
+  }, [activePositions]);
 
   // Calculate in-range USD value
   const inRangeValueUsd = useMemo(() => {
-    return positions.filter(p => p.isInRange).reduce((sum, p) => sum + (p.valueUsd || 0), 0);
-  }, [positions]);
+    return activePositions.filter(p => p.isInRange).reduce((sum, p) => sum + (p.valueUsd || 0), 0);
+  }, [activePositions]);
 
   // Check which positions need approval
   const { data: approvalData, refetch: refetchApprovals } = useReadContracts({
-    contracts: positions.map((position) => ({
+    contracts: activePositions.map((position) => ({
       address: NonfungiblePositionManagerContract.address,
       abi: NonfungiblePositionManagerContract.abi,
       functionName: "getApproved" as const,
       args: [position.tokenId],
     })),
     query: {
-      enabled: positions.length > 0 && !!address,
+      enabled: activePositions.length > 0 && !!address,
     },
   });
 
   // Determine which positions need approval
   const positionsNeedingApproval = useMemo(() => {
-    if (!approvalData) return positions.map(() => true);
+    if (!approvalData) return activePositions.map(() => true);
 
     return approvalData.map((result) => {
       if (result.status === 'failure' || !result.result) return true;
       return (result.result) !== UniswapV3StakerContract.address;
     });
-  }, [approvalData, positions]);
+  }, [approvalData, activePositions]);
 
   // Contract write for multicall
   const {
@@ -148,13 +161,15 @@ export function LpStakeModal({
       console.log('=== LpStakeModal opened ===');
       console.log('positions received:', positions);
       console.log('positions.length:', positions.length);
+      console.log('activePositions (snapshot):', activePositions);
+      console.log('activePositions.length:', activePositions.length);
       console.log('activeIncentives:', activeIncentives);
       console.log('address:', address);
       console.log('isPending:', isPending);
       console.log('isConfirming:', isConfirming);
-      console.log('Button will be disabled?', isPending || isConfirming || activeIncentives.length === 0 || positions.length === 0);
+      console.log('Button will be disabled?', isPending || isConfirming || activeIncentives.length === 0 || activePositions.length === 0);
     }
-  }, [open, positions, activeIncentives, address, isPending, isConfirming]);
+  }, [open, positions, activePositions, activeIncentives, address, isPending, isConfirming]);
 
   // Log write errors
   useEffect(() => {
@@ -169,23 +184,23 @@ export function LpStakeModal({
     console.log('=== handleMulticallStake CALLED ===');
     console.log('address:', address);
     console.log('activeIncentives.length:', activeIncentives.length);
-    console.log('positions.length:', positions.length);
+    console.log('activePositions.length:', activePositions.length);
 
-    if (!address || activeIncentives.length === 0 || positions.length === 0) {
+    if (!address || activeIncentives.length === 0 || activePositions.length === 0) {
       console.log('Early return - missing data');
       return;
     }
 
     // Separate positions into two categories
-    const unstakedPositions = positions.filter(p => !p.isStaked);
-    const alreadyStakedPositions = positions.filter(p => p.isStaked);
+    const unstakedPositions = activePositions.filter(p => !p.isStaked);
+    const alreadyStakedPositions = activePositions.filter(p => p.isStaked);
 
     console.log('unstakedPositions:', unstakedPositions);
     console.log('alreadyStakedPositions:', alreadyStakedPositions);
     console.log('positionsNeedingApproval:', positionsNeedingApproval);
 
     // Log detailed position info
-    positions.forEach(p => {
+    activePositions.forEach(p => {
       console.log(`Position #${p.tokenId}:`, {
         isStaked: p.isStaked,
         missingIncentives: p.missingIncentives,
@@ -198,8 +213,8 @@ export function LpStakeModal({
 
     // For truly unstaked positions: approve + transfer to staker (which stakes in ALL incentives at once!)
     unstakedPositions.forEach((position, _index) => {
-      // Find the original index in the full positions array for approval checking
-      const originalIndex = positions.findIndex(p => p.tokenId === position.tokenId);
+      // Find the original index in the full activePositions array for approval checking
+      const originalIndex = activePositions.findIndex(p => p.tokenId === position.tokenId);
 
       // Add approval if needed
       if (originalIndex >= 0 && positionsNeedingApproval[originalIndex]) {
@@ -297,7 +312,7 @@ export function LpStakeModal({
     });
 
     console.log('executeMulticall called!');
-  }, [executeMulticall, address, positions, activeIncentives, positionsNeedingApproval]);
+  }, [executeMulticall, address, activePositions, activeIncentives, positionsNeedingApproval]);
 
   // Handle success callback
   useEffect(() => {
@@ -309,9 +324,13 @@ export function LpStakeModal({
   // Handle modal close
   const handleClose = useCallback((open: boolean) => {
     setOpen(open);
-    if (!open && writeError) {
-      reset();
-      void refetchApprovals();
+    if (!open) {
+      // Reset snapshot when modal closes
+      setPositionsSnapshot([]);
+      if (writeError) {
+        reset();
+        void refetchApprovals();
+      }
     }
   }, [setOpen, reset, writeError, refetchApprovals]);
 
@@ -332,11 +351,11 @@ export function LpStakeModal({
     );
   }
 
-  const inRangeCount = positions.filter(p => p.isInRange).length;
+  const inRangeCount = activePositions.filter(p => p.isInRange).length;
 
   return (
     <TransactionModal.Root
-      title={`Stake ${positions.length} LP Position${positions.length > 1 ? 's' : ''}`}
+      title={`Stake ${activePositions.length} LP Position${activePositions.length > 1 ? 's' : ''}`}
       open={open}
       setOpen={handleClose}
     >
@@ -360,12 +379,12 @@ export function LpStakeModal({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Total Positions</span>
-                    <span className="text-sm font-semibold">{positions.length}</span>
+                    <span className="text-sm font-semibold">{activePositions.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">In Range</span>
                     <span className="text-sm font-semibold text-green-500">
-                      {inRangeCount} / {positions.length}
+                      {inRangeCount} / {activePositions.length}
                     </span>
                   </div>
                 </div>
@@ -409,21 +428,21 @@ export function LpStakeModal({
 
             <div className="px-6 py-4">
               <TransactionModal.Disclaimer>
-                {positions.some(p => !p.isStaked) ? (
+                {activePositions.some(p => !p.isStaked) ? (
                   // Has unstaked positions
                   activeIncentives.length > 1 ? (
-                    positions.length === 1
+                    activePositions.length === 1
                       ? `This will approve (if needed), transfer (if needed), and stake your LP position in all ${activeIncentives.length} active incentives in a single transaction.`
-                      : `All ${positions.length} positions will be approved (if needed), transferred (if needed), and staked in all ${activeIncentives.length} active incentives in a single transaction.`
+                      : `All ${activePositions.length} positions will be approved (if needed), transferred (if needed), and staked in all ${activeIncentives.length} active incentives in a single transaction.`
                   ) : (
-                    positions.length === 1
+                    activePositions.length === 1
                       ? "This will approve (if needed), transfer (if needed), and stake your LP position in a single transaction."
-                      : `All ${positions.length} positions will be approved (if needed), transferred (if needed), and staked in a single transaction.`
+                      : `All ${activePositions.length} positions will be approved (if needed), transferred (if needed), and staked in a single transaction.`
                   )
                 ) : (
                   // Only partially-staked positions
-                  positions.length === 1
-                    ? `This will subscribe your position to ${positions[0]?.missingIncentives.length ?? 0} missing incentive${(positions[0]?.missingIncentives.length ?? 0) > 1 ? 's' : ''}.`
+                  activePositions.length === 1
+                    ? `This will subscribe your position to ${activePositions[0]?.missingIncentives.length ?? 0} missing incentive${(activePositions[0]?.missingIncentives.length ?? 0) > 1 ? 's' : ''}.`
                     : `This will subscribe all positions to their missing incentives.`
                 )}
               </TransactionModal.Disclaimer>
@@ -441,15 +460,15 @@ export function LpStakeModal({
               <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
             </div>
             <h2 className="text-center text-xl font-semibold">
-              {positions.length === 1
+              {activePositions.length === 1
                 ? "Position Staked Successfully!"
-                : `${positions.length} Positions Staked Successfully!`
+                : `${activePositions.length} Positions Staked Successfully!`
               }
             </h2>
             <div className="text-center text-muted-foreground">
-              {positions.length === 1
-                ? `LP Position #${positions[0]?.tokenId.toString()} is now earning SIR rewards.`
-                : `All ${positions.length} positions are now earning SIR rewards.`
+              {activePositions.length === 1
+                ? `LP Position #${activePositions[0]?.tokenId.toString()} is now earning SIR rewards.`
+                : `All ${activePositions.length} positions are now earning SIR rewards.`
               }
             </div>
             <ExplorerLink transactionHash={hash} />
@@ -462,7 +481,7 @@ export function LpStakeModal({
           <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
-              disabled={isPending || isConfirming || activeIncentives.length === 0 || positions.length === 0}
+              disabled={isPending || isConfirming || activeIncentives.length === 0 || activePositions.length === 0}
               isPending={isPending}
               loading={isConfirming}
               onClick={() => {
@@ -472,9 +491,9 @@ export function LpStakeModal({
               }}
               isConfirmed={isConfirmed}
             >
-              {positions.length === 1
+              {activePositions.length === 1
                 ? "Stake Position"
-                : `Stake ${positions.length} Positions`
+                : `Stake ${activePositions.length} Positions`
               }
             </TransactionModal.SubmitButton>
           </TransactionModal.StatSubmitContainer>
