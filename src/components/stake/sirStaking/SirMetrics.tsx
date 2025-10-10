@@ -5,6 +5,7 @@ import { useStaking } from "@/contexts/StakingContext";
 import { getSirSymbol } from "@/lib/assets";
 import { formatUnits } from "viem";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import ToolTip from "@/components/ui/tooltip";
 
 export function SirMetrics() {
   const {
@@ -41,7 +42,7 @@ export function SirMetrics() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-4">
         {/* Staked Supply Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
           <div className="text-xs text-muted-foreground">Staked Supply</div>
@@ -50,7 +51,12 @@ export function SirMetrics() {
         </div>
         {/* Total Dividends Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
-          <div className="text-xs text-muted-foreground">Total Dividends</div>
+          <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+            <span>Total Dividends</span>
+            <ToolTip iconSize={12}>
+              Dividends distributed to SIR stakers from protocol revenue.
+            </ToolTip>
+          </div>
           <div className="mt-1 h-7 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
           <div className="mt-1 h-4 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
         </div>
@@ -65,7 +71,7 @@ export function SirMetrics() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-4">
       {/* Staked Supply Card */}
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Staked Supply</div>
@@ -81,7 +87,12 @@ export function SirMetrics() {
 
       {/* Total Dividends Card */}
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
-        <div className="text-xs text-muted-foreground">Total Dividends</div>
+        <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+          <span>Total Dividends</span>
+          <ToolTip iconSize={12}>
+            Dividends distributed to SIR stakers from protocol revenue.
+          </ToolTip>
+        </div>
         <div className="mt-1 text-lg font-semibold">
           <DisplayFormattedNumber
             num={ethDistributedFormatted}

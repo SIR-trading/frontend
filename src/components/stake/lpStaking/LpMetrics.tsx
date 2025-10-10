@@ -18,35 +18,35 @@ export function LpMetrics({
 }: LpMetricsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 pb-4">
-        {/* Total Value Staked Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+        {/* Staked Liquidity Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
           <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
-            <span>Total Value Staked</span>
+            <span>Staked Liquidity</span>
           </div>
-          <div className="mt-1 h-7 w-24 animate-pulse rounded bg-foreground/10 mx-auto"></div>
-          <div className="mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <div className="mx-auto mt-1 h-7 w-24 animate-pulse rounded bg-foreground/10"></div>
+          <div className="mx-auto mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10"></div>
         </div>
         {/* Staking APR Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
           <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
             <span>Staking APR</span>
           </div>
-          <div className="mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
-          <div className="mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <div className="mx-auto mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10"></div>
+          <div className="mx-auto mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 pb-4">
-      {/* Total Value Staked Card */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+      {/* Staked Liquidity Card */}
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
-          <span>Total Value Staked</span>
+          <span>Staked Liquidity</span>
           <ToolTip iconSize={12}>
-            In-range positions actively earn trading fees and SIR rewards. Out-of-range positions earn neither until price returns to range.
+            In-range Uniswap V3 positions have liquidity at the current price and actively earn trading fees and SIR rewards.
           </ToolTip>
         </div>
         <div className="mt-1 text-lg font-semibold">
@@ -83,7 +83,7 @@ export function LpMetrics({
         <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
           <span>Staking APR</span>
           <ToolTip iconSize={12}>
-            Additional SIR rewards earned on top of standard Uniswap LP trading fees
+            APR from SIR rewards only. Does not include Uniswap trading fees.
           </ToolTip>
         </div>
         <div className="mt-1 text-lg font-semibold">

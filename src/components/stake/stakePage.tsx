@@ -40,7 +40,7 @@ const StakePage = () => {
             Market Data
           </h2>
 
-          <div className="grid gap-6 lg:grid-cols-3 relative z-10">
+          <div className="grid gap-6 lg:grid-cols-3 relative z-10 pb-40 lg:pb-0">
             {/* Left side: Price Chart (takes up 2 columns) */}
             <div className="lg:col-span-2">
               <SirPriceChart />
