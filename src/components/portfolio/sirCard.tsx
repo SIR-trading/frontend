@@ -19,7 +19,7 @@ export function SirCard() {
               <h2 className="pb-1 text-sm text-muted-foreground">
                 Balance
               </h2>
-              <div className="flex min-h-[32px] justify-between text-3xl">
+              <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
                 <div className="flex items-end gap-x-1">
                   <Show
                     when={isConnected && !balanceLoading}
@@ -27,7 +27,7 @@ export function SirCard() {
                       isConnected ? (
                         <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
                       ) : (
-                        <div className="text-sm italic text-foreground">
+                        <div className="text-sm italic text-foreground mt-1">
                           Connect to stake
                         </div>
                       )
