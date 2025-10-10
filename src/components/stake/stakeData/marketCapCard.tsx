@@ -4,9 +4,7 @@ import Show from "@/components/shared/show";
 import { useStaking } from "@/contexts/StakingContext";
 import { formatUnits } from "viem";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import { SirContract } from "@/contracts/sir";
-import { getExplorerUrl } from "@/lib/chains";
-import { ExternalLink } from "lucide-react";
+import { BuySirButton } from "@/components/buySirButton";
 import { useSirPrice } from "@/contexts/SirPriceContext";
 
 export default function MarketCapCard() {
@@ -20,8 +18,6 @@ export default function MarketCapCard() {
   }, [sirPrice, totalSupply]);
 
   const isLoading = totalSupplyLoading || priceLoading;
-
-  const contractUrl = `${getExplorerUrl()}/address/${SirContract.address}`;
 
   return (
     <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center">
@@ -40,17 +36,8 @@ export default function MarketCapCard() {
         <div className="mt-1 text-lg font-semibold">
           {marketCap ? <><DisplayFormattedNumber num={marketCap} significant={3} /> USD</> : "—"}
         </div>
-        <div className="text-xs text-muted-foreground">
-          <a
-            href={contractUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-            title="View SIR contract on explorer"
-          >
-            View Contract
-            <ExternalLink className="h-3 w-3" />
-          </a>
+        <div className="text-xs">
+          <BuySirButton />
         </div>
       </Show>
     </div>
