@@ -738,24 +738,28 @@ export function VaultTableRow({
             <div className="flex justify-between gap-x-4">
               <span>Apes:</span>
               <span className="flex items-center gap-x-1">
-                <TokenDisplay
-                  amount={reservesData[0]?.reserveApes ?? 0n}
-                  amountSize="small"
-                  unitLabel={vault.collateralToken.symbol ?? ""}
-                  decimals={vault.ape.decimals}
-                />
+                <span>
+                  <DisplayFormattedNumber
+                    num={formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.ape.decimals)}
+                    significant={3}
+                  />
+                  {" "}
+                  {vault.collateralToken.symbol ?? ""}
+                </span>
                 <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>
             </div>
             <div className="flex justify-between gap-x-4">
               <span>LPers:</span>
               <span className="flex items-center gap-x-1">
-                <TokenDisplay
-                  amount={reservesData[0]?.reserveLPers ?? 0n}
-                  amountSize="small"
-                  unitLabel={vault.collateralToken.symbol ?? ""}
-                  decimals={vault.ape.decimals}
-                />
+                <span>
+                  <DisplayFormattedNumber
+                    num={formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.ape.decimals)}
+                    significant={3}
+                  />
+                  {" "}
+                  {vault.collateralToken.symbol ?? ""}
+                </span>
                 <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
               </span>
             </div>
