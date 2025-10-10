@@ -493,6 +493,8 @@ export function LpStakingArea() {
       <LpClaimRewardsModal
         open={claimModalOpen}
         setOpen={setClaimModalOpen}
+        liveRewards={userRewards}
+        stakedPositions={stakedPositions}
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually

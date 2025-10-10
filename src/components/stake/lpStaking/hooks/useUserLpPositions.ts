@@ -15,6 +15,7 @@ import { api } from "@/trpc/react";
 import { useSirPrice } from "@/contexts/SirPriceContext";
 import {
   getCurrentActiveIncentives,
+  getAllChainIncentives,
   type IncentiveKey,
 } from "@/data/uniswapIncentives";
 
@@ -221,7 +222,7 @@ export function useUserLpPositions() {
       .filter((id): id is bigint => id !== undefined);
   }, [tokenIdsData]);
 
-  // Get active incentives
+  // Get active incentives (for APR calculations and staking)
   const activeIncentives = useMemo(() => {
     const incentives = getCurrentActiveIncentives();
     const now = Math.floor(Date.now() / 1000);
@@ -231,6 +232,12 @@ export function useUserLpPositions() {
       const endTime = Number(incentive.endTime);
     });
     return incentives;
+  }, []);
+
+  // Get ALL incentives (active or not) for reward calculations
+  // We need this because positions may have accrued rewards from past/future incentives
+  const allIncentives = useMemo(() => {
+    return getAllChainIncentives();
   }, []);
 
   // Fetch incentive data for all active incentives
@@ -255,7 +262,7 @@ export function useUserLpPositions() {
   });
 
   // Fetch position details for all token IDs
-  // For each tokenId, we fetch: positions, deposits, and stakes for each active incentive
+  // For each tokenId, we fetch: positions, deposits, stakes for each active incentive, and getRewardInfo for all incentives
   const positionContracts = useMemo(() => {
     return tokenIds.flatMap((tokenId) => [
       // 1. Position data from NonfungiblePositionManager
@@ -276,8 +283,23 @@ export function useUserLpPositions() {
         functionName: "stakes" as const,
         args: [tokenId, computeIncentiveId(incentive)] as const,
       })),
+      // 4. getRewardInfo for ALL incentives (to calculate live rewards)
+      ...allIncentives.map((incentive) => ({
+        ...UniswapV3StakerContract,
+        functionName: "getRewardInfo" as const,
+        args: [
+          {
+            rewardToken: incentive.rewardToken,
+            pool: incentive.pool,
+            startTime: incentive.startTime,
+            endTime: incentive.endTime,
+            refundee: incentive.refundee,
+          },
+          tokenId,
+        ] as const,
+      })),
     ]);
-  }, [tokenIds, activeIncentives]);
+  }, [tokenIds, activeIncentives, allIncentives]);
 
   const {
     data: positionsData,
@@ -313,13 +335,14 @@ export function useUserLpPositions() {
       let inRangeValueStakedUsd = 0;
 
       // Calculate the number of calls per token ID
-      const callsPerToken = 2 + activeIncentives.length; // positions + deposits + (stakes per incentive)
+      const callsPerToken = 2 + activeIncentives.length + allIncentives.length; // positions + deposits + (stakes per active incentive) + (getRewardInfo per all incentives)
 
       for (let i = 0; i < tokenIds.length; i++) {
         const baseIndex = i * callsPerToken;
         const positionIndex = baseIndex;
         const depositIndex = baseIndex + 1;
         const stakesStartIndex = baseIndex + 2;
+        const rewardInfoStartIndex = baseIndex + 2 + activeIncentives.length;
 
         const positionResult = positionsData[positionIndex];
         const depositResult = positionsData[depositIndex];
@@ -571,8 +594,8 @@ export function useUserLpPositions() {
     globalStakingStats.inRangeValueStakedUsd,
   ]);
 
-  // Fetch rewards for the user (single call)
-  const { data: userRewards, refetch: refetchRewards } = useReadContract({
+  // Fetch base rewards for the user (already recorded on-chain)
+  const { data: baseRewards, refetch: refetchRewards } = useReadContract({
     ...UniswapV3StakerContract,
     functionName: "rewards",
     args: address ? [SirContract.address, address] : undefined,
@@ -581,15 +604,84 @@ export function useUserLpPositions() {
     },
   });
 
+  // Calculate live rewards by adding fresh accruals from getRewardInfo
+  const liveUserRewards = useMemo(() => {
+    // Start with base rewards (already recorded)
+    let totalRewards = baseRewards ?? 0n;
+
+    // If we don't have position data yet, return base rewards
+    if (!positionsData || !address) {
+      return totalRewards;
+    }
+
+    // Calculate the number of calls per token ID
+    const callsPerToken = 2 + activeIncentives.length + allIncentives.length;
+
+    // For each tokenId, check if it's staked by the user and add getRewardInfo results
+    for (let i = 0; i < tokenIds.length; i++) {
+      const baseIndex = i * callsPerToken;
+      const depositIndex = baseIndex + 1;
+      const rewardInfoStartIndex = baseIndex + 2 + activeIncentives.length;
+
+      const depositResult = positionsData[depositIndex];
+      if (!depositResult?.result) continue;
+
+      const deposit = depositResult.result as readonly [
+        Address, // owner
+        number, // numberOfStakes
+        number, // tickLower
+        number, // tickUpper
+      ];
+
+      const [depositOwner, numberOfStakes] = deposit;
+
+      // Check if this position is staked by the current user
+      const isStaked =
+        depositOwner !== "0x0000000000000000000000000000000000000000" &&
+        Number(numberOfStakes) > 0;
+      const isStakedByUser =
+        isStaked && depositOwner.toLowerCase() === address.toLowerCase();
+
+      // Only add rewards for positions staked by this user
+      if (isStakedByUser) {
+        // For each incentive, get the getRewardInfo result
+        for (let j = 0; j < allIncentives.length; j++) {
+          const rewardInfoIndex = rewardInfoStartIndex + j;
+          const rewardInfoResult = positionsData[rewardInfoIndex];
+
+          if (rewardInfoResult?.result) {
+            // getRewardInfo returns (reward, secondsInsideX128)
+            const rewardInfo = rewardInfoResult.result as readonly [
+              bigint,
+              bigint,
+            ];
+            const freshReward = rewardInfo[0]; // reward is the first return value
+            totalRewards += freshReward;
+          }
+        }
+      }
+    }
+
+    return totalRewards;
+  }, [
+    baseRewards,
+    positionsData,
+    tokenIds,
+    address,
+    activeIncentives.length,
+    allIncentives.length,
+    allIncentives,
+  ]);
+
   // Update positions with rewards (distribute to all positions for display)
   const stakedPositionsWithRewards = useMemo(() => {
-    const totalRewards = userRewards ?? 0n;
+    const totalRewards = liveUserRewards;
     // For display purposes, we'll show total rewards on first position
     return stakedPositions.map((position, i) => ({
       ...position,
       rewardsSir: i === 0 ? totalRewards : 0n,
     }));
-  }, [stakedPositions, userRewards]);
+  }, [stakedPositions, liveUserRewards]);
 
   // Check if we have staked positions but haven't calculated their value yet
   // This detects the race condition where positions exist but prices aren't ready
@@ -641,7 +733,7 @@ export function useUserLpPositions() {
     stakedPositions: stakedPositionsWithRewards,
     isLoading,
     globalStakingStats,
-    userRewards: userRewards ?? 0n,
+    userRewards: liveUserRewards,
     refetchAll,
     stakingApr,
   };
