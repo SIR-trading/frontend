@@ -63,7 +63,9 @@ function EntryPrice({ disabled }: Props) {
                   {...field}
                   onChange={(e) => {
                     if (inputPatternMatch(e.target.value, decimals)) {
-                      field.onChange(e.target.value);
+                      // Normalize commas to dots for European locale keyboards
+                      const normalizedValue = e.target.value.replace(',', '.');
+                      field.onChange(normalizedValue);
                     }
                   }}
                 />
@@ -109,7 +111,9 @@ function ExitPrice({ disabled }: Props) {
                   {...field}
                   onChange={(e) => {
                     if (inputPatternMatch(e.target.value, decimals)) {
-                      field.onChange(e.target.value);
+                      // Normalize commas to dots for European locale keyboards
+                      const normalizedValue = e.target.value.replace(',', '.');
+                      field.onChange(normalizedValue);
                     }
                   }}
                 />

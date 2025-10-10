@@ -66,7 +66,9 @@ function Inputs({ decimals, disabled, inputLoading, children }: Props) {
                     {...field}
                     onChange={(e) => {
                       if (inputPatternMatch(e.target.value, decimals)) {
-                        return field.onChange(e.target.value);
+                        // Normalize commas to dots for European locale keyboards
+                        const normalizedValue = e.target.value.replace(',', '.');
+                        return field.onChange(normalizedValue);
                       }
                     }}
                   />

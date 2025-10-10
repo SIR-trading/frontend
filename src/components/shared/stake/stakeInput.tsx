@@ -50,7 +50,9 @@ const StakeInput = ({ form, balance, isStaking }: Props) => {
                     {...field}
                     onChange={(e) => {
                       if (inputPatternMatch(e.target.value, 12)) {
-                        field.onChange(e.target.value);
+                        // Normalize commas to dots for European locale keyboards
+                        const normalizedValue = e.target.value.replace(',', '.');
+                        field.onChange(normalizedValue);
                       }
                     }}
                   ></Input>

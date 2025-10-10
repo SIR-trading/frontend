@@ -64,21 +64,24 @@ export function inputPatternMatch(s: string, decimals = 18) {
   const pattern = /^[0-9]*[.,]?[0-9]*$/;
   const scientificPattern = /^[0-9]*\.?[0-9]*[eE][-+]?[0-9]+$/;
   const decimalPattern = RegExp(`^\\d+(\\.\\d{0,${decimals}})?$`);
-  
+
   if (s === "") {
     return true;
   }
-  
+
+  // Normalize commas to dots for validation (supports European locale keyboards)
+  const normalizedValue = s.replace(',', '.');
+
   // Allow scientific notation for very small/large numbers
-  if (scientificPattern.test(s)) {
+  if (scientificPattern.test(normalizedValue)) {
     return true;
   }
-  
-  // Allow regular decimal patterns
-  if (pattern.test(s) && decimalPattern.test(s)) {
+
+  // Allow regular decimal patterns (now works with comma input)
+  if (pattern.test(s) && decimalPattern.test(normalizedValue)) {
     return true;
   }
-  
+
   return false;
 }
 
