@@ -13,6 +13,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CheckCircle2, XCircle } from "lucide-react";
 import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import ToolTip from "@/components/ui/tooltip";
+import { ManageDexLiquidityButton } from "@/components/manageDexLiquidityButton";
 import { useAccount } from "wagmi";
 
 export function LpStakingArea() {
@@ -95,7 +96,10 @@ export function LpStakingArea() {
 
   return (
     <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-      <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
+      <div className="mb-2 flex flex-col justify-start md:mb-0 md:flex-row md:items-start md:justify-between">
+        <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
+        <ManageDexLiquidityButton />
+      </div>
 
       {/* Metrics at top */}
       <LpMetrics

@@ -117,7 +117,7 @@ export function useUserLpPositions() {
   const {
     data: wethPrice,
     isLoading: isWethPriceLoading,
-    isFetching: isWethPriceFetching
+    isFetching: isWethPriceFetching,
   } = api.price.getTokenPriceWithFallback.useQuery(
     {
       tokenAddress: WrappedNativeTokenContract.address,
@@ -132,7 +132,7 @@ export function useUserLpPositions() {
   const {
     data: slot0Data,
     isLoading: isSlot0Loading,
-    isFetching: isSlot0Fetching
+    isFetching: isSlot0Fetching,
   } = useReadContract({
     address: SIR_WETH_POOL_ADDRESS,
     abi: UniswapV3PoolABI,
@@ -252,7 +252,7 @@ export function useUserLpPositions() {
   const {
     data: incentivesData,
     isLoading: isIncentivesLoading,
-    isFetching: isIncentivesFetching
+    isFetching: isIncentivesFetching,
   } = useReadContracts({
     contracts: incentiveContracts,
     query: {
@@ -699,7 +699,8 @@ export function useUserLpPositions() {
     isWethPriceFetching ||
     isSlot0Loading ||
     isSlot0Fetching ||
-    (incentiveContracts.length > 0 && (isIncentivesLoading || isIncentivesFetching)) ||
+    (incentiveContracts.length > 0 &&
+      (isIncentivesLoading || isIncentivesFetching)) ||
     !sirPrice ||
     !wethPrice ||
     !slot0Data ||
