@@ -508,6 +508,28 @@ export const vaultRouter = createTRPCRouter({
         return vaults;
       }
     }),
+  getVaultById: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const vaults = await executeVaultsQuery({
+        sortbyVaultId: true,
+      });
+
+      // Input is decimal string from URL (e.g., "14")
+      // Vault IDs in subgraph are hex strings (e.g., "0xe", "0x0e", etc.)
+      // Compare numerically to handle both formats
+      const inputIdNum = parseInt(input.id, 10); // Parse as decimal
+      const vault = vaults.vaults.find((v) => {
+        const vaultIdNum = parseInt(v.id); // parseInt auto-detects hex with "0x" prefix
+        return vaultIdNum === inputIdNum;
+      });
+
+      return vault;
+    }),
   getSearchVaults: publicProcedure
     .input(
       z.object({

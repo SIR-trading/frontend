@@ -56,6 +56,7 @@ import {
 import { PriceIncreaseDisplay } from "@/components/portfolio/burnTable/PriceIncreaseDisplay";
 import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
 import { getLeverageRatio } from "@/lib/utils/calculations";
+import { VaultUrlSync } from "./VaultUrlSync";
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -546,6 +547,8 @@ export default function MintForm({ isApe }: Props) {
 
   return (
     <Card className="relative overflow-visible">
+      {/* Handle vault URL synchronization (wrapped in Suspense for SSR) */}
+      <VaultUrlSync />
       {/* Mobile images - visible on small screens, positioned in minting box */}
       <NoSSR>
         {!isApe && (

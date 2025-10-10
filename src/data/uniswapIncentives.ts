@@ -7,6 +7,7 @@ export interface IncentiveKey {
   startTime: bigint;
   endTime: bigint;
   refundee: Address;
+  rewards: bigint; // Total rewards allocated to this incentive (in SIR with 12 decimals)
 }
 
 /**
@@ -16,6 +17,7 @@ export interface IncentiveConfig {
   startTime: bigint;
   endTime: bigint;
   refundee: Address;
+  rewards: bigint; // Total rewards allocated to this incentive (in SIR with 12 decimals)
 }
 
 /**
@@ -37,11 +39,13 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveConfig[]> = {
       startTime: 1759892400n,
       endTime: 1762574400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
+      rewards: 10000000000000n,
     },
     {
       startTime: 1760009400n,
       endTime: 1762691400n,
       refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
+      rewards: 10000000000000000000n,
     },
   ],
 
@@ -70,16 +74,17 @@ export function getChainIncentiveConfigs(): IncentiveConfig[] {
  */
 export function getChainIncentivesWithAddresses(
   sirAddress: Address,
-  poolAddress: Address
+  poolAddress: Address,
 ): IncentiveKey[] {
   const configs = getChainIncentiveConfigs();
 
-  return configs.map(config => ({
+  return configs.map((config) => ({
     rewardToken: sirAddress,
     pool: poolAddress,
     startTime: config.startTime,
     endTime: config.endTime,
     refundee: config.refundee,
+    rewards: config.rewards,
   }));
 }
 
@@ -96,7 +101,9 @@ function getChainIncentives(): IncentiveKey[] {
 
   // Dynamic imports will be resolved at runtime, not during build script execution
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const sirContract = require("@/contracts/sir") as { SirContract: { address: Address } };
+  const sirContract = require("@/contracts/sir") as {
+    SirContract: { address: Address };
+  };
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const buildData = require("@/../public/build-data.json") as {
     contractAddresses: { sir: Address; sirWethPool1Percent: Address };

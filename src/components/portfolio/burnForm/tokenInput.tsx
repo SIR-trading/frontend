@@ -54,7 +54,9 @@ export function TokenInput({
                   {...field}
                   onChange={(e) => {
                     if (inputPatternMatch(e.target.value, positionDecimals)) {
-                      return field.onChange(e.target.value);
+                      // Normalize commas to dots for European locale keyboards
+                      const normalizedValue = e.target.value.replace(',', '.');
+                      return field.onChange(normalizedValue);
                     }
                   }}
                 ></Input>

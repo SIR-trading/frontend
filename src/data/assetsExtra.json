@@ -42,6 +42,13 @@
       "symbol": "PNKSTR",
       "decimals": 18,
       "logoURI": "https://assets.coingecko.com/coins/images/69249/standard/PNKSTR.png?1758014976"
+    },
+    {
+      "name": "Wrapped CurrencyCoin",
+      "address": "0x21B7DB03D7f51EdBd37A6682E43aD9BA0D145890",
+      "symbol": "CC",
+      "decimals": 0,
+      "logoURI": "https://assets.coingecko.com/coins/images/69673/standard/CC-200x200.png?1759933410"
     }
   ],
   "11155111": [

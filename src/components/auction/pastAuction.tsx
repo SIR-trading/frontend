@@ -23,6 +23,11 @@ import Pagination from "@/components/shared/pagination";
 import { AUCTION_DURATION } from "@/components/auction/__constants";
 import { TokenImage } from "@/components/shared/TokenImage";
 import { getNativeCurrencySymbol } from "@/lib/chains";
+import { CircleCheck } from "lucide-react";
+import { motion } from "motion/react";
+import ExplorerLink from "@/components/shared/explorerLink";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import { formatUnits } from "viem";
 
 const length = 4; // Number of auctions per page
 
@@ -114,50 +119,127 @@ const PastAuction = ({
   return (
     <div>
       <TransactionModal.Root
-        title="Claim Auction"
+        title="Claim Auction Lot"
         open={openTransactionModal}
         setOpen={setOpenTransactionModal}
       >
         <TransactionModal.Close setOpen={setOpenTransactionModal} />
         <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
-          <div className="grid gap-4">
-            <h4 className="text-lg font-bold">
-              {isPending || isConfirming ? "Claiming" : "Claim"}{" "}
-              <TokenDisplay
-                amount={BigInt(auctionLots?.get(id ?? "") ?? "0")}
-                
-                amountSize="large"
-                decimals={
-                  uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ??
-                  18
-                }
-                unitLabel={
-                  uniqueAuctionCollection.collateralSymbolMap.get(id ?? "") ??
-                  ""
-                }
-                className={"font-geist text-[24px] font-normal leading-[32px]"}
-              />
-            </h4>
-            <TransactionStatus
-              showLoading={isConfirming}
-              waitForSign={isPending}
-              action={""}
-            />
-          </div>
+          {!isConfirmed ? (
+            <>
+              <h2 className="mb-4 text-center text-xl font-semibold">
+                Claim Auction Lot
+              </h2>
+
+              <div className="pt-2">
+                <div className="mb-2">
+                  <label className="text-sm text-muted-foreground">
+                    Amount
+                  </label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">
+                    <DisplayFormattedNumber
+                      num={formatUnits(
+                        BigInt(auctionLots?.get(id ?? "") ?? "0"),
+                        uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ?? 18
+                      )}
+                      significant={3}
+                    />
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl text-muted-foreground">
+                      {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "") ?? ""}
+                    </span>
+                    <TokenImage
+                      address={id as Address}
+                      className="rounded-full"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            // Success state
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              className="space-y-4"
+            >
+              <div className="flex justify-center">
+                <CircleCheck size={40} color="hsl(173, 73%, 36%)" />
+              </div>
+              <h2 className="text-center text-xl font-semibold">
+                Lot Claimed Successfully!
+              </h2>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xl font-semibold">
+                  <DisplayFormattedNumber
+                    num={formatUnits(
+                      BigInt(auctionLots?.get(id ?? "") ?? "0"),
+                      uniqueAuctionCollection.collateralDecimalsMap.get(id ?? "") ?? 18
+                    )}
+                    significant={3}
+                  />
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl text-muted-foreground">
+                    {uniqueAuctionCollection.collateralSymbolMap.get(id ?? "") ?? ""}
+                  </span>
+                  <TokenImage
+                    address={id as Address}
+                    className="rounded-full"
+                    width={24}
+                    height={24}
+                  />
+                </div>
+              </div>
+              <div className="text-center text-muted-foreground">
+                Your auction lot has been sent to your wallet.
+              </div>
+              <ExplorerLink transactionHash={hash} />
+            </motion.div>
+          )}
         </TransactionModal.InfoContainer>
-        <TransactionModal.StatSubmitContainer>
-          <TransactionModal.SubmitButton
-            onClick={confirmTransaction}
-            disabled={
-              (!isConfirmed && !Boolean(id)) || isPending || isConfirming
-            }
-            isPending={isPending}
-            loading={isConfirming}
-            isConfirmed={isConfirmed}
-          >
-            {isConfirmed ? "Claimed" : "Claim"}
-          </TransactionModal.SubmitButton>
-        </TransactionModal.StatSubmitContainer>
+
+        {!isConfirmed && (
+          <>
+            <div className="mx-4 border-t border-foreground/10" />
+            <TransactionModal.StatSubmitContainer>
+              <TransactionModal.SubmitButton
+                onClick={confirmTransaction}
+                disabled={
+                  (!isConfirmed && !Boolean(id)) || isPending || isConfirming
+                }
+                isPending={isPending}
+                loading={isConfirming}
+                isConfirmed={isConfirmed}
+              >
+                Claim
+              </TransactionModal.SubmitButton>
+            </TransactionModal.StatSubmitContainer>
+          </>
+        )}
+
+        {isConfirmed && (
+          <>
+            <div className="mx-4 border-t border-foreground/10" />
+            <TransactionModal.StatSubmitContainer>
+              <TransactionModal.SubmitButton
+                disabled={false}
+                isPending={false}
+                loading={false}
+                onClick={() => setOpenTransactionModal(false)}
+                isConfirmed={true}
+              >
+                Close
+              </TransactionModal.SubmitButton>
+            </TransactionModal.StatSubmitContainer>
+          </>
+        )}
       </TransactionModal.Root>
       <Show
         when={!isLoading && !isLoadingBal}

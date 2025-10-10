@@ -1,42 +1,92 @@
 "use client";
-import React from 'react';
-import DisplayFormattedNumber from '@/components/shared/displayFormattedNumber';
+import React from "react";
+import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
+import ToolTip from "@/components/ui/tooltip";
 
 interface LpMetricsProps {
   totalValueStakedUsd: number;
   inRangeValueStakedUsd: number;
   stakingApr: number | null; // null means TBD
+  isLoading?: boolean;
 }
 
-export function LpMetrics({ totalValueStakedUsd, inRangeValueStakedUsd, stakingApr }: LpMetricsProps) {
+export function LpMetrics({
+  totalValueStakedUsd,
+  inRangeValueStakedUsd,
+  stakingApr,
+  isLoading = false,
+}: LpMetricsProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-3 pb-4 md:grid-cols-2">
+        {/* Staked Liquidity Card */}
+        <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+          <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+            <span>Staked Liquidity</span>
+          </div>
+          <div className="mx-auto mt-1 h-7 w-24 animate-pulse rounded bg-foreground/10"></div>
+          <div className="mx-auto mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10"></div>
+        </div>
+        {/* Staking APR Card */}
+        <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+          <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+            <span>Staking APR</span>
+          </div>
+          <div className="mx-auto mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10"></div>
+          <div className="mx-auto mt-1 h-4 w-20 animate-pulse rounded bg-foreground/10"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-3 pb-4">
-      {/* Total Value Staked Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
-        <div className="text-xs text-muted-foreground">Total Value Staked</div>
+    <div className="grid grid-cols-1 gap-3 pb-4 md:grid-cols-2">
+      {/* Staked Liquidity Card */}
+      <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+        <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+          <span>Staked Liquidity</span>
+          <ToolTip iconSize={12}>
+            In-range Uniswap V3 positions have liquidity at the current price
+            and actively earn trading fees and SIR rewards.
+          </ToolTip>
+        </div>
         <div className="mt-1 text-lg font-semibold">
           {inRangeValueStakedUsd > 0 ? (
             <>
-              $<DisplayFormattedNumber num={inRangeValueStakedUsd} significant={3} />
+              <DisplayFormattedNumber
+                num={inRangeValueStakedUsd}
+                significant={3}
+              />
             </>
           ) : (
-            "$0"
-          )}{" "}
-          <span className="text-[10px] text-muted-foreground/70 font-normal">in-range</span>
+            "0"
+          )}
+          {" USD "}
+          <span className="text-[10px] font-normal text-muted-foreground/70">
+            in-range
+          </span>
         </div>
         <div className="text-xs text-muted-foreground">
-          ${(totalValueStakedUsd - inRangeValueStakedUsd) > 0 ? (
-            <DisplayFormattedNumber num={totalValueStakedUsd - inRangeValueStakedUsd} significant={3} />
+          {totalValueStakedUsd - inRangeValueStakedUsd > 0 ? (
+            <DisplayFormattedNumber
+              num={totalValueStakedUsd - inRangeValueStakedUsd}
+              significant={3}
+            />
           ) : (
             "0"
           )}{" "}
-          <span className="text-muted-foreground/70">out-of-range</span>
+          <span className="text-muted-foreground/70">USD out-of-range</span>
         </div>
       </div>
 
       {/* Staking APR Card */}
-      <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center h-[88px] flex flex-col justify-center">
-        <div className="text-xs text-muted-foreground">Staking APR</div>
+      <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
+        <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
+          <span>Staking APR</span>
+          <ToolTip iconSize={12}>
+            APR from SIR rewards only. Does not include Uniswap trading fees.
+          </ToolTip>
+        </div>
         <div className="mt-1 text-lg font-semibold">
           {stakingApr !== null ? (
             <>
@@ -47,7 +97,9 @@ export function LpMetrics({ totalValueStakedUsd, inRangeValueStakedUsd, stakingA
           )}
         </div>
         <div className="text-xs text-muted-foreground">
-          {stakingApr !== null ? '30-day average' : 'To be determined'}
+          {stakingApr !== null
+            ? "Based on current in-range liquidity"
+            : "To be determined"}
         </div>
       </div>
     </div>

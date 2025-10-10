@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LpMetrics } from "./LpMetrics";
@@ -14,8 +14,10 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
 import ToolTip from "@/components/ui/tooltip";
 import { ManageDexLiquidityButton } from "@/components/manageDexLiquidityButton";
+import { useAccount } from "wagmi";
 
 export function LpStakingArea() {
+  const { isConnected } = useAccount();
   const {
     unstakedPositions,
     stakedPositions,
@@ -23,12 +25,27 @@ export function LpStakingArea() {
     userRewards,
     isLoading,
     refetchAll,
+    stakingApr,
   } = useUserLpPositions();
 
   // Modal states
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+
+  // Timeout refs for cleanup
+  const stakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const unstakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const claimTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (stakeTimeoutRef.current) clearTimeout(stakeTimeoutRef.current);
+      if (unstakeTimeoutRef.current) clearTimeout(unstakeTimeoutRef.current);
+      if (claimTimeoutRef.current) clearTimeout(claimTimeoutRef.current);
+    };
+  }, []);
 
   // Calculate totals for unstaked positions
   const unstakedTotals = useMemo(() => {
@@ -88,7 +105,8 @@ export function LpStakingArea() {
       <LpMetrics
         totalValueStakedUsd={globalStakingStats.totalValueStakedUsd}
         inRangeValueStakedUsd={globalStakingStats.inRangeValueStakedUsd}
-        stakingApr={null} // TBD
+        stakingApr={stakingApr}
+        isLoading={isLoading}
       />
 
       {/* LP Position Cards - vertically stacked */}
@@ -99,73 +117,75 @@ export function LpStakingArea() {
             <div className="flex justify-between">
               <div>
                 <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
-                  <span>Unstaked & Partially Staked</span>
+                  <span>LP Balance</span>
                   <ToolTip iconSize={12}>
                     Includes both completely unstaked positions and positions
                     only earning from some of the active incentives.
                   </ToolTip>
                 </h2>
-                <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
-                  {!isLoading ? (
+                <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
+                  {!isConnected ? (
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground mt-1">
+                        Connect to stake
+                      </div>
+                    </div>
+                  ) : !isLoading ? (
                     <>
-                      {unstakedPositions.length > 0 ? (
-                        <>
-                          <div className="flex items-baseline gap-1">
-                            <HoverPopupMobile
-                              trigger={
-                                <div className="flex cursor-pointer items-baseline gap-1">
-                                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-xl">
-                                    $
-                                    {unstakedTotals.inRange > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={unstakedTotals.inRange}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}
-                                    <span className=""> </span>
-                                  </span>
-                                </div>
-                              }
-                              size="200"
-                            >
-                              <span className="text-[13px] font-medium">
-                                In range
+                      <div className="flex items-baseline gap-1">
+                        <HoverPopupMobile
+                          trigger={
+                            <div className="flex cursor-pointer items-baseline gap-1">
+                              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xl">
+                                {unstakedTotals.inRange > 0 ? (
+                                  <DisplayFormattedNumber
+                                    num={unstakedTotals.inRange}
+                                    significant={3}
+                                  />
+                                ) : (
+                                  "0"
+                                )}
+                                <span className="text-muted-foreground"> USD</span>
                               </span>
-                            </HoverPopupMobile>
-                            <span className="text-2xl text-muted-foreground">
-                              +
-                            </span>
-                            <HoverPopupMobile
-                              trigger={
-                                <div className="flex cursor-pointer items-baseline gap-1">
-                                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-xl">
-                                    $
-                                    {unstakedTotals.outOfRange > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={unstakedTotals.outOfRange}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}
-                                    <span className=""> </span>
-                                  </span>
-                                </div>
-                              }
-                              size="200"
-                            >
-                              <span className="text-[13px] font-medium">
-                                Out of range
+                            </div>
+                          }
+                          size="200"
+                        >
+                          <span className="text-[13px] font-medium">
+                            In range
+                          </span>
+                        </HoverPopupMobile>
+                        <span className="text-2xl text-muted-foreground">
+                          +
+                        </span>
+                        <HoverPopupMobile
+                          trigger={
+                            <div className="flex cursor-pointer items-baseline gap-1">
+                              <XCircle className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xl">
+                                {unstakedTotals.outOfRange > 0 ? (
+                                  <DisplayFormattedNumber
+                                    num={unstakedTotals.outOfRange}
+                                    significant={3}
+                                  />
+                                ) : (
+                                  "0"
+                                )}
+                                <span className="text-muted-foreground"> USD</span>
                               </span>
-                            </HoverPopupMobile>
-                          </div>
+                            </div>
+                          }
+                          size="200"
+                        >
+                          <span className="text-[13px] font-medium">
+                            Out of range
+                          </span>
+                        </HoverPopupMobile>
+                        {unstakedPositions.length > 0 && (
                           <HoverPopupMobile
                             trigger={
-                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground ml-2">
                                 ({unstakedPositions.length}{" "}
                                 {unstakedPositions.length === 1
                                   ? "position"
@@ -199,7 +219,6 @@ export function LpStakingArea() {
                                     </span>
                                   </div>
                                   <span className="whitespace-nowrap text-xs font-medium">
-                                    $
                                     {position.valueUsd > 0 ? (
                                       <DisplayFormattedNumber
                                         num={position.valueUsd}
@@ -207,23 +226,18 @@ export function LpStakingArea() {
                                       />
                                     ) : (
                                       "0"
-                                    )}
+                                    )}{" "}
+                                    USD
                                   </span>
                                 </div>
                               ))}
                             </div>
                           </HoverPopupMobile>
-                        </>
-                      ) : (
-                        <span className="text-xl text-muted-foreground">
-                          None
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
                   )}
                 </div>
               </div>
@@ -247,74 +261,76 @@ export function LpStakingArea() {
             <div className="flex justify-between">
               <div>
                 <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
-                  <span>Staked (Fully & Partially)</span>
+                  <span>Staked LP Balance</span>
                   <ToolTip iconSize={12}>
                     Positions staked in at least one reward program. Partially
                     staked positions are only earning from some of the active
                     incentives.
                   </ToolTip>
                 </h2>
-                <div className="flex min-h-[32px] flex-wrap items-baseline gap-2">
-                  {!isLoading ? (
+                <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
+                  {!isConnected ? (
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground mt-1">
+                        Connect to unstake
+                      </div>
+                    </div>
+                  ) : !isLoading ? (
                     <>
-                      {stakedPositions.length > 0 ? (
-                        <>
-                          <div className="flex items-baseline gap-1">
-                            <HoverPopupMobile
-                              trigger={
-                                <div className="flex cursor-pointer items-baseline gap-1">
-                                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-xl">
-                                    $
-                                    {stakedTotals.inRange > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={stakedTotals.inRange}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}
-                                    <span className=""> </span>
-                                  </span>
-                                </div>
-                              }
-                              size="200"
-                            >
-                              <span className="text-[13px] font-medium">
-                                In range
+                      <div className="flex items-baseline gap-1">
+                        <HoverPopupMobile
+                          trigger={
+                            <div className="flex cursor-pointer items-baseline gap-1">
+                              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xl">
+                                {stakedTotals.inRange > 0 ? (
+                                  <DisplayFormattedNumber
+                                    num={stakedTotals.inRange}
+                                    significant={3}
+                                  />
+                                ) : (
+                                  "0"
+                                )}
+                                <span className="text-muted-foreground"> USD</span>
                               </span>
-                            </HoverPopupMobile>
-                            <span className="text-2xl text-muted-foreground">
-                              +
-                            </span>
-                            <HoverPopupMobile
-                              trigger={
-                                <div className="flex cursor-pointer items-baseline gap-1">
-                                  <XCircle className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-xl">
-                                    $
-                                    {stakedTotals.outOfRange > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={stakedTotals.outOfRange}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}
-                                    <span className=""> </span>
-                                  </span>
-                                </div>
-                              }
-                              size="200"
-                            >
-                              <span className="text-[13px] font-medium">
-                                Out of range
+                            </div>
+                          }
+                          size="200"
+                        >
+                          <span className="text-[13px] font-medium">
+                            In range
+                          </span>
+                        </HoverPopupMobile>
+                        <span className="text-2xl text-muted-foreground">
+                          +
+                        </span>
+                        <HoverPopupMobile
+                          trigger={
+                            <div className="flex cursor-pointer items-baseline gap-1">
+                              <XCircle className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xl">
+                                {stakedTotals.outOfRange > 0 ? (
+                                  <DisplayFormattedNumber
+                                    num={stakedTotals.outOfRange}
+                                    significant={3}
+                                  />
+                                ) : (
+                                  "0"
+                                )}
+                                <span className="text-muted-foreground"> USD</span>
                               </span>
-                            </HoverPopupMobile>
-                          </div>
+                            </div>
+                          }
+                          size="200"
+                        >
+                          <span className="text-[13px] font-medium">
+                            Out of range
+                          </span>
+                        </HoverPopupMobile>
+                        {stakedPositions.length > 0 && (
                           <HoverPopupMobile
                             trigger={
-                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground ml-2">
                                 ({stakedPositions.length}{" "}
                                 {stakedPositions.length === 1
                                   ? "position"
@@ -348,7 +364,6 @@ export function LpStakingArea() {
                                     </span>
                                   </div>
                                   <span className="whitespace-nowrap text-xs font-medium">
-                                    $
                                     {position.valueUsd > 0 ? (
                                       <DisplayFormattedNumber
                                         num={position.valueUsd}
@@ -356,23 +371,18 @@ export function LpStakingArea() {
                                       />
                                     ) : (
                                       "0"
-                                    )}
+                                    )}{" "}
+                                    USD
                                   </span>
                                 </div>
                               ))}
                             </div>
                           </HoverPopupMobile>
-                        </>
-                      ) : (
-                        <span className="text-xl text-muted-foreground">
-                          No staked positions
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </>
                   ) : (
-                    <span className="text-sm text-muted-foreground">
-                      Loading...
-                    </span>
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
                   )}
                 </div>
               </div>
@@ -400,23 +410,31 @@ export function LpStakingArea() {
                 <h2 className="pb-1 text-sm text-muted-foreground">
                   SIR Token Rewards
                 </h2>
-                {!isLoading ? (
-                  <span className="text-xl">
-                    {userRewards > 0n ? (
-                      <DisplayFormattedNumber
-                        num={Number(userRewards) / 1e12}
-                        significant={3}
-                      />
-                    ) : (
-                      "0"
-                    )}
-                    <span className=""> {getSirSymbol()}</span>
-                  </span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">
-                    Loading...
-                  </span>
-                )}
+                <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
+                  {!isConnected ? (
+                    <div className="flex items-end gap-x-1">
+                      <div className="text-sm italic text-foreground mt-1">
+                        Connect to claim rewards
+                      </div>
+                    </div>
+                  ) : !isLoading ? (
+                    <div className="flex items-baseline gap-x-1">
+                      <span className="text-xl">
+                        {userRewards > 0n ? (
+                          <DisplayFormattedNumber
+                            num={Number(userRewards) / 1e12}
+                            significant={3}
+                          />
+                        ) : (
+                          "0"
+                        )}
+                        <span className="text-muted-foreground"> {getSirSymbol()}</span>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-8 w-24 animate-pulse rounded bg-foreground/10"></div>
+                  )}
+                </div>
               </div>
               <div className="flex items-end">
                 <Button
@@ -441,7 +459,11 @@ export function LpStakingArea() {
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (stakeTimeoutRef.current) {
+            clearTimeout(stakeTimeoutRef.current);
+          }
+          stakeTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}
@@ -454,7 +476,11 @@ export function LpStakingArea() {
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (unstakeTimeoutRef.current) {
+            clearTimeout(unstakeTimeoutRef.current);
+          }
+          unstakeTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}
@@ -463,10 +489,16 @@ export function LpStakingArea() {
       <LpClaimRewardsModal
         open={claimModalOpen}
         setOpen={setClaimModalOpen}
+        liveRewards={userRewards}
+        stakedPositions={stakedPositions}
         onSuccess={() => {
           // Wait for blockchain state to update, then refetch
           // Keep modal open so user can see success message and close it manually
-          setTimeout(() => {
+          // Clear any existing timeout before setting new one
+          if (claimTimeoutRef.current) {
+            clearTimeout(claimTimeoutRef.current);
+          }
+          claimTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}

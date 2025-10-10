@@ -3,7 +3,7 @@ import AuctionCard, {
   AuctionCardTitle,
 } from "@/components/auction/auctionCard";
 import { useAccount } from "wagmi";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import type { TAuctionBidModalState } from "@/components/auction/AuctionBidModal";
 import { AuctionBidModal } from "@/components/auction/AuctionBidModal";
 import AuctionBidFormProvider from "@/components/providers/auctionBidFormProvider";
@@ -36,6 +36,9 @@ const OngoingAuction = ({
   });
   const { address } = useAccount();
   const [pulsingTokens, setPulsingTokens] = useState<Set<Address>>(new Set());
+
+  // Store timeout IDs for cleanup
+  const pulsingTimeoutsRef = useRef<Map<Address, NodeJS.Timeout>>(new Map());
 
   const { data: auctions, isLoading } = api.auction.getOngoingAuctions.useQuery(
     address,
@@ -73,13 +76,24 @@ const OngoingAuction = ({
         return next;
       });
 
-      setTimeout(() => {
+      // Clear any existing timeout for this token
+      const existingTimeout = pulsingTimeoutsRef.current.get(update.token);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Set new timeout and store its ID
+      const timeoutId = setTimeout(() => {
         setPulsingTokens(prev => {
           const next = new Set(prev);
           next.delete(update.token);
           return next;
         });
+        // Remove timeout ID from map after it fires
+        pulsingTimeoutsRef.current.delete(update.token);
       }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
+
+      pulsingTimeoutsRef.current.set(update.token, timeoutId);
     },
   });
 
@@ -97,13 +111,26 @@ const OngoingAuction = ({
         return next;
       });
 
-      setTimeout(() => {
-        setPulsingTokens(prev => {
-          const next = new Set(prev);
-          newBidsDetected.forEach(token => next.delete(token));
-          return next;
-        });
-      }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
+      // Clear any existing timeouts for these tokens
+      newBidsDetected.forEach(token => {
+        const existingTimeout = pulsingTimeoutsRef.current.get(token);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+        }
+
+        // Set new timeout and store its ID
+        const timeoutId = setTimeout(() => {
+          setPulsingTokens(prev => {
+            const next = new Set(prev);
+            next.delete(token);
+            return next;
+          });
+          // Remove timeout ID from map after it fires
+          pulsingTimeoutsRef.current.delete(token);
+        }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
+
+        pulsingTimeoutsRef.current.set(token, timeoutId);
+      });
     }
 
     // Sort auctions: user's auctions first, then others
@@ -132,6 +159,17 @@ const OngoingAuction = ({
       console.error("RPC polling error:", pollingError);
     }
   }, [pollingError]);
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all pending timeouts
+      pulsingTimeoutsRef.current.forEach((timeout) => {
+        clearTimeout(timeout);
+      });
+      pulsingTimeoutsRef.current.clear();
+    };
+  }, []);
 
   // useEffect(() => {
   //   if (!openModal.open) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -9,7 +9,7 @@ import {
 } from "wagmi";
 import { CircleCheck } from "lucide-react";
 import { motion } from "motion/react";
-import { formatUnits } from "viem";
+import { formatUnits, encodeFunctionData } from "viem";
 import Image from "next/image";
 import TransactionModal from "@/components/shared/transactionModal";
 import ExplorerLink from "@/components/shared/explorerLink";
@@ -19,17 +19,22 @@ import { SirContract } from "@/contracts/sir";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import { env } from "@/env";
 import { useSirPrice } from "@/contexts/SirPriceContext";
+import { getAllChainIncentives, getCurrentActiveIncentives } from "@/data/uniswapIncentives";
 
 interface LpClaimRewardsModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
+  liveRewards: bigint; // Live rewards including fresh accruals from getRewardInfo
+  stakedPositions: Array<{ tokenId: bigint }>; // Staked positions for unstaking before claim
 }
 
 export function LpClaimRewardsModal({
   open,
   setOpen,
   onSuccess,
+  liveRewards,
+  stakedPositions,
 }: LpClaimRewardsModalProps) {
   const { address } = useAccount();
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
@@ -37,13 +42,19 @@ export function LpClaimRewardsModal({
   const sirLogo = getSirLogo(chainId);
   const { sirPrice } = useSirPrice();
 
-  // Read pending rewards
-  const { data: pendingRewards, refetch: refetchRewards } = useReadContract({
+  // Read base rewards (already recorded on-chain)
+  const { data: baseRewards, refetch: refetchRewards } = useReadContract({
     address: UniswapV3StakerContract.address,
     abi: UniswapV3StakerContract.abi,
     functionName: "rewards",
     args: address ? [SirContract.address, address] : undefined,
   });
+
+  // Get all incentives for unstaking (to capture all fresh accruals)
+  const allIncentives = useMemo(() => getAllChainIncentives(), []);
+
+  // Get active incentives for restaking
+  const activeIncentives = useMemo(() => getCurrentActiveIncentives(), []);
 
   // Contract write for claiming
   const {
@@ -61,15 +72,82 @@ export function LpClaimRewardsModal({
 
   // Handle claiming rewards
   const handleClaim = useCallback(() => {
-    if (!address || !pendingRewards || pendingRewards === 0n) return;
+    if (!address || liveRewards === 0n) return;
 
-    void claimRewards({
-      address: UniswapV3StakerContract.address,
-      abi: UniswapV3StakerContract.abi,
-      functionName: "claimReward",
-      args: [SirContract.address, address, pendingRewards],
-    });
-  }, [claimRewards, address, pendingRewards]);
+    if (stakedPositions.length > 0) {
+      // Smart multicall: unstake → claim all → restake to active
+      const calls: `0x${string}`[] = [];
+
+      // Step 1: Unstake from ALL incentives (to move fresh accruals to rewards mapping)
+      for (const position of stakedPositions) {
+        for (const incentive of allIncentives) {
+          calls.push(
+            encodeFunctionData({
+              abi: UniswapV3StakerContract.abi,
+              functionName: "unstakeToken",
+              args: [
+                {
+                  rewardToken: incentive.rewardToken,
+                  pool: incentive.pool,
+                  startTime: incentive.startTime,
+                  endTime: incentive.endTime,
+                  refundee: incentive.refundee,
+                },
+                position.tokenId,
+              ],
+            }),
+          );
+        }
+      }
+
+      // Step 2: Claim all rewards (amountRequested=0 means claim everything)
+      calls.push(
+        encodeFunctionData({
+          abi: UniswapV3StakerContract.abi,
+          functionName: "claimReward",
+          args: [SirContract.address, address, 0n], // 0 = claim all
+        }),
+      );
+
+      // Step 3: Restake to ACTIVE incentives only
+      for (const position of stakedPositions) {
+        for (const incentive of activeIncentives) {
+          calls.push(
+            encodeFunctionData({
+              abi: UniswapV3StakerContract.abi,
+              functionName: "stakeToken",
+              args: [
+                {
+                  rewardToken: incentive.rewardToken,
+                  pool: incentive.pool,
+                  startTime: incentive.startTime,
+                  endTime: incentive.endTime,
+                  refundee: incentive.refundee,
+                },
+                position.tokenId,
+              ],
+            }),
+          );
+        }
+      }
+
+      // Execute the multicall
+      void claimRewards({
+        address: UniswapV3StakerContract.address,
+        abi: UniswapV3StakerContract.abi,
+        functionName: "multicall",
+        args: [calls],
+      });
+    } else {
+      // No staked positions, just claim directly
+      void claimRewards({
+        address: UniswapV3StakerContract.address,
+        abi: UniswapV3StakerContract.abi,
+        functionName: "claimReward",
+        args: [SirContract.address, address, 0n], // 0 = claim all
+      });
+    }
+  }, [claimRewards, address, liveRewards, stakedPositions, allIncentives, activeIncentives]);
 
   // Handle success callback
   useEffect(() => {
@@ -87,15 +165,15 @@ export function LpClaimRewardsModal({
     }
   }, [setOpen, reset, writeError]);
 
-  const formattedRewards = pendingRewards
-    ? formatUnits(pendingRewards, 12) // SIR has 12 decimals
+  const formattedRewards = liveRewards > 0n
+    ? formatUnits(liveRewards, 12) // SIR has 12 decimals
     : "0";
 
-  const hasRewards = pendingRewards && pendingRewards > 0n;
+  const hasRewards = liveRewards > 0n;
 
   // Calculate USD value
-  const usdValue = sirPrice && pendingRewards
-    ? (Number(formatUnits(pendingRewards, 12)) * sirPrice)
+  const usdValue = sirPrice && liveRewards > 0n
+    ? (Number(formatUnits(liveRewards, 12)) * sirPrice)
     : 0;
 
   return (
@@ -126,7 +204,7 @@ export function LpClaimRewardsModal({
                   <span className="text-xl">
                     <DisplayFormattedNumber
                       num={formattedRewards}
-                      significant={4}
+                      significant={3}
                     />
                   </span>
                   <div className="flex items-center gap-2">
@@ -173,7 +251,7 @@ export function LpClaimRewardsModal({
               <span className="text-xl font-semibold">
                 <DisplayFormattedNumber
                   num={formattedRewards}
-                  significant={4}
+                  significant={3}
                 />
               </span>
               <div className="flex items-center gap-2">

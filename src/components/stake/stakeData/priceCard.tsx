@@ -8,10 +8,10 @@ export default function PriceCard() {
   const { sirPrice, isLoading } = useSirPrice();
 
   const formatPrice = (price: number) => {
-    if (price < 0.0001) return `$${price.toFixed(8)}`;
-    if (price < 0.01) return `$${price.toFixed(6)}`;
-    if (price < 1) return `$${price.toFixed(4)}`;
-    return `$${price.toFixed(2)}`;
+    if (price < 0.0001) return `${price.toFixed(8)} USD`;
+    if (price < 0.01) return `${price.toFixed(6)} USD`;
+    if (price < 1) return `${price.toFixed(4)} USD`;
+    return `${price.toFixed(2)} USD`;
   };
 
   return (
@@ -22,7 +22,10 @@ export default function PriceCard() {
       <Show
         when={!isLoading && sirPrice !== null && sirPrice !== undefined}
         fallback={
-          <div className="mt-1 h-7 w-24 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          <>
+            <div className="mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+            <div className="mt-1 h-4 w-12 animate-pulse rounded bg-foreground/10 mx-auto"></div>
+          </>
         }
       >
         <div className="mt-1 text-lg font-semibold">

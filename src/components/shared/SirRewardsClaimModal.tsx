@@ -9,6 +9,9 @@ import ExplorerLink from "./explorerLink";
 import { TokenImage } from "./TokenImage";
 import { SirContract } from "@/contracts/sir";
 import { getSirSymbol } from "@/lib/assets";
+import { useSirPrice } from "@/contexts/SirPriceContext";
+import { formatUnits } from "viem";
+import DisplayFormattedNumber from "./displayFormattedNumber";
 
 interface SirRewardsClaimModalProps {
   open: boolean;
@@ -41,12 +44,19 @@ export function SirRewardsClaimModal({
   title = "Claim Rewards",
   checkboxLabel = "Mint and stake",
 }: SirRewardsClaimModalProps) {
+  const { sirPrice } = useSirPrice();
+
   const handleSetOpen = (value: boolean) => {
     setOpen(value);
     if (!value && !isConfirmed && onClose) {
       onClose();
     }
   };
+
+  // Calculate USD value
+  const usdValue = sirPrice && unclaimedAmount
+    ? (Number(formatUnits(unclaimedAmount, 12)) * sirPrice)
+    : 0;
 
   return (
     <TransactionModal.Root
@@ -89,6 +99,11 @@ export function SirRewardsClaimModal({
                   />
                 </div>
               </div>
+              {usdValue > 0 && (
+                <div className="text-sm text-muted-foreground mt-1">
+                  ≈ $<DisplayFormattedNumber num={usdValue} significant={3} />
+                </div>
+              )}
             </div>
           </>
         )}
