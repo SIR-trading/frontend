@@ -143,7 +143,7 @@ export function LpStakingArea() {
                                   ) : (
                                     "0"
                                   )}
-                                  <span className=""> USD</span>
+                                  <span className="text-muted-foreground"> USD</span>
                                 </span>
                               </div>
                             }
@@ -169,7 +169,7 @@ export function LpStakingArea() {
                                   ) : (
                                     "0"
                                   )}
-                                  <span className=""> USD</span>
+                                  <span className="text-muted-foreground"> USD</span>
                                 </span>
                               </div>
                             }
@@ -232,7 +232,7 @@ export function LpStakingArea() {
                         </div>
                       ) : (
                         <span className="text-xl">
-                          0 USD
+                          0 <span className="text-muted-foreground">USD</span>
                         </span>
                       )}
                     </>
@@ -292,7 +292,7 @@ export function LpStakingArea() {
                                   ) : (
                                     "0"
                                   )}
-                                  <span className=""> USD</span>
+                                  <span className="text-muted-foreground"> USD</span>
                                 </span>
                               </div>
                             }
@@ -318,7 +318,7 @@ export function LpStakingArea() {
                                   ) : (
                                     "0"
                                   )}
-                                  <span className=""> USD</span>
+                                  <span className="text-muted-foreground"> USD</span>
                                 </span>
                               </div>
                             }
@@ -381,7 +381,7 @@ export function LpStakingArea() {
                         </div>
                       ) : (
                         <span className="text-xl">
-                          0 USD
+                          0 <span className="text-muted-foreground">USD</span>
                         </span>
                       )}
                     </>
@@ -432,7 +432,7 @@ export function LpStakingArea() {
                         ) : (
                           "0"
                         )}
-                        <span className=""> {getSirSymbol()}</span>
+                        <span className="text-muted-foreground"> {getSirSymbol()}</span>
                       </span>
                     </div>
                   ) : (
