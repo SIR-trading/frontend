@@ -69,14 +69,14 @@ export default function SirPriceChart() {
 
   if (!chartUrl) {
     return (
-      <div className="rounded-md bg-primary/5 p-6 dark:bg-primary">
-        <div className="flex items-center justify-between mb-4">
+      <div className="rounded-md bg-primary/5 pt-6 px-0.5 pb-0.5 lg:p-6 dark:bg-primary">
+        <div className="flex items-center justify-between mb-4 px-4 lg:px-0">
           <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
             SIR Price Chart
           </h3>
         </div>
-        <div className="flex h-[400px] items-center justify-center text-muted-foreground">
+        <div className="flex h-[400px] items-center justify-center text-muted-foreground px-4 lg:px-0">
           <p className="text-sm">Loading chart data...</p>
         </div>
       </div>
@@ -86,8 +86,8 @@ export default function SirPriceChart() {
   return (
     <>
       {/* Main chart */}
-      <div className="rounded-md bg-primary/5 p-6 dark:bg-primary">
-        <div className="flex items-center justify-between mb-4">
+      <div className="rounded-md bg-primary/5 pt-6 px-0.5 pb-0.5 lg:p-6 dark:bg-primary">
+        <div className="flex items-center justify-between mb-4 px-4 lg:px-0">
           <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
             SIR Price Chart • Live data from {dexName}

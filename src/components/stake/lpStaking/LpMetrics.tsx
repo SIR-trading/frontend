@@ -18,7 +18,7 @@ export function LpMetrics({
 }: LpMetricsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+      <div className="grid grid-cols-1 gap-3 pb-4 md:grid-cols-2">
         {/* Staked Liquidity Card */}
         <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
           <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
@@ -40,13 +40,14 @@ export function LpMetrics({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+    <div className="grid grid-cols-1 gap-3 pb-4 md:grid-cols-2">
       {/* Staked Liquidity Card */}
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
           <span>Staked Liquidity</span>
           <ToolTip iconSize={12}>
-            In-range Uniswap V3 positions have liquidity at the current price and actively earn trading fees and SIR rewards.
+            In-range Uniswap V3 positions have liquidity at the current price
+            and actively earn trading fees and SIR rewards.
           </ToolTip>
         </div>
         <div className="mt-1 text-lg font-semibold">
@@ -96,7 +97,9 @@ export function LpMetrics({
           )}
         </div>
         <div className="text-xs text-muted-foreground">
-          {stakingApr !== null ? "Based on current TVL" : "To be determined"}
+          {stakingApr !== null
+            ? "Based on current in-range liquidity"
+            : "To be determined"}
         </div>
       </div>
     </div>
