@@ -918,12 +918,10 @@ export default function MintForm({ isApe }: Props) {
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
               <div className="text-sm">
-                <strong className="text-orange-300">
-                  Leverage Variability Warning:
-                </strong>
+                <strong className="text-orange-300">Warning:</strong>
                 <span className="ml-1 text-foreground/80">
-                  This vault has limited liquidity. The non-constant leverage
-                  could impact your returns, especially in volatile markets.
+                  Because this vault has limited liquidity, its leverage may
+                  vary over time, potentially eroding long-term returns.
                 </span>
               </div>
             </div>
@@ -999,7 +997,7 @@ export default function MintForm({ isApe }: Props) {
 
         {/* Error when slippage exceeds 40% */}
         <Show when={slippageWarning?.showError ?? false}>
-          <div className="bg-red-500/10 my-3 rounded-md border-2 border-red-500/50 p-3">
+          <div className="bg-red-500/10 border-red-500/50 my-3 rounded-md border-2 p-3">
             <div className="flex items-start gap-2">
               <div className="text-red-500">🚫</div>
               <div className="text-sm">
@@ -1042,10 +1040,6 @@ export default function MintForm({ isApe }: Props) {
         />
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
-            <Show when={isApe} fallback={<div className="py-3" />}>
-              <p className="py-2 text-left text-sm text-foreground">{`SIR mitigates volatility decay and eliminates liquidation risks, but as a new primitive, it isn't risk-free — volatility can still result in losses.`}</p>
-            </Show>
-
             <MintFormSubmit.FeeInfo
               error={formState.errors.root?.message}
               feeValue={parseAddress(longInput)}
@@ -1067,14 +1061,19 @@ export default function MintForm({ isApe }: Props) {
               }
             }}
           >
-            <Show when={slippageWarning?.showError ?? false} fallback={
-              <Show when={!needsApproval} fallback={"Approve"}>
-                <span className="flex items-center gap-x-1">
-                  <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
-                  <span>{isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}</span>
-                </span>
-              </Show>
-            }>
+            <Show
+              when={slippageWarning?.showError ?? false}
+              fallback={
+                <Show when={!needsApproval} fallback={"Approve"}>
+                  <span className="flex items-center gap-x-1">
+                    <span>{isApe ? "Go Long" : "Provide Liquidity"}</span>
+                    <span>
+                      {isApe ? <FxemojiMonkeyface /> : <NotoTeapot />}
+                    </span>
+                  </span>
+                </Show>
+              }
+            >
               <span>Slippage Too High</span>
             </Show>
           </SubmitButton>
