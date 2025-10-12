@@ -135,27 +135,65 @@ async function fetchCoinsListWithPlatforms(): Promise<CoinsListItem[]> {
 }
 
 /**
- * On-chain: fetch decimals() for a single ERC-20
+ * On-chain: fetch decimals() for a single ERC-20 with retry logic
  */
 async function fetchDecimalsForAddress(
   address: string,
   publicClient: ReturnType<typeof createPublicClient>,
+  maxRetries = 3,
 ): Promise<number | undefined> {
-  try {
-    const decimals = await publicClient.readContract({
-      address: address as `0x${string}`,
-      abi: erc20Abi,
-      functionName: "decimals",
-    });
-    return Number(decimals);
-  } catch (error) {
-    // Log the error for debugging
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.log(
-      `    Warning: Could not fetch decimals for ${address}: ${errorMessage.split("\n")[0]}`,
-    );
-    return undefined;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const decimals = await publicClient.readContract({
+        address: address as `0x${string}`,
+        abi: erc20Abi,
+        functionName: "decimals",
+      });
+      return Number(decimals);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if it's a transient error that we should retry
+      const isTransientError =
+        errorMessage.includes("timeout") ||
+        errorMessage.includes("rate limit") ||
+        errorMessage.includes("429") ||
+        errorMessage.includes("ECONNRESET") ||
+        errorMessage.includes("network") ||
+        errorMessage.includes("fetch failed");
+
+      // If it's a contract error (function doesn't exist), don't retry
+      const isContractError =
+        errorMessage.includes("execution reverted") ||
+        errorMessage.includes("function does not exist") ||
+        errorMessage.includes("invalid opcode");
+
+      if (isContractError) {
+        // Token genuinely doesn't have decimals function
+        console.log(
+          `    Warning: ${address} does not implement decimals() correctly`,
+        );
+        return undefined;
+      }
+
+      if (isTransientError && attempt < maxRetries - 1) {
+        // Exponential backoff: 100ms, 200ms, 400ms
+        const delayMs = 100 * Math.pow(2, attempt);
+        await sleep(delayMs);
+        continue;
+      }
+
+      // If we've exhausted retries or it's not a transient error
+      if (attempt === maxRetries - 1) {
+        console.log(
+          `    Warning: Could not fetch decimals for ${address} after ${maxRetries} attempts: ${errorMessage.split("\n")[0]}`,
+        );
+      }
+    }
   }
+
+  return undefined;
 }
 
 /**
