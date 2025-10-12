@@ -6,6 +6,7 @@ const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
 import type { StaticImageData } from "next/image";
 import sirIcon from "../../public/images/sir-logo.svg";
 import sirIconHyperEVM from "../../public/images/sir-logo-hyperevm.svg";
+import unknownImg from "../../public/IconUnknown.png";
 import { getAddress } from "viem";
 import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
@@ -58,7 +59,7 @@ export function getSirTokenMetadata() {
  */
 export function getLogoAssetWithFallback(
   address: TAddressString | undefined,
-  tokenList?: Array<{ address: string; logoURI?: string }>,
+  tokenMap?: Map<string, { address: string; logoURI?: string }>,
   chainId?: string,
 ): { primary: string | StaticImageData; fallback?: string } {
   if (!address) {
@@ -77,12 +78,19 @@ export function getLogoAssetWithFallback(
     };
   }
 
-  // Build Trust Wallet logo URL
+  // Determine current chain
+  let chainIdEnv = env.NEXT_PUBLIC_CHAIN_ID;
+  if (chainId !== undefined) {
+    chainIdEnv = chainId;
+  }
+
+  // O(1) lookup using Map (performance optimization)
+  const token = tokenMap?.get(address.toLowerCase());
+
+  // Build Trust Wallet logo URL based on chain
+  // Note: Trust Wallet may not have assets for all chains (e.g., HyperEVM)
+  // In those cases, the ImageWithFallback component will automatically fall back to logoURI from assets.json
   const getChainName = () => {
-    let chainIdEnv = env.NEXT_PUBLIC_CHAIN_ID;
-    if (chainId !== undefined) {
-      chainIdEnv = chainId;
-    }
     if (chainIdEnv === "1") {
       return "ethereum";
     }
@@ -93,23 +101,21 @@ export function getLogoAssetWithFallback(
       return "holesky";
     }
     if (chainIdEnv === "998" || chainIdEnv === "999") {
-      return "ethereum"; // Use ethereum assets for HyperEVM
+      return "hyperevm"; // Will likely not exist in Trust Wallet, will fall back to logoURI
     }
+    // Default to ethereum for unknown chains
+    return "ethereum";
   };
 
   const chainName = getChainName();
   let primaryLogo: string | StaticImageData = "";
 
   try {
-    primaryLogo = `${ASSET_REPO}/blockchains/${chainName}/assets/${getAddress(address)}/logo.png`;
+    const checksummedAddress = getAddress(address);
+    primaryLogo = `${ASSET_REPO}/blockchains/${chainName}/assets/${checksummedAddress}/logo.png`;
   } catch {
     primaryLogo = "";
   }
-
-  // Find fallback from tokenlist
-  const token = tokenList?.find(
-    (t) => t.address.toLowerCase() === address.toLowerCase(),
-  );
 
   return {
     primary: primaryLogo,

@@ -15,19 +15,19 @@ interface TokenImageProps {
 /**
  * Enhanced token image component that automatically handles fallbacks:
  * 1. Trust Wallet assets repository
- * 2. logoURI from assets.json 
+ * 2. logoURI from assets.json
  * 3. Unknown token icon
  */
-export function TokenImage({ 
-  address, 
-  chainId, 
-  className, 
-  width = 24, 
-  height = 24, 
-  alt = "Token logo" 
+export function TokenImage({
+  address,
+  chainId,
+  className,
+  width = 24,
+  height = 24,
+  alt = "Token logo"
 }: TokenImageProps) {
   const { primary, fallback } = useTokenLogo(address, chainId);
-  
+
   return (
     <ImageWithFallback
       className={className}

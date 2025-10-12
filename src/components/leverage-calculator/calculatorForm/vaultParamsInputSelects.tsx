@@ -21,7 +21,7 @@ export default function VaultParamsInputSelects({
 }: Props) {
   const setLeverage = useVaultFilterStore((store) => store.setLeverageTier);
   const { watch, reset } = useFormContext<TCalculatorFormFields>();
-  const { tokenlist } = useTokenlistContext();
+  const { tokenMap } = useTokenlistContext();
   
   const formData = watch();
   const storeLong = useVaultFilterStore((state) => state.long);
@@ -70,7 +70,7 @@ export default function VaultParamsInputSelects({
         name="long"
         title="Go long"
         items={long.map((e) => {
-          const logos = getLogoAssetWithFallback(e.collateralToken.id, tokenlist);
+          const logos = getLogoAssetWithFallback(e.collateralToken.id, tokenMap);
           return {
             label: e.collateralToken.symbol ?? 'Unknown',
             value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
@@ -82,7 +82,7 @@ export default function VaultParamsInputSelects({
         name="versus"
         title="Versus"
         items={versus.map((e) => {
-          const logos = getLogoAssetWithFallback(e.debtToken.id, tokenlist);
+          const logos = getLogoAssetWithFallback(e.debtToken.id, tokenMap);
           return {
             label: e.debtToken.symbol ?? 'Unknown',
             value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),

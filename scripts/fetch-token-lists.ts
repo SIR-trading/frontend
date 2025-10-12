@@ -71,7 +71,6 @@ interface PlatformToken {
   logoURI: string;
 }
 
-
 // Map chain IDs to viem chain objects
 const viemChainMap: Record<number, Chain> = {
   1: viemChains.mainnet,
@@ -237,8 +236,10 @@ function loadAssetsExtra(chainId: number): PlatformToken[] {
 async function main(): Promise<void> {
   console.log("🚀 Starting token list fetch script...");
   console.log(`Chain ID: ${process.env.NEXT_PUBLIC_CHAIN_ID}`);
+  console.log(`✅ Using CoinGecko API key: ${apiKey?.substring(0, 8)}...`);
 
-  const config = chainsConfig[selectedChainId.toString() as keyof typeof chainsConfig];
+  const config =
+    chainsConfig[selectedChainId.toString() as keyof typeof chainsConfig];
   if (!config) throw new Error(`Unsupported chain ID: ${selectedChainId}`);
 
   let platformTokens: PlatformToken[] = [];
@@ -316,8 +317,8 @@ async function main(): Promise<void> {
         break;
       }
 
-      // gentle pacing for CoinGecko calls
-      if (page < MAX_PAGES) await sleep(120);
+      // Rate limiting: CoinGecko Demo API typically allows 10-50 calls/minute
+      if (page < MAX_PAGES) await sleep(200);
     }
 
     // For non-testnets, also append tokens from assetsExtra.json
@@ -357,7 +358,8 @@ async function main(): Promise<void> {
   };
 
   // Check if wrapped token is already in platformTokens
-  const chainConfig = chainsConfig[config.chainId.toString() as keyof typeof chainsConfig];
+  const chainConfig =
+    chainsConfig[config.chainId.toString() as keyof typeof chainsConfig];
   const wrappedTokenAddress = chainConfig?.wrappedNativeToken?.address;
   const isWrappedTokenInList =
     wrappedTokenAddress &&

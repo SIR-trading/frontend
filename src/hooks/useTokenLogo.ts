@@ -8,13 +8,13 @@ import type { Address } from "viem";
  * when Trust Wallet asset is not available
  */
 export function useTokenLogo(address: Address | undefined, chainId?: string) {
-  const { tokenlist } = useTokenlistContext();
-  
+  const { tokenMap } = useTokenlistContext();
+
   return useMemo(() => {
     if (!address) {
       return { primary: "", fallback: undefined };
     }
-    
-    return getLogoAssetWithFallback(address, tokenlist, chainId);
-  }, [address, tokenlist, chainId]);
+
+    return getLogoAssetWithFallback(address, tokenMap, chainId);
+  }, [address, tokenMap, chainId]);
 }

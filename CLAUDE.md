@@ -322,9 +322,11 @@ When vault count exceeds 500:
 
 ```typescript
 import { getLogoAssetWithFallback } from "@/lib/assets";
+import { useTokenlistContext } from "@/contexts/tokenListProvider";
 
 // Correct way to get token logos
-const logos = getLogoAssetWithFallback(tokenAddress, tokenlist);
+const { tokenMap } = useTokenlistContext();
+const logos = getLogoAssetWithFallback(tokenAddress, tokenMap);
 const logoUrl = logos.fallback ?? logos.primary;
 ```
 
@@ -334,6 +336,7 @@ const logoUrl = logos.fallback ?? logos.primary;
 2. **Consistent fallbacks**: Uses curated token list first, then reliable fallbacks
 3. **Chain-aware**: Handles different logos for different chains
 4. **Centralized updates**: Changes to logo logic only need to be made in one place
+5. **Optimized lookups**: Uses Map for O(1) token lookups instead of O(n) array search
 
 **DO NOT create custom logo resolution logic** like:
 
@@ -350,10 +353,33 @@ const getLogoWithFallback = (address: string) => {
 
 ### Available Asset Functions
 
-- **`getLogoAssetWithFallback(address, tokenlist)`**: Returns logo URLs with primary and fallback options
+- **`getLogoAssetWithFallback(address, tokenMap, chainId?)`**: Returns logo URLs with primary and fallback options (uses O(1) Map lookup)
 - **`getSirSymbol(chainId?)`**: Returns "SIR" or "HyperSIR" based on chain
 - **`getSirLogo(chainId?)`**: Returns appropriate SIR logo for the chain
 - **`getSirTokenMetadata()`**: Returns complete SIR token metadata
+
+### TokenlistContext
+
+The `TokenlistContext` provides two optimized ways to access token data:
+
+- **`tokenlist`**: Array of all tokens (use for iteration, filtering, display)
+- **`tokenMap`**: Map<address, token> for O(1) lookups (use with `getLogoAssetWithFallback`)
+
+### Image Fallback Chain
+
+Token images use a three-tier fallback system handled by `ImageWithFallback` component:
+
+1. **Primary**: Trust Wallet assets repository URL (works for popular tokens on Ethereum chains)
+2. **Secondary**: `logoURI` from assets.json (CoinGecko URLs, works for all chains including HyperEVM)
+3. **Final**: Unknown token placeholder icon
+
+This ensures images always display, even for new/exotic tokens or chains not supported by Trust Wallet.
+
+### Token Schema Notes
+
+- The token schema allows **optional `decimals`** field to handle tokens that don't properly implement the ERC-20 `decimals()` function
+- During token list generation, if a token's `decimals()` call fails, it's still included in the list with `decimals: undefined`
+- This prevents the entire token list from failing due to a single malformed token
 
 ### Key Asset Files
 

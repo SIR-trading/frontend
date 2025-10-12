@@ -33,16 +33,16 @@ const ImageWithFallback = (props: Props) => {
     undefined,
   );
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
-  
+
   useEffect(() => {
     setImgSrc(src);
     setFallbackAttempts(0);
   }, [src]);
-  
+
   const imgProps = { ...rest };
   delete imgProps.fallbackImageUrl;
   delete imgProps.secondaryFallbackUrl;
-  
+
   const handleError = () => {
     if (fallbackAttempts === 0 && secondaryFallbackUrl) {
       // First fallback: try secondary fallback URL (logoURI from assets.json)
@@ -58,7 +58,7 @@ const ImageWithFallback = (props: Props) => {
       setFallbackAttempts(3);
     }
   };
-  
+
   if (imgSrc) {
     return (
       // eslint-disable-next-line jsx-a11y/alt-text
