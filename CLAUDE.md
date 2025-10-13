@@ -389,6 +389,77 @@ This ensures images always display, even for new/exotic tokens or chains not sup
 
 ---
 
+## Token Decimals Architecture
+
+### Critical Understanding: APE and TEA Token Decimals
+
+**IMPORTANT**: APE and TEA tokens always match the decimals of their vault's collateral token.
+
+#### Decimal Relationships
+
+- **APE token decimals** = **Collateral token decimals** (always equal)
+- **TEA token decimals** = **Collateral token decimals** (always equal)
+- **Debt token decimals** = Independent (can be different from collateral)
+
+#### Why This Matters
+
+APE and TEA tokens represent shares of the vault's collateral:
+- APE holders own a portion of collateral reserved for leveraged positions
+- TEA holders own a portion of collateral reserved for liquidity providers
+- Both are denominated in the same units as the underlying collateral
+
+#### Coding Guidelines
+
+When formatting amounts, you can use either:
+```typescript
+// Both are equivalent and correct:
+formatUnits(amount, vault.ape.decimals)
+formatUnits(amount, vault.collateralToken.decimals)
+```
+
+**Best practice**: Use `vault.collateralToken.decimals` when working with:
+- Vault TVL (`totalValue`, `reserveApes`, `reserveLPers`)
+- Collateral amounts from quoteBurn
+- Any value denominated in collateral tokens
+
+**Use `vault.ape.decimals`** only when:
+- Formatting APE token balances for display
+- You want to be explicit that you're working with APE shares
+
+**Use `vault.debtToken.decimals`** when:
+- Formatting debt token amounts
+- Converting debt token values from contracts
+- Calculating P&L in debt token terms
+
+#### Common Patterns in the Codebase
+
+```typescript
+// Vault TVL - use collateralToken.decimals
+const tvlFormatted = formatUnits(vault.totalValue, vault.collateralToken.decimals);
+
+// APE balance - can use either
+const apeBalance = formatUnits(balance, vault.ape.decimals); // OK
+const apeBalance = formatUnits(balance, vault.collateralToken.decimals); // Also OK
+
+// Collateral reserves - use collateralToken.decimals
+const apeCollateral = formatUnits(reserveApes, vault.collateralToken.decimals);
+const teaCollateral = formatUnits(reserveLPers, vault.collateralToken.decimals);
+
+// Debt token amounts - MUST use debtToken.decimals
+const debtAmount = formatUnits(debtTokenTotal, vault.debtToken.decimals);
+```
+
+#### Defensive Fallback Pattern
+
+In some places, you'll see defensive code that falls back:
+```typescript
+decimals: vault.ape?.decimals ?? vault.collateralToken.decimals
+```
+
+This is a safety measure for optional types, but in practice `vault.ape.decimals` should always equal `vault.collateralToken.decimals`.
+
+---
+
 # Claude Development Guidelines
 
 ## App Overview

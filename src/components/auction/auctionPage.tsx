@@ -50,7 +50,7 @@ const AuctionPage = () => {
       if (!uniqueCollateralToken.has(token)) {
         uniqueCollateralToken.add(token);
         collateralSymbolMap.set(token, vault.collateralToken.symbol ?? '');
-        collateralDecimalsMap.set(token, vault.ape.decimals);
+        collateralDecimalsMap.set(token, vault.collateralToken.decimals);
       }
     });
 

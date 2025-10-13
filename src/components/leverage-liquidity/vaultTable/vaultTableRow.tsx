@@ -247,7 +247,7 @@ export function VaultTableRow({
   const tvlRaw = parseUnits(vault.totalValue, 0);
   const tvlFormatted = formatUnits(
     tvlRaw,
-    vault.ape.decimals,
+    vault.collateralToken.decimals,
   );
 
   const { usdValue: tvlUsd } = useTokenUsdPrice(
@@ -784,7 +784,7 @@ export function VaultTableRow({
                 <TokenDisplay
                   amountSize="small"
                   amount={parseUnits(vault.totalValue, 0)}
-                  decimals={vault.ape.decimals}
+                  decimals={vault.collateralToken.decimals}
                   unitLabel={vault.collateralToken.symbol ?? ""}
                 />
               )}
@@ -798,7 +798,7 @@ export function VaultTableRow({
               <span className="flex items-center gap-x-1">
                 <span>
                   <DisplayFormattedNumber
-                    num={formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.ape.decimals)}
+                    num={formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.collateralToken.decimals)}
                     significant={3}
                   />
                   {" "}
@@ -812,7 +812,7 @@ export function VaultTableRow({
               <span className="flex items-center gap-x-1">
                 <span>
                   <DisplayFormattedNumber
-                    num={formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.ape.decimals)}
+                    num={formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.collateralToken.decimals)}
                     significant={3}
                   />
                   {" "}

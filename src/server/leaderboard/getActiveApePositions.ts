@@ -227,7 +227,7 @@ export async function getActiveApePositions(): Promise<TCurrentApePositions> {
       // Step 3: Convert positions to human-readable numbers
       const currentCollateralAmount = +formatUnits(
         netCollateralAfterFees,
-        vault.ape.decimals,
+        vault.collateralToken.decimals,
       );
       // collateralTotal is a BigInt string from the subgraph (in smallest units)
       // Need to format it with the proper decimals
