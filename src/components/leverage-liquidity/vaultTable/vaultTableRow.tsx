@@ -244,10 +244,12 @@ export function VaultTableRow({
   const realLeverage = tvl / apeCollateral;
 
   // Calculate TVL in USD
+  const tvlRaw = parseUnits(vault.totalValue, 0);
   const tvlFormatted = formatUnits(
-    parseUnits(vault.totalValue, 0),
+    tvlRaw,
     vault.ape.decimals,
   );
+
   const { usdValue: tvlUsd } = useTokenUsdPrice(
     vault.collateralToken.id,
     tvlFormatted,

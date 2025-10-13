@@ -41,11 +41,6 @@ export const priceRouter = createTRPCRouter({
         return cached.price;
       }
 
-      console.log("getCoinGeckoPrice called with:", {
-        platformId,
-        contractAddress,
-      });
-
       const headers: HeadersInit = {
         accept: "application/json",
       };
@@ -325,8 +320,6 @@ export const priceRouter = createTRPCRouter({
       const { tokenAddress, tokenDecimals } = input;
       const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
-      console.log(`\n🔍 [getTokenPriceWithFallback] Starting price fetch for ${tokenAddress} (decimals: ${tokenDecimals})`);
-
       // First try external APIs (Alchemy/CoinGecko)
       const cacheKey = shouldUseCoinGecko(chainId)
         ? getCacheKey('coingecko', getCoinGeckoPlatformId(chainId), tokenAddress)
@@ -336,7 +329,6 @@ export const priceRouter = createTRPCRouter({
       const cached = tokenPriceCache.get(cacheKey);
 
       if (cached && (now - cached.timestamp) < CACHE_DURATION && cached.price !== null) {
-        console.log(`✅ [Cache Hit] Returning cached price: $${cached.price}`);
         return cached.price;
       }
 
@@ -345,7 +337,6 @@ export const priceRouter = createTRPCRouter({
 
       if (shouldUseCoinGecko(chainId)) {
         // Try CoinGecko
-        console.log(`🌐 [CoinGecko] Attempting to fetch price...`);
         try {
           const headers: HeadersInit = {
             accept: "application/json",
@@ -363,17 +354,12 @@ export const priceRouter = createTRPCRouter({
           if (response.ok) {
             const data = (await response.json()) as Record<string, { usd?: number }>;
             externalPrice = data[tokenAddress.toLowerCase()]?.usd ?? null;
-            console.log(`${externalPrice ? '✅' : '❌'} [CoinGecko] Price: ${externalPrice ? `$${externalPrice}` : 'not found'}`);
-          } else {
-            console.log(`❌ [CoinGecko] HTTP ${response.status} - ${response.statusText}`);
           }
         } catch (error) {
-          console.log(`❌ [CoinGecko] Error:`, error);
-          console.log("Will try Uniswap fallback");
+          // Will try Uniswap fallback
         }
       } else {
         // Try Alchemy
-        console.log(`🌐 [Alchemy] Attempting to fetch price...`);
         try {
           const options = {
             method: "POST",
@@ -396,29 +382,22 @@ export const priceRouter = createTRPCRouter({
             if (result.data?.[0]?.prices?.[0]?.value) {
               externalPrice = Number(result.data[0].prices[0].value);
             }
-            console.log(`${externalPrice ? '✅' : '❌'} [Alchemy] Price: ${externalPrice ? `$${externalPrice}` : 'not found'}`);
-          } else {
-            console.log(`❌ [Alchemy] HTTP ${response.status} - ${response.statusText}`);
           }
         } catch (error) {
-          console.log(`❌ [Alchemy] Error:`, error);
-          console.log("Will try Uniswap fallback");
+          // Will try Uniswap fallback
         }
       }
 
       if (externalPrice !== null) {
         // Cache and return external price
-        console.log(`✅ [Final] Returning external API price: $${externalPrice}`);
         tokenPriceCache.set(cacheKey, { price: externalPrice, timestamp: now });
         return externalPrice;
       }
 
       // Fallback to Uniswap
-      console.log(`\n🦄 [Uniswap Fallback] Starting Uniswap pool price lookup...`);
       try {
         const { getMostLiquidPoolPrice } = await import("./quote");
         const wrappedTokenAddress = getWrappedNativeTokenAddress(chainId);
-        console.log(`   Wrapped token address: ${wrappedTokenAddress}`);
 
         // Common stablecoin addresses (mainnet and common test networks)
         const USDC_ADDRESSES: Record<number, string> = {
@@ -433,7 +412,6 @@ export const priceRouter = createTRPCRouter({
         // Try WETH pair first
         let tokenPriceInUsd: number | null = null;
 
-        console.log(`   Trying WETH pair...`);
         try {
           const wethPoolData = await getMostLiquidPoolPrice({
             tokenA: tokenAddress,
@@ -442,20 +420,12 @@ export const priceRouter = createTRPCRouter({
             decimalsB: 18,
           });
 
-          console.log(`   WETH pool data:`, {
-            price: wethPoolData.price,
-            liquidity: wethPoolData.liquidity.toString(),
-            poolAddress: wethPoolData.poolAddress,
-            fee: wethPoolData.fee
-          });
-
           if (wethPoolData.price > 0) {
             // Get WETH price in USD
             let wethPriceUsd: number | null = null;
 
             // Try to get WETH price from external API
             if (shouldUseCoinGecko(chainId)) {
-              console.log(`   Fetching WETH price from CoinGecko...`);
               try {
                 const response = await fetch(
                   `https://api.coingecko.com/api/v3/simple/token_price/${getCoinGeckoPlatformId(chainId)}?contract_addresses=${wrappedTokenAddress}&vs_currencies=usd`,
@@ -464,34 +434,25 @@ export const priceRouter = createTRPCRouter({
                 if (response.ok) {
                   const data = (await response.json()) as Record<string, { usd?: number }>;
                   wethPriceUsd = data[wrappedTokenAddress.toLowerCase()]?.usd ?? null;
-                  console.log(`   ${wethPriceUsd ? '✅' : '❌'} WETH price from CoinGecko: ${wethPriceUsd ? `$${wethPriceUsd}` : 'not found'}`);
                 }
               } catch (error) {
-                console.log(`   ❌ Failed to fetch WETH price from CoinGecko:`, error);
+                // Failed to fetch WETH price
               }
             } else {
               // Use hardcoded fallback prices for wrapped tokens if API fails
               wethPriceUsd = chainId === 1 || chainId === 11155111 ? 3000 : 0.001; // Approximate ETH and HYPE prices
-              console.log(`   Using hardcoded WETH price: $${wethPriceUsd}`);
             }
 
             if (wethPriceUsd) {
               tokenPriceInUsd = wethPoolData.price * wethPriceUsd;
-              console.log(`   ✅ Calculated token price: ${wethPoolData.price} WETH * $${wethPriceUsd} = $${tokenPriceInUsd}`);
-            } else {
-              console.log(`   ❌ Could not get WETH price in USD`);
             }
-          } else {
-            console.log(`   ❌ WETH pool price is 0`);
           }
         } catch (error) {
-          console.log(`   ❌ WETH pair lookup failed:`, error);
-          console.log("   Trying USDC pair...");
+          // Will try USDC pair
         }
 
         // If WETH pair didn't work, try USDC pair
         if (!tokenPriceInUsd && usdcAddress) {
-          console.log(`   Trying USDC pair... (USDC address: ${usdcAddress})`);
           try {
             const usdcPoolData = await getMostLiquidPoolPrice({
               tokenA: tokenAddress,
@@ -500,39 +461,25 @@ export const priceRouter = createTRPCRouter({
               decimalsB: 6, // USDC has 6 decimals
             });
 
-            console.log(`   USDC pool data:`, {
-              price: usdcPoolData.price,
-              liquidity: usdcPoolData.liquidity.toString(),
-              poolAddress: usdcPoolData.poolAddress,
-              fee: usdcPoolData.fee
-            });
-
             if (usdcPoolData.price > 0) {
               // USDC price is approximately 1 USD
               tokenPriceInUsd = usdcPoolData.price;
-              console.log(`   ✅ Calculated token price from USDC pool: ${usdcPoolData.price} USDC ≈ $${tokenPriceInUsd}`);
-            } else {
-              console.log(`   ❌ USDC pool price is 0`);
             }
           } catch (error) {
-            console.log(`   ❌ USDC pair lookup failed:`, error);
+            // USDC pair lookup failed
           }
         }
 
         if (tokenPriceInUsd) {
           // Cache and return Uniswap price
-          console.log(`✅ [Final] Returning Uniswap-derived price: $${tokenPriceInUsd}`);
           tokenPriceCache.set(cacheKey, { price: tokenPriceInUsd, timestamp: now });
           return tokenPriceInUsd;
-        } else {
-          console.log(`❌ [Uniswap Fallback] All pool lookups failed`);
         }
       } catch (error) {
-        console.error("❌ [Uniswap Fallback] Fatal error:", error);
+        // Uniswap fallback failed
       }
 
       // Cache null result to avoid repeated failed attempts
-      console.log(`❌ [Final] All price sources failed - returning null`);
       tokenPriceCache.set(cacheKey, { price: null, timestamp: now });
       return null;
     }),

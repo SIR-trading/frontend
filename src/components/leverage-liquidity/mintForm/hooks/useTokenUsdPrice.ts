@@ -25,7 +25,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
   const shouldFetchPrice = !!tokenAddress && !!debouncedAmount && parseFloat(debouncedAmount) > 0;
 
   // Fetch price using Alchemy for Ethereum chains
-  const { data: alchemyPrice } = api.price.getTokenPrice.useQuery(
+  const { data: alchemyPrice, isLoading: alchemyLoading } = api.price.getTokenPrice.useQuery(
     {
       contractAddress: tokenAddress ?? "",
       chain: getAlchemyChainString(chainId)
@@ -37,7 +37,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
   );
 
   // Fetch price using CoinGecko for HyperEVM chains
-  const { data: coinGeckoPrice } = api.price.getCoinGeckoPrice.useQuery(
+  const { data: coinGeckoPrice, isLoading: coinGeckoLoading } = api.price.getCoinGeckoPrice.useQuery(
     {
       platformId: getCoinGeckoPlatformId(chainId),
       contractAddress: tokenAddress ?? ""
@@ -48,48 +48,44 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     }
   );
 
+  const fallbackEnabled = shouldFetchPrice && (
+    (!useCoinGecko && !alchemyPrice?.data?.[0]?.prices?.[0]?.value) ||
+    (useCoinGecko && !coinGeckoPrice)
+  );
+
   // Fetch price with Uniswap fallback for exotic tokens
-  const { data: fallbackPrice } = api.price.getTokenPriceWithFallback.useQuery(
+  const { data: fallbackPrice, isLoading: fallbackLoading } = api.price.getTokenPriceWithFallback.useQuery(
     {
       tokenAddress: tokenAddress ?? "",
       tokenDecimals: decimals ?? 18,
     },
     {
-      enabled: shouldFetchPrice && (
-        (!useCoinGecko && !alchemyPrice?.data?.[0]?.prices?.[0]?.value) ||
-        (useCoinGecko && !coinGeckoPrice)
-      ),
+      enabled: fallbackEnabled,
       staleTime: 60000, // 1 minute cache
     }
   );
 
   // Calculate USD value
   const usdValue = useMemo(() => {
-    if (!debouncedAmount || !decimals || parseFloat(debouncedAmount) === 0) return null;
+    if (!debouncedAmount || decimals === null || decimals === undefined || parseFloat(debouncedAmount) === 0) {
+      return null;
+    }
 
     let pricePerToken: number | null = null;
-    let priceSource = '';
 
     // Try primary sources first
     if (!useCoinGecko && alchemyPrice?.data?.[0]?.prices?.[0]?.value) {
       pricePerToken = Number(alchemyPrice.data[0].prices[0].value);
-      priceSource = 'Alchemy';
-      console.log(`💰 [useTokenUsdPrice] Using Alchemy price for ${tokenAddress}: $${pricePerToken}`);
     } else if (useCoinGecko && coinGeckoPrice) {
       pricePerToken = coinGeckoPrice;
-      priceSource = 'CoinGecko';
-      console.log(`💰 [useTokenUsdPrice] Using CoinGecko price for ${tokenAddress}: $${pricePerToken}`);
     }
 
     // Use fallback price if primary sources failed
     if (!pricePerToken && fallbackPrice !== null && fallbackPrice !== undefined) {
       pricePerToken = fallbackPrice;
-      priceSource = 'Uniswap Fallback';
-      console.log(`💰 [useTokenUsdPrice] Using Uniswap fallback price for ${tokenAddress}: $${pricePerToken}`);
     }
 
     if (!pricePerToken) {
-      console.log(`❌ [useTokenUsdPrice] No price available for ${tokenAddress}`);
       return null;
     }
 
@@ -97,10 +93,8 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
     const amountInTokens = parseFloat(debouncedAmount);
     const usdAmount = amountInTokens * pricePerToken;
 
-    console.log(`💵 [useTokenUsdPrice] ${tokenAddress}: ${amountInTokens} tokens × $${pricePerToken} (${priceSource}) = $${usdAmount.toFixed(2)}`);
-
     return usdAmount;
-  }, [debouncedAmount, decimals, alchemyPrice, coinGeckoPrice, fallbackPrice, useCoinGecko, tokenAddress]);
+  }, [debouncedAmount, decimals, alchemyPrice, coinGeckoPrice, fallbackPrice, useCoinGecko]);
 
   return {
     usdValue,
