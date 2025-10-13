@@ -28,6 +28,8 @@ import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
 import { useTokenUsdPrice } from "../mintForm/hooks/useTokenUsdPrice";
 import { FeeExplanation } from "@/components/shared/FeeExplanation";
+import { getCurrentChainConfig } from "@/lib/chains";
+import Link from "next/link";
 
 export function VaultTableRow({
   pool: vault,
@@ -295,6 +297,12 @@ export function VaultTableRow({
   // Check if this is extreme leverage (tier 2 = ^5 or tier 5 = ^32)
   const isExtremeLeverage =
     vault.leverageTier === 2 || vault.leverageTier === 5;
+
+  // Get explorer URL for token links
+  const chainConfig = getCurrentChainConfig();
+  const collateralTokenUrl = `${chainConfig.explorerUrl}/token/${vault.collateralToken.id}`;
+  const debtTokenUrl = `${chainConfig.explorerUrl}/token/${vault.debtToken.id}`;
+
   return (
     <tr
       onClick={() => {
@@ -359,21 +367,37 @@ export function VaultTableRow({
       <td className="w-24 flex-shrink-0 min-[650px]:min-w-0 min-[650px]:max-w-[200px] min-[650px]:flex-1 lg:w-24 lg:max-w-none lg:flex-shrink-0 min-[1130px]:flex-1">
         {/* Mobile view - compact logos only with leverage */}
         <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
-          <TokenImage
-            address={vault.collateralToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Collateral token"
-          />
+          <Link
+            href={collateralTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.collateralToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Collateral token"
+            />
+          </Link>
           <span className="mx-1 font-normal">/</span>
-          <TokenImage
-            address={vault.debtToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Debt token"
-          />
+          <Link
+            href={debtTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.debtToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Debt token"
+            />
+          </Link>
           {variant.variant === "red" ? (
             <HoverPopupMobile
               size="200"
@@ -442,27 +466,43 @@ export function VaultTableRow({
 
         {/* Medium view (650px to lg, and 1130px to xl) - logos + symbols + leverage */}
         <div className="hidden items-center min-[650px]:flex lg:hidden min-[1130px]:flex xl:hidden">
-          <TokenImage
-            address={vault.collateralToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Collateral token"
-          />
-          <span className="ml-1 font-normal">
-            {vault.collateralToken.symbol ?? ""}
-          </span>
+          <Link
+            href={collateralTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.collateralToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Collateral token"
+            />
+            <span className="ml-1 font-normal">
+              {vault.collateralToken.symbol ?? ""}
+            </span>
+          </Link>
           <span className="mx-1 font-normal">/</span>
-          <TokenImage
-            address={vault.debtToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Debt token"
-          />
-          <span className="ml-1 font-normal">
-            {vault.debtToken.symbol ?? ""}
-          </span>
+          <Link
+            href={debtTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.debtToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Debt token"
+            />
+            <span className="ml-1 font-normal">
+              {vault.debtToken.symbol ?? ""}
+            </span>
+          </Link>
           {variant.variant === "red" ? (
             <HoverPopupMobile
               size="200"
@@ -531,27 +571,43 @@ export function VaultTableRow({
 
         {/* XL and above view - full names without leverage (shown in separate column) */}
         <div className="hidden items-center xl:flex">
-          <TokenImage
-            address={vault.collateralToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Collateral token"
-          />
-          <span className="ml-1 font-normal">
-            {vault.collateralToken.symbol ?? ""}
-          </span>
+          <Link
+            href={collateralTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.collateralToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Collateral token"
+            />
+            <span className="ml-1 font-normal">
+              {vault.collateralToken.symbol ?? ""}
+            </span>
+          </Link>
           <span className="mx-1 font-normal">/</span>
-          <TokenImage
-            address={vault.debtToken.id}
-            className="h-6 w-6 rounded-full"
-            width={28}
-            height={28}
-            alt="Debt token"
-          />
-          <span className="ml-1 font-normal">
-            {vault.debtToken.symbol ?? ""}
-          </span>
+          <Link
+            href={debtTokenUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center hover:opacity-70 transition-opacity"
+          >
+            <TokenImage
+              address={vault.debtToken.id}
+              className="h-6 w-6 rounded-full"
+              width={28}
+              height={28}
+              alt="Debt token"
+            />
+            <span className="ml-1 font-normal">
+              {vault.debtToken.symbol ?? ""}
+            </span>
+          </Link>
           {isExtremeLeverage && (
             <HoverPopupMobile
               size="250"
