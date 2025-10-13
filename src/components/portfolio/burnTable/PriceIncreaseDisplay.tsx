@@ -13,7 +13,7 @@ export function PriceIncreaseDisplay({
 
   return (
     <span className={className}>
-      <DisplayFormattedNumber num={percentage} significant={2} />%
+      <DisplayFormattedNumber num={percentage} significant={3} />%
     </span>
   );
 }

@@ -52,6 +52,7 @@ import { api } from "@/trpc/react";
 import {
   calculatePriceIncreaseToTarget,
   calculateBreakevenTime,
+  calculateValueGainFromPriceGain,
 } from "@/lib/utils/breakeven";
 import { PriceIncreaseDisplay } from "@/components/portfolio/burnTable/PriceIncreaseDisplay";
 import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
@@ -439,63 +440,25 @@ export default function MintForm({ isApe }: Props) {
       // Convert leverageTier (k) to actual leverage ratio (1 + 2^k)
       const leverage = getLeverageRatio(leverageTierNum);
 
-      // Calculate for COLLATERAL token (price increase)
-      const collateralBreakeven = calculatePriceIncreaseToTarget(
-        initialDeposit, // target (recover initial deposit)
-        collateralValue, // current (post-fee amount)
-        leverage,
-        true, // isCollateral
-      );
+      // Get fee percentage
+      const feePercent = parseFloat(fee ?? "0");
 
-      const collateralDouble = calculatePriceIncreaseToTarget(
-        initialDeposit * 2, // target (2x initial deposit)
-        collateralValue, // current
-        leverage,
-        true,
-      );
+      // Calculate value gains for fixed price gains
+      // Fixed price gains: +50%, +100%, +400%
+      const priceGains = [50, 100, 400];
 
-      const collateralTenx = calculatePriceIncreaseToTarget(
-        initialDeposit * 10, // target (10x initial deposit)
-        collateralValue, // current
-        leverage,
-        true,
-      );
-
-      // Calculate for DEBT token (price increase needed for profit)
-      // Same formula but with exponent 1/l instead of 1/(l-1)
-      const debtBreakeven = calculatePriceIncreaseToTarget(
-        initialDeposit, // target (recover initial deposit)
-        collateralValue, // current (post-fee amount)
-        leverage,
-        false, // isDebt - will use 1/l exponent
-      );
-
-      const debtDouble = calculatePriceIncreaseToTarget(
-        initialDeposit * 2, // target (2x initial deposit)
-        collateralValue, // current
-        leverage,
-        false,
-      );
-
-      const debtTenx = calculatePriceIncreaseToTarget(
-        initialDeposit * 10, // target (10x initial deposit)
-        collateralValue, // current
-        leverage,
-        false,
-      );
+      const gains = priceGains.map((priceGain) => ({
+        priceGain,
+        debtGain: calculateValueGainFromPriceGain(
+          priceGain,
+          leverage,
+          feePercent,
+        ),
+      }));
 
       return {
         type: "priceGain" as const,
-        collateral: {
-          breakeven: collateralBreakeven ?? 0,
-          double: collateralDouble ?? 0,
-          tenx: collateralTenx ?? 0,
-        },
-        debt: {
-          breakeven: debtBreakeven ?? 0,
-          double: debtDouble ?? 0,
-          tenx: debtTenx ?? 0,
-        },
+        gains,
       };
     } else if (!isApe && apyData?.apy !== undefined) {
       // Calculate Required Time for TEA tokens
@@ -701,72 +664,32 @@ export default function MintForm({ isApe }: Props) {
                     <div className="mt-2 border-t border-foreground/10 pt-2" />
                     {stats.type === "priceGain" ? (
                       <>
-                        {/* Two-column header for APE tokens */}
-                        <div className="text-gray-300 mb-1 flex justify-between text-[11px]">
-                          <div className="flex-1">
-                            Required Price Gain of {collateralTokenSymbol}/
-                            {debtTokenSymbol}
+                        {/* Simplified two-column display for APE tokens */}
+                        <div className="mb-2 flex justify-between text-[11px]">
+                          <div className="text-foreground/70">
+                            If {collateralTokenSymbol}/{debtTokenSymbol} gains:
                           </div>
-                          <div className="flex gap-4">
-                            <div className="w-[60px] text-right text-foreground/70">
-                              {collateralTokenSymbol}
-                            </div>
-                            <div className="w-[60px] text-right text-foreground/70">
-                              {debtTokenSymbol}
-                            </div>
+                          <div className="text-foreground/70">
+                            Your position gains:
                           </div>
                         </div>
 
-                        {/* Break-even row */}
-                        <div className="mb-0.5 flex justify-between text-[13px]">
-                          <div className="text-gray-300">to break-even</div>
-                          <div className="flex gap-4">
-                            <div className="w-[60px] text-right">
-                              <PriceIncreaseDisplay
-                                percentage={stats.collateral.breakeven}
-                              />
+                        {/* Display each price gain and corresponding debt token gain */}
+                        {stats.gains.map((gain, index) => (
+                          <div
+                            key={index}
+                            className="mb-0.5 flex justify-between text-[13px]"
+                          >
+                            <div className="text-gray-300">
+                              +{gain.priceGain}%
                             </div>
-                            <div className="w-[60px] text-right">
+                            <div>
                               <PriceIncreaseDisplay
-                                percentage={stats.debt.breakeven}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* 2x row */}
-                        <div className="mb-0.5 flex justify-between text-[13px]">
-                          <div className="text-gray-300">to 2x</div>
-                          <div className="flex gap-4">
-                            <div className="w-[60px] text-right">
-                              <PriceIncreaseDisplay
-                                percentage={stats.collateral.double}
-                              />
-                            </div>
-                            <div className="w-[60px] text-right">
-                              <PriceIncreaseDisplay
-                                percentage={stats.debt.double}
+                                percentage={gain.debtGain}
                               />
                             </div>
                           </div>
-                        </div>
-
-                        {/* 10x row */}
-                        <div className="mb-0.5 flex justify-between text-[13px]">
-                          <div className="text-gray-300">to 10x</div>
-                          <div className="flex gap-4">
-                            <div className="w-[60px] text-right">
-                              <PriceIncreaseDisplay
-                                percentage={stats.collateral.tenx}
-                              />
-                            </div>
-                            <div className="w-[60px] text-right">
-                              <PriceIncreaseDisplay
-                                percentage={stats.debt.tenx}
-                              />
-                            </div>
-                          </div>
-                        </div>
+                        ))}
                       </>
                     ) : (
                       <>
@@ -787,7 +710,7 @@ export default function MintForm({ isApe }: Props) {
                     )}
                     <div className="mt-1 text-[10px] text-muted-foreground">
                       {isApe
-                        ? "Price gains assume sufficient vault liquidity."
+                        ? `Position gains calculated in ${debtTokenSymbol} terms, assuming constant leverage.`
                         : "Time calculations assume price and APY remain constant"}
                     </div>
                   </>

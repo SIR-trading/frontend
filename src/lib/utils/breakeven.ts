@@ -132,3 +132,29 @@ export function formatBreakevenPriceIncrease(
     return `+${num}%`;
   }
 }
+
+/**
+ * Calculate the value gain given a price increase, accounting for initial fee
+ * Formula: value_gain = (100 - feePercent) * (1 + priceGain)^leverage - 100
+ *
+ * @param priceGainPercent - The price gain percentage (e.g., 50 for +50%)
+ * @param leverage - The leverage multiplier (e.g., 2, 3, 5, 9)
+ * @param feePercent - The initial fee percentage (e.g., 10 for 10%)
+ * @returns The resulting value gain percentage
+ */
+export function calculateValueGainFromPriceGain(
+  priceGainPercent: number,
+  leverage: number,
+  feePercent: number,
+): number {
+  // Convert percentage to decimal factor (e.g., 50% -> 1.5)
+  const priceFactor = 1 + priceGainPercent / 100;
+
+  // Account for fee reducing the starting amount (e.g., 10% fee -> 90% remaining)
+  const postFeeAmount = 100 - feePercent;
+
+  // Calculate the value gain with exponential leverage
+  const valueGainPercent = postFeeAmount * Math.pow(priceFactor, leverage) - 100;
+
+  return valueGainPercent;
+}
