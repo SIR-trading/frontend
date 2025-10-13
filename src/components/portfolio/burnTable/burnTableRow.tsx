@@ -27,6 +27,8 @@ import { TimeDisplay } from "./TimeDisplay";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { TwitterIcon } from "@/components/ui/icons/twitter-icon";
 import { SharePositionModal } from "./SharePositionModal";
+import { getCurrentChainConfig } from "@/lib/chains";
+import Link from "next/link";
 
 export function BurnTableRow({
   row,
@@ -321,6 +323,11 @@ export function BurnTableRow({
     }
   }
 
+  // Get explorer URL for token links
+  const chainConfig = getCurrentChainConfig();
+  const collateralTokenUrl = `${chainConfig.explorerUrl}/token/${row.collateralToken}`;
+  const debtTokenUrl = `${chainConfig.explorerUrl}/token/${row.debtToken}`;
+
   // Render content based on position type
   const content = isApe ? (
     <>
@@ -356,44 +363,76 @@ export function BurnTableRow({
             <div className="flex items-center">
               {/* Mobile: Show only icons */}
               <div className="flex items-center sm:hidden">
-                <TokenImage
-                  className="rounded-full bg-transparent"
-                  alt={row.collateralToken}
-                  address={row.collateralToken}
-                  width={20}
-                  height={20}
-                />
+                <Link
+                  href={collateralTokenUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  <TokenImage
+                    className="rounded-full bg-transparent"
+                    alt={row.collateralToken}
+                    address={row.collateralToken}
+                    width={20}
+                    height={20}
+                  />
+                </Link>
                 <span className="mx-1 text-[12px]">/</span>
-                <TokenImage
-                  className="rounded-full"
-                  alt={row.debtSymbol}
-                  address={row.debtToken}
-                  width={20}
-                  height={20}
-                />
+                <Link
+                  href={debtTokenUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  <TokenImage
+                    className="rounded-full"
+                    alt={row.debtSymbol}
+                    address={row.debtToken}
+                    width={20}
+                    height={20}
+                  />
+                </Link>
                 <sup className="ml-0.5 text-[10px] font-semibold">
                   {getLeverageRatio(Number.parseInt(row.leverageTier))}
                 </sup>
               </div>
               {/* Medium and Large screens: Show icons with text */}
               <div className="hidden items-center sm:flex">
-                <TokenImage
-                  className="rounded-full bg-transparent"
-                  alt={row.collateralToken}
-                  address={row.collateralToken}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
+                <Link
+                  href={collateralTokenUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center hover:opacity-70 transition-opacity"
+                >
+                  <TokenImage
+                    className="rounded-full bg-transparent"
+                    alt={row.collateralToken}
+                    address={row.collateralToken}
+                    width={20}
+                    height={20}
+                  />
+                  <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
+                </Link>
                 <span className="mx-1 text-[14px]">/</span>
-                <TokenImage
-                  className="rounded-full"
-                  alt={row.debtSymbol}
-                  address={row.debtToken}
-                  width={20}
-                  height={20}
-                />
-                <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
+                <Link
+                  href={debtTokenUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center hover:opacity-70 transition-opacity"
+                >
+                  <TokenImage
+                    className="rounded-full"
+                    alt={row.debtSymbol}
+                    address={row.debtToken}
+                    width={20}
+                    height={20}
+                  />
+                  <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
+                </Link>
                 <sup className="ml-0.5 text-[10px] font-semibold">
                   {getLeverageRatio(Number.parseInt(row.leverageTier))}
                 </sup>
@@ -888,44 +927,76 @@ export function BurnTableRow({
           <div className="flex items-center">
             {/* Mobile: Show only icons */}
             <div className="flex items-center sm:hidden">
-              <TokenImage
-                className="rounded-full bg-transparent"
-                alt={row.collateralToken}
-                address={row.collateralToken}
-                width={20}
-                height={20}
-              />
+              <Link
+                href={collateralTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="hover:opacity-70 transition-opacity"
+              >
+                <TokenImage
+                  className="rounded-full bg-transparent"
+                  alt={row.collateralToken}
+                  address={row.collateralToken}
+                  width={20}
+                  height={20}
+                />
+              </Link>
               <span className="mx-1 text-[12px]">/</span>
-              <TokenImage
-                className="rounded-full"
-                alt={row.debtSymbol}
-                address={row.debtToken}
-                width={20}
-                height={20}
-              />
+              <Link
+                href={debtTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="hover:opacity-70 transition-opacity"
+              >
+                <TokenImage
+                  className="rounded-full"
+                  alt={row.debtSymbol}
+                  address={row.debtToken}
+                  width={20}
+                  height={20}
+                />
+              </Link>
               <sup className="ml-0.5 text-[10px] font-semibold">
                 {getLeverageRatio(Number.parseInt(row.leverageTier))}
               </sup>
             </div>
             {/* Medium and Large screens: Show icons with text */}
             <div className="hidden items-center sm:flex">
-              <TokenImage
-                className="rounded-full bg-transparent"
-                alt={row.collateralToken}
-                address={row.collateralToken}
-                width={20}
-                height={20}
-              />
-              <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
+              <Link
+                href={collateralTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center hover:opacity-70 transition-opacity"
+              >
+                <TokenImage
+                  className="rounded-full bg-transparent"
+                  alt={row.collateralToken}
+                  address={row.collateralToken}
+                  width={20}
+                  height={20}
+                />
+                <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
+              </Link>
               <span className="mx-1 text-[14px]">/</span>
-              <TokenImage
-                className="rounded-full"
-                alt={row.debtSymbol}
-                address={row.debtToken}
-                width={20}
-                height={20}
-              />
-              <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
+              <Link
+                href={debtTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center hover:opacity-70 transition-opacity"
+              >
+                <TokenImage
+                  className="rounded-full"
+                  alt={row.debtSymbol}
+                  address={row.debtToken}
+                  width={20}
+                  height={20}
+                />
+                <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
+              </Link>
               <sup className="ml-0.5 text-[10px] font-semibold">
                 {getLeverageRatio(Number.parseInt(row.leverageTier))}
               </sup>
