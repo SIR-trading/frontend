@@ -5,6 +5,7 @@ import useVaultFilterStore from "@/lib/store";
 import { api } from "@/trpc/react";
 import type { StaticImageData } from "next/image";
 import React, { useState } from "react";
+import { getLogoAssetWithFallback } from "@/lib/assets";
 
 type TItem = {
   value: string;
@@ -20,8 +21,8 @@ export default function SelectWithSearch({ name, title, items }: Props) {
   const type = name === "long" ? "collateral" : "debt";
   const [input, setInput] = useState("");
   const { debouncedValue, debouncing } = useDebounce(input, 300);
-  const { tokenlist } = useTokenlistContext();
-  
+  const { tokenMap } = useTokenlistContext();
+
   const { data, isFetching } = api.vault.getSearchVaults.useQuery(
     {
       search: debouncedValue.toUpperCase(),
@@ -32,19 +33,6 @@ export default function SelectWithSearch({ name, title, items }: Props) {
     },
   );
   
-  // Helper function to get logo with fallback from tokenlist
-  const getLogoWithFallback = (address: string) => {
-    // First try to find from tokenlist (which has curated logoURIs)
-    const token = tokenlist?.find(
-      (t) => t.address.toLowerCase() === address.toLowerCase()
-    );
-    if (token?.logoURI) {
-      return token.logoURI;
-    }
-    // Fall back to Trust Wallet
-    return `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${address}/logo.png`;
-  };
-  
   let searchItems: TItem[] | undefined = [
     ...new Map(
       data?.vaults?.map((item) => [
@@ -54,16 +42,18 @@ export default function SelectWithSearch({ name, title, items }: Props) {
     ).values(),
   ].map((e) => {
     if (type === "collateral") {
+      const logos = getLogoAssetWithFallback(e.collateralToken.id, tokenMap);
       return {
         label: e.collateralToken.symbol ?? 'Unknown',
         value: e.collateralToken.id + "," + (e.collateralToken.symbol ?? 'Unknown'),
-        imageUrl: getLogoWithFallback(e.collateralToken.id),
+        imageUrl: logos.fallback ?? logos.primary,
       };
     } else {
+      const logos = getLogoAssetWithFallback(e.debtToken.id, tokenMap);
       return {
         label: e.debtToken.symbol ?? 'Unknown',
         value: e.debtToken.id + "," + (e.debtToken.symbol ?? 'Unknown'),
-        imageUrl: getLogoWithFallback(e.debtToken.id),
+        imageUrl: logos.fallback ?? logos.primary,
       };
     }
   });
