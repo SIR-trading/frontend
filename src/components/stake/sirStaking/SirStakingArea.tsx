@@ -1,18 +1,17 @@
 "use client";
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { SirCard } from '@/components/portfolio/sirCard';
-import { UnstakeCard } from '@/components/portfolio/unstakeCard';
-import ClaimCard from '@/components/shared/claimCard';
-import { StakeCardWrapper } from '../stakeCardWrapper';
-import { SirMetrics } from './SirMetrics';
+import React from "react";
+import { Card } from "@/components/ui/card";
+import { SirCard } from "@/components/portfolio/sirCard";
+import { UnstakeCard } from "@/components/portfolio/unstakeCard";
+import ClaimCard from "@/components/shared/claimCard";
+import { StakeCardWrapper } from "../stakeCardWrapper";
+import { SirMetrics } from "./SirMetrics";
+import { cn } from "@/lib/utils";
 
-export function SirStakingArea() {
+export function SirStakingArea({ className }: { className?: string }) {
   return (
-    <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-      <h2 className="pb-4 text-sm font-medium">
-        SIR Staking
-      </h2>
+    <Card className={cn("card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6", className)}>
+      <h2 className="pb-4 text-sm font-medium">SIR Staking</h2>
 
       {/* Metrics at top */}
       <SirMetrics />

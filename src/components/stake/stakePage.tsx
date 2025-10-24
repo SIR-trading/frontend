@@ -66,7 +66,20 @@ const StakePage = () => {
             <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
               <h2 className="pb-4 text-sm font-medium">Market Data</h2>
 
-              <div className="relative z-10 grid gap-6 pb-40 lg:grid-cols-3 lg:pb-0">
+              {/* Small screens (< lg) - cards above chart */}
+              <div className="relative z-10 space-y-4 pb-40 lg:hidden">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <PriceCard />
+                  <MarketCapCard />
+                </div>
+                <div>
+                  <SirPriceChart />
+                </div>
+                {hasContributorRewards && <ContributorRewardsCard />}
+              </div>
+
+              {/* Large screens (lg+) - chart left, cards right */}
+              <div className="relative z-10 hidden gap-6 pb-40 lg:grid lg:grid-cols-3 lg:pb-0">
                 {/* Left side: Price Chart (takes up 2 columns) */}
                 <div className="lg:col-span-2">
                   <SirPriceChart />
@@ -105,14 +118,26 @@ const StakePage = () => {
           <>
             {/* When LP staking disabled: SIR Staking and Market Data side by side */}
             <div className="grid gap-6 xl:grid-cols-2">
-              <SirStakingArea />
+              <SirStakingArea className="xl:min-h-[586px]" />
 
               {/* Market Data - side by side with SIR Staking on wide screens */}
-              <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
+              <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 xl:min-h-[586px]">
                 <h2 className="pb-4 text-sm font-medium">Market Data</h2>
 
-                {/* Original layout for stacked (< xl) - chart left, cards right */}
-                <div className="relative z-10 grid gap-6 pb-40 lg:grid-cols-3 lg:pb-0 xl:hidden">
+                {/* Small screens (< lg) - cards above chart */}
+                <div className="relative z-10 space-y-4 pb-40 lg:hidden">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <PriceCard />
+                    <MarketCapCard />
+                  </div>
+                  <div>
+                    <SirPriceChart />
+                  </div>
+                  {hasContributorRewards && <ContributorRewardsCard />}
+                </div>
+
+                {/* Medium screens (lg - xl) - chart left, cards right */}
+                <div className="relative z-10 hidden gap-6 pb-40 lg:grid lg:grid-cols-3 lg:pb-0 xl:hidden">
                   <div className="lg:col-span-2">
                     <SirPriceChart />
                   </div>
@@ -123,17 +148,17 @@ const StakePage = () => {
                   </div>
                 </div>
 
-                {/* Compact layout for side-by-side (xl+) - chart full width, cards below */}
+                {/* Compact layout for side-by-side (xl+) - cards above chart */}
                 <div className="relative z-10 hidden space-y-4 pb-40 lg:pb-0 xl:block">
-                  <div>
-                    <SirPriceChart height={210} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <PriceCard />
                     <MarketCapCard />
                   </div>
+                  <div>
+                    <SirPriceChart height={210} />
+                  </div>
                   {hasContributorRewards && (
-                    <div>
+                    <div className="max-w-[66%]">
                       <ContributorRewardsCard />
                     </div>
                   )}
