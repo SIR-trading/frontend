@@ -850,17 +850,12 @@ export const vaultRouter = createTRPCRouter({
         const vaultMap = new Map(vaults.vaults.map((v) => [v.id, v]));
 
         // Get SIR price in wrapped native token once (shared across all vaults, cached)
-        const sirPriceInWrappedNativeToken = await getCachedSirPrice();
-
-        if (sirPriceInWrappedNativeToken === 0) {
-          console.warn("Could not fetch SIR price from Uniswap");
-          // Return zero APY for all vaults
-          return Object.fromEntries(
-            vaultIds.map((id) => [
-              id,
-              { apy: 0, feesApy: 0, sirRewardsApy: 0, feesCount: 0 },
-            ]),
-          );
+        // If it fails (e.g., no pool on HyperEVM), we'll still calculate fees APY
+        let sirPriceInWrappedNativeToken = 0;
+        try {
+          sirPriceInWrappedNativeToken = await getCachedSirPrice();
+        } catch (error) {
+          sirPriceInWrappedNativeToken = 0;
         }
 
         // Get unique collateral tokens to batch price conversions
