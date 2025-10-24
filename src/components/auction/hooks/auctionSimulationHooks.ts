@@ -78,7 +78,6 @@ export const useBid = ({
       (token ?? zeroAddress) as Address,
       parseUnits(amount, tokenDecimals ?? 18),
     ],
-    value: useNativeToken ? parseUnits(amount, tokenDecimals ?? 18) : 0n,
     query: {
       enabled: isConnected && !!token && !!amount && amount !== "0",
       retry: false, // Don't retry on provider errors

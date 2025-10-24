@@ -53,7 +53,7 @@ export default function SirPriceChart({ height = 400 }: SirPriceChartProps) {
 
   // Construct the DexScreener embed URL
   const getDexScreenerUrl = () => {
-    if (!poolData?.poolAddress) return null;
+    if (!poolData?.poolAddress) return undefined;
 
     // Determine the network prefix for DexScreener
     let network = "ethereum";
