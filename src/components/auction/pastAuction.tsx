@@ -5,6 +5,7 @@ import AuctionCard, {
 import { TokenDisplay } from "@/components/ui/token-display";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { useGetAuctionLot } from "@/components/auction/hooks/auctionSimulationHooks";
+import { SirContract } from "@/contracts/sir";
 import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
@@ -57,7 +58,7 @@ const PastAuction = ({
       },
     );
 
-  const { writeContract, data: hash, isPending, reset } = useWriteContract();
+  const { writeContract, data: hash, isPending, reset, error: writeError } = useWriteContract();
 
   const {
     isLoading: isConfirming,
@@ -78,8 +79,13 @@ const PastAuction = ({
 
   const confirmTransaction = () => {
     if (!isConfirmed) {
-      if (id && getAuctionLotRequest) {
-        writeContract(getAuctionLotRequest);
+      if (id && address) {
+        // Direct contract call without pre-simulation - wagmi handles simulation internally
+        writeContract({
+          ...SirContract,
+          functionName: "getAuctionLot",
+          args: [id as Address, address],
+        });
       }
     } else {
       setOpenTransactionModal(false);
@@ -160,6 +166,27 @@ const PastAuction = ({
                   </div>
                 </div>
               </div>
+
+              {/* Error display */}
+              {writeError && !isConfirming && !isConfirmed && (() => {
+                // Check if this is a simulation error (not user rejection)
+                const errorMessage = writeError.message || "";
+                const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                       errorMessage.toLowerCase().includes("user denied") ||
+                                       errorMessage.toLowerCase().includes("rejected the request");
+
+                // Only show error for simulation failures, not user rejections
+                if (!isUserRejection) {
+                  return (
+                    <div className="mt-3">
+                      <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                        Transaction simulation failed. Please check your inputs and try again.
+                      </p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </>
           ) : (
             // Success state

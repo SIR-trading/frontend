@@ -7,7 +7,7 @@ import { api } from "@/trpc/react";
 import { TokenDisplay } from "@/components/ui/token-display";
 import { TokenDisplayWithUsd } from "@/components/auction/TokenDisplayWithUsd";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { useStartAuction } from "@/components/auction/hooks/auctionSimulationHooks";
+import { SirContract } from "@/contracts/sir";
 import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import TransactionModal from "@/components/shared/transactionModal";
@@ -53,7 +53,7 @@ const NewAuction = ({
       refetchInterval: 60 * 1000,
     });
 
-  const { writeContract, data: hash, isPending, reset } = useWriteContract();
+  const { writeContract, data: hash, isPending, reset, error: writeError } = useWriteContract();
 
   const {
     isLoading: isConfirming,
@@ -66,7 +66,6 @@ const NewAuction = ({
 
   const [id, setId] = useState<string>();
   const [collectedAmount, setCollectedAmount] = useState<bigint>();
-  const startAuctionRequest = useStartAuction({ id });
 
   const handleAuctionStart = (id: string) => {
     setId(id);
@@ -127,10 +126,13 @@ const NewAuction = ({
 
   const confirmTransaction = () => {
     if (!isConfirmed) {
-      console.log({ id, startAuctionRequest });
-
-      if (id && startAuctionRequest) {
-        writeContract(startAuctionRequest);
+      if (id) {
+        // Direct contract call without pre-simulation - wagmi handles simulation internally
+        writeContract({
+          ...SirContract,
+          functionName: "collectFeesAndStartAuction",
+          args: [id as Address],
+        });
       }
     } else {
       // Close modal and reset state when clicking Close after success
@@ -258,6 +260,27 @@ const NewAuction = ({
                 action={""}
               />
             </div>
+
+            {/* Error display */}
+            {writeError && !isConfirming && !isConfirmed && (() => {
+              // Check if this is a simulation error (not user rejection)
+              const errorMessage = writeError.message || "";
+              const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                     errorMessage.toLowerCase().includes("user denied") ||
+                                     errorMessage.toLowerCase().includes("rejected the request");
+
+              // Only show error for simulation failures, not user rejections
+              if (!isUserRejection) {
+                return (
+                  <div className="mt-3">
+                    <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                      Transaction simulation failed. Please check your inputs and try again.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         }>
           {/* Success state content */}

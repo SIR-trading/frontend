@@ -562,6 +562,137 @@ When compiling the app and running build scripts, we avoid defensive programming
 
 This applies specifically to the build/compilation process and scripts. At runtime, the app can handle errors gracefully for better UX.
 
+## Transaction Execution Pattern
+
+**IMPORTANT**: The app uses direct contract calls without explicit pre-simulation checks.
+
+### Core Principle
+
+- **Always call `writeContract` directly** with contract configuration
+- **Never block user actions** waiting for `useSimulateContract` results
+- **Wagmi handles simulation internally** - no need for explicit loading states or simulation checks
+- Buttons should be enabled as soon as required data is available (wallet connected, form valid, etc.)
+
+### Correct Pattern
+
+```typescript
+// ✅ CORRECT: Direct contract call
+const confirmTransaction = () => {
+  if (tokenId) {
+    writeContract({
+      ...ContractConfig,
+      functionName: "someFunction",
+      args: [tokenId as Address],
+    });
+  }
+};
+```
+
+### Anti-Pattern (Don't Do This)
+
+```typescript
+// ❌ WRONG: Don't wait for simulation or expose simulation loading states
+const { request, isLoading } = useSimulateContract({...});
+
+const confirmTransaction = () => {
+  if (request) {  // Don't check for simulation completion
+    writeContract(request);
+  }
+};
+
+// ❌ WRONG: Don't disable buttons based on simulation state
+<Button disabled={isSimulating || !request}>Confirm</Button>
+```
+
+### Why This Matters
+
+1. **Better UX**: Users can click buttons immediately without waiting for simulations
+2. **Wagmi handles it**: The `writeContract` function internally simulates before sending
+3. **Prevents false failures**: Pre-simulation can fail for valid transactions (gas estimation issues, temporary RPC problems)
+4. **Consistent with app pattern**: See `burnForm.tsx` and `transferForm.tsx` for examples
+
+### When Simulation Hooks Are Used
+
+- Simulation hooks like `useSimulateContract` may exist in the codebase for logging/debugging
+- These should NOT block transaction execution
+- Don't add loading states or disable buttons based on simulation results
+- The user should always be able to attempt the transaction if basic requirements are met
+
+### Error Handling Pattern
+
+All transaction modals should display `writeContract` errors to provide user feedback when wagmi simulation fails.
+
+#### Complete Pattern with Error Handling
+
+```typescript
+// 1. Destructure error from useWriteContract
+const { writeContract, data: hash, isPending, reset, error: writeError } = useWriteContract();
+
+const {
+  isLoading: isConfirming,
+  isSuccess: isConfirmed,
+  data: transactionData,
+} = useWaitForTransactionReceipt({ hash });
+
+// 2. Direct contract call
+const confirmTransaction = () => {
+  if (!isConfirmed && tokenId) {
+    writeContract({
+      ...ContractConfig,
+      functionName: "someFunction",
+      args: [tokenId as Address],
+    });
+  }
+};
+
+// 3. Display error in modal UI (after TransactionStatus component)
+{writeError && !isConfirming && !isConfirmed && (() => {
+  // Check if this is a simulation error (not user rejection)
+  const errorMessage = writeError.message || "";
+  const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                         errorMessage.toLowerCase().includes("user denied") ||
+                         errorMessage.toLowerCase().includes("rejected the request");
+
+  // Only show error for simulation failures, not user rejections
+  if (!isUserRejection) {
+    return (
+      <div className="mt-3">
+        <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+          Transaction simulation failed. Please check your inputs and try again.
+        </p>
+      </div>
+    );
+  }
+  return null;
+})()}
+```
+
+#### Error Handling Rules
+
+1. **Always capture the error**: Destructure `error: writeError` from `useWriteContract`
+2. **Filter user rejections**: Don't show errors when users cancel/reject in their wallet
+3. **Show simulation failures**: Display helpful message for actual transaction failures
+4. **Consistent styling**: Use `#ef4444` color, small centered text
+5. **Auto-clear on close**: Error clears when modal closes (via existing `reset()` call)
+6. **Placement**: Show error below TransactionStatus, before transaction details
+
+#### When to Show Errors
+
+- ✅ **Show**: Wagmi simulation fails (insufficient balance, contract revert, etc.)
+- ❌ **Don't show**: User rejects transaction in wallet
+- ❌ **Don't show**: During transaction confirmation (`isConfirming`)
+- ❌ **Don't show**: After successful confirmation (`isConfirmed`)
+
+#### Examples in Codebase
+
+See these files for complete implementations:
+- `src/components/auction/newAuction.tsx`
+- `src/components/auction/pastAuction.tsx`
+- `src/components/auction/AuctionBidModal.tsx`
+- `src/components/portfolio/unstakeForm.tsx`
+- `src/components/portfolio/transferForm.tsx`
+- `src/components/portfolio/burnForm.tsx`
+
 ## Price Functions API
 
 The app provides several price fetching mechanisms to get token prices from different sources:

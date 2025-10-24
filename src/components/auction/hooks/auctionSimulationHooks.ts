@@ -4,7 +4,7 @@ import { SirContract } from "@/contracts/sir";
 
 export const useStartAuction = ({ id }: { id?: string }) => {
   const { isConnected } = useAccount();
-  
+
   const startAuctionSimulate = useSimulateContract({
     ...SirContract,
     functionName: "collectFeesAndStartAuction",
