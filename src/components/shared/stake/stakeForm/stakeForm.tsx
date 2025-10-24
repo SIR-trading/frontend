@@ -78,6 +78,14 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
 
 
   const [open, setOpen] = useState(false);
+
+  // Handler that closes both modals
+  const handleSetOpen = (value: boolean) => {
+    setOpen(value);
+    if (!value) {
+      closeStakeModal();
+    }
+  };
   const { tokenReceived } = useGetReceivedSir({
     logs: transactionData?.logs,
     staking: true,
@@ -112,8 +120,12 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root title={`Stake ${getSirSymbol()}`} setOpen={setOpen} open={open}>
-          <TransactionModal.Close setOpen={setOpen} />
+        <TransactionModal.Root
+          title={`Stake ${getSirSymbol()}`}
+          setOpen={handleSetOpen}
+          open={open}
+        >
+          <TransactionModal.Close setOpen={handleSetOpen} />
           <TransactionModal.InfoContainer
             hash={hash}
             isConfirming={isConfirming}
@@ -194,9 +206,7 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
               isConfirmed={isConfirmed}
               onClick={() => {
                 if (isConfirmed) {
-                  setOpen(false);
-
-                  closeStakeModal();
+                  handleSetOpen(false); // Close both modals
                 } else {
                   onSubmit();
                 }

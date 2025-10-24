@@ -693,6 +693,345 @@ See these files for complete implementations:
 - `src/components/portfolio/transferForm.tsx`
 - `src/components/portfolio/burnForm.tsx`
 
+---
+
+## Transaction Modal Pattern: Approve + Main Transaction
+
+### Overview
+
+The app uses a **single modal with dynamic content** to handle two-step transactions (approve + main transaction). This pattern provides a seamless UX without modal flashing or intermediate loading states.
+
+### Core Pattern
+
+**Single modal that transitions through states:**
+1. Initial form (user reviews transaction)
+2. Approval confirmation (if approval needed)
+3. **Seamless loading transition** (prevents flashing)
+4. Main transaction confirmation
+5. Success state
+
+### Key Implementation Details
+
+#### 1. State Tracking to Prevent Flashing
+
+When approval confirms, the modal must avoid showing the approval form again during data refetch:
+
+```typescript
+// Track whether approval has been confirmed
+const [approvalWasConfirmed, setApprovalWasConfirmed] = useState(false);
+
+useEffect(() => {
+  // Set flag when approval confirms
+  if (isConfirmed && needsApproval) {
+    setApprovalWasConfirmed(true);
+  }
+  // Reset flag when we move to mint phase
+  if (!needsApproval) {
+    setApprovalWasConfirmed(false);
+  }
+}, [isConfirmed, needsApproval]);
+```
+
+#### 2. Extended Loading State During Transition
+
+Keep showing loading state after approval confirms to prevent the approval form from flashing:
+
+```typescript
+<TransactionStatus
+  showLoading={isConfirming || userBalanceFetching || approvalWasConfirmed}
+  waitForSign={isPending}
+  action={!needsApproval ? "Mint" : "Approve"}
+/>
+```
+
+#### 3. Hide Disclaimers After Approval
+
+Prevent "Approve Funds" disclaimer from showing again after approval confirms:
+
+```typescript
+{needsApproval && !approvalWasConfirmed && (
+  <div className="px-6 py-4">
+    <TransactionModal.Disclaimer>
+      Approve Funds to Mint.
+    </TransactionModal.Disclaimer>
+  </div>
+)}
+```
+
+#### 4. Transaction Flow Logic
+
+```typescript
+const onSubmit = useCallback(() => {
+  // Step 1: Handle approval if needed
+  if (requests.approveWriteRequest && needsApproval) {
+    setCurrentTxType("approve");
+    writeContract(requests.approveWriteRequest);
+    return;
+  }
+
+  // Step 2: Handle main transaction
+  setCurrentTxType("mint");
+  writeContract(mainTransactionRequest);
+}, [needsApproval, requests, writeContract]);
+```
+
+#### 5. Data Invalidation After Approval
+
+Trigger data refetch immediately after approval confirms:
+
+```typescript
+// In useResetAfterApprove.ts
+useEffect(() => {
+  if (isConfirmed && needsApproval) {
+    reset(); // Reset transaction state
+    utils.user.getBalanceAndAllowance
+      .invalidate()
+      .catch((e) => console.log(e));
+  }
+}, [reset, isConfirmed, utils.user.getBalanceAndAllowance, needsApproval]);
+```
+
+### Complete Transaction Flow
+
+#### Step 1: User Opens Modal
+- Form shows transaction details
+- Button text: "Approve" or "Confirm Mint"
+
+#### Step 2: Approval Transaction (if needed)
+```
+User clicks "Approve"
+  → Modal shows TransactionStatus (waiting for signature)
+  → User signs in wallet
+  → Modal shows TransactionStatus (loading/confirming)
+  → Approval transaction confirms
+```
+
+#### Step 3: Transition to Main Transaction
+```
+Approval confirms
+  → approvalWasConfirmed = true
+  → Keep showing loading state (prevents flash!)
+  → Data refetches in background
+  → needsApproval becomes false
+  → Modal content smoothly transitions to main transaction form
+  → approvalWasConfirmed = false
+```
+
+#### Step 4: Main Transaction
+```
+User clicks "Confirm Mint"
+  → Modal shows TransactionStatus (waiting for signature)
+  → User signs in wallet
+  → Modal shows TransactionStatus (loading/confirming)
+  → Transaction confirms
+  → Success state displays
+```
+
+### Common Pitfalls to Avoid
+
+#### ❌ Immediate Reset After Approval
+```typescript
+// DON'T DO THIS - causes modal flash
+useEffect(() => {
+  if (isConfirmed && needsApproval) {
+    reset(); // Resets isConfirmed immediately, modal flashes back to approval form!
+    invalidateData();
+  }
+}, [isConfirmed, needsApproval]);
+```
+
+#### ❌ No Loading State During Transition
+```typescript
+// DON'T DO THIS - approval form briefly shows again
+<TransactionStatus
+  showLoading={isConfirming}  // Missing approvalWasConfirmed!
+  action={!needsApproval ? "Mint" : "Approve"}
+/>
+```
+
+#### ❌ Showing Disclaimers During Transition
+```typescript
+// DON'T DO THIS - disclaimer flashes during transition
+{needsApproval && (  // Missing !approvalWasConfirmed check!
+  <TransactionModal.Disclaimer>
+    Approve Funds to Mint.
+  </TransactionModal.Disclaimer>
+)}
+```
+
+### Nested Modal Pattern: Single Transaction with Input Amount
+
+For actions that require user input (amount) and execute a single transaction (stake, unstake, close position, transfer), use the **nested modal pattern**:
+
+**Structure:**
+- **Outer modal**: Form for user input (amount, options, etc.)
+- **Inner modal**: Transaction confirmation, status, and success
+
+#### Complete Implementation
+
+**1. Create a wrapper function that closes both modals:**
+
+```typescript
+const [open, setOpen] = useState(false);
+
+// Handler that closes both modals
+const handleSetOpen = (value: boolean) => {
+  setOpen(value);
+  if (!value) {
+    closeOuterModal(); // Close the outer form modal
+  }
+};
+```
+
+**2. Use the wrapper for all modal state changes:**
+
+```typescript
+<TransactionModal.Root
+  title="Transaction Title"
+  setOpen={handleSetOpen}  // Use wrapper, not setOpen
+  open={open}
+>
+  <TransactionModal.Close setOpen={handleSetOpen} />  {/* X button */}
+
+  <TransactionModal.InfoContainer isConfirming={isConfirming} hash={hash}>
+    {!isConfirmed && (
+      <TransactionStatus
+        action="Action Name"
+        waitForSign={isPending}
+        showLoading={isConfirming}
+      />
+    )}
+
+    {isConfirmed && (
+      <TransactionSuccess
+        hash={hash}
+        amountReceived={tokenReceived}
+        assetReceived="TOKEN_SYMBOL"
+        decimals={12}
+      />
+    )}
+  </TransactionModal.InfoContainer>
+
+  <TransactionModal.StatSubmitContainer>
+    <TransactionModal.SubmitButton
+      isConfirmed={isConfirmed}
+      onClick={() => {
+        if (isConfirmed) {
+          handleSetOpen(false); // Close both modals
+        } else {
+          onSubmit(); // Execute transaction
+        }
+      }}
+      isPending={isPending}
+      loading={isConfirming}
+      disabled={!isValid && !isConfirmed}
+    >
+      Confirm Action
+    </TransactionModal.SubmitButton>
+  </TransactionModal.StatSubmitContainer>
+</TransactionModal.Root>
+```
+
+#### How It Works
+
+**All three close methods trigger the same handler:**
+
+1. **X button** → `handleSetOpen(false)` → Closes both modals
+2. **Close button** (after success) → `handleSetOpen(false)` → Closes both modals
+3. **Click outside** → `handleSetOpen(false)` → Closes both modals
+
+**The button text automatically changes:**
+- Before transaction: Shows children text (e.g., "Confirm Stake")
+- During signing: "Signing Transaction"
+- During confirmation: "Waiting for Confirmation"
+- After success: "Close"
+
+#### Complete Flow
+
+```
+User opens outer modal
+  → User enters amount/data in form
+  → User clicks action button (e.g., "Stake")
+  → Inner TransactionModal opens (open = true)
+  → User clicks "Confirm Stake"
+  → onSubmit() executes transaction
+  → Transaction pending (isPending = true)
+  → Button shows "Signing Transaction"
+  → User signs in wallet
+  → Transaction confirming (isConfirming = true)
+  → Button shows "Waiting for Confirmation"
+  → Transaction confirms (isConfirmed = true)
+  → Success screen displays
+  → Button shows "Close"
+  → User clicks "Close" or X
+  → handleSetOpen(false) called
+  → Both modals close together
+```
+
+#### Key Principles
+
+1. **Single state setter wrapper**: One function handles all modal close actions
+2. **Consistent behavior**: X button, Close button, and click-outside all behave the same
+3. **No setTimeout**: React state updates naturally coordinate the close
+4. **Button text changes automatically**: The `Pending` component handles text updates
+
+#### Common Pitfalls to Avoid
+
+**❌ Don't use setTimeout delays:**
+```typescript
+// DON'T DO THIS
+onClick={() => {
+  setOpen(false);
+  setTimeout(() => closeOuterModal(), 300);
+}}
+```
+
+**❌ Don't forget to wrap setOpen:**
+```typescript
+// DON'T DO THIS - outer modal won't close
+<TransactionModal.Root setOpen={setOpen} open={open}>
+```
+
+**❌ Don't call close functions separately:**
+```typescript
+// DON'T DO THIS - causes race conditions
+onClick={() => {
+  setOpen(false);
+  closeOuterModal(); // Called too early!
+}}
+```
+
+### Key Files Using Each Pattern
+
+#### Two-Step Approval + Transaction Pattern
+*For minting APE/TEA tokens (requires ERC20 approval first):*
+- `src/components/leverage-liquidity/mintForm/mintForm.tsx` - Main form component
+- `src/components/leverage-liquidity/mintForm/transactionInfo.tsx` - Modal content with state tracking
+- `src/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove.ts` - Data invalidation after approval
+
+#### Nested Modal Pattern (Single Transaction with Input)
+*For actions requiring user input amount and single transaction:*
+- `src/components/shared/stake/stakeForm/stakeForm.tsx` - Stake SIR tokens
+- `src/components/portfolio/unstakeForm.tsx` - Unstake SIR tokens
+- `src/components/portfolio/burnForm/burnForm.tsx` - Close APE/TEA positions
+- `src/components/portfolio/transferForm.tsx` - Transfer tokens to another address
+
+#### Other Transaction Modals
+*Simpler patterns for specific use cases:*
+- `src/components/auction/AuctionBidModal.tsx` - Auction bidding (no nested modal)
+- `src/components/shared/SirClaimModal.tsx` - Claim SIR rewards (with optional stake)
+- `src/components/shared/SirRewardsClaimModal.tsx` - Claim contributor rewards
+
+### Design Principles
+
+1. **Single modal, multiple states** - Better UX than opening/closing multiple modals
+2. **Seamless transitions** - No flashing or intermediate loading states
+3. **Progressive disclosure** - Show relevant information at each step
+4. **State tracking** - Prevent showing stale UI during data refetch
+5. **Animation timing** - Coordinate modal animations to prevent visual glitches
+
+---
+
 ## Price Functions API
 
 The app provides several price fetching mechanisms to get token prices from different sources:

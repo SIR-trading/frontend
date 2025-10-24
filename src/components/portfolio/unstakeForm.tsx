@@ -121,6 +121,15 @@ const UnstakeForm = ({
   });
 
   const [open, setOpen] = useState(false);
+
+  // Handler that closes both modals
+  const handleSetOpen = (value: boolean) => {
+    setOpen(value);
+    if (!value) {
+      closeUnstakeModal();
+    }
+  };
+
   useEffect(() => {
     if (isConfirmed && !open) {
       reset();
@@ -133,8 +142,12 @@ const UnstakeForm = ({
   return (
     <>
       <div className="w-full px-4 py-4">
-        <TransactionModal.Root title={`Unstake ${getSirSymbol()}`} setOpen={setOpen} open={open}>
-          <TransactionModal.Close setOpen={setOpen} />
+        <TransactionModal.Root
+          title={`Unstake ${getSirSymbol()}`}
+          setOpen={handleSetOpen}
+          open={open}
+        >
+          <TransactionModal.Close setOpen={handleSetOpen} />
           <TransactionModal.InfoContainer
             isConfirming={isConfirming}
             hash={hash}
@@ -249,8 +262,7 @@ const UnstakeForm = ({
               isConfirmed={isConfirmed}
               onClick={() => {
                 if (isConfirmed) {
-                  closeUnstakeModal();
-                  setOpen(false);
+                  handleSetOpen(false); // Close both modals
                 } else {
                   onSubmit();
                 }

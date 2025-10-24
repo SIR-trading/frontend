@@ -10,6 +10,7 @@ import { useFormContext } from "react-hook-form";
 import type { TMintFormFields } from "@/components/providers/mintFormProvider";
 import { parseAddress } from "@/lib/utils/index";
 import { useNativeCurrency } from "@/components/shared/hooks/useNativeCurrency";
+import { useState, useEffect } from "react";
 
 // Helper function to convert vaultId to consistent decimal format
 const getDisplayVaultId = (vaultId: string): string => {
@@ -62,6 +63,20 @@ export default function TransactionInfo({
   const data = form.watch();
   const deposit = form.getValues("deposit");
 
+  // Track whether approval has been confirmed to prevent showing disclaimer again
+  const [approvalWasConfirmed, setApprovalWasConfirmed] = useState(false);
+
+  useEffect(() => {
+    // Set flag when approval confirms
+    if (isConfirmed && needsApproval) {
+      setApprovalWasConfirmed(true);
+    }
+    // Reset flag when we move to mint phase
+    if (!needsApproval) {
+      setApprovalWasConfirmed(false);
+    }
+  }, [isConfirmed, needsApproval]);
+
   const usingDebt =
     data.depositToken === parseAddress(data.versus) && data.depositToken !== "";
   const collateralAssetName = useNativeToken
@@ -77,7 +92,7 @@ export default function TransactionInfo({
     return (
       <>
         <TransactionStatus
-          showLoading={isConfirming || userBalanceFetching}
+          showLoading={isConfirming || userBalanceFetching || approvalWasConfirmed}
           waitForSign={isPending}
           action={
             !needsApproval
@@ -147,14 +162,14 @@ export default function TransactionInfo({
           </div>
         )}
 
-        {needsApproval && !needs0Approval && (
+        {needsApproval && !needs0Approval && !approvalWasConfirmed && (
           <div className="px-6 py-4">
             <TransactionModal.Disclaimer>
               Approve Funds to Mint.
             </TransactionModal.Disclaimer>
           </div>
         )}
-        {needsApproval && needs0Approval && (
+        {needsApproval && needs0Approval && !approvalWasConfirmed && (
           <div className="px-6 py-4">
             <TransactionModal.Disclaimer>
               USDT requires users to remove approval before approving again!
@@ -162,13 +177,6 @@ export default function TransactionInfo({
           </div>
         )}
       </>
-    );
-  }
-  if (isConfirming && isApproving) {
-    return (
-      <div>
-        <h1>Loading...</h1>
-      </div>
     );
   }
   if (isConfirmed && !isApproving) {
