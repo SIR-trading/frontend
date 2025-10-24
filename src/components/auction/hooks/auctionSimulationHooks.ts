@@ -62,13 +62,15 @@ export const useBid = ({
   token,
   amount,
   tokenDecimals,
+  useNativeToken,
 }: {
   token?: string;
   amount: string;
   tokenDecimals?: number;
+  useNativeToken?: boolean;
 }) => {
   const { isConnected } = useAccount();
-  
+
   const bidSimulate = useSimulateContract({
     ...SirContract,
     functionName: "bid",
@@ -76,6 +78,7 @@ export const useBid = ({
       (token ?? zeroAddress) as Address,
       parseUnits(amount, tokenDecimals ?? 18),
     ],
+    value: useNativeToken ? parseUnits(amount, tokenDecimals ?? 18) : 0n,
     query: {
       enabled: isConnected && !!token && !!amount && amount !== "0",
       retry: false, // Don't retry on provider errors
@@ -86,8 +89,8 @@ export const useBid = ({
     console.log(bidSimulate.error, "bid error", bidSimulate.data);
   }
 
-  return { 
-    request: isConnected && token && amount && amount !== "0" ? bidSimulate.data?.request : undefined, 
-    refetch: bidSimulate.refetch 
+  return {
+    request: isConnected && token && amount && amount !== "0" ? bidSimulate.data?.request : undefined,
+    refetch: bidSimulate.refetch
   };
 };

@@ -9,7 +9,7 @@ import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFor
 import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
@@ -24,6 +24,7 @@ import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import {
   getAuctionBidIncreasePercentage,
   getWrappedTokenSymbol,
+  isHyperEVM,
 } from "@/lib/chains";
 
 export type TAuctionBidModalState = {
@@ -41,6 +42,7 @@ interface Props {
 export function AuctionBidModal({ open, setOpen }: Props) {
   const [maxApprove, setMaxApprove] = useState(false);
   const [confirmedBidAmount, setConfirmedBidAmount] = useState<string>("");
+  const [useNativeToken, setUseNativeToken] = useState(false);
 
   const { id: tokenAddress, bid: currentBid, isTopUp } = open;
 
@@ -48,20 +50,37 @@ export function AuctionBidModal({ open, setOpen }: Props) {
 
   const formData = form.watch();
 
-  const { userBalance, userBalanceFetching, needsApproval, approveRequest } =
+  const { userBalance, userNativeTokenBalance, userBalanceFetching, needsApproval, approveRequest } =
     useAuctionTokenInfo({
       tokenAddress: WRAPPED_NATIVE_TOKEN_ADDRESS,
       amount: formData.bid,
       isOpen: open.open,
       maxApprove,
+      useNativeToken,
     });
+
+  // Auto-enable native token toggle on HyperEVM when user has HYPE but no WHYPE balance
+  useEffect(() => {
+    if (
+      isHyperEVM() &&
+      open.open &&
+      userBalance?.tokenBalance?.result === 0n &&
+      userNativeTokenBalance &&
+      userNativeTokenBalance > 0n
+    ) {
+      setUseNativeToken(true);
+    }
+  }, [open.open, userBalance?.tokenBalance?.result, userNativeTokenBalance]);
 
   const { request: bidRequest, refetch: reSimulateBid } = useBid({
     token: tokenAddress,
     amount: formData.bid,
+    useNativeToken,
   });
 
-  const balance = userBalance?.tokenBalance?.result;
+  const balance = useNativeToken
+    ? userNativeTokenBalance
+    : userBalance?.tokenBalance?.result;
 
   const bidIncreasePercentage = getAuctionBidIncreasePercentage();
   const wrappedTokenSymbol = getWrappedTokenSymbol();
@@ -234,6 +253,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                   currentBid={formatEther(currentBid ?? BigInt(0))}
                   nextBid={formatEther(nextBid)}
                   isTopUp={isTopUp}
+                  useNativeToken={useNativeToken}
+                  setUseNativeToken={setUseNativeToken}
                 >
                   <div className="flex items-center gap-2">
                     <p>{wrappedTokenSymbol}</p>
@@ -370,7 +391,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                     (!isConfirmed && isTopUp
                       ? Number(formData.bid) <=
                         +formatEther(nextBid - (currentBid ?? BigInt(0)))
-                      : Number(formData.bid) <= +formatEther(nextBid)) // TODO: Add proper error message to show user that minimum bid must be 1% higher than the current bid
+                      : Number(formData.bid) <= +formatEther(nextBid))
               }
               isPending={isPending}
               loading={isConfirming}

@@ -199,3 +199,8 @@ export function shouldUseCoinGecko(chainId?: number): boolean {
   // Use CoinGecko for HyperEVM chains
   return targetChainId === 998 || targetChainId === 999;
 }
+
+export function isHyperEVM(chainId?: number): boolean {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  return targetChainId === 998 || targetChainId === 999;
+}

@@ -10,6 +10,8 @@ import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFor
 import { BidPercent } from "@/components/auction/bidPercent";
 import { useTokenUsdPrice } from "@/components/leverage-liquidity/mintForm/hooks/useTokenUsdPrice";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+import { Switch } from "@/components/ui/switch";
+import { getNativeCurrencySymbol, isHyperEVM } from "@/lib/chains";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -29,6 +31,8 @@ interface Props {
   currentBid: string;
   nextBid: string;
   isTopUp: boolean | undefined;
+  useNativeToken: boolean;
+  setUseNativeToken: (b: boolean) => void;
 }
 function Inputs({
   decimals,
@@ -39,6 +43,8 @@ function Inputs({
   currentBid,
   nextBid,
   isTopUp,
+  useNativeToken,
+  setUseNativeToken,
 }: Props) {
   const form = useFormContext<TAuctionBidFormFields>();
   const formData = form.watch();
@@ -95,11 +101,25 @@ function Inputs({
             )}
           />
         </Show>
-        {usdValue !== null && usdValue > 0 && (
-          <div className="text-xs text-muted-foreground pt-1">
-            ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
-          </div>
-        )}
+        <div className="space-y-2">
+          {usdValue !== null && usdValue > 0 && (
+            <div className="text-xs text-muted-foreground pt-1">
+              ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
+            </div>
+          )}
+          {isHyperEVM() && (
+            <div className="flex items-center gap-x-2 pt-1">
+              <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
+              <Switch
+                checked={useNativeToken}
+                onCheckedChange={() => {
+                  setUseNativeToken(!useNativeToken);
+                }}
+                aria-readonly
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col items-end">
