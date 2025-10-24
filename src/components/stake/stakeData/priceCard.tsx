@@ -7,8 +7,11 @@ import { ExternalLink, Copy, Check } from "lucide-react";
 import { useSirPrice } from "@/contexts/SirPriceContext";
 
 export default function PriceCard() {
-  const { sirPrice, isLoading } = useSirPrice();
+  const { sirPrice, isLoading, error } = useSirPrice();
   const [copied, setCopied] = useState(false);
+
+  // Price is unavailable if there's an error or if loading finished but price is null
+  const priceUnavailable = error || (!isLoading && (sirPrice === null || sirPrice === undefined));
 
   const formatPrice = (price: number) => {
     if (price < 0.0001) return `${price.toFixed(8)} USD`;
@@ -31,7 +34,7 @@ export default function PriceCard() {
         SIR Price
       </div>
       <Show
-        when={!isLoading && sirPrice !== null && sirPrice !== undefined}
+        when={!isLoading}
         fallback={
           <>
             <div className="mt-1 h-7 w-16 animate-pulse rounded bg-foreground/10 mx-auto"></div>
@@ -40,7 +43,13 @@ export default function PriceCard() {
         }
       >
         <div className="mt-1 text-lg font-semibold">
-          {sirPrice ? formatPrice(sirPrice) : "—"}
+          {priceUnavailable ? (
+            <span className="text-sm italic text-muted-foreground">Not available</span>
+          ) : sirPrice ? (
+            formatPrice(sirPrice)
+          ) : (
+            "—"
+          )}
         </div>
         <div className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
           <button

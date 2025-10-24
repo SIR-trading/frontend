@@ -6,6 +6,7 @@ import { getSirSymbol } from "@/lib/assets";
 import { formatUnits } from "viem";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import ToolTip from "@/components/ui/tooltip";
+import { useSirPrice } from "@/contexts/SirPriceContext";
 
 export function SirMetrics() {
   const {
@@ -15,9 +16,12 @@ export function SirMetrics() {
     unstakedSupplyLoading,
     totalSupplyLoading,
     unstakedSupply,
+    aprError,
   } = useStaking();
 
-  const isLoading = unstakedSupplyLoading || totalSupplyLoading || !totalSupply || !unstakedSupply;
+  const { sirPrice, isLoading: sirPriceLoading, error: sirPriceError } = useSirPrice();
+
+  const isLoading = unstakedSupplyLoading || totalSupplyLoading || totalSupply === undefined || unstakedSupply === undefined;
 
   const stakedSupplyFormatted = totalValueLocked
     ? parseFloat(formatUnits(totalValueLocked, 12))
@@ -27,6 +31,10 @@ export function SirMetrics() {
   const totalEthDistributed = apr?.totalEthDistributed
     ? BigInt(apr.totalEthDistributed)
     : 0n;
+
+  // Check if APR data is unavailable (error, no dividend history, or SIR price unavailable)
+  const sirPriceUnavailable = sirPriceError || (!sirPriceLoading && (sirPrice === null || sirPrice === undefined));
+  const aprUnavailable = aprError || (!apr && !isLoading) || sirPriceUnavailable;
 
   const stakedPercentage = useMemo(() => {
     if (!totalSupply || totalSupply === 0n || !totalValueLocked) return 0;
@@ -107,7 +115,11 @@ export function SirMetrics() {
       <div className="flex h-[88px] flex-col justify-center rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
         <div className="text-xs text-muted-foreground">Staking APR</div>
         <div className="mt-1 text-lg font-semibold">
-          {aprValue > 0 ? (
+          {aprUnavailable ? (
+            <span className="text-sm italic text-muted-foreground">
+              Not available
+            </span>
+          ) : aprValue > 0 ? (
             <>
               <DisplayFormattedNumber num={aprValue} significant={3} />%
             </>

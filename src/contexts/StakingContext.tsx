@@ -18,6 +18,7 @@ interface StakingContextType {
   totalSupplyLoading: boolean;
   unstakedSupplyLoading: boolean;
   aprLoading: boolean;
+  aprError: boolean;
 }
 
 const StakingContext = createContext<StakingContextType | undefined>(undefined);
@@ -61,7 +62,7 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     }
   );
 
-  const { data: apr, isLoading: aprLoading } = api.user.getMonthlyApr.useQuery(
+  const { data: apr, isLoading: aprLoading, isError: aprError } = api.user.getMonthlyApr.useQuery(
     undefined,
     {
       refetchOnWindowFocus: false,
@@ -89,6 +90,7 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     totalSupplyLoading,
     unstakedSupplyLoading,
     aprLoading,
+    aprError,
   }), [
     unstakedBalance,
     stakedPosition,
@@ -101,6 +103,7 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     totalSupplyLoading,
     unstakedSupplyLoading,
     aprLoading,
+    aprError,
   ]);
 
   return (

@@ -5,17 +5,32 @@ import { useChainId } from "wagmi";
 import { api } from "@/trpc/react";
 import { TrendingUp, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSirPrice } from "@/contexts/SirPriceContext";
 
-export default function SirPriceChart() {
+interface SirPriceChartProps {
+  height?: number; // Height in pixels, defaults to 400
+}
+
+export default function SirPriceChart({ height = 400 }: SirPriceChartProps) {
   const chainId = useChainId();
   const [isExpanded, setIsExpanded] = useState(false);
   const [chartTheme, setChartTheme] = useState("dark");
 
+  // Check if SIR price is available
+  const { sirPrice, isLoading: sirPriceLoading, error: sirPriceError } = useSirPrice();
+  const priceUnavailable = sirPriceError || (!sirPriceLoading && (sirPrice === null || sirPrice === undefined));
+
   // Get the most liquid pool address for the chart URL
-  const { data: poolData } = api.quote.getMostLiquidSirPool.useQuery(
+  const { data: poolData, isLoading: isPoolLoading, isError: poolError } = api.quote.getMostLiquidSirPool.useQuery(
     undefined,
-    { staleTime: 300000 } // Cache for 5 minutes
+    {
+      staleTime: 300000, // Cache for 5 minutes
+      retry: false, // Don't retry on error
+    }
   );
+
+  // Check if pool data is unavailable (error or no pool found after loading)
+  const poolUnavailable = poolError || (!isPoolLoading && !poolData);
 
   // Detect theme changes
   useEffect(() => {
@@ -67,7 +82,8 @@ export default function SirPriceChart() {
   const chartUrl = getDexScreenerUrl();
   const dexName = getDexName(chainId);
 
-  if (!chartUrl) {
+  // Show "Not available" if price or pool is unavailable
+  if (priceUnavailable || poolUnavailable) {
     return (
       <div className="rounded-md bg-primary/5 pt-6 px-0.5 pb-0.5 lg:p-6 dark:bg-primary">
         <div className="flex items-center justify-between mb-4 px-4 lg:px-0">
@@ -76,7 +92,24 @@ export default function SirPriceChart() {
             SIR Price Chart
           </h3>
         </div>
-        <div className="flex h-[400px] items-center justify-center text-muted-foreground px-4 lg:px-0">
+        <div className="flex items-center justify-center text-muted-foreground px-4 lg:px-0" style={{ height: `${height}px` }}>
+          <p className="text-sm italic">Not available</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while fetching data
+  if (isPoolLoading || sirPriceLoading) {
+    return (
+      <div className="rounded-md bg-primary/5 pt-6 px-0.5 pb-0.5 lg:p-6 dark:bg-primary">
+        <div className="flex items-center justify-between mb-4 px-4 lg:px-0">
+          <h3 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <TrendingUp className="h-4 w-4" />
+            SIR Price Chart
+          </h3>
+        </div>
+        <div className="flex items-center justify-center text-muted-foreground px-4 lg:px-0" style={{ height: `${height}px` }}>
           <p className="text-sm">Loading chart data...</p>
         </div>
       </div>
@@ -103,7 +136,7 @@ export default function SirPriceChart() {
         </div>
 
         {/* Embedded chart */}
-        <div className="relative h-[400px] w-full overflow-hidden rounded border border-border/50">
+        <div className="relative w-full overflow-hidden rounded border border-border/50" style={{ height: `${height}px` }}>
           <iframe
             src={chartUrl}
             width="100%"

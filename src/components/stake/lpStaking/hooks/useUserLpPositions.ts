@@ -9,7 +9,7 @@ import { UniswapV3PoolABI } from "@/contracts/uniswap-v3-pool";
 import type { LpPosition } from "../types";
 import { useMemo, useCallback } from "react";
 import type { Address } from "viem";
-import { keccak256, encodeAbiParameters, parseAbiParameters } from "viem";
+import { keccak256, encodeAbiParameters } from "viem";
 import buildData from "@/../public/build-data.json";
 import { api } from "@/trpc/react";
 import { useSirPrice } from "@/contexts/SirPriceContext";
@@ -110,6 +110,10 @@ function getTokenAmountsFromLiquidity(
  * Filters for SIR/WETH 1% pool only
  */
 export function useUserLpPositions() {
+  // Check if LP staking is enabled on this chain
+  const isLpStakingEnabled = UniswapV3StakerContract.address !== '0x0000000000000000000000000000000000000000';
+
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   const { address } = useAccount();
   const { sirPrice, isLoading: isSirPriceLoading } = useSirPrice();
 
@@ -124,6 +128,7 @@ export function useUserLpPositions() {
       tokenDecimals: 18,
     },
     {
+      enabled: isLpStakingEnabled,
       staleTime: 60000, // Cache for 1 minute
     },
   );
@@ -138,6 +143,7 @@ export function useUserLpPositions() {
     abi: UniswapV3PoolABI,
     functionName: "slot0",
     query: {
+      enabled: isLpStakingEnabled,
       staleTime: 60000, // Cache for 1 minute
     },
   });
@@ -155,7 +161,7 @@ export function useUserLpPositions() {
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     query: {
-      enabled: Boolean(address),
+      enabled: isLpStakingEnabled && Boolean(address),
     },
   });
 
@@ -171,7 +177,7 @@ export function useUserLpPositions() {
     functionName: "balanceOf",
     args: [UniswapV3StakerContract.address],
     query: {
-      enabled: true, // Always fetch - this is protocol-wide data
+      enabled: isLpStakingEnabled, // Only fetch when LP staking is available
     },
   });
 
@@ -211,7 +217,7 @@ export function useUserLpPositions() {
   } = useReadContracts({
     contracts: tokenIdContracts,
     query: {
-      enabled: tokenIdContracts.length > 0,
+      enabled: isLpStakingEnabled && tokenIdContracts.length > 0,
     },
   });
 
@@ -224,14 +230,7 @@ export function useUserLpPositions() {
 
   // Get active incentives (for APR calculations and staking)
   const activeIncentives = useMemo(() => {
-    const incentives = getCurrentActiveIncentives();
-    const now = Math.floor(Date.now() / 1000);
-    incentives.forEach((incentive, index) => {
-      const hash = computeIncentiveId(incentive);
-      const startTime = Number(incentive.startTime);
-      const endTime = Number(incentive.endTime);
-    });
-    return incentives;
+    return getCurrentActiveIncentives();
   }, []);
 
   // Get ALL incentives (active or not) for reward calculations
@@ -256,7 +255,7 @@ export function useUserLpPositions() {
   } = useReadContracts({
     contracts: incentiveContracts,
     query: {
-      enabled: incentiveContracts.length > 0,
+      enabled: isLpStakingEnabled && incentiveContracts.length > 0,
       staleTime: 60000, // Cache for 1 minute
     },
   });
@@ -308,7 +307,7 @@ export function useUserLpPositions() {
   } = useReadContracts({
     contracts: positionContracts,
     query: {
-      enabled: positionContracts.length > 0,
+      enabled: isLpStakingEnabled && positionContracts.length > 0,
     },
   });
 
@@ -342,7 +341,6 @@ export function useUserLpPositions() {
         const positionIndex = baseIndex;
         const depositIndex = baseIndex + 1;
         const stakesStartIndex = baseIndex + 2;
-        const rewardInfoStartIndex = baseIndex + 2 + activeIncentives.length;
 
         const positionResult = positionsData[positionIndex];
         const depositResult = positionsData[depositIndex];
@@ -538,6 +536,7 @@ export function useUserLpPositions() {
       sirPrice,
       wethPrice,
       activeIncentives,
+      allIncentives.length,
     ]);
 
   // Calculate staking APR from incentive data
@@ -600,7 +599,7 @@ export function useUserLpPositions() {
     functionName: "rewards",
     args: address ? [SirContract.address, address] : undefined,
     query: {
-      enabled: Boolean(address),
+      enabled: isLpStakingEnabled && Boolean(address),
     },
   });
 
@@ -669,7 +668,6 @@ export function useUserLpPositions() {
     tokenIds,
     address,
     activeIncentives.length,
-    allIncentives.length,
     allIncentives,
   ]);
 
@@ -716,18 +714,36 @@ export function useUserLpPositions() {
 
   // Combined refetch function to refresh all data
   const refetchAll = useCallback(async () => {
+    if (!isLpStakingEnabled) return;
     // Refetch in order - balances first, then token IDs, then positions
     await Promise.all([refetchUserBalance(), refetchStakerBalance()]);
     await refetchTokenIds();
     await refetchPositions();
     await refetchRewards();
   }, [
+    isLpStakingEnabled,
     refetchUserBalance,
     refetchStakerBalance,
     refetchTokenIds,
     refetchPositions,
     refetchRewards,
   ]);
+
+  // Early return if LP staking is not enabled (after all hooks are called)
+  if (!isLpStakingEnabled) {
+    return {
+      unstakedPositions: [],
+      stakedPositions: [],
+      isLoading: false,
+      globalStakingStats: {
+        totalValueStakedUsd: 0,
+        inRangeValueStakedUsd: 0,
+      },
+      userRewards: 0n,
+      refetchAll,
+      stakingApr: null,
+    };
+  }
 
   return {
     unstakedPositions,
