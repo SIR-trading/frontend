@@ -118,25 +118,28 @@ const StakePage = () => {
           <>
             {/* When LP staking disabled: SIR Staking and Market Data side by side */}
             <div className="grid gap-6 xl:grid-cols-2">
-              <SirStakingArea className="xl:min-h-[586px]" />
+              <SirStakingArea
+                showContributorRewards={!!hasContributorRewards}
+              />
 
               {/* Market Data - side by side with SIR Staking on wide screens */}
-              <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6 xl:min-h-[586px]">
+              <Card className="card-shadow relative overflow-hidden rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
                 <h2 className="pb-4 text-sm font-medium">Market Data</h2>
 
-                {/* Small screens (< lg) - cards above chart */}
+                {/* Small screens (< lg) - chart above cards */}
+                {/* Note: Contributor Rewards shown in SIR Staking when LP staking disabled */}
                 <div className="relative z-10 space-y-4 pb-40 lg:hidden">
+                  <div>
+                    <SirPriceChart />
+                  </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <PriceCard />
                     <MarketCapCard />
                   </div>
-                  <div>
-                    <SirPriceChart />
-                  </div>
-                  {hasContributorRewards && <ContributorRewardsCard />}
                 </div>
 
                 {/* Medium screens (lg - xl) - chart left, cards right */}
+                {/* Note: Contributor Rewards shown in SIR Staking when LP staking disabled */}
                 <div className="relative z-10 hidden gap-6 pb-40 lg:grid lg:grid-cols-3 lg:pb-0 xl:hidden">
                   <div className="lg:col-span-2">
                     <SirPriceChart />
@@ -144,24 +147,19 @@ const StakePage = () => {
                   <div className="flex flex-col gap-3">
                     <PriceCard />
                     <MarketCapCard />
-                    {hasContributorRewards && <ContributorRewardsCard />}
                   </div>
                 </div>
 
-                {/* Compact layout for side-by-side (xl+) - cards above chart */}
+                {/* Compact layout for side-by-side (xl+) - chart above, cards in grid */}
+                {/* Note: Contributor Rewards shown in SIR Staking when LP staking disabled */}
                 <div className="relative z-10 hidden space-y-4 pb-40 lg:pb-0 xl:block">
-                  <div className="grid grid-cols-2 gap-3">
-                    <PriceCard />
-                    <MarketCapCard />
-                  </div>
                   <div>
                     <SirPriceChart height={210} />
                   </div>
-                  {hasContributorRewards && (
-                    <div className="max-w-[66%]">
-                      <ContributorRewardsCard />
-                    </div>
-                  )}
+                  <div className={`grid gap-3 ${hasContributorRewards ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    <PriceCard />
+                    <MarketCapCard />
+                  </div>
                 </div>
 
                 {/* Frog images - bottom right corner */}

@@ -234,7 +234,7 @@ export interface ContributorConstants {
 export interface BuildTimeData {
   contractAddresses: ContractAddresses;
   systemParams: SystemParams;
-  contributorConstants: ContributorConstants;
+  contributorConstants?: ContributorConstants; // Optional - only for HyperEVM chains
   buildTimestamp: number;
 }
 
@@ -279,24 +279,34 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       }),
     ]);
 
-    // Step 2.5: Get Contributors address and constants from SIR contract
-    const [contributorsAddress, issuanceRate, lpIssuanceFirst3Years] = await Promise.all([
-      client.readContract({
-        address: sirAddress,
-        abi: SIR_ABI,
-        functionName: 'CONTRIBUTORS',
-      }),
-      client.readContract({
-        address: sirAddress,
-        abi: SIR_ABI,
-        functionName: 'ISSUANCE_RATE',
-      }),
-      client.readContract({
-        address: sirAddress,
-        abi: SIR_ABI,
-        functionName: 'LP_ISSUANCE_FIRST_3_YEARS',
-      }),
-    ]);
+    // Step 2.5: Get Contributors address and constants from SIR contract (HyperEVM only)
+    const isHyperEVM = CHAIN_ID === 998 || CHAIN_ID === 999;
+    let contributorsAddress: Address = '0x0000000000000000000000000000000000000000' as Address;
+    let issuanceRate = 0n;
+    let lpIssuanceFirst3Years = 0n;
+
+    if (isHyperEVM) {
+      console.log('🔍 Fetching Contributors data (HyperEVM chain)...');
+      [contributorsAddress, issuanceRate, lpIssuanceFirst3Years] = await Promise.all([
+        client.readContract({
+          address: sirAddress,
+          abi: SIR_ABI,
+          functionName: 'CONTRIBUTORS',
+        }),
+        client.readContract({
+          address: sirAddress,
+          abi: SIR_ABI,
+          functionName: 'ISSUANCE_RATE',
+        }),
+        client.readContract({
+          address: sirAddress,
+          abi: SIR_ABI,
+          functionName: 'LP_ISSUANCE_FIRST_3_YEARS',
+        }),
+      ]);
+    } else {
+      console.log('⏭️  Skipping Contributors data fetch (not a HyperEVM chain)');
+    }
 
     // Step 3: Get NFT Position Manager address from Uniswap V3 Staker contract (if available)
     let nftPositionManagerAddress: Address = '0x0000000000000000000000000000000000000000' as Address;
@@ -358,17 +368,21 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lastUpdated: Date.now(),
     };
 
-    const contributorConstants: ContributorConstants = {
-      issuanceRate: issuanceRate.toString(),
-      lpIssuanceFirst3Years: lpIssuanceFirst3Years.toString(),
-    };
-
-    return {
+    // Only include contributor constants for HyperEVM chains
+    const buildData: BuildTimeData = {
       contractAddresses,
       systemParams,
-      contributorConstants,
       buildTimestamp: Date.now(),
     };
+
+    if (isHyperEVM) {
+      buildData.contributorConstants = {
+        issuanceRate: issuanceRate.toString(),
+        lpIssuanceFirst3Years: lpIssuanceFirst3Years.toString(),
+      };
+    }
+
+    return buildData;
   } catch (error) {
     console.error('Failed to fetch build-time data:', error);
     throw new Error(`Build-time data fetching failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

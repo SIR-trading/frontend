@@ -28,9 +28,14 @@ async function main() {
     console.log('   Contributors:', data.contractAddresses.contributors);
     console.log('⚙️  System Parameters:');
     console.log('   Base Fee:', `${(data.systemParams.baseFee * 100).toFixed(2)}%`);
-    console.log('📈 Contributor Constants:');
-    console.log('   Issuance Rate:', data.contributorConstants.issuanceRate.toString());
-    console.log('   LP Issuance (First 3 Years):', data.contributorConstants.lpIssuanceFirst3Years.toString());
+
+    if (data.contributorConstants) {
+      console.log('📈 Contributor Constants (HyperEVM):');
+      console.log('   Issuance Rate:', data.contributorConstants.issuanceRate.toString());
+      console.log('   LP Issuance (First 3 Years):', data.contributorConstants.lpIssuanceFirst3Years.toString());
+    } else {
+      console.log('⏭️  Contributor Constants: Not applicable (non-HyperEVM chain)');
+    }
     console.log('');
 
     // Validate incentives exist on-chain
