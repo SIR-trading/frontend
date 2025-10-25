@@ -142,6 +142,30 @@ const VAULT_ABI = [
   },
 ] as const;
 
+const SIR_ABI = [
+  {
+    type: "function",
+    name: "CONTRIBUTORS",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "ISSUANCE_RATE",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "LP_ISSUANCE_FIRST_3_YEARS",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
 export interface ContractAddresses {
   assistant: TAddressString;
   vault: TAddressString;
@@ -151,6 +175,7 @@ export interface ContractAddresses {
   uniswapV3Staker: TAddressString;
   nftPositionManager: TAddressString;
   sirWethPool1Percent: TAddressString;
+  contributors: TAddressString;
 }
 
 /**
@@ -201,9 +226,15 @@ export interface SystemParams {
   lastUpdated: number;
 }
 
+export interface ContributorConstants {
+  issuanceRate: string; // Stored as string for JSON serialization
+  lpIssuanceFirst3Years: string; // Stored as string for JSON serialization
+}
+
 export interface BuildTimeData {
   contractAddresses: ContractAddresses;
   systemParams: SystemParams;
+  contributorConstants: ContributorConstants;
   buildTimestamp: number;
 }
 
@@ -245,6 +276,25 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
         address: vaultAddress,
         abi: VAULT_ABI,
         functionName: 'ORACLE',
+      }),
+    ]);
+
+    // Step 2.5: Get Contributors address and constants from SIR contract
+    const [contributorsAddress, issuanceRate, lpIssuanceFirst3Years] = await Promise.all([
+      client.readContract({
+        address: sirAddress,
+        abi: SIR_ABI,
+        functionName: 'CONTRIBUTORS',
+      }),
+      client.readContract({
+        address: sirAddress,
+        abi: SIR_ABI,
+        functionName: 'ISSUANCE_RATE',
+      }),
+      client.readContract({
+        address: sirAddress,
+        abi: SIR_ABI,
+        functionName: 'LP_ISSUANCE_FIRST_3_YEARS',
       }),
     ]);
 
@@ -297,6 +347,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       uniswapV3Staker: uniswapV3StakerAddress,
       nftPositionManager: nftPositionManagerAddress,
       sirWethPool1Percent: sirWethPoolAddress,
+      contributors: contributorsAddress,
     };
 
     const systemParams: SystemParams = {
@@ -307,9 +358,15 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lastUpdated: Date.now(),
     };
 
+    const contributorConstants: ContributorConstants = {
+      issuanceRate: issuanceRate.toString(),
+      lpIssuanceFirst3Years: lpIssuanceFirst3Years.toString(),
+    };
+
     return {
       contractAddresses,
       systemParams,
+      contributorConstants,
       buildTimestamp: Date.now(),
     };
   } catch (error) {

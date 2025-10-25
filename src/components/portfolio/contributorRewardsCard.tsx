@@ -4,17 +4,27 @@ import {
   useSimulateContract,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useReadContract,
+  useChainId,
 } from "wagmi";
 import { api } from "@/trpc/react";
 import { SirContract } from "@/contracts/sir";
+import { ContributorsContract } from "@/contracts/contributors";
 import { Button } from "../ui/button";
 import { SirRewardsClaimModal } from "../shared/SirRewardsClaimModal";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
 import { getSirSymbol } from "@/lib/assets";
+import { isHyperEVM } from "@/lib/chains";
+import buildData from "@/../public/build-data.json";
+import ToolTip from "../ui/tooltip";
+import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 
 export default function ContributorRewardsCard() {
   const { isConnected, address } = useAccount();
+  const chainId = useChainId();
+  const showAllocation = isHyperEVM(chainId);
+
   const { data: unclaimedData, isLoading: rewardsLoading } =
     api.user.getUnclaimedContributorRewards.useQuery(
       { user: address },
@@ -31,6 +41,56 @@ export default function ContributorRewardsCard() {
     useWaitForTransactionReceipt({
       hash,
     });
+
+  // Fetch user's allocation from Contributors contract (HyperEVM only)
+  const { data: userAllocation } = useReadContract({
+    ...ContributorsContract,
+    functionName: "allocations",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: isConnected && showAllocation && !!address,
+    },
+  });
+
+  // Calculate allocation percentage
+  // Formula: allocation / type(uint56).max * (ISSUANCE - LP_ISSUANCE_FIRST_3_YEARS) / ISSUANCE * 100
+  const calculateAllocationPercentage = (): number | null => {
+    if (!userAllocation || userAllocation === 0n) return null;
+
+    // Check if contributorConstants exists in build data
+    const buildDataWithConstants = buildData as typeof buildData & {
+      contributorConstants?: {
+        issuanceRate: string | number | bigint;
+        lpIssuanceFirst3Years: string | number | bigint;
+      };
+    };
+
+    if (!buildDataWithConstants.contributorConstants) return null;
+
+    const UINT56_MAX = 72057594037927935n; // 2^56 - 1
+    const issuanceRate = BigInt(
+      buildDataWithConstants.contributorConstants.issuanceRate,
+    );
+    const lpIssuance = BigInt(
+      buildDataWithConstants.contributorConstants.lpIssuanceFirst3Years,
+    );
+
+    // Calculate: allocation / UINT56_MAX
+    const allocationRatio = Number(userAllocation) / Number(UINT56_MAX);
+
+    // Calculate: (ISSUANCE - LP_ISSUANCE_FIRST_3_YEARS) / ISSUANCE
+    const contributorIssuanceRatio =
+      Number(issuanceRate - lpIssuance) / Number(issuanceRate);
+
+    // Final percentage
+    const percentage = allocationRatio * contributorIssuanceRatio * 100;
+
+    return percentage;
+  };
+
+  const allocationPercentage = showAllocation
+    ? calculateAllocationPercentage()
+    : null;
   const onSubmit = () => {
     if (isConfirmed) {
       setOpen(false);
@@ -97,9 +157,31 @@ export default function ContributorRewardsCard() {
             <div className="flex gap-x-2">
               <div className="flex w-full justify-between">
                 <div>
-                  <h2 className="pb-1 text-sm text-muted-foreground">
-                    Contributor Rewards
-                  </h2>
+                  <div className="flex items-center gap-1.5 pb-1">
+                    <h2 className="text-sm text-muted-foreground">
+                      Contributor Rewards
+                    </h2>
+                    {showAllocation && allocationPercentage !== null && (
+                      <>
+                        <ToolTip iconSize={14} size="250">
+                          You own{" "}
+                          <DisplayFormattedNumber
+                            num={allocationPercentage}
+                            significant={2}
+                          />
+                          % of SIR&apos;s issuance during the first 3 years. Return
+                          anytime to mint accumulated rewards.
+                        </ToolTip>
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary">
+                          <DisplayFormattedNumber
+                            num={allocationPercentage}
+                            significant={2}
+                          />
+                          %
+                        </span>
+                      </>
+                    )}
+                  </div>
                   <div className="flex min-h-[32px] justify-between text-3xl">
                     <div className="flex items-end gap-x-1">
                       <Show

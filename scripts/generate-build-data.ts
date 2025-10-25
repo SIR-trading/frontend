@@ -25,8 +25,12 @@ async function main() {
     console.log('   Uniswap V3 Staker:', data.contractAddresses.uniswapV3Staker);
     console.log('   NFT Position Manager:', data.contractAddresses.nftPositionManager);
     console.log('   SIR/WETH 1% Pool:', data.contractAddresses.sirWethPool1Percent);
+    console.log('   Contributors:', data.contractAddresses.contributors);
     console.log('⚙️  System Parameters:');
     console.log('   Base Fee:', `${(data.systemParams.baseFee * 100).toFixed(2)}%`);
+    console.log('📈 Contributor Constants:');
+    console.log('   Issuance Rate:', data.contributorConstants.issuanceRate.toString());
+    console.log('   LP Issuance (First 3 Years):', data.contributorConstants.lpIssuanceFirst3Years.toString());
     console.log('');
 
     // Validate incentives exist on-chain
