@@ -1,6 +1,6 @@
 "use client";
 import { EPage } from "@/lib/types";
-import type  { ExplainersMap } from "@/lib/types";
+import type { ExplainersMap } from "@/lib/types";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
 
@@ -17,9 +17,10 @@ export const Explainers: Partial<ExplainersMap> = {
             target="_blank"
           >
             constant leverage
-          </a>
-          {" "}with no funding fees or margin calls. Pay once at mint, then hold 
-          as long as you want while gains compound.
+          </a>{" "}
+          with option-style pricing for a convex payoff: no funding fees, no
+          liquidations. Pay once at mint, then hold as long as you want while
+          gains compound.
         </p>
       </>
     ),
@@ -29,7 +30,8 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Mint TEA tokens to provide liquidity and earn fees from APE traders. Selected vaults reward{" "}
+          Mint TEA tokens to provide liquidity and earn fees from APE traders.
+          Selected vaults reward{" "}
           <a
             href="https://docs.sir.trading/protocol-overview/sir-a-dividend-paying-token"
             className="underline"
@@ -37,7 +39,8 @@ export const Explainers: Partial<ExplainersMap> = {
           >
             {getSirSymbol()} tokens
           </a>
-          . TEA gains less than spot when collateral rises (traders capture the extra upside).
+          . TEA gains less than spot when collateral rises (traders capture the
+          extra upside).
         </p>
       </>
     ),
@@ -47,20 +50,30 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          View and manage all positions: close APE trades, withdraw TEA liquidity, and claim {getSirSymbol()} rewards earned from providing liquidity.
+          View and manage all positions: close APE trades, withdraw TEA
+          liquidity, and claim {getSirSymbol()} rewards earned from providing
+          liquidity.
         </p>
       </>
     ),
   },
   [EPage.STAKE]: {
-    title: <>Stake {getSirSymbol()}, earn {getNativeCurrencySymbol()}</>,
+    title: (
+      <>
+        Stake {getSirSymbol()}, earn {getNativeCurrencySymbol()}
+      </>
+    ),
     description: (
       <>
         <p>
-          Stake {getSirSymbol()} tokens to earn {getNativeCurrencySymbol()} dividends from protocol fees. Staked tokens unlock gradually, with half becoming withdrawable every 30 days.
+          Stake {getSirSymbol()} tokens to earn {getNativeCurrencySymbol()}{" "}
+          dividends from protocol fees. Staked tokens unlock gradually, with
+          half becoming withdrawable every 30 days.
         </p>
         <p className="mt-2">
-          Additionally, you can stake Uniswap V3 LP positions in the {getSirSymbol()}/W{getNativeCurrencySymbol()} pool to earn {getSirSymbol()} rewards.
+          Additionally, you can stake Uniswap V3 LP positions in the{" "}
+          {getSirSymbol()}/W{getNativeCurrencySymbol()} pool to earn{" "}
+          {getSirSymbol()} rewards.
         </p>
       </>
     ),
@@ -70,7 +83,8 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Choose token pairs and leverage level. Higher leverage requires more liquidity but offers greater potential returns for traders.
+          Choose token pairs and leverage level. Higher leverage requires more
+          liquidity but offers greater potential returns for traders.
         </p>
       </>
     ),
@@ -80,7 +94,8 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Calculate potential APE returns by entering token pairs, leverage, deposit amount, and price targets. Results include all fees.
+          Calculate potential APE returns by entering token pairs, leverage,
+          deposit amount, and price targets. Results include all fees.
         </p>
       </>
     ),
@@ -90,8 +105,9 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Protocol fees are auctioned for {getNativeCurrencySymbol()} that goes to {getSirSymbol()} stakers. Auctions run 
-          for 24 hours with the highest bidder winning the tokens.
+          Protocol fees are auctioned for {getNativeCurrencySymbol()} that goes
+          to {getSirSymbol()} stakers. Auctions run for 24 hours with the
+          highest bidder winning the tokens.
         </p>
       </>
     ),
@@ -101,7 +117,8 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Close APE positions to compete for 1M {getSirSymbol()} monthly prizes. Winners are determined by highest USD profit and best percentage gain.
+          Close APE positions to compete for 1M {getSirSymbol()} monthly prizes.
+          Winners are determined by highest USD profit and best percentage gain.
         </p>
       </>
     ),
