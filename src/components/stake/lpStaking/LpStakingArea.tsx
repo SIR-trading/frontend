@@ -146,7 +146,6 @@ export function LpStakingArea() {
                                 ) : (
                                   "0"
                                 )}
-                                <span className="text-muted-foreground"> USD</span>
                               </span>
                             </div>
                           }
@@ -185,13 +184,15 @@ export function LpStakingArea() {
                         {unstakedPositions.length > 0 && (
                           <HoverPopupMobile
                             trigger={
-                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground ml-2">
-                                ({unstakedPositions.length}{" "}
-                                {unstakedPositions.length === 1
-                                  ? "position"
-                                  : "positions"}
-                                )
-                              </span>
+                              <div className="flex cursor-pointer items-baseline gap-1 ml-2">
+                                <span className="text-sm text-muted-foreground hover:text-foreground">
+                                  ({unstakedPositions.length}{" "}
+                                  {unstakedPositions.length === 1
+                                    ? "position"
+                                    : "positions"}
+                                  )
+                                </span>
+                              </div>
                             }
                             size="250"
                           >
@@ -291,7 +292,6 @@ export function LpStakingArea() {
                                 ) : (
                                   "0"
                                 )}
-                                <span className="text-muted-foreground"> USD</span>
                               </span>
                             </div>
                           }
@@ -330,13 +330,15 @@ export function LpStakingArea() {
                         {stakedPositions.length > 0 && (
                           <HoverPopupMobile
                             trigger={
-                              <span className="cursor-pointer text-sm text-muted-foreground hover:text-foreground ml-2">
-                                ({stakedPositions.length}{" "}
-                                {stakedPositions.length === 1
-                                  ? "position"
-                                  : "positions"}
-                                )
-                              </span>
+                              <div className="flex cursor-pointer items-baseline gap-1 ml-2">
+                                <span className="text-sm text-muted-foreground hover:text-foreground">
+                                  ({stakedPositions.length}{" "}
+                                  {stakedPositions.length === 1
+                                    ? "position"
+                                    : "positions"}
+                                  )
+                                </span>
+                              </div>
                             }
                             size="250"
                           >
