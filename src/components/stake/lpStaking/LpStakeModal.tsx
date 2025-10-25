@@ -22,6 +22,10 @@ import {
   type IncentiveKey,
 } from "@/data/uniswapIncentives";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
+import { env } from "@/env";
+
+// Get environment chain ID to ensure we always read from the correct chain
+const ENV_CHAIN_ID = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
 interface LpPosition {
   tokenId: bigint;
@@ -91,6 +95,7 @@ export function LpStakeModal({
       abi: NonfungiblePositionManagerContract.abi,
       functionName: "getApproved" as const,
       args: [position.tokenId],
+      chainId: ENV_CHAIN_ID,
     })),
     query: {
       enabled: activePositions.length > 0 && !!address,

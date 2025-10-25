@@ -48,6 +48,7 @@ export function LpClaimRewardsModal({
     abi: UniswapV3StakerContract.abi,
     functionName: "rewards",
     args: address ? [SirContract.address, address] : undefined,
+    chainId: chainId,
   });
 
   // Get all incentives for unstaking (to capture all fresh accruals)

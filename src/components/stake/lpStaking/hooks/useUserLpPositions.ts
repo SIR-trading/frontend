@@ -18,11 +18,16 @@ import {
   getAllChainIncentives,
   type IncentiveKey,
 } from "@/data/uniswapIncentives";
+import { env } from "@/env";
 
 // Get the SIR/WETH 1% pool address from build data
 const SIR_WETH_POOL_ADDRESS = buildData.contractAddresses
   .sirWethPool1Percent as `0x${string}`;
 const TARGET_FEE = 10000; // 1% = 10000 (fee is in hundredths of a bip)
+
+// Get environment chain ID - this ensures we always read from the correct chain
+// regardless of what chain the user's wallet is connected to
+const ENV_CHAIN_ID = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
 // Generate a unique ID for an incentive key (for display/mapping)
 function getIncentiveId(incentive: IncentiveKey): string {
@@ -142,6 +147,7 @@ export function useUserLpPositions() {
     address: SIR_WETH_POOL_ADDRESS,
     abi: UniswapV3PoolABI,
     functionName: "slot0",
+    chainId: ENV_CHAIN_ID,
     query: {
       enabled: isLpStakingEnabled,
       staleTime: 60000, // Cache for 1 minute
@@ -160,6 +166,7 @@ export function useUserLpPositions() {
     ...NonfungiblePositionManagerContract,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
+    chainId: ENV_CHAIN_ID,
     query: {
       enabled: isLpStakingEnabled && Boolean(address),
     },
@@ -176,6 +183,7 @@ export function useUserLpPositions() {
     ...NonfungiblePositionManagerContract,
     functionName: "balanceOf",
     args: [UniswapV3StakerContract.address],
+    chainId: ENV_CHAIN_ID,
     query: {
       enabled: isLpStakingEnabled, // Only fetch when LP staking is available
     },
@@ -192,6 +200,7 @@ export function useUserLpPositions() {
           ...NonfungiblePositionManagerContract,
           functionName: "tokenOfOwnerByIndex" as const,
           args: [address, BigInt(i)] as const,
+          chainId: ENV_CHAIN_ID,
         });
       }
     }
@@ -203,6 +212,7 @@ export function useUserLpPositions() {
           ...NonfungiblePositionManagerContract,
           functionName: "tokenOfOwnerByIndex" as const,
           args: [UniswapV3StakerContract.address, BigInt(i)] as const,
+          chainId: ENV_CHAIN_ID,
         });
       }
     }
@@ -245,6 +255,7 @@ export function useUserLpPositions() {
       ...UniswapV3StakerContract,
       functionName: "incentives" as const,
       args: [computeIncentiveId(incentive)] as const,
+      chainId: ENV_CHAIN_ID,
     }));
   }, [activeIncentives]);
 
@@ -269,18 +280,21 @@ export function useUserLpPositions() {
         ...NonfungiblePositionManagerContract,
         functionName: "positions" as const,
         args: [tokenId] as const,
+        chainId: ENV_CHAIN_ID,
       },
       // 2. Deposit data from UniswapV3Staker
       {
         ...UniswapV3StakerContract,
         functionName: "deposits" as const,
         args: [tokenId] as const,
+        chainId: ENV_CHAIN_ID,
       },
       // 3. Stakes data for each active incentive
       ...activeIncentives.map((incentive) => ({
         ...UniswapV3StakerContract,
         functionName: "stakes" as const,
         args: [tokenId, computeIncentiveId(incentive)] as const,
+        chainId: ENV_CHAIN_ID,
       })),
       // 4. getRewardInfo for ALL incentives (to calculate live rewards)
       ...allIncentives.map((incentive) => ({
@@ -296,6 +310,7 @@ export function useUserLpPositions() {
           },
           tokenId,
         ] as const,
+        chainId: ENV_CHAIN_ID,
       })),
     ]);
   }, [tokenIds, activeIncentives, allIncentives]);
@@ -598,6 +613,7 @@ export function useUserLpPositions() {
     ...UniswapV3StakerContract,
     functionName: "rewards",
     args: address ? [SirContract.address, address] : undefined,
+    chainId: ENV_CHAIN_ID,
     query: {
       enabled: isLpStakingEnabled && Boolean(address),
     },
