@@ -25,12 +25,21 @@ const inter = Inter({
 });
 
 // console.log(Inter, "INTER");
+
+// Determine if this is a HyperEVM chain (998 or 999)
+const chainId = process.env.NEXT_PUBLIC_CHAIN_ID;
+const isHyperEVM = chainId === "998" || chainId === "999";
+const socialMediaImage = isHyperEVM
+  ? "social-media-preview-hyper.png"
+  : "social-media-preview.png";
+const favicon = isHyperEVM ? "/favicon-hyperevm.ico" : "/favicon.ico";
+
 export const metadata = {
   metadataBase: new URL("https://app.sir.trading"),
   title: "SIR",
   description:
     "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: favicon }],
   openGraph: {
     title: "SIR App Interface",
     description:
@@ -39,7 +48,7 @@ export const metadata = {
     siteName: "SIR",
     images: [
       {
-        url: "https://app.sir.trading/social-media-preview.png", // Use absolute URL
+        url: `https://app.sir.trading/${socialMediaImage}`,
         width: 1200,
         height: 630,
         alt: "SIR App Interface",
@@ -52,7 +61,7 @@ export const metadata = {
     title: "SIR App Interface",
     description:
       "SIR is a DeFi protocol designed to address the key challenges of leveraged trading, such as volatility decay and liquidation risks, making it safer for long-term investing.",
-    images: ["https://app.sir.trading/social-media-preview.png"],
+    images: [`https://app.sir.trading/${socialMediaImage}`],
     creator: "@leveragesir",
   },
 };
