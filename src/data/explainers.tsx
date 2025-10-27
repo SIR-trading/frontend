@@ -3,6 +3,11 @@ import { EPage } from "@/lib/types";
 import type { ExplainersMap } from "@/lib/types";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
+import { calculateTeaVaultFee } from "@/lib/utils/calculations";
+import buildData from "@/../public/build-data.json";
+
+const MINTING_FEE = buildData.systemParams.mintingFee;
+const teaFeePercent = (calculateTeaVaultFee(MINTING_FEE) * 100).toPrecision(2);
 
 export const Explainers: Partial<ExplainersMap> = {
   [EPage.LEVERAGE]: {
@@ -31,7 +36,8 @@ export const Explainers: Partial<ExplainersMap> = {
       <>
         <p>
           Mint TEA tokens to provide liquidity and earn fees from APE traders.
-          Selected vaults reward{" "}
+          You pay a one-time {teaFeePercent}% minting fee, recovered over time through
+          trading fees. Selected vaults also reward{" "}
           <a
             href="https://docs.sir.trading/protocol-overview/sir-a-dividend-paying-token"
             className="underline"
@@ -39,8 +45,11 @@ export const Explainers: Partial<ExplainersMap> = {
           >
             {getSirSymbol()} tokens
           </a>
-          . TEA gains less than spot when collateral rises (traders capture the
-          extra upside).
+          .
+        </p>
+        <p>
+          TEA softens price moves: you gain less when collateral rises and lose
+          less when it falls.
         </p>
       </>
     ),
