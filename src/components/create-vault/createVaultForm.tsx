@@ -23,14 +23,13 @@ import { useCheckValidityCreactVault } from "./hooks/useCheckValidityCreateVault
 import { TokenImage } from "../shared/TokenImage";
 import Show from "../shared/show";
 import SearchTokensModal from "./searchTokensModal";
-import { ChevronDown, CircleCheck, AlertTriangle } from "lucide-react";
+import { ChevronDown, CircleCheck } from "lucide-react";
 import type { Address } from "viem";
 import { erc20Abi, zeroAddress } from "viem";
 import { useTokenlistContext } from "@/contexts/tokenListProvider";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
 import { useFormSuccessReset } from "@/components/leverage-liquidity/mintForm/hooks/useFormSuccessReset";
-import { getReadableErrorMessage } from "@/lib/utils/errorMessages";
 import { getDexName } from "@/lib/chains";
 export default function CreateVaultForm() {
   const { isConnected } = useAccount();
@@ -165,19 +164,23 @@ export default function CreateVaultForm() {
             isConfirming={isConfirming || isConfirmed}
             hash={hash}
           >
-            {writeError && !isConfirming && !isConfirmed && (
-              <div className="flex gap-3 p-4">
-                <AlertTriangle className="text-amber-500 mt-0.5 flex-shrink-0" size={20} />
-                <div className="flex-1">
-                  <p className="text-amber-500 mb-1 text-sm font-medium">
-                    Transaction Failed
-                  </p>
-                  <p className="text-amber-400/80 text-xs">
-                    {getReadableErrorMessage(writeError)}
-                  </p>
-                </div>
-              </div>
-            )}
+            {writeError && !isConfirming && !isConfirmed && (() => {
+              const errorMessage = writeError.message || "";
+              const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                                     errorMessage.toLowerCase().includes("user denied") ||
+                                     errorMessage.toLowerCase().includes("rejected the request");
+
+              if (!isUserRejection) {
+                return (
+                  <div className="mt-3">
+                    <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                      Transaction simulation failed. Please check your inputs and try again.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
             <Show
               fallback={
                 <div className="space-y-2">
