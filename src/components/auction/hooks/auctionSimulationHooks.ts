@@ -71,13 +71,16 @@ export const useBid = ({
 }) => {
   const { isConnected } = useAccount();
 
+  const bidAmount = parseUnits(amount || "0", tokenDecimals ?? 18);
+
   const bidSimulate = useSimulateContract({
     ...SirContract,
     functionName: "bid",
     args: [
       (token ?? zeroAddress) as Address,
-      parseUnits(amount, tokenDecimals ?? 18),
+      bidAmount,
     ],
+    value: useNativeToken ? bidAmount : undefined,
     query: {
       enabled: isConnected && !!token && !!amount && amount !== "0",
       retry: false, // Don't retry on provider errors

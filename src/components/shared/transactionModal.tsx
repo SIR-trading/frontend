@@ -135,7 +135,7 @@ function SubmitButton({
       disabled={disabled || isLoading}
       variant="modal"
       state={isLoading ? "loading" : "default"}
-      type="submit"
+      type="button"
     >
       <Pending
         isPending={isPending}
