@@ -150,17 +150,19 @@ export default function ContributorRewardsCard() {
       )}
 
       {hasContributorRewards ? (
-        <div
-          className={`relative h-full rounded-md bg-primary/5 p-4 dark:bg-primary ${unclaimedRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}
-        >
-          <div className="flex justify-between rounded-md text-2xl">
-            <div className="flex gap-x-2">
-              <div className="flex w-full justify-between">
-                <div>
-                  <div className="flex items-center gap-1.5 pb-1">
-                    <h2 className="text-sm text-muted-foreground">
-                      Contributor Rewards
-                    </h2>
+        <>
+          <h2 className="pb-4 text-sm font-medium">SIR Allocation</h2>
+          <div
+            className={`relative h-full rounded-md bg-primary/5 p-4 dark:bg-primary ${unclaimedRewards >= 100000000000000000n ? "claim-card-gold-glow" : ""}`}
+          >
+            <div className="flex justify-between rounded-md text-2xl">
+              <div className="flex gap-x-2">
+                <div className="flex w-full justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 pb-1">
+                      <h2 className="text-sm text-muted-foreground">
+                        Contributor Rewards
+                      </h2>
                     {showAllocation && allocationPercentage !== null && (
                       <>
                         <ToolTip iconSize={14} size="250">
@@ -218,6 +220,7 @@ export default function ContributorRewardsCard() {
             </div>
           </div>
         </div>
+        </>
       ) : (
         <div className="flex h-full min-h-[80px] items-center justify-center p-2">
           {/* Empty state - no text */}

@@ -230,7 +230,7 @@ async function fetchDecimalsMap(
 
     // Add delay between batches to avoid rate limiting
     if (i + BATCH_SIZE < addresses.length) {
-      await sleep(100); // Shorter delay since we're batching
+      await sleep(200); // Shorter delay since we're batching
     }
   }
 
@@ -356,7 +356,7 @@ async function main(): Promise<void> {
       }
 
       // Rate limiting: CoinGecko Demo API typically allows 10-50 calls/minute
-      if (page < MAX_PAGES) await sleep(200);
+      if (page < MAX_PAGES) await sleep(300);
     }
 
     // For non-testnets, also append tokens from assetsExtra.json
