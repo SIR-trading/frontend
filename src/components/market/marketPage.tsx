@@ -2,6 +2,7 @@
 import SirPriceChart from "@/components/stake/stakeData/sirPriceChart";
 import PriceCard from "@/components/stake/stakeData/priceCard";
 import MarketCapCard from "@/components/stake/stakeData/marketCapCard";
+import AnnualInflationCard from "@/components/stake/stakeData/annualInflationCard";
 import { Container } from "../ui/container";
 import PageHeadingSpace from "../shared/pageHeadingSpace";
 import { Card } from "@/components/ui/card";
@@ -32,9 +33,10 @@ const MarketPage = () => {
 
           {/* Small screens (< xl) - cards above chart */}
           <div className="relative z-10 space-y-4 pb-40 xl:hidden">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <PriceCard />
               <MarketCapCard />
+              <AnnualInflationCard />
             </div>
             <div>
               <SirPriceChart />
@@ -48,10 +50,11 @@ const MarketPage = () => {
               <SirPriceChart />
             </div>
 
-            {/* Right side: Price and Market Cap cards */}
+            {/* Right side: Price, Market Cap, and Annual Inflation cards */}
             <div className="flex flex-col gap-3">
               <PriceCard />
               <MarketCapCard />
+              <AnnualInflationCard />
             </div>
           </div>
 

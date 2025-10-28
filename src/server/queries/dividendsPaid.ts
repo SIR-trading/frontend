@@ -7,7 +7,7 @@ const DividendsPaidSchema = z.object({
   ethAmount: z.string(),
   timestamp: z.string(),
   stakedAmount: z.string(),
-  sirNativePrice: z.string().nullable(),
+  sirEthPrice: z.string().nullable(),
 });
 
 const GetDividendsPaidSchema = z.object({
@@ -22,7 +22,7 @@ const greaterThanTimestampDividendsPaid = gql`
       ethAmount
       timestamp
       stakedAmount
-      sirNativePrice
+      sirEthPrice
     }
   }
 `;

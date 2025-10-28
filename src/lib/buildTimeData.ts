@@ -97,6 +97,13 @@ const VAULT_ABI = [
   },
   {
     type: "function",
+    name: "TIMESTAMP_ISSUANCE_START",
+    inputs: [],
+    outputs: [{ name: "", type: "uint40", internalType: "uint40" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "systemParams",
     inputs: [],
     outputs: [
@@ -235,6 +242,7 @@ export interface BuildTimeData {
   contractAddresses: ContractAddresses;
   systemParams: SystemParams;
   contributorConstants?: ContributorConstants; // Optional - only for HyperEVM chains
+  timestampIssuanceStart: number; // Unix timestamp when SIR issuance started
   buildTimestamp: number;
 }
 
@@ -260,8 +268,8 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       functionName: 'VAULT',
     });
 
-    // Step 2: Get SIR, SystemControl, and Oracle addresses from Vault contract
-    const [sirAddress, systemControlAddress, oracleAddress] = await Promise.all([
+    // Step 2: Get SIR, SystemControl, Oracle addresses and TIMESTAMP_ISSUANCE_START from Vault contract
+    const [sirAddress, systemControlAddress, oracleAddress, timestampIssuanceStart] = await Promise.all([
       client.readContract({
         address: vaultAddress,
         abi: VAULT_ABI,
@@ -276,6 +284,11 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
         address: vaultAddress,
         abi: VAULT_ABI,
         functionName: 'ORACLE',
+      }),
+      client.readContract({
+        address: vaultAddress,
+        abi: VAULT_ABI,
+        functionName: 'TIMESTAMP_ISSUANCE_START',
       }),
     ]);
 
@@ -372,6 +385,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
     const buildData: BuildTimeData = {
       contractAddresses,
       systemParams,
+      timestampIssuanceStart: Number(timestampIssuanceStart),
       buildTimestamp: Date.now(),
     };
 

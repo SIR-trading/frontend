@@ -163,63 +163,63 @@ export default function ContributorRewardsCard() {
                       <h2 className="text-sm text-muted-foreground">
                         Contributor Rewards
                       </h2>
-                    {showAllocation && allocationPercentage !== null && (
-                      <>
-                        <ToolTip iconSize={14} size="250">
-                          You own{" "}
-                          <DisplayFormattedNumber
-                            num={allocationPercentage}
-                            significant={2}
+                      {showAllocation && allocationPercentage !== null && (
+                        <>
+                          <ToolTip iconSize={14} size="250">
+                            You own{" "}
+                            <DisplayFormattedNumber
+                              num={allocationPercentage}
+                              significant={2}
+                            />
+                            % of SIR&apos;s issuance during the first 3 years.
+                            Return anytime to mint accumulated rewards.
+                          </ToolTip>
+                          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary dark:bg-gold dark:text-foreground">
+                            <DisplayFormattedNumber
+                              num={allocationPercentage}
+                              significant={2}
+                            />
+                            %
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
+                      <div className="flex items-end gap-x-1">
+                        <Show
+                          when={isConnected && !rewardsLoading}
+                          fallback={
+                            isConnected ? (
+                              <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
+                            ) : (
+                              <div className="text-sm italic text-foreground mt-1">
+                                Connect to claim rewards
+                              </div>
+                            )
+                          }
+                        >
+                          <TokenDisplay
+                            amount={unclaimedRewards}
+                            decimals={12}
+                            unitLabel={getSirSymbol()}
                           />
-                          % of SIR&apos;s issuance during the first 3 years.
-                          Return anytime to mint accumulated rewards.
-                        </ToolTip>
-                        <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary dark:bg-gold dark:text-foreground">
-                          <DisplayFormattedNumber
-                            num={allocationPercentage}
-                            significant={2}
-                          />
-                          %
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex min-h-[32px] justify-between text-3xl">
-                    <div className="flex items-end gap-x-1">
-                      <Show
-                        when={isConnected && !rewardsLoading}
-                        fallback={
-                          isConnected ? (
-                            <div className="h-8 w-20 animate-pulse rounded bg-foreground/10"></div>
-                          ) : (
-                            <div className="text-sm italic text-foreground">
-                              Connect to claim rewards
-                            </div>
-                          )
-                        }
-                      >
-                        <TokenDisplay
-                          amount={unclaimedRewards}
-                          decimals={12}
-                          unitLabel={getSirSymbol()}
-                        />
-                      </Show>
+                        </Show>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-end">
-              <Button
-                disabled={!isConnected || !unclaimedRewards || !data?.request}
-                onClick={() => setOpen(true)}
-                className="w-20 py-2"
-              >
-                Claim
-              </Button>
+              <div className="flex items-end">
+                <Button
+                  disabled={!isConnected || !unclaimedRewards || !data?.request}
+                  onClick={() => setOpen(true)}
+                  className="w-20 py-2"
+                >
+                  Claim
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
         </>
       ) : (
         <div className="flex h-full min-h-[80px] items-center justify-center p-2">

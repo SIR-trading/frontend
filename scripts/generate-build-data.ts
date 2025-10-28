@@ -28,6 +28,7 @@ async function main() {
     console.log('   Contributors:', data.contractAddresses.contributors);
     console.log('⚙️  System Parameters:');
     console.log('   Base Fee:', `${(data.systemParams.baseFee * 100).toFixed(2)}%`);
+    console.log('   Timestamp Issuance Start:', `${data.timestampIssuanceStart} (${new Date(data.timestampIssuanceStart * 1000).toISOString()})`);
 
     if (data.contributorConstants) {
       console.log('📈 Contributor Constants (HyperEVM):');
