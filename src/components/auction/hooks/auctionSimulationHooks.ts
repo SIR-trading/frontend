@@ -73,19 +73,26 @@ export const useBid = ({
 
   const bidAmount = parseUnits(amount || "0", tokenDecimals ?? 18);
 
-  const bidSimulate = useSimulateContract({
+  const baseConfig = {
     ...SirContract,
-    functionName: "bid",
+    functionName: "bid" as const,
     args: [
       (token ?? zeroAddress) as Address,
       bidAmount,
-    ],
-    value: useNativeToken ? bidAmount : undefined,
+    ] as const,
     query: {
       enabled: isConnected && !!token && !!amount && amount !== "0",
       retry: false, // Don't retry on provider errors
     },
-  });
+  };
+
+  // Note: bid function is payable on HyperEVM chains but not on Ethereum
+  // Type assertion needed since ABI may not reflect chain-specific differences
+  const bidSimulate = useSimulateContract(
+    useNativeToken
+      ? ({ ...baseConfig, value: bidAmount } as typeof baseConfig & { value: bigint })
+      : baseConfig
+  );
 
   if (bidSimulate.error && isConnected && token && amount && amount !== "0") {
     console.log(bidSimulate.error, "bid error", bidSimulate.data);
