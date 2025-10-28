@@ -169,10 +169,10 @@ export default function ContributorRewardsCard() {
                             num={allocationPercentage}
                             significant={2}
                           />
-                          % of SIR&apos;s issuance during the first 3 years. Return
-                          anytime to mint accumulated rewards.
+                          % of SIR&apos;s issuance during the first 3 years.
+                          Return anytime to mint accumulated rewards.
                         </ToolTip>
-                        <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary">
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 text-xs font-medium text-primary dark:bg-gold dark:text-foreground">
                           <DisplayFormattedNumber
                             num={allocationPercentage}
                             significant={2}
