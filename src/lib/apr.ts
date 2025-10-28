@@ -19,22 +19,22 @@ export async function getWeeklyApr(): Promise<{ apr: string; latestTimestamp: nu
   const ETH_DECIMALS = 18;
   
   weeklyDividends.forEach((dividend) => {
-    if (dividend.ethAmount && dividend.stakedAmount && dividend.sirEthPrice) {
+    if (dividend.ethAmount && dividend.stakedAmount && dividend.sirNativePrice) {
       // Parse amounts - ethAmount is in wei (18 decimals)
       // stakedAmount is in SIR units (12 decimals)
-      // sirEthPrice has no decimals (if 1 SIR = 1 ETH, then sirEthPrice = 1)
+      // sirNativePrice has no decimals (if 1 SIR = 1 native token, then sirNativePrice = 1)
       const ethAmount = parseFloat(String(dividend.ethAmount)) / Math.pow(10, ETH_DECIMALS);
       const sirAmount = parseFloat(String(dividend.stakedAmount)) / Math.pow(10, SIR_DECIMALS);
-      const sirEthPrice = parseFloat(String(dividend.sirEthPrice));
-            
+      const sirNativePrice = parseFloat(String(dividend.sirNativePrice));
+
       // Skip calculations if any value is zero
-      if (ethAmount === 0 || sirAmount === 0 || sirEthPrice === 0) {
+      if (ethAmount === 0 || sirAmount === 0 || sirNativePrice === 0) {
         console.warn("Skipping dividend with zero values");
         return;
       }
-      
-      // Calculate SIR staked value in ETH
-      const sirStakedEth = sirAmount * sirEthPrice;
+
+      // Calculate SIR staked value in native token
+      const sirStakedEth = sirAmount * sirNativePrice;
       
       // APR Formula: (ETH dividends / SIR staked in ETH) × (365 days / 7 days) × 100%
       const payoutApr = (ethAmount / sirStakedEth) * (365 / 7) * 100;
@@ -75,22 +75,22 @@ export async function getMonthlyApr(): Promise<{ apr: string; latestTimestamp: n
     }
 
     // Only calculate APR if we have all required fields
-    if (dividend.ethAmount && dividend.stakedAmount && dividend.sirEthPrice) {
+    if (dividend.ethAmount && dividend.stakedAmount && dividend.sirNativePrice) {
       // Parse amounts - ethAmount is in wei (18 decimals)
       // stakedAmount is in SIR units (12 decimals)
-      // sirEthPrice has no decimals (if 1 SIR = 1 ETH, then sirEthPrice = 1)
+      // sirNativePrice has no decimals (if 1 SIR = 1 native token, then sirNativePrice = 1)
       const ethAmount = parseFloat(String(dividend.ethAmount)) / Math.pow(10, ETH_DECIMALS);
       const sirAmount = parseFloat(String(dividend.stakedAmount)) / Math.pow(10, SIR_DECIMALS);
-      const sirEthPrice = parseFloat(String(dividend.sirEthPrice));
+      const sirNativePrice = parseFloat(String(dividend.sirNativePrice));
 
       // Skip calculations if any value is zero
-      if (ethAmount === 0 || sirAmount === 0 || sirEthPrice === 0) {
+      if (ethAmount === 0 || sirAmount === 0 || sirNativePrice === 0) {
         console.warn("Skipping dividend with zero values");
         return;
       }
 
-      // Calculate SIR staked value in ETH
-      const sirStakedEth = sirAmount * sirEthPrice;
+      // Calculate SIR staked value in native token
+      const sirStakedEth = sirAmount * sirNativePrice;
 
       // APR Formula: (ETH dividends / SIR staked in ETH) × (365 days / 30 days) × 100%
       const payoutApr = (ethAmount / sirStakedEth) * (365 / 30) * 100;

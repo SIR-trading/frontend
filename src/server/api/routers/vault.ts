@@ -15,6 +15,8 @@ import { z } from "zod";
 import { VaultContract } from "@/contracts/vault";
 import { SirContract } from "@/contracts/sir";
 import { WethContract } from "@/contracts/weth";
+import { shouldUseCoinGecko, getCoinGeckoPlatformId, getAlchemyChainString } from "@/lib/chains";
+import { env } from "@/env";
 
 // Extended vault interface for backward compatibility
 type VaultWithCollateral = VaultFieldFragment;
@@ -221,65 +223,113 @@ async function convertWrappedNativeTokenPriceToCollateral(
       return wrappedNativeTokenPrice;
     }
 
-    // Get wrapped native token/Collateral price from Alchemy
-    const response = await fetch(
-      `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    const useCoinGecko = shouldUseCoinGecko(chainId);
+
+    if (useCoinGecko) {
+      // Use CoinGecko for HyperEVM chains
+      const platformId = getCoinGeckoPlatformId(chainId);
+      if (!platformId) {
+        throw new Error(`No CoinGecko platform ID found for chain: ${chainId}`);
+      }
+
+      const headers: HeadersInit = {
+        accept: "application/json",
+      };
+
+      if (process.env.COINGECKO_API_KEY) {
+        headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
+      }
+
+      // Fetch both wrapped native token and collateral prices
+      const contractAddresses = [WethContract.address, collateralTokenAddress]
+        .map(addr => addr.toLowerCase())
+        .join(',');
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=usd&include_24hr_change=false`;
+
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as Record<string, { usd?: number }>;
+
+      const wrappedNativeTokenUsdPrice = data[WethContract.address.toLowerCase()]?.usd;
+      const collateralUsdPrice = data[collateralTokenAddress.toLowerCase()]?.usd;
+
+      if (!wrappedNativeTokenUsdPrice || !collateralUsdPrice || collateralUsdPrice === 0) {
+        throw new Error(`Missing price data from CoinGecko for ${collateralTokenAddress}`);
+      }
+
+      // Convert: SIR -> wrapped native token -> USD -> Collateral
+      const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
+      const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
+
+      return sirCollateralPrice;
+    } else {
+      // Use Alchemy for Ethereum chains
+      const alchemyChain = getAlchemyChainString(chainId);
+
+      const response = await fetch(
+        `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            addresses: [
+              { network: alchemyChain, address: WethContract.address },
+              { network: alchemyChain, address: collateralTokenAddress },
+            ],
+          }),
         },
-        body: JSON.stringify({
-          addresses: [
-            { network: "eth-mainnet", address: WethContract.address },
-            { network: "eth-mainnet", address: collateralTokenAddress },
-          ],
-        }),
-      },
-    );
+      );
 
-    if (!response.ok) {
-      throw new Error(`Alchemy API error: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Alchemy API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        data: Array<{
+          address: string;
+          prices: Array<{ value: string; currency: string }>;
+        }>;
+      };
+
+      const wrappedNativeTokenData = data.data.find(
+        (token) =>
+          token.address.toLowerCase() === WethContract.address.toLowerCase(),
+      );
+      const collateralData = data.data.find(
+        (token) =>
+          token.address.toLowerCase() === collateralTokenAddress.toLowerCase(),
+      );
+
+      if (
+        !wrappedNativeTokenData?.prices[0]?.value ||
+        !collateralData?.prices[0]?.value
+      ) {
+        throw new Error("Price data not available from Alchemy");
+      }
+
+      const wrappedNativeTokenUsdPrice = parseFloat(
+        wrappedNativeTokenData.prices[0].value,
+      );
+      const collateralUsdPrice = parseFloat(collateralData.prices[0].value);
+
+      if (collateralUsdPrice === 0) {
+        throw new Error("Collateral price is zero");
+      }
+
+      // Convert: SIR -> wrapped native token -> USD -> Collateral
+      const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
+      const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
+
+      return sirCollateralPrice;
     }
-
-    const data = (await response.json()) as {
-      data: Array<{
-        address: string;
-        prices: Array<{ value: string; currency: string }>;
-      }>;
-    };
-
-    const wrappedNativeTokenData = data.data.find(
-      (token) =>
-        token.address.toLowerCase() === WethContract.address.toLowerCase(),
-    );
-    const collateralData = data.data.find(
-      (token) =>
-        token.address.toLowerCase() === collateralTokenAddress.toLowerCase(),
-    );
-
-    if (
-      !wrappedNativeTokenData?.prices[0]?.value ||
-      !collateralData?.prices[0]?.value
-    ) {
-      throw new Error("Price data not available");
-    }
-
-    const wrappedNativeTokenUsdPrice = parseFloat(
-      wrappedNativeTokenData.prices[0].value,
-    );
-    const collateralUsdPrice = parseFloat(collateralData.prices[0].value);
-
-    if (collateralUsdPrice === 0) {
-      throw new Error("Collateral price is zero");
-    }
-
-    // Convert: SIR -> wrapped native token -> USD -> Collateral
-    const sirUsdPrice = wrappedNativeTokenPrice * wrappedNativeTokenUsdPrice;
-    const sirCollateralPrice = sirUsdPrice / collateralUsdPrice;
-
-    return sirCollateralPrice;
   } catch (error) {
     console.error(
       "Error converting wrapped native token price to collateral:",
@@ -289,7 +339,7 @@ async function convertWrappedNativeTokenPriceToCollateral(
   }
 }
 /**
- * Batch fetch token prices from Alchemy to avoid redundant API calls
+ * Batch fetch token prices from Alchemy (Ethereum) or CoinGecko (HyperEVM) to avoid redundant API calls
  */
 async function batchGetTokenPrices(
   collateralTokens: TAddressString[],
@@ -300,49 +350,96 @@ async function batchGetTokenPrices(
     return priceMap;
   }
 
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const useCoinGecko = shouldUseCoinGecko(chainId);
+
   try {
     // Add wrapped native token to the list for price conversion
     const tokensToFetch = [WethContract.address, ...collateralTokens];
 
-    const response = await fetch(
-      `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
-      {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          addresses: tokensToFetch.map((addr) => ({
-            network: "eth-mainnet",
-            address: addr,
-          })),
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Alchemy API error: ${response.status}`);
-    }
-
-    const data = (await response.json()) as {
-      data: Array<{
-        address: string;
-        prices: Array<{ value: string; currency: string }>;
-      }>;
-    };
-
-    // Store USD prices for all tokens
-    data.data.forEach((tokenData) => {
-      if (tokenData.prices[0]?.value) {
-        priceMap.set(
-          tokenData.address.toLowerCase(),
-          parseFloat(tokenData.prices[0].value),
-        );
+    if (useCoinGecko) {
+      // Use CoinGecko for HyperEVM chains
+      const platformId = getCoinGeckoPlatformId(chainId);
+      if (!platformId) {
+        console.error("No CoinGecko platform ID found for chain:", chainId);
+        return priceMap;
       }
-    });
 
-    return priceMap;
+      const headers: HeadersInit = {
+        accept: "application/json",
+      };
+
+      if (process.env.COINGECKO_API_KEY) {
+        headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
+      }
+
+      // CoinGecko allows multiple addresses in a single request
+      const contractAddresses = tokensToFetch.map(addr => addr.toLowerCase()).join(',');
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${contractAddresses}&vs_currencies=usd&include_24hr_change=false`;
+
+      const response = await fetch(url, { headers });
+
+      if (!response.ok) {
+        console.error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error("Error response body:", errorBody);
+        return priceMap;
+      }
+
+      const data = (await response.json()) as Record<string, { usd?: number }>;
+
+      // Store USD prices for all tokens
+      Object.entries(data).forEach(([address, priceData]) => {
+        if (priceData.usd) {
+          priceMap.set(address.toLowerCase(), priceData.usd);
+        }
+      });
+
+      return priceMap;
+    } else {
+      // Use Alchemy for Ethereum chains
+      const alchemyChain = getAlchemyChainString(chainId);
+
+      const response = await fetch(
+        `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+        {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            addresses: tokensToFetch.map((addr) => ({
+              network: alchemyChain,
+              address: addr,
+            })),
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Alchemy API error: ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        data: Array<{
+          address: string;
+          prices: Array<{ value: string; currency: string }>;
+        }>;
+      };
+
+      // Store USD prices for all tokens
+      data.data.forEach((tokenData) => {
+        if (tokenData.prices[0]?.value) {
+          priceMap.set(
+            tokenData.address.toLowerCase(),
+            parseFloat(tokenData.prices[0].value),
+          );
+        }
+      });
+
+      return priceMap;
+    }
   } catch (error) {
     console.error("Error batch fetching token prices:", error);
     return priceMap;
