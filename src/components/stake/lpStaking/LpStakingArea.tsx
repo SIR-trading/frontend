@@ -96,8 +96,8 @@ export function LpStakingArea() {
 
   return (
     <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
-      <div className="mb-2 flex flex-col justify-start md:mb-0 md:flex-row md:items-start md:justify-between">
-        <h2 className="pb-4 text-sm font-medium">Uniswap V3 LP Staking</h2>
+      <div className="mb-2 flex flex-col items-center justify-center md:mb-0 md:flex-row md:items-baseline md:justify-between">
+        <h2 className="pb-4 text-sm font-medium md:flex-1">Uniswap V3 LP Staking</h2>
         <ManageDexLiquidityButton />
       </div>
 

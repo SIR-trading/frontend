@@ -57,14 +57,14 @@ export async function getMostLiquidPoolPrice(input: {
   decimalsB?: number;
 }) {
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-  const feeTiers = [FEE_TIERS.LOW, FEE_TIERS.MEDIUM, FEE_TIERS.HIGH];
+  const feeTiers = [FEE_TIERS.LOWEST, FEE_TIERS.LOW, FEE_TIERS.MEDIUM, FEE_TIERS.HIGH];
   let bestPool = null;
   let maxLiquidity = 0n;
 
   for (const fee of feeTiers) {
     try {
       const poolAddress = computePoolAddress(input.tokenA, input.tokenB, fee, chainId);
-      
+
       // Try to read pool data
       const [slot0, liquidity] = await Promise.all([
         rpcViemClient.readContract({
@@ -82,7 +82,7 @@ export async function getMostLiquidPoolPrice(input: {
       if (slot0 && liquidity > maxLiquidity) {
         maxLiquidity = liquidity;
         const [sqrtPriceX96] = slot0;
-        
+
         const token0 = await rpcViemClient.readContract({
           address: poolAddress as TAddressString,
           abi: UniswapV3PoolABI,
@@ -92,7 +92,7 @@ export async function getMostLiquidPoolPrice(input: {
         const isToken0 = token0.toLowerCase() === input.tokenA.toLowerCase();
         const decimalsA = input.decimalsA ?? 18;
         const decimalsB = input.decimalsB ?? 18;
-        
+
         const price = sqrtPriceX96ToPrice(
           sqrtPriceX96,
           isToken0 ? decimalsA : decimalsB,

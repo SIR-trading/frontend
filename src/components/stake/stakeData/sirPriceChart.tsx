@@ -1,18 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getDexName } from "@/lib/chains";
-import { useChainId } from "wagmi";
 import { api } from "@/trpc/react";
 import { TrendingUp, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useSirPrice } from "@/contexts/SirPriceContext";
+import { env } from "@/env";
 
 interface SirPriceChartProps {
   height?: number; // Height in pixels, defaults to 400
 }
 
 export default function SirPriceChart({ height = 400 }: SirPriceChartProps) {
-  const chainId = useChainId();
+  const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const [isExpanded, setIsExpanded] = useState(false);
   const [chartTheme, setChartTheme] = useState("dark");
 
@@ -80,7 +80,7 @@ export default function SirPriceChart({ height = 400 }: SirPriceChartProps) {
   };
 
   const chartUrl = getDexScreenerUrl();
-  const dexName = getDexName(chainId);
+  const dexName = getDexName(); // Uses server chain ID by default
 
   // Show "Not available" if price or pool is unavailable
   if (priceUnavailable || poolUnavailable) {

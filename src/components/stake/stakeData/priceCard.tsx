@@ -5,6 +5,7 @@ import { SirContract } from "@/contracts/sir";
 import { getExplorerUrl } from "@/lib/chains";
 import { ExternalLink, Copy, Check } from "lucide-react";
 import { useSirPrice } from "@/contexts/SirPriceContext";
+import { getSirSymbol } from "@/lib/assets";
 
 export default function PriceCard() {
   const { sirPrice, isLoading, error } = useSirPrice();
@@ -31,7 +32,7 @@ export default function PriceCard() {
   return (
     <div className="rounded-md bg-primary/5 p-3 dark:bg-primary text-center">
       <div className="text-xs text-muted-foreground">
-        SIR Price
+        {getSirSymbol()} Price
       </div>
       <Show
         when={!isLoading}

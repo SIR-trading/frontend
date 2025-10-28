@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, Coins, Trophy, Gavel, Plus, Calculator } from "lucide-react";
+import { ChevronDown, Coins, LineChart, Trophy, Gavel, Plus, Calculator } from "lucide-react";
 import React, { useState } from "react";
 import {
   DropdownMenu,
@@ -40,13 +40,14 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
       hasContributorRewards: Boolean(hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold),
       hasDividends: hasDividendsAboveThreshold
     },
-    { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { url: "/market", label: "Market", icon: LineChart },
     { url: "/auctions", label: "Auctions", icon: Gavel, hasActiveAuctions },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
 
   const largeItems: MenuItem[] = [
+    { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];

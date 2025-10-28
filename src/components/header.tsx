@@ -5,7 +5,7 @@ import Image from "next/image";
 import SideNav from "./sideNav";
 import { CustomConnectButton } from "./customConnectButton";
 import MoreMenu from "./moreMenu";
-import { TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel } from "lucide-react";
+import { TrendingUp, Droplets, Briefcase, Coins, LineChart, Trophy, Gavel } from "lucide-react";
 import dynamic from "next/dynamic";
 import { env } from "@/env";
 import { useMemo } from "react";
@@ -104,7 +104,7 @@ export function Header() {
                 >
                   Stake
                 </NavItem>
-                <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
+                <NavItem url={"/market"} icon={LineChart}>Market</NavItem>
                 <NavItem url={"/auctions"} icon={Gavel} hasActiveAuctionsNotification={hasActiveAuctions}>Auctions</NavItem>
               </ul>
               {/* More menu for medium screens (shows all secondary items) */}
