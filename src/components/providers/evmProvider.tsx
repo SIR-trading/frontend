@@ -13,20 +13,34 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { createConfig, WagmiProvider, http } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { type Chain } from "wagmi/chains";
 import { env } from "@/env";
-import { CHAIN_CONFIGS } from "@/lib/chains";
+import { getChainConfig } from "@/config/chains";
 
 const getChainId = () => {
   const result = env.NEXT_PUBLIC_CHAIN_ID;
   return parseInt(result);
 };
 const chainId = getChainId();
+const chainConfig = getChainConfig(chainId);
 
-const chain = {
-  ...(chainId == mainnet.id ? mainnet : sepolia),
+// Create full chain definition with all metadata for wallet network addition
+const chain: Chain = {
   id: chainId,
-  name: CHAIN_CONFIGS[chainId]?.name ?? "Unknown Chain",
+  name: chainConfig.name,
+  nativeCurrency: chainConfig.nativeCurrency,
+  rpcUrls: {
+    default: {
+      http: [env.NEXT_PUBLIC_RPC_URL],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: chainConfig.blockExplorers.default.name,
+      url: chainConfig.blockExplorers.default.url,
+    },
+  },
+  testnet: chainConfig.isTestnet,
 };
 
 const projectId =
@@ -52,11 +66,14 @@ const connectors = connectorsForWallets(
   },
 );
 
+// Wagmi configuration with dual RPC setup:
+// - Chain definition uses NEXT_PUBLIC_RPC_URL (public RPC for wallet network addition)
+// - Transport uses /api/rpc proxy (private RPC for app operations)
 export const wagmiConfig = createConfig({
   chains: [chain],
   connectors,
   transports: {
-    [chain.id]: http("/api/rpc"),
+    [chain.id]: http("/api/rpc"), // Routes to private RPC via next.config.mjs rewrite
   },
   ssr: true,
 });
