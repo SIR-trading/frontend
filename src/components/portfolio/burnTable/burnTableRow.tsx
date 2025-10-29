@@ -104,6 +104,28 @@ export function BurnTableRow({
   const pnlCollateral = currentCollateral - initialCollateral;
   const pnlDebtToken = currentDebtTokenValue - initialDebtTokenValue;
 
+  // Calculate leveraged and spot PnL for APE tokens
+  let leveragedPnlPercent = 0;
+  let spotPnlPercent = 0;
+  let spotPnlDebt = 0;
+  let spotPnlCollateral = 0;
+
+  if (isApe && initialDebtTokenValue > 0 && initialCollateral > 0) {
+    // Leveraged PnL percentage (using debt token as reference)
+    leveragedPnlPercent = (pnlDebtToken / initialDebtTokenValue) * 100;
+
+    // Spot PnL: What if user held the collateral instead of taking leverage
+    // Price change = (current price / initial price - 1)
+    // where price = debtTokenValue / collateral
+    const currentPrice = currentDebtTokenValue / currentCollateral;
+    const initialPrice = initialDebtTokenValue / initialCollateral;
+    const priceChange = currentPrice / initialPrice;
+
+    spotPnlPercent = (priceChange - 1) * 100;
+    spotPnlDebt = initialCollateral * currentPrice - initialDebtTokenValue;
+    spotPnlCollateral = 0; // Holding spot collateral doesn't change collateral amount
+  }
+
   const apeBalance = formatUnits(apeBal ?? 0n, tokenDecimals);
   const teaBalance = formatUnits(teaBal ?? 0n, tokenDecimals);
 
@@ -331,10 +353,10 @@ export function BurnTableRow({
   // Render content based on position type
   const content = isApe ? (
     <>
-        {/* First row - collateral values */}
-        <tr className="text-left text-foreground">
-          {/* Token column - spans 2 rows */}
-          <td rowSpan={2} className="py-2 pr-4 font-normal">
+        {/* Single row for APE position */}
+        <tr className="border-b border-foreground/5 text-left text-foreground">
+          {/* Token column */}
+          <td className="py-2 pr-4 font-normal">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-1">
                 <span className="">APE</span>
@@ -343,26 +365,14 @@ export function BurnTableRow({
                   {getDisplayVaultId(row.vaultId)}
                 </span>
               </div>
-              {/* Expand button for mobile */}
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="rounded p-1 transition-colors hover:bg-foreground/10 md:hidden"
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-              >
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-foreground/60" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-foreground/60" />
-                )}
-              </button>
             </div>
           </td>
 
-          {/* Vault column - spans 2 rows */}
-          <td rowSpan={2} className="py-2 pr-4 font-normal text-foreground/80">
+          {/* Vault column */}
+          <td className="py-2 pr-4 font-normal text-foreground/80">
             <div className="flex items-center">
-              {/* Mobile: Show only icons */}
-              <div className="flex items-center sm:hidden">
+              {/* Small and Medium: Show only icons */}
+              <div className="flex items-center lg:hidden">
                 <Link
                   href={collateralTokenUrl}
                   target="_blank"
@@ -398,8 +408,8 @@ export function BurnTableRow({
                   {getLeverageRatio(Number.parseInt(row.leverageTier))}
                 </sup>
               </div>
-              {/* Medium and Large screens: Show icons with text */}
-              <div className="hidden items-center sm:flex">
+              {/* Large screens: Show icons with text */}
+              <div className="hidden items-center lg:flex">
                 <Link
                   href={collateralTokenUrl}
                   target="_blank"
@@ -440,93 +450,81 @@ export function BurnTableRow({
             </div>
           </td>
 
-          {/* Value column - collateral */}
-          <td className="pb-0.5 pr-4 pt-1.5 text-right font-normal">
-            <span className="text-sm">
-              <DisplayFormattedNumber num={currentCollateral} significant={3} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.collateralSymbol}
+          {/* Value column - stacked values */}
+          <td className="py-2 pr-4 text-right font-normal">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <DisplayFormattedNumber num={currentCollateral} significant={3} />
+                <span className="ml-0.5 text-foreground/60">{row.collateralSymbol}</span>
               </span>
-            </span>
+              <span className="text-sm">
+                <span className="mr-0.5 text-foreground/60">≈</span>
+                <DisplayFormattedNumber num={currentDebtTokenValue} significant={3} />
+                <span className="ml-0.5 text-foreground/60">{row.debtSymbol}</span>
+              </span>
+            </div>
           </td>
 
-          {/* PnL column - collateral */}
-          <td className="relative pb-0.5 pr-4 pt-1.5 text-right font-normal">
-            <span
-              className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {pnlCollateral >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={pnlCollateral} significant={3} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.collateralSymbol}
+          {/* PnL column */}
+          <td className="hidden py-2 pr-4 text-center font-normal md:table-cell">
+            <div className="flex flex-col gap-0.5">
+              <span className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                {pnlDebtToken >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={pnlDebtToken} significant={3} /> {row.debtSymbol}
               </span>
-            </span>
-            {/* Floating emoji for profitable positions - positioned between rows */}
+              <span className="italic text-[11px] text-foreground/60">
+                spot: {spotPnlDebt >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={spotPnlDebt} significant={3} /> {row.debtSymbol}
+              </span>
+            </div>
+          </td>
+
+          {/* % PnL column */}
+          <td className="relative hidden xs:table-cell py-2 pr-4 text-center font-normal">
+            <div className="flex flex-col gap-0.5">
+              <span className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}>
+                {leveragedPnlPercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={leveragedPnlPercent} significant={3} />%
+              </span>
+              <span className="italic text-[11px] text-foreground/60">
+                spot: {spotPnlPercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={spotPnlPercent} significant={3} />%
+              </span>
+            </div>
+            {/* Floating emoji for profitable positions */}
             {pnlCollateral >= 0 && (
               <HoverPopupMobile
                 size="200"
                 trigger={
                   <button
                     onClick={() => setShareModalOpen(true)}
-                    className="absolute -right-2 bottom-[-8px] z-10 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
+                    className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
                   >
                     {(() => {
-                      const percentGain =
-                        initialCollateral > 0
-                          ? (pnlCollateral / initialCollateral) * 100
-                          : 0;
-
-                      if (percentGain >= 200) return "🚀"; // 200%+ gains - rocket
-                      if (percentGain >= 100) return "💎"; // 100-200% gains - diamond hands
-                      if (percentGain >= 50) return "🔥"; // 50-100% gains - fire
-                      if (percentGain >= 20) return "⚡"; // 20-50% gains - lightning
-                      return "✨"; // 0-20% gains - sparkles
+                      const percentGain = initialCollateral > 0 ? (pnlCollateral / initialCollateral) * 100 : 0;
+                      if (percentGain >= 200) return "🚀";
+                      if (percentGain >= 100) return "💎";
+                      if (percentGain >= 50) return "🔥";
+                      if (percentGain >= 20) return "⚡";
+                      return "✨";
                     })()}
                   </button>
                 }
               >
                 <span className="text-[13px] font-medium">
                   Tweet about your {(() => {
-                    const percentGain = initialCollateral > 0
-                      ? (pnlCollateral / initialCollateral) * 100
-                      : 0;
-                    return percentGain >= 1
-                      ? `${percentGain.toFixed(0)}%`
-                      : `${percentGain.toFixed(1)}%`;
+                    const percentGain = initialCollateral > 0 ? (pnlCollateral / initialCollateral) * 100 : 0;
+                    return percentGain >= 1 ? `${percentGain.toFixed(0)}%` : `${percentGain.toFixed(1)}%`;
                   })()} {row.collateralSymbol} gains! 🎉
                 </span>
               </HoverPopupMobile>
             )}
           </td>
 
-          {/* Break-even column - collateral */}
-          <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
-            <PriceIncreaseDisplay
-              percentage={priceIncreaseTargets.breakeven.collateral}
-              className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            />
-          </td>
-
-          {/* 2x column - collateral */}
-          <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
-            <PriceIncreaseDisplay
-              percentage={priceIncreaseTargets.double.collateral}
-              className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            />
-          </td>
-
-          {/* 10x column - collateral */}
-          <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal md:table-cell">
-            <PriceIncreaseDisplay
-              percentage={priceIncreaseTargets.tenx.collateral}
-              className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            />
-          </td>
-
-          {/* Actions column - spans 2 rows */}
-          <td rowSpan={2} className="py-2 text-center">
+          {/* Actions column */}
+          <td className="py-2 text-center">
             {/* Small and Medium screens: Dropdown menu for all actions */}
-            <div className="lg:hidden">
+            <div className="xl:hidden">
               <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -599,7 +597,7 @@ export function BurnTableRow({
             </div>
 
             {/* Large screens: Close button + More dropdown */}
-            <div className="hidden justify-center space-x-1 lg:flex">
+            <div className="hidden justify-center space-x-1 xl:flex">
               <Button
                 onClick={() => {
                   setSelectedRow("burn");
@@ -682,140 +680,6 @@ export function BurnTableRow({
             </div>
           </td>
         </tr>
-
-        {/* Second row - debt token values */}
-        <tr className="border-b border-foreground/5 text-left text-foreground">
-          {/* Value column - debt token */}
-          <td className="pb-1.5 pr-4 pt-0.5 text-right font-normal">
-            <span className="text-sm">
-              <DisplayFormattedNumber
-                num={currentDebtTokenValue}
-                significant={3}
-              />
-              <span className="ml-0.5 text-foreground/60">
-                {row.debtSymbol}
-              </span>
-            </span>
-          </td>
-
-          {/* PnL column - debt token */}
-          <td className="pb-1.5 pr-4 pt-0.5 text-right font-normal">
-            <span
-              className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {pnlDebtToken >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={pnlDebtToken} significant={3} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.debtSymbol}
-              </span>
-            </span>
-          </td>
-
-          {/* Break-even column - debt token */}
-          <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
-            {priceIncreaseTargets.breakeven.debtToken !== null && (
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.breakeven.debtToken}
-                className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            )}
-          </td>
-
-          {/* 2x column - debt token */}
-          <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
-            {priceIncreaseTargets.double.debtToken !== null && (
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.double.debtToken}
-                className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            )}
-          </td>
-
-          {/* 10x column - debt token */}
-          <td className="hidden pb-1.5 pr-4 pt-0.5 text-right font-normal md:table-cell">
-            {priceIncreaseTargets.tenx.debtToken !== null && (
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.tenx.debtToken}
-                className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            )}
-          </td>
-        </tr>
-
-        {/* Expanded row for mobile - shows hidden columns */}
-        {isExpanded && (
-          <tr className="border-b border-foreground/5 bg-foreground/5 md:hidden">
-            <td colSpan={7} className="px-4 py-3">
-              <div className="space-y-3">
-                {/* Collateral Required Price Gain */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground/60">
-                    Required Price Gain ({row.collateralSymbol})
-                  </span>
-                  <div className="space-x-4 text-right">
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">B/E: </span>
-                      <PriceIncreaseDisplay
-                        percentage={priceIncreaseTargets.breakeven.collateral}
-                        className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                      />
-                    </span>
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">2x: </span>
-                      <PriceIncreaseDisplay
-                        percentage={priceIncreaseTargets.double.collateral}
-                        className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                      />
-                    </span>
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">10x: </span>
-                      <PriceIncreaseDisplay
-                        percentage={priceIncreaseTargets.tenx.collateral}
-                        className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                      />
-                    </span>
-                  </div>
-                </div>
-
-                {/* Debt Token Required Price Gain */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground/60">
-                    Required Price Gain ({row.debtSymbol})
-                  </span>
-                  <div className="space-x-4 text-right">
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">B/E: </span>
-                      {priceIncreaseTargets.breakeven.debtToken !== null && (
-                        <PriceIncreaseDisplay
-                          percentage={priceIncreaseTargets.breakeven.debtToken}
-                          className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                        />
-                      )}
-                    </span>
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">2x: </span>
-                      {priceIncreaseTargets.double.debtToken !== null && (
-                        <PriceIncreaseDisplay
-                          percentage={priceIncreaseTargets.double.debtToken}
-                          className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                        />
-                      )}
-                    </span>
-                    <span className="inline-block min-w-[50px]">
-                      <span className="text-xs text-foreground/40">10x: </span>
-                      {priceIncreaseTargets.tenx.debtToken !== null && (
-                        <PriceIncreaseDisplay
-                          percentage={priceIncreaseTargets.tenx.debtToken}
-                          className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                        />
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </td>
-          </tr>
-        )}
       </>
   ) : (
     // TEA token rows (2 rows)
@@ -907,26 +771,14 @@ export function BurnTableRow({
                 {getDisplayVaultId(row.vaultId)}
               </span>
             </div>
-            {/* Expand button for mobile */}
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="rounded p-1 transition-colors hover:bg-foreground/10 md:hidden"
-              aria-label={isExpanded ? "Collapse" : "Expand"}
-            >
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4 text-foreground/60" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-foreground/60" />
-              )}
-            </button>
           </div>
         </td>
 
         {/* Vault column - spans 2 rows */}
         <td rowSpan={2} className="py-2 pr-4 font-normal text-foreground/80">
           <div className="flex items-center">
-            {/* Mobile: Show only icons */}
-            <div className="flex items-center sm:hidden">
+            {/* Small and Medium: Show only icons */}
+            <div className="flex items-center lg:hidden">
               <Link
                 href={collateralTokenUrl}
                 target="_blank"
@@ -962,8 +814,8 @@ export function BurnTableRow({
                 {getLeverageRatio(Number.parseInt(row.leverageTier))}
               </sup>
             </div>
-            {/* Medium and Large screens: Show icons with text */}
-            <div className="hidden items-center sm:flex">
+            {/* Large screens: Show icons with text */}
+            <div className="hidden items-center lg:flex">
               <Link
                 href={collateralTokenUrl}
                 target="_blank"
@@ -1015,7 +867,7 @@ export function BurnTableRow({
         </td>
 
         {/* PnL column - collateral */}
-        <td className="relative pb-0.5 pr-4 pt-1.5 text-right font-normal">
+        <td className="relative hidden md:table-cell pb-0.5 pr-4 pt-1.5 text-right font-normal">
           <span
             className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           >
@@ -1064,7 +916,7 @@ export function BurnTableRow({
         </td>
 
         {/* Break-even time column */}
-        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && breakevenTimeDays !== 0
@@ -1076,7 +928,7 @@ export function BurnTableRow({
         </td>
 
         {/* 2x time column */}
-        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays
@@ -1086,7 +938,7 @@ export function BurnTableRow({
         </td>
 
         {/* 10x time column */}
-        <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
@@ -1098,7 +950,7 @@ export function BurnTableRow({
         {/* Actions column - spans 2 rows */}
         <td rowSpan={2} className="py-2 text-center">
           {/* Small and Medium screens: Dropdown menu for all actions */}
-          <div className="lg:hidden">
+          <div className="xl:hidden">
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -1157,7 +1009,7 @@ export function BurnTableRow({
           </div>
 
           {/* Large screens: Close button + More dropdown */}
-          <div className="hidden justify-center space-x-1 lg:flex">
+          <div className="hidden justify-center space-x-1 xl:flex">
             <Button
               onClick={() => {
                 setSelectedRow("burn");
@@ -1230,8 +1082,9 @@ export function BurnTableRow({
       {/* Second row - debt token values */}
       <tr className="border-b border-foreground/5 text-left text-foreground">
         {/* Value column - debt token */}
-        <td className="pb-1.5 pr-4 pt-0.5 text-right font-normal">
+        <td className="pb-1.5 pr-4 pt-0 text-right font-normal">
           <span className="text-sm">
+            <span className="mr-0.5 text-foreground/60">≈</span>
             <DisplayFormattedNumber
               num={currentDebtTokenValue}
               significant={3}
@@ -1241,7 +1094,7 @@ export function BurnTableRow({
         </td>
 
         {/* PnL column - debt token */}
-        <td className="pb-1.5 pr-4 pt-0.5 text-right font-normal">
+        <td className="hidden md:table-cell pb-1.5 pr-4 pt-0 text-right font-normal">
           <span
             className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
           >
@@ -1252,7 +1105,7 @@ export function BurnTableRow({
         </td>
 
         {/* Break-even time column - debt token */}
-        <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-1.5 pr-2 pt-0 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && breakevenDebtTimeDays !== 0
@@ -1264,7 +1117,7 @@ export function BurnTableRow({
         </td>
 
         {/* 2x time column - debt token */}
-        <td className="hidden pb-1.5 pr-2 pt-0.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-1.5 pr-2 pt-0 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && doubleDebtTimeDays !== 0
@@ -1276,7 +1129,7 @@ export function BurnTableRow({
         </td>
 
         {/* 10x time column - debt token */}
-        <td className="hidden pb-1.5 pr-4 pt-0.5 text-right font-normal md:table-cell">
+        <td className="hidden pb-1.5 pr-4 pt-0 text-right font-normal xs:table-cell">
           <TimeDisplay
             days={
               isInfiniteTime && tenxDebtTimeDays !== 0
@@ -1287,99 +1140,6 @@ export function BurnTableRow({
           />
         </td>
       </tr>
-
-      {/* Expanded row for mobile - shows hidden columns */}
-      {isExpanded && (
-        <tr className="border-b border-foreground/5 bg-foreground/5 md:hidden">
-          <td colSpan={7} className="px-4 py-3">
-            <div className="space-y-3">
-              {/* Collateral Required Time */}
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/60">
-                  Required Time ({row.collateralSymbol})
-                </span>
-                <div className="space-x-4 text-right">
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">B/E: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && breakevenTimeDays !== 0
-                          ? Infinity
-                          : breakevenTimeDays
-                      }
-                      className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">2x: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && doubleTimeDays !== 0
-                          ? Infinity
-                          : doubleTimeDays
-                      }
-                      className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">10x: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && tenxTimeDays !== 0
-                          ? Infinity
-                          : tenxTimeDays
-                      }
-                      className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                </div>
-              </div>
-
-              {/* Debt Token Required Time */}
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground/60">
-                  Required Time ({row.debtSymbol})
-                </span>
-                <div className="space-x-4 text-right">
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">B/E: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && breakevenDebtTimeDays !== 0
-                          ? Infinity
-                          : breakevenDebtTimeDays
-                      }
-                      className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">2x: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && doubleDebtTimeDays !== 0
-                          ? Infinity
-                          : doubleDebtTimeDays
-                      }
-                      className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                  <span className="inline-block min-w-[50px]">
-                    <span className="text-xs text-foreground/40">10x: </span>
-                    <TimeDisplay
-                      days={
-                        isInfiniteTime && tenxDebtTimeDays !== 0
-                          ? Infinity
-                          : tenxDebtTimeDays
-                      }
-                      className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
     </>
   );
 

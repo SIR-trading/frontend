@@ -57,6 +57,7 @@ const config = {
     },
     extend: {
       screens: {
+        xs: '540px',
         'custom-lg': '1580px',
       },
       keyframes: {
