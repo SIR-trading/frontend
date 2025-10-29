@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import Show from "@/components/shared/show";
 import buildData from "@/../public/build-data.json";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
@@ -20,7 +20,33 @@ export default function AnnualInflationCard() {
     error: priceError,
   } = useSirPrice();
   const [chartOpen, setChartOpen] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(600);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
   const constraintsRef = useRef(null);
+
+  // Measure container width for responsive chart
+  useEffect(() => {
+    if (!chartOpen) {
+      setContainerWidth(600); // Reset to default when closed
+      return;
+    }
+
+    const updateWidth = () => {
+      if (chartContainerRef.current) {
+        setContainerWidth(chartContainerRef.current.offsetWidth);
+      }
+    };
+
+    // Delay initial measurement to ensure DOM is ready
+    const timeoutId = setTimeout(updateWidth, 0);
+
+    // Update on resize
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+      clearTimeout(timeoutId);
+    };
+  }, [chartOpen]);
 
   const { annualInflationRate, impliedMarketCapInOneYear } = useMemo(() => {
     const timestampIssuanceStart = buildData.timestampIssuanceStart;
@@ -87,10 +113,11 @@ export default function AnnualInflationCard() {
   }, [SECONDS_PER_YEAR]);
 
   // Simple SVG line chart component
-  const InflationChart = () => {
+  const InflationChart = React.memo(function InflationChart({ containerWidth }: { containerWidth: number }) {
     if (chartData.length === 0) return null;
 
-    const width = 600;
+    // Responsive width but fixed height
+    const width = Math.max(400, Math.min(containerWidth, 600)); // Clamp between 400-600px
     const height = 300;
     const padding = { top: 30, right: 30, bottom: 60, left: 70 };
     const chartWidth = width - padding.left - padding.right;
@@ -123,10 +150,10 @@ export default function AnnualInflationCard() {
 
     return (
       <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${width} ${height}`}
-        className="select-none"
+        key={width}
+        width={width}
+        height={height}
+        className="select-none mx-auto"
       >
         {/* Define gradient */}
         <defs>
@@ -218,7 +245,8 @@ export default function AnnualInflationCard() {
             y={padding.top + chartHeight + 25}
             textAnchor="middle"
             fill="#64748b"
-            className="text-xs font-medium"
+            fontSize="12"
+            fontWeight="500"
           >
             {year === 0 ? "Now" : `${year}Y`}
           </text>
@@ -246,7 +274,8 @@ export default function AnnualInflationCard() {
               textAnchor="end"
               dominantBaseline="middle"
               fill="#64748b"
-              className="text-xs font-medium"
+              fontSize="12"
+              fontWeight="500"
             >
               {formattedValue}%
             </text>
@@ -259,7 +288,8 @@ export default function AnnualInflationCard() {
           y={height - 8}
           textAnchor="middle"
           fill="#334155"
-          className="text-sm font-semibold"
+          fontSize="14"
+          fontWeight="600"
         >
           Time Horizon
         </text>
@@ -269,13 +299,14 @@ export default function AnnualInflationCard() {
           textAnchor="middle"
           transform={`rotate(-90, 18, ${height / 2})`}
           fill="#334155"
-          className="text-sm font-semibold"
+          fontSize="14"
+          fontWeight="600"
         >
           Inflation Rate
         </text>
       </svg>
     );
-  };
+  });
 
   return (
     <div className="rounded-md bg-primary/5 p-3 text-center dark:bg-primary">
@@ -395,11 +426,11 @@ export default function AnnualInflationCard() {
               </div>
 
               {/* Chart content */}
-              <div className="p-6 bg-white">
-                <div className="w-full h-[350px]">
-                  <InflationChart />
+              <div className="p-3 sm:p-6 bg-white">
+                <div ref={chartContainerRef} className="w-full h-[350px] flex items-center justify-center overflow-x-auto">
+                  <InflationChart containerWidth={containerWidth} />
                 </div>
-                <p className="text-xs text-muted-foreground text-center mt-4">
+                <p className="text-xs text-muted-foreground text-center mt-2 sm:mt-4">
                   Projected annual inflation rate based on constant {getSirSymbol()}{" "}
                   issuance over the next 5 years
                 </p>
