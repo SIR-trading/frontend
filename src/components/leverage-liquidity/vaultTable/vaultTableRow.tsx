@@ -374,11 +374,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="hover:opacity-70 transition-opacity"
+            className="hover:opacity-70 transition-opacity flex-shrink-0"
           >
             <TokenImage
               address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Collateral token"
@@ -390,11 +390,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="hover:opacity-70 transition-opacity"
+            className="hover:opacity-70 transition-opacity flex-shrink-0"
           >
             <TokenImage
               address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Debt token"
@@ -477,7 +477,7 @@ export function VaultTableRow({
           >
             <TokenImage
               address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Collateral token"
@@ -496,7 +496,7 @@ export function VaultTableRow({
           >
             <TokenImage
               address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Debt token"
@@ -582,7 +582,7 @@ export function VaultTableRow({
           >
             <TokenImage
               address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Collateral token"
@@ -601,7 +601,7 @@ export function VaultTableRow({
           >
             <TokenImage
               address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full"
+              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
               width={28}
               height={28}
               alt="Debt token"

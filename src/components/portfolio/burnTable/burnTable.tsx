@@ -243,8 +243,16 @@ export default function BurnTable({
         </div>
       )}
 
+      {/* Footnote for APE tokens */}
+      {(filter === "ape" || filter === "all") && apeLength > 0 && (
+        <div className="mt-3 text-xs text-muted-foreground">
+          <span className="mr-1">*</span>
+          Required price gains assume sufficient liquidity in the vault
+        </div>
+      )}
+
       {/* Footnote for TEA tokens */}
-      {filter === "tea" && teaLength > 0 && (
+      {(filter === "tea" || filter === "all") && teaLength > 0 && (
         <div className="mt-3 text-xs text-muted-foreground">
           <span className="mr-1">†</span>
           Required times assume APY remains constant

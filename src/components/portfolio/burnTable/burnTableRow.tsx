@@ -104,26 +104,41 @@ export function BurnTableRow({
   const pnlCollateral = currentCollateral - initialCollateral;
   const pnlDebtToken = currentDebtTokenValue - initialDebtTokenValue;
 
-  // Calculate leveraged and spot PnL for APE tokens
+  // Calculate pair prices for both APE and TEA tokens
+  let initialPrice = 0;
+  let currentPrice = 0;
+  let priceChangePercent = 0;
+
+  if (initialCollateral > 0 && currentCollateral > 0) {
+    initialPrice = initialDebtTokenValue / initialCollateral;
+    currentPrice = currentDebtTokenValue / currentCollateral;
+    if (initialPrice > 0) {
+      priceChangePercent = ((currentPrice - initialPrice) / initialPrice) * 100;
+    }
+  }
+
+  // Calculate PnL percentages for both APE and TEA tokens
+  let collateralPnlPercent = 0;
   let leveragedPnlPercent = 0;
   let spotPnlPercent = 0;
   let spotPnlDebt = 0;
   let spotPnlCollateral = 0;
 
-  if (isApe && initialDebtTokenValue > 0 && initialCollateral > 0) {
-    // Leveraged PnL percentage (using debt token as reference)
+  if (initialDebtTokenValue > 0 && initialCollateral > 0) {
+    // Collateral PnL percentage
+    collateralPnlPercent = (pnlCollateral / initialCollateral) * 100;
+
+    // Debt token PnL percentage
     leveragedPnlPercent = (pnlDebtToken / initialDebtTokenValue) * 100;
 
-    // Spot PnL: What if user held the collateral instead of taking leverage
-    // Price change = (current price / initial price - 1)
-    // where price = debtTokenValue / collateral
-    const currentPrice = currentDebtTokenValue / currentCollateral;
-    const initialPrice = initialDebtTokenValue / initialCollateral;
-    const priceChange = currentPrice / initialPrice;
+    if (isApe) {
+      // Spot PnL: What if user held the collateral instead of taking leverage
+      const priceChange = currentPrice / initialPrice;
 
-    spotPnlPercent = (priceChange - 1) * 100;
-    spotPnlDebt = initialCollateral * currentPrice - initialDebtTokenValue;
-    spotPnlCollateral = 0; // Holding spot collateral doesn't change collateral amount
+      spotPnlPercent = (priceChange - 1) * 100;
+      spotPnlDebt = initialCollateral * currentPrice - initialDebtTokenValue;
+      spotPnlCollateral = 0; // Holding spot collateral doesn't change collateral amount
+    }
   }
 
   const apeBalance = formatUnits(apeBal ?? 0n, tokenDecimals);
@@ -353,341 +368,483 @@ export function BurnTableRow({
   // Render content based on position type
   const content = isApe ? (
     <>
-        {/* Single row for APE position */}
-        <tr className="border-b border-foreground/5 text-left text-foreground">
-          {/* Token column */}
-          <td className="py-2 pr-4 font-normal">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-x-1">
-                <span className="">APE</span>
-                <span className="text-foreground/70">-</span>
-                <span className="text-xl text-accent-100">
-                  {getDisplayVaultId(row.vaultId)}
-                </span>
-              </div>
+      {/* Single row for APE position */}
+      <tr className="border-b border-foreground/5 text-left text-foreground">
+        {/* Token column */}
+        <td className="py-2 pr-4 font-normal">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-x-1">
+              <span className="">APE</span>
+              <span className="text-foreground/70">-</span>
+              <span className="text-xl text-accent-100">
+                {getDisplayVaultId(row.vaultId)}
+              </span>
             </div>
-          </td>
+          </div>
+        </td>
 
-          {/* Vault column */}
-          <td className="py-2 pr-4 font-normal text-foreground/80">
-            <div className="flex items-center">
-              {/* Small and Medium: Show only icons */}
-              <div className="flex items-center lg:hidden">
-                <Link
-                  href={collateralTokenUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  <TokenImage
-                    className="rounded-full bg-transparent"
-                    alt={row.collateralToken}
-                    address={row.collateralToken}
-                    width={20}
-                    height={20}
-                  />
-                </Link>
-                <span className="mx-1 text-[12px]">/</span>
-                <Link
-                  href={debtTokenUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  <TokenImage
-                    className="rounded-full"
-                    alt={row.debtSymbol}
-                    address={row.debtToken}
-                    width={20}
-                    height={20}
-                  />
-                </Link>
-                <sup className="ml-0.5 text-[10px] font-semibold">
-                  {getLeverageRatio(Number.parseInt(row.leverageTier))}
-                </sup>
-              </div>
-              {/* Large screens: Show icons with text */}
-              <div className="hidden items-center lg:flex">
-                <Link
-                  href={collateralTokenUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center hover:opacity-70 transition-opacity"
-                >
-                  <TokenImage
-                    className="rounded-full bg-transparent"
-                    alt={row.collateralToken}
-                    address={row.collateralToken}
-                    width={20}
-                    height={20}
-                  />
-                  <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
-                </Link>
-                <span className="mx-1 text-[14px]">/</span>
-                <Link
-                  href={debtTokenUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex items-center hover:opacity-70 transition-opacity"
-                >
-                  <TokenImage
-                    className="rounded-full"
-                    alt={row.debtSymbol}
-                    address={row.debtToken}
-                    width={20}
-                    height={20}
-                  />
-                  <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
-                </Link>
-                <sup className="ml-0.5 text-[10px] font-semibold">
-                  {getLeverageRatio(Number.parseInt(row.leverageTier))}
-                </sup>
-              </div>
-            </div>
-          </td>
-
-          {/* Value column - stacked values */}
-          <td className="py-2 pr-4 text-right font-normal">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-sm">
-                <DisplayFormattedNumber num={currentCollateral} significant={3} />
-                <span className="ml-0.5 text-foreground/60">{row.collateralSymbol}</span>
-              </span>
-              <span className="text-sm">
-                <span className="mr-0.5 text-foreground/60">≈</span>
-                <DisplayFormattedNumber num={currentDebtTokenValue} significant={3} />
-                <span className="ml-0.5 text-foreground/60">{row.debtSymbol}</span>
-              </span>
-            </div>
-          </td>
-
-          {/* PnL column */}
-          <td className="hidden py-2 pr-4 text-center font-normal md:table-cell">
-            <div className="flex flex-col gap-0.5">
-              <span className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                {pnlDebtToken >= 0 ? "+" : ""}
-                <DisplayFormattedNumber num={pnlDebtToken} significant={3} /> {row.debtSymbol}
-              </span>
-              <span className="italic text-[11px] text-foreground/60">
-                spot: {spotPnlDebt >= 0 ? "+" : ""}
-                <DisplayFormattedNumber num={spotPnlDebt} significant={3} /> {row.debtSymbol}
-              </span>
-            </div>
-          </td>
-
-          {/* % PnL column */}
-          <td className="relative hidden xs:table-cell py-2 pr-4 text-center font-normal">
-            <div className="flex flex-col gap-0.5">
-              <span className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}>
-                {leveragedPnlPercent >= 0 ? "+" : ""}
-                <DisplayFormattedNumber num={leveragedPnlPercent} significant={3} />%
-              </span>
-              <span className="italic text-[11px] text-foreground/60">
-                spot: {spotPnlPercent >= 0 ? "+" : ""}
-                <DisplayFormattedNumber num={spotPnlPercent} significant={3} />%
-              </span>
-            </div>
-            {/* Floating emoji for profitable positions */}
-            {pnlCollateral >= 0 && (
-              <HoverPopupMobile
-                size="200"
-                trigger={
-                  <button
-                    onClick={() => setShareModalOpen(true)}
-                    className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
-                  >
-                    {(() => {
-                      const percentGain = initialCollateral > 0 ? (pnlCollateral / initialCollateral) * 100 : 0;
-                      if (percentGain >= 200) return "🚀";
-                      if (percentGain >= 100) return "💎";
-                      if (percentGain >= 50) return "🔥";
-                      if (percentGain >= 20) return "⚡";
-                      return "✨";
-                    })()}
-                  </button>
-                }
+        {/* Vault column */}
+        <td className="py-2 pr-4 font-normal text-foreground/80">
+          <div className="flex items-center">
+            {/* Small and Medium: Show only icons */}
+            <div className="flex items-center lg:hidden">
+              <Link
+                href={collateralTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
               >
-                <span className="text-[13px] font-medium">
-                  Tweet about your {(() => {
-                    const percentGain = initialCollateral > 0 ? (pnlCollateral / initialCollateral) * 100 : 0;
-                    return percentGain >= 1 ? `${percentGain.toFixed(0)}%` : `${percentGain.toFixed(1)}%`;
-                  })()} {row.collateralSymbol} gains! 🎉
-                </span>
-              </HoverPopupMobile>
-            )}
-          </td>
+                <TokenImage
+                  className="min-h-[20px] min-w-[20px] rounded-full bg-transparent"
+                  alt={row.collateralToken}
+                  address={row.collateralToken}
+                  width={20}
+                  height={20}
+                />
+              </Link>
+              <span className="mx-1 text-[12px]">/</span>
+              <Link
+                href={debtTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
+              >
+                <TokenImage
+                  className="min-h-[20px] min-w-[20px] rounded-full"
+                  alt={row.debtSymbol}
+                  address={row.debtToken}
+                  width={20}
+                  height={20}
+                />
+              </Link>
+              <sup className="ml-0.5 text-[10px] font-semibold">
+                {getLeverageRatio(Number.parseInt(row.leverageTier))}
+              </sup>
+            </div>
+            {/* Large screens: Show icons with text */}
+            <div className="hidden items-center lg:flex">
+              <Link
+                href={collateralTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center transition-opacity hover:opacity-70"
+              >
+                <TokenImage
+                  className="min-h-[20px] min-w-[20px] flex-shrink-0 rounded-full bg-transparent"
+                  alt={row.collateralToken}
+                  address={row.collateralToken}
+                  width={20}
+                  height={20}
+                />
+                <span className="ml-1 text-[14px]">{row.collateralSymbol}</span>
+              </Link>
+              <span className="mx-1 text-[14px]">/</span>
+              <Link
+                href={debtTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center transition-opacity hover:opacity-70"
+              >
+                <TokenImage
+                  className="min-h-[20px] min-w-[20px] flex-shrink-0 rounded-full"
+                  alt={row.debtSymbol}
+                  address={row.debtToken}
+                  width={20}
+                  height={20}
+                />
+                <span className="ml-1 text-[14px]">{row.debtSymbol}</span>
+              </Link>
+              <sup className="ml-0.5 text-[10px] font-semibold">
+                {getLeverageRatio(Number.parseInt(row.leverageTier))}
+              </sup>
+            </div>
+          </div>
+        </td>
 
-          {/* Actions column */}
-          <td className="py-2 text-center">
-            {/* Small and Medium screens: Dropdown menu for all actions */}
-            <div className="xl:hidden">
-              <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`relative h-8 w-8 border border-foreground/20 bg-secondary p-0 hover:bg-primary/20 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 dark:hover:bg-primary ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? "claim-button-gold-glow" : ""}`}
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="border-foreground/10 bg-secondary"
+        {/* Price column - stacked values */}
+        <td className="hidden py-2 pr-4 text-left font-normal md:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <span className="text-foreground/80">
+                {row.collateralSymbol}:{" "}
+              </span>
+              <span>
+                {priceChangePercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber
+                  num={priceChangePercent}
+                  significant={2}
+                />
+                %
+              </span>
+            </span>
+            <span className="text-xs text-foreground/60">
+              (<DisplayFormattedNumber num={initialPrice} significant={2} />
+              <span className="mx-1">→</span>
+              <DisplayFormattedNumber num={currentPrice} significant={2} />
+              <span className="ml-1">{row.debtSymbol}</span>)
+            </span>
+          </div>
+        </td>
+
+        {/* Value column - stacked values */}
+        <td className="py-2 pr-4 text-right font-normal">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <DisplayFormattedNumber num={currentCollateral} significant={2} />
+              <span className="ml-0.5 text-foreground/60">
+                {row.collateralSymbol}
+              </span>
+            </span>
+            <span className="text-sm">
+              <span className="mr-0.5 text-foreground/60">≈</span>
+              <DisplayFormattedNumber
+                num={currentDebtTokenValue}
+                significant={2}
+              />
+              <span className="ml-0.5 text-foreground/60">
+                {row.debtSymbol}
+              </span>
+            </span>
+          </div>
+        </td>
+
+        {/* PnL column */}
+        <td className="hidden py-2 pr-4 text-right font-normal md:table-cell">
+          <HoverPopupMobile
+            size="250"
+            trigger={
+              <div className="flex cursor-pointer flex-col items-end gap-0.5">
+                <span
+                  className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
                 >
-                  {/* Share option - only show if position has reached break-even */}
-                  <Show when={pnlCollateral >= 0}>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        setShareModalOpen(true);
-                      }}
-                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                    >
-                      <TwitterIcon className="mr-2 h-3 w-3" />
-                      Share Gains
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-foreground/10" />
-                  </Show>
-                  <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedRow("claim")}
-                      disabled={!Number(teaRewards)}
-                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                    >
-                      <span>Claim</span>
-                      <span className="text-gray-300">
-                        <DisplayFormattedNumber num={rewards} significant={2} />{" "}
-                        {getSirSymbol()}
-                      </span>
-                    </DropdownMenuItem>
-                  </Show>
-                  <DropdownMenuItem
-                    onClick={() => setSelectedRow("burn")}
-                    disabled={
-                      isApe
-                        ? parseFloat(apeBalance) === 0
-                        : parseFloat(teaBalance) === 0
-                    }
-                    className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
-                  >
-                    Close
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-foreground/10" />
+                  {pnlCollateral >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber num={pnlCollateral} significant={2} />
+                  <span className="ml-0.5 text-foreground/60">
+                    {row.collateralSymbol}
+                  </span>
+                </span>
+                <span
+                  className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                >
+                  {pnlDebtToken >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
+                  <span className="ml-0.5 text-foreground/60">
+                    {row.debtSymbol}
+                  </span>
+                </span>
+              </div>
+            }
+          >
+            <span className="text-[13px] font-medium">
+              Had you held spot {row.collateralSymbol}, your PnL would be{" "}
+              {spotPnlDebt >= 0 ? "+" : ""}
+              <DisplayFormattedNumber num={spotPnlDebt} significant={2} />{" "}
+              {row.debtSymbol}
+            </span>
+          </HoverPopupMobile>
+        </td>
+
+        {/* % PnL column */}
+        <td className="relative hidden py-2 pr-4 text-center font-normal xs:table-cell">
+          <HoverPopupMobile
+            size="250"
+            trigger={
+              <div className="flex cursor-pointer flex-col gap-0.5">
+                <span
+                  className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                >
+                  {collateralPnlPercent >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber
+                    num={collateralPnlPercent}
+                    significant={2}
+                  />
+                  %
+                </span>
+                <span
+                  className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                >
+                  {leveragedPnlPercent >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber
+                    num={leveragedPnlPercent}
+                    significant={2}
+                  />
+                  %
+                </span>
+              </div>
+            }
+          >
+            <span className="text-[13px] font-medium">
+              Had you held spot {row.collateralSymbol}, your PnL would be{" "}
+              {spotPnlPercent >= 0 ? "+" : ""}
+              <DisplayFormattedNumber num={spotPnlPercent} significant={2} />%
+              in {row.debtSymbol}
+            </span>
+          </HoverPopupMobile>
+          {/* Floating emoji for profitable positions */}
+          {pnlCollateral >= 0 && (
+            <HoverPopupMobile
+              size="200"
+              trigger={
+                <button
+                  onClick={() => setShareModalOpen(true)}
+                  className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
+                >
+                  {(() => {
+                    const percentGain =
+                      initialCollateral > 0
+                        ? (pnlCollateral / initialCollateral) * 100
+                        : 0;
+                    if (percentGain >= 200) return "🚀";
+                    if (percentGain >= 100) return "💎";
+                    if (percentGain >= 50) return "🔥";
+                    if (percentGain >= 20) return "⚡";
+                    return "✨";
+                  })()}
+                </button>
+              }
+            >
+              <span className="text-[13px] font-medium">
+                Tweet about your{" "}
+                {(() => {
+                  const percentGain =
+                    initialCollateral > 0
+                      ? (pnlCollateral / initialCollateral) * 100
+                      : 0;
+                  return percentGain >= 1
+                    ? `${percentGain.toFixed(0)}%`
+                    : `${percentGain.toFixed(1)}%`;
+                })()}{" "}
+                {row.collateralSymbol} gains! 🎉
+              </span>
+            </HoverPopupMobile>
+          )}
+        </td>
+
+        {/* Break-even price gain column - stacked values */}
+        <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.breakeven.collateral}
+                className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.breakeven.debtToken}
+                className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
+        </td>
+
+        {/* 2x price gain column - stacked values */}
+        <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.double.collateral}
+                className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.double.debtToken}
+                className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
+        </td>
+
+        {/* 10x price gain column - stacked values */}
+        <td className="hidden py-2 pr-4 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.tenx.collateral}
+                className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <PriceIncreaseDisplay
+                percentage={priceIncreaseTargets.tenx.debtToken}
+                className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
+        </td>
+
+        {/* Actions column */}
+        <td className="py-2 text-center">
+          {/* Small and Medium screens: Dropdown menu for all actions */}
+          <div className="xl:hidden">
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={`relative h-8 w-8 border border-foreground/20 bg-secondary p-0 hover:bg-primary/20 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 dark:hover:bg-primary ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? "claim-button-gold-glow" : ""}`}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="border-foreground/10 bg-secondary"
+              >
+                {/* Share option - only show if position has reached break-even */}
+                <Show when={pnlCollateral >= 0}>
                   <DropdownMenuItem
                     onClick={() => {
                       setDropdownOpen(false);
-                      setTimeout(() => setSelectedRow("transfer"), 100);
+                      setShareModalOpen(true);
                     }}
-                    disabled={
-                      isApe
-                        ? parseFloat(apeBalance) === 0
-                        : parseFloat(teaBalance) === 0
-                    }
                     className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
                   >
-                    <Send className="mr-2 h-3 w-3" />
-                    Transfer
+                    <TwitterIcon className="mr-2 h-3 w-3" />
+                    Share Gains
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            {/* Large screens: Close button + More dropdown */}
-            <div className="hidden justify-center space-x-1 xl:flex">
-              <Button
-                onClick={() => {
-                  setSelectedRow("burn");
-                }}
-                disabled={
-                  isApe
-                    ? parseFloat(apeBalance) === 0
-                    : parseFloat(teaBalance) === 0
-                }
-                type="button"
-                className="h-7 rounded-md px-3 text-[12px]"
-              >
-                Close
-              </Button>
-              {/* More dropdown for additional actions */}
-              <DropdownMenu
-                open={dropdownOpenLg}
-                onOpenChange={setDropdownOpenLg}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`relative h-7 w-7 border border-foreground/20 bg-secondary p-0 hover:bg-primary/20 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 dark:hover:bg-primary ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? "claim-button-gold-glow" : ""}`}
+                  <DropdownMenuSeparator className="bg-foreground/10" />
+                </Show>
+                <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
+                  <DropdownMenuItem
+                    onClick={() => setSelectedRow("claim")}
+                    disabled={!Number(teaRewards)}
+                    className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
                   >
-                    <MoreVertical className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="border-foreground/10 bg-secondary"
+                    <span>Claim</span>
+                    <span className="text-gray-300">
+                      <DisplayFormattedNumber num={rewards} significant={2} />{" "}
+                      {getSirSymbol()}
+                    </span>
+                  </DropdownMenuItem>
+                </Show>
+                <DropdownMenuItem
+                  onClick={() => setSelectedRow("burn")}
+                  disabled={
+                    isApe
+                      ? parseFloat(apeBalance) === 0
+                      : parseFloat(teaBalance) === 0
+                  }
+                  className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
                 >
-                  {/* Share option - only show if position has reached break-even */}
-                  <Show when={pnlCollateral >= 0}>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDropdownOpenLg(false);
-                        setShareModalOpen(true);
-                      }}
-                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                    >
-                      <TwitterIcon className="mr-2 h-3 w-3" />
-                      Share Gains
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-foreground/10" />
-                  </Show>
-                  <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDropdownOpenLg(false);
-                        setTimeout(() => setSelectedRow("claim"), 100);
-                      }}
-                      disabled={!Number(teaRewards)}
-                      className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                    >
-                      <span>Claim</span>
-                      <span className="text-gray-300">
-                        <DisplayFormattedNumber num={rewards} significant={2} />{" "}
-                        {getSirSymbol()}
-                      </span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-foreground/10" />
-                  </Show>
+                  Close
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-foreground/10" />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    setTimeout(() => setSelectedRow("transfer"), 100);
+                  }}
+                  disabled={
+                    isApe
+                      ? parseFloat(apeBalance) === 0
+                      : parseFloat(teaBalance) === 0
+                  }
+                  className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                >
+                  <Send className="mr-2 h-3 w-3" />
+                  Transfer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Large screens: Close button + More dropdown */}
+          <div className="hidden justify-center space-x-1 xl:flex">
+            <Button
+              onClick={() => {
+                setSelectedRow("burn");
+              }}
+              disabled={
+                isApe
+                  ? parseFloat(apeBalance) === 0
+                  : parseFloat(teaBalance) === 0
+              }
+              type="button"
+              className="h-7 rounded-md px-3 text-[12px]"
+            >
+              Close
+            </Button>
+            {/* More dropdown for additional actions */}
+            <DropdownMenu
+              open={dropdownOpenLg}
+              onOpenChange={setDropdownOpenLg}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={`relative h-7 w-7 border border-foreground/20 bg-secondary p-0 hover:bg-primary/20 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 dark:hover:bg-primary ${!isApe && (teaRewards ?? 0n) >= 100000000000000000n ? "claim-button-gold-glow" : ""}`}
+                >
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="border-foreground/10 bg-secondary"
+              >
+                {/* Share option - only show if position has reached break-even */}
+                <Show when={pnlCollateral >= 0}>
                   <DropdownMenuItem
                     onClick={() => {
                       setDropdownOpenLg(false);
-                      setTimeout(() => setSelectedRow("transfer"), 100);
+                      setShareModalOpen(true);
                     }}
-                    disabled={
-                      isApe
-                        ? parseFloat(apeBalance) === 0
-                        : parseFloat(teaBalance) === 0
-                    }
                     className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
                   >
-                    <Send className="mr-2 h-3 w-3" />
-                    Transfer
+                    <TwitterIcon className="mr-2 h-3 w-3" />
+                    Share Gains
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </td>
-        </tr>
-      </>
+                  <DropdownMenuSeparator className="bg-foreground/10" />
+                </Show>
+                <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setDropdownOpenLg(false);
+                      setTimeout(() => setSelectedRow("claim"), 100);
+                    }}
+                    disabled={!Number(teaRewards)}
+                    className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                  >
+                    <span>Claim</span>
+                    <span className="text-gray-300">
+                      <DisplayFormattedNumber num={rewards} significant={2} />{" "}
+                      {getSirSymbol()}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-foreground/10" />
+                </Show>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDropdownOpenLg(false);
+                    setTimeout(() => setSelectedRow("transfer"), 100);
+                  }}
+                  disabled={
+                    isApe
+                      ? parseFloat(apeBalance) === 0
+                      : parseFloat(teaBalance) === 0
+                  }
+                  className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                >
+                  <Send className="mr-2 h-3 w-3" />
+                  Transfer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </td>
+      </tr>
+    </>
   ) : (
-    // TEA token rows (2 rows)
+    // TEA token row (single row with stacked content)
     <>
-      {/* First row - collateral values */}
-      <tr className="text-left text-foreground">
-        {/* Token column - spans 2 rows */}
-        <td rowSpan={2} className="py-2 pr-4 font-normal">
+      {/* Single row for TEA position */}
+      <tr className="border-b border-foreground/5 text-left text-foreground">
+        {/* Token column */}
+        <td className="py-2 pr-4 font-normal">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-1">
               {vaultData && parseUnits(vaultData.rate || "0", 0) > 0n ? (
@@ -755,7 +912,7 @@ export function BurnTableRow({
                           You are earning{" "}
                           <DisplayFormattedNumber
                             num={formatUnits(userDailyEarnings, 12)}
-                            significant={3}
+                            significant={2}
                           />{" "}
                           {getSirSymbol()}/day from this vault.
                         </>
@@ -774,8 +931,8 @@ export function BurnTableRow({
           </div>
         </td>
 
-        {/* Vault column - spans 2 rows */}
-        <td rowSpan={2} className="py-2 pr-4 font-normal text-foreground/80">
+        {/* Vault column */}
+        <td className="py-2 pr-4 font-normal text-foreground/80">
           <div className="flex items-center">
             {/* Small and Medium: Show only icons */}
             <div className="flex items-center lg:hidden">
@@ -784,10 +941,10 @@ export function BurnTableRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="hover:opacity-70 transition-opacity"
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
               >
                 <TokenImage
-                  className="rounded-full bg-transparent"
+                  className="min-h-[20px] min-w-[20px] rounded-full bg-transparent"
                   alt={row.collateralToken}
                   address={row.collateralToken}
                   width={20}
@@ -800,10 +957,10 @@ export function BurnTableRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="hover:opacity-70 transition-opacity"
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
               >
                 <TokenImage
-                  className="rounded-full"
+                  className="min-h-[20px] min-w-[20px] rounded-full"
                   alt={row.debtSymbol}
                   address={row.debtToken}
                   width={20}
@@ -821,10 +978,10 @@ export function BurnTableRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center hover:opacity-70 transition-opacity"
+                className="flex items-center transition-opacity hover:opacity-70"
               >
                 <TokenImage
-                  className="rounded-full bg-transparent"
+                  className="min-h-[20px] min-w-[20px] flex-shrink-0 rounded-full bg-transparent"
                   alt={row.collateralToken}
                   address={row.collateralToken}
                   width={20}
@@ -838,10 +995,10 @@ export function BurnTableRow({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center hover:opacity-70 transition-opacity"
+                className="flex items-center transition-opacity hover:opacity-70"
               >
                 <TokenImage
-                  className="rounded-full"
+                  className="min-h-[20px] min-w-[20px] flex-shrink-0 rounded-full"
                   alt={row.debtSymbol}
                   address={row.debtToken}
                   width={20}
@@ -856,35 +1013,83 @@ export function BurnTableRow({
           </div>
         </td>
 
-        {/* Value column - collateral */}
-        <td className="pb-0.5 pr-4 pt-1.5 text-right font-normal">
-          <span className="text-sm">
-            <DisplayFormattedNumber num={currentCollateral} significant={3} />
-            <span className="ml-0.5 text-foreground/60">
-              {row.collateralSymbol}
+        {/* Price column - stacked values */}
+        <td className="hidden py-2 pr-4 text-left font-normal md:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <span className="text-foreground/80">
+                {row.collateralSymbol}:{" "}
+              </span>
+              <span>
+                {priceChangePercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber
+                  num={priceChangePercent}
+                  significant={2}
+                />
+                %
+              </span>
             </span>
-          </span>
+            <span className="text-xs text-foreground/60">
+              (<DisplayFormattedNumber num={initialPrice} significant={2} />
+              <span className="mx-1">→</span>
+              <DisplayFormattedNumber num={currentPrice} significant={2} />
+              <span className="ml-1">{row.debtSymbol}</span>)
+            </span>
+          </div>
         </td>
 
-        {/* PnL column - collateral */}
-        <td className="relative hidden md:table-cell pb-0.5 pr-4 pt-1.5 text-right font-normal">
-          <span
-            className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {pnlCollateral >= 0 ? "+" : ""}
-            <DisplayFormattedNumber num={pnlCollateral} significant={3} />
-            <span className="ml-0.5 text-foreground/60">
-              {row.collateralSymbol}
+        {/* Value column - stacked values */}
+        <td className="py-2 pr-4 text-right font-normal">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <DisplayFormattedNumber num={currentCollateral} significant={2} />
+              <span className="ml-0.5 text-foreground/60">
+                {row.collateralSymbol}
+              </span>
             </span>
-          </span>
-          {/* Floating emoji for profitable positions - positioned between rows */}
+            <span className="text-sm">
+              <span className="mr-0.5 text-foreground/60">≈</span>
+              <DisplayFormattedNumber
+                num={currentDebtTokenValue}
+                significant={2}
+              />
+              <span className="ml-0.5 text-foreground/60">
+                {row.debtSymbol}
+              </span>
+            </span>
+          </div>
+        </td>
+
+        {/* PnL column - stacked values */}
+        <td className="relative hidden py-2 pr-4 text-right font-normal md:table-cell">
+          <div className="flex flex-col items-end gap-0.5">
+            <span
+              className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+            >
+              {pnlCollateral >= 0 ? "+" : ""}
+              <DisplayFormattedNumber num={pnlCollateral} significant={2} />
+              <span className="ml-0.5 text-foreground/60">
+                {row.collateralSymbol}
+              </span>
+            </span>
+            <span
+              className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+            >
+              {pnlDebtToken >= 0 ? "+" : ""}
+              <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
+              <span className="ml-0.5 text-foreground/60">
+                {row.debtSymbol}
+              </span>
+            </span>
+          </div>
+          {/* Floating emoji for profitable positions */}
           {pnlCollateral >= 0 && (
             <HoverPopupMobile
               size="200"
               trigger={
                 <button
                   onClick={() => setShareModalOpen(true)}
-                  className="absolute -right-2 bottom-[-8px] z-10 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
+                  className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
                 >
                   {(() => {
                     const percentGain =
@@ -892,63 +1097,136 @@ export function BurnTableRow({
                         ? (pnlCollateral / initialCollateral) * 100
                         : 0;
 
-                    if (percentGain >= 200) return "🚀"; // 200%+ gains - rocket
-                    if (percentGain >= 100) return "💎"; // 100-200% gains - diamond hands
-                    if (percentGain >= 50) return "🔥"; // 50-100% gains - fire
-                    if (percentGain >= 20) return "⚡"; // 20-50% gains - lightning
-                    return "✨"; // 0-20% gains - sparkles
+                    if (percentGain >= 200) return "🚀";
+                    if (percentGain >= 100) return "💎";
+                    if (percentGain >= 50) return "🔥";
+                    if (percentGain >= 20) return "⚡";
+                    return "✨";
                   })()}
                 </button>
               }
             >
               <span className="text-[13px] font-medium">
-                Tweet about your {(() => {
-                  const percentGain = initialCollateral > 0
-                    ? (pnlCollateral / initialCollateral) * 100
-                    : 0;
+                Tweet about your{" "}
+                {(() => {
+                  const percentGain =
+                    initialCollateral > 0
+                      ? (pnlCollateral / initialCollateral) * 100
+                      : 0;
                   return percentGain >= 1
                     ? `${percentGain.toFixed(0)}%`
                     : `${percentGain.toFixed(1)}%`;
-                })()} {row.collateralSymbol} gains! 🎉
+                })()}{" "}
+                {row.collateralSymbol} gains! 🎉
               </span>
             </HoverPopupMobile>
           )}
         </td>
 
-        {/* Break-even time column */}
-        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && breakevenTimeDays !== 0
-                ? Infinity
-                : breakevenTimeDays
-            }
-            className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
+        {/* % PnL column - stacked values */}
+        <td className="hidden py-2 pr-4 text-center font-normal xs:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+            >
+              {collateralPnlPercent >= 0 ? "+" : ""}
+              <DisplayFormattedNumber
+                num={collateralPnlPercent}
+                significant={2}
+              />
+              %
+            </span>
+            <span
+              className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+            >
+              {leveragedPnlPercent >= 0 ? "+" : ""}
+              <DisplayFormattedNumber
+                num={leveragedPnlPercent}
+                significant={2}
+              />
+              %
+            </span>
+          </div>
         </td>
 
-        {/* 2x time column */}
-        <td className="hidden pb-0.5 pr-2 pt-1.5 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && doubleTimeDays !== 0 ? Infinity : doubleTimeDays
-            }
-            className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
+        {/* Break-even time column - stacked values */}
+        <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && breakevenTimeDays !== 0
+                    ? Infinity
+                    : breakevenTimeDays
+                }
+                className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && breakevenDebtTimeDays !== 0
+                    ? Infinity
+                    : breakevenDebtTimeDays
+                }
+                className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
         </td>
 
-        {/* 10x time column */}
-        <td className="hidden pb-0.5 pr-4 pt-1.5 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
-            }
-            className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
+        {/* 2x time column - stacked values */}
+        <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && doubleTimeDays !== 0
+                    ? Infinity
+                    : doubleTimeDays
+                }
+                className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && doubleDebtTimeDays !== 0
+                    ? Infinity
+                    : doubleDebtTimeDays
+                }
+                className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
         </td>
 
-        {/* Actions column - spans 2 rows */}
-        <td rowSpan={2} className="py-2 text-center">
+        {/* 10x time column - stacked values */}
+        <td className="hidden py-2 pr-4 text-right font-normal xl:table-cell">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
+                }
+                className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+            <span className="text-sm">
+              <TimeDisplay
+                days={
+                  isInfiniteTime && tenxDebtTimeDays !== 0
+                    ? Infinity
+                    : tenxDebtTimeDays
+                }
+                className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              />
+            </span>
+          </div>
+        </td>
+
+        {/* Actions column */}
+        <td className="py-2 text-center">
           {/* Small and Medium screens: Dropdown menu for all actions */}
           <div className="xl:hidden">
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -1076,68 +1354,6 @@ export function BurnTableRow({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </td>
-      </tr>
-
-      {/* Second row - debt token values */}
-      <tr className="border-b border-foreground/5 text-left text-foreground">
-        {/* Value column - debt token */}
-        <td className="pb-1.5 pr-4 pt-0 text-right font-normal">
-          <span className="text-sm">
-            <span className="mr-0.5 text-foreground/60">≈</span>
-            <DisplayFormattedNumber
-              num={currentDebtTokenValue}
-              significant={3}
-            />
-            <span className="ml-0.5 text-foreground/60">{row.debtSymbol}</span>
-          </span>
-        </td>
-
-        {/* PnL column - debt token */}
-        <td className="hidden md:table-cell pb-1.5 pr-4 pt-0 text-right font-normal">
-          <span
-            className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          >
-            {pnlDebtToken >= 0 ? "+" : ""}
-            <DisplayFormattedNumber num={pnlDebtToken} significant={3} />
-            <span className="ml-0.5 text-foreground/60">{row.debtSymbol}</span>
-          </span>
-        </td>
-
-        {/* Break-even time column - debt token */}
-        <td className="hidden pb-1.5 pr-2 pt-0 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && breakevenDebtTimeDays !== 0
-                ? Infinity
-                : breakevenDebtTimeDays
-            }
-            className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
-        </td>
-
-        {/* 2x time column - debt token */}
-        <td className="hidden pb-1.5 pr-2 pt-0 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && doubleDebtTimeDays !== 0
-                ? Infinity
-                : doubleDebtTimeDays
-            }
-            className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
-        </td>
-
-        {/* 10x time column - debt token */}
-        <td className="hidden pb-1.5 pr-4 pt-0 text-right font-normal xs:table-cell">
-          <TimeDisplay
-            days={
-              isInfiniteTime && tenxDebtTimeDays !== 0
-                ? Infinity
-                : tenxDebtTimeDays
-            }
-            className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-          />
         </td>
       </tr>
     </>

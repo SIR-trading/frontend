@@ -13,7 +13,7 @@ import { FxemojiMonkeyface } from "../ui/icons/monkey-icon";
 import { NotoTeapot } from "../ui/icons/teapot-icon";
 export default function PortfolioPage() {
   return (
-    <div className="lg:w-[900px] ">
+    <div className="lg:w-[950px] xl:w-[1100px]">
       <PageHeadingSpace />
       {/* <div className="pt-[44px]" /> */}
       <Container className="space-y-4">
