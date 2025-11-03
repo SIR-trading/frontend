@@ -337,35 +337,50 @@ executeMulticall({ functionName: "multicall", args: [calls] });
 
 **For plain text** (tweets, etc.): Use `formatNumber` from `@/lib/utils`.
 
-### ToolTip Component
+### Tooltip Architecture
 
-**Consistent tooltips** with portal rendering:
+**IMPORTANT**: All tooltips use a unified component system. DO NOT create separate mobile/desktop tooltip components.
+
+**Two components only:**
+
+1. **`HoverPopup`** (`src/components/ui/hover-popup.tsx`) - Universal popup component
+   - Automatically detects hover capability using `(hover: hover)` media query
+   - Uses HoverCard for desktop, Popover for mobile/touch devices
+   - Centralized styling - update in ONE place only
+
+2. **`ToolTip`** (`src/components/ui/tooltip.tsx`) - Simple wrapper that adds Info icon
+   - Uses HoverPopup internally
+   - Only purpose: add the Info icon trigger
+
+**Usage patterns:**
 
 ```tsx
+// With Info icon (most common)
 <ToolTip iconSize={16} size="300">Content</ToolTip>
-```
 
-**Critical requirements:**
-- Portal rendering (`HoverCardPrimitive.Portal`) - prevents parent style bleed
-- High z-index (`z-[9999]`)
-- Consistent styling: `bg-black/90 dark:bg-white/90`
-- Match icon size to text: `iconSize={16}` for normal, `14` for small
-- Width: `size="200"` (narrow), `"250"` (default), `"300"` (wide)
-
-### HoverPopupMobile
-
-**Mobile-friendly hover tooltips:**
-
-```tsx
-<HoverPopupMobile
+// Custom trigger element
+<HoverPopup
   size="200"
   trigger={<button className="cursor-pointer">Hover</button>}
 >
   <span className="text-[13px] font-medium">Content</span>
-</HoverPopupMobile>
+</HoverPopup>
 ```
 
+**Component features:**
+- Portal rendering - prevents parent style bleed
+- High z-index (`z-[9999]`)
+- Flat color background: `bg-black dark:bg-white`
+- Match icon size to text: `iconSize={16}` for normal, `14` for small
+- Width: `size="200"` (narrow), `"250"` (default), `"300"` (wide)
+
 **Cursor convention**: ALWAYS use `cursor-pointer`, NEVER `cursor-help`.
+
+**DO NOT**:
+- Create separate "mobile" vs "desktop" tooltip components
+- Duplicate tooltip logic or styling
+- Add manual device detection (HoverPopup handles this)
+- Style tooltips inline (update HoverPopup component instead)
 
 ### Theme-Based Image Switching
 
@@ -408,4 +423,4 @@ executeMulticall({ functionName: "multicall", args: [calls] });
 ### UI Components
 - Button: `src/components/ui/button.tsx`
 - Number formatting: `src/components/shared/displayFormattedNumber.tsx`
-- Tooltips: `src/components/ui/tooltip.tsx`, `src/components/ui/hover-popup-mobile.tsx`
+- Tooltips: `src/components/ui/hover-popup.tsx` (universal), `src/components/ui/tooltip.tsx` (Info icon wrapper)

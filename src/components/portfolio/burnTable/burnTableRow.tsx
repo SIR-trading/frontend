@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Send, ChevronDown, ChevronUp } from "lucide-react";
-import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+import HoverPopup from "@/components/ui/hover-popup";
 import { parseUnits } from "viem";
 import { useVaultData } from "@/contexts/VaultDataContext";
 import {
@@ -514,7 +514,7 @@ export function BurnTableRow({
 
         {/* PnL column */}
         <td className="hidden py-2 pr-4 text-right font-normal md:table-cell">
-          <HoverPopupMobile
+          <HoverPopup
             size="250"
             trigger={
               <div className="flex cursor-pointer flex-col items-end gap-0.5">
@@ -545,12 +545,12 @@ export function BurnTableRow({
               <DisplayFormattedNumber num={spotPnlDebt} significant={2} />{" "}
               {row.debtSymbol}
             </span>
-          </HoverPopupMobile>
+          </HoverPopup>
         </td>
 
         {/* % PnL column */}
         <td className="relative hidden py-2 pr-4 text-center font-normal xs:table-cell">
-          <HoverPopupMobile
+          <HoverPopup
             size="250"
             trigger={
               <div className="flex cursor-pointer flex-col gap-0.5">
@@ -583,10 +583,10 @@ export function BurnTableRow({
               <DisplayFormattedNumber num={spotPnlPercent} significant={2} />%
               in {row.debtSymbol}
             </span>
-          </HoverPopupMobile>
+          </HoverPopup>
           {/* Floating emoji for profitable positions */}
           {pnlCollateral >= 0 && (
-            <HoverPopupMobile
+            <HoverPopup
               size="200"
               trigger={
                 <button
@@ -620,7 +620,7 @@ export function BurnTableRow({
                 })()}{" "}
                 {row.collateralSymbol} gains! 🎉
               </span>
-            </HoverPopupMobile>
+            </HoverPopup>
           )}
         </td>
 
@@ -848,7 +848,7 @@ export function BurnTableRow({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-1">
               {vaultData && parseUnits(vaultData.rate || "0", 0) > 0n ? (
-                <HoverPopupMobile
+                <HoverPopup
                   size="200"
                   asChild
                   trigger={
@@ -919,7 +919,7 @@ export function BurnTableRow({
                       );
                     })()}
                   </span>
-                </HoverPopupMobile>
+                </HoverPopup>
               ) : (
                 <span className="">TEA</span>
               )}
@@ -1084,7 +1084,7 @@ export function BurnTableRow({
           </div>
           {/* Floating emoji for profitable positions */}
           {pnlCollateral >= 0 && (
-            <HoverPopupMobile
+            <HoverPopup
               size="200"
               trigger={
                 <button
@@ -1119,7 +1119,7 @@ export function BurnTableRow({
                 })()}{" "}
                 {row.collateralSymbol} gains! 🎉
               </span>
-            </HoverPopupMobile>
+            </HoverPopup>
           )}
         </td>
 

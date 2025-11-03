@@ -11,7 +11,7 @@ import { LpUnstakeModal } from "./LpUnstakeModal";
 import { LpClaimRewardsModal } from "./LpClaimRewardsModal";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CheckCircle2, XCircle } from "lucide-react";
-import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+import HoverPopup from "@/components/ui/hover-popup";
 import ToolTip from "@/components/ui/tooltip";
 import { ManageDexLiquidityButton } from "@/components/manageDexLiquidityButton";
 import { useAccount } from "wagmi";
@@ -155,7 +155,7 @@ export function LpStakingArea() {
                   ) : !isLoading ? (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <HoverPopupMobile
+                        <HoverPopup
                           trigger={
                             <div className="flex cursor-pointer items-baseline gap-1">
                               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -176,11 +176,11 @@ export function LpStakingArea() {
                           <span className="text-[13px] font-medium">
                             In range
                           </span>
-                        </HoverPopupMobile>
+                        </HoverPopup>
                         <span className="text-2xl text-muted-foreground">
                           +
                         </span>
-                        <HoverPopupMobile
+                        <HoverPopup
                           trigger={
                             <div className="flex cursor-pointer items-baseline gap-1">
                               <XCircle className="h-4 w-4 text-muted-foreground" />
@@ -202,9 +202,9 @@ export function LpStakingArea() {
                           <span className="text-[13px] font-medium">
                             Out of range
                           </span>
-                        </HoverPopupMobile>
+                        </HoverPopup>
                         {unstakedPositions.length > 0 && (
-                          <HoverPopupMobile
+                          <HoverPopup
                             trigger={
                               <div className="flex cursor-pointer items-baseline gap-1 ml-2">
                                 <span className="text-sm text-muted-foreground hover:text-foreground">
@@ -255,7 +255,7 @@ export function LpStakingArea() {
                                 </div>
                               ))}
                             </div>
-                          </HoverPopupMobile>
+                          </HoverPopup>
                         )}
                       </div>
                     </>
@@ -301,7 +301,7 @@ export function LpStakingArea() {
                   ) : !isLoading ? (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <HoverPopupMobile
+                        <HoverPopup
                           trigger={
                             <div className="flex cursor-pointer items-baseline gap-1">
                               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -322,11 +322,11 @@ export function LpStakingArea() {
                           <span className="text-[13px] font-medium">
                             In range
                           </span>
-                        </HoverPopupMobile>
+                        </HoverPopup>
                         <span className="text-2xl text-muted-foreground">
                           +
                         </span>
-                        <HoverPopupMobile
+                        <HoverPopup
                           trigger={
                             <div className="flex cursor-pointer items-baseline gap-1">
                               <XCircle className="h-4 w-4 text-muted-foreground" />
@@ -348,9 +348,9 @@ export function LpStakingArea() {
                           <span className="text-[13px] font-medium">
                             Out of range
                           </span>
-                        </HoverPopupMobile>
+                        </HoverPopup>
                         {stakedPositions.length > 0 && (
-                          <HoverPopupMobile
+                          <HoverPopup
                             trigger={
                               <div className="flex cursor-pointer items-baseline gap-1 ml-2">
                                 <span className="text-sm text-muted-foreground hover:text-foreground">
@@ -401,7 +401,7 @@ export function LpStakingArea() {
                                 </div>
                               ))}
                             </div>
-                          </HoverPopupMobile>
+                          </HoverPopup>
                         )}
                       </div>
                     </>

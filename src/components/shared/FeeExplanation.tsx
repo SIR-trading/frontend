@@ -1,12 +1,6 @@
 import React from "react";
 import { Info } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { PopoverArrow } from "@radix-ui/react-popover";
 import buildData from "@/../public/build-data.json";
 
 const BASE_FEE = buildData.systemParams.baseFee;
@@ -20,14 +14,6 @@ export function FeeExplanation({
   leverageTier,
   compact = false,
 }: FeeExplanationProps) {
-  // Hooks must be called unconditionally at the top level
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsMobile("ontouchstart" in window || navigator.maxTouchPoints > 0);
-  }, []);
-
   // Calculate actual leverage from tier: leverage = 1 + 2^leverageTier
   // Negative tiers give lower leverage (e.g., tier -1 = 1.5x, tier 0 = 2x, tier 1 = 3x)
   const tierValue = leverageTier ? parseFloat(leverageTier) : 1;
@@ -64,106 +50,84 @@ export function FeeExplanation({
 
   // Custom inline tooltip with better visibility
   const triggerElement = (
-      <div className="inline-flex cursor-pointer items-center justify-center align-middle text-foreground">
-        <Info size={14} strokeWidth={2} />
-      </div>
-    );
+    <div className="inline-flex cursor-pointer items-center justify-center align-middle text-foreground">
+      <Info size={14} strokeWidth={2} />
+    </div>
+  );
 
-    const content = (
-      <div className="space-y-3">
-        <div className="font-semibold">Why this fee?</div>
+  const content = (
+    <div className="space-y-3">
+      <div className="font-semibold">Why this fee?</div>
 
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <span>•</span>
-            <div>
-              <div className="font-medium">One-time only</div>
-              <div className="text-xs opacity-80">
-                No daily funding fees that drain your position over time
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2">
-            <span>•</span>
-            <div>
-              <div className="font-medium">Zero liquidation risk</div>
-              <div className="text-xs opacity-80">
-                Your position can never be forcibly closed, even in extreme
-                volatility
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2">
-            <span>•</span>
-            <div>
-              <div className="font-medium">No volatility decay*</div>
-              <div className="text-xs opacity-80">
-                No decay even in choppy/sideways markets
-              </div>
-              <div className="text-[10px] opacity-60 italic mt-0.5">
-                *May occur if price exceeds saturation price (depends on liquidity)
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2">
-            <span>•</span>
-            <div>
-              <div className="font-medium">
-                Exponential gains* (^{leverageRatio})
-              </div>
-              <div className="space-y-0.5 text-xs opacity-80">
-                <div>-50% price change = {gainNeg50}% gain</div>
-                <div>0% price change = {gain0}% gain</div>
-                <div>+50% price change = {gain50}% gain</div>
-                <div>+100% price change = {gain100}% gain</div>
-                <div>+400% price change = {gain400}% gain</div>
-              </div>
-              <div className="text-[10px] opacity-60 italic mt-0.5">
-                *Assumes sufficient vault liquidity
-              </div>
+      <div className="space-y-2">
+        <div className="flex items-start gap-2">
+          <span>•</span>
+          <div>
+            <div className="font-medium">One-time only</div>
+            <div className="text-xs opacity-80">
+              No daily funding fees that drain your position over time
             </div>
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-2 dark:border-black/10">
-          <div className="text-xs opacity-70">
-            Margin trading, perps, leveraged ETFs: Daily fees + liquidations + linear gains or volatility decay
+        <div className="flex items-start gap-2">
+          <span>•</span>
+          <div>
+            <div className="font-medium">Zero liquidation risk</div>
+            <div className="text-xs opacity-80">
+              Your position can never be forcibly closed, even in extreme
+              volatility
+            </div>
           </div>
-          <div className="mt-1 text-xs font-medium">
-            SIR: One-time fee + no decay + exponential gains + no liquidation
+        </div>
+
+        <div className="flex items-start gap-2">
+          <span>•</span>
+          <div>
+            <div className="font-medium">No volatility decay*</div>
+            <div className="text-xs opacity-80">
+              No decay even in choppy/sideways markets
+            </div>
+            <div className="text-[10px] opacity-60 italic mt-0.5">
+              *May occur if price exceeds saturation price (depends on liquidity)
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2">
+          <span>•</span>
+          <div>
+            <div className="font-medium">
+              Exponential gains* (^{leverageRatio})
+            </div>
+            <div className="space-y-0.5 text-xs opacity-80">
+              <div>-50% price change = {gainNeg50}% gain</div>
+              <div>0% price change = {gain0}% gain</div>
+              <div>+50% price change = {gain50}% gain</div>
+              <div>+100% price change = {gain100}% gain</div>
+              <div>+400% price change = {gain400}% gain</div>
+            </div>
+            <div className="text-[10px] opacity-60 italic mt-0.5">
+              *Assumes sufficient vault liquidity
+            </div>
           </div>
         </div>
       </div>
-    );
 
-    // Use Popover for mobile/touch devices
-    if (isMobile) {
-      return (
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>{triggerElement}</PopoverTrigger>
-          <PopoverContent
-            side="top"
-            align="center"
-            className="max-w-[300px] rounded-md border border-black/20 bg-black/90 px-3 py-3 text-left text-xs text-white shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/90 dark:text-black"
-          >
-            {content}
-            <PopoverArrow
-              className="fill-black/90 dark:fill-white/90"
-              height={15}
-              width={10}
-            />
-          </PopoverContent>
-        </Popover>
-      );
-    }
+      <div className="border-t border-white/10 pt-2 dark:border-black/10">
+        <div className="text-xs opacity-70">
+          Margin trading, perps, leveraged ETFs: Daily fees + liquidations + linear gains or volatility decay
+        </div>
+        <div className="mt-1 text-xs font-medium">
+          SIR: One-time fee + no decay + exponential gains + no liquidation
+        </div>
+      </div>
+    </div>
+  );
 
-    // Use HoverPopup for desktop
-    return (
-      <HoverPopup size="300" trigger={triggerElement}>
-        {content}
-      </HoverPopup>
-    );
+  return (
+    <HoverPopup size="300" trigger={triggerElement}>
+      {content}
+    </HoverPopup>
+  );
 }

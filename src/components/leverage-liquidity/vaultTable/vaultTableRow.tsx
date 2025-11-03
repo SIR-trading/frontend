@@ -9,7 +9,7 @@ import { formatUnits, parseUnits } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import { useTheme } from "next-themes";
-import HoverPopupMobile from "@/components/ui/hover-popup-mobile";
+import HoverPopup from "@/components/ui/hover-popup";
 import { TokenDisplay } from "@/components/ui/token-display";
 import {
   calculateApeVaultFee,
@@ -328,7 +328,7 @@ export function VaultTableRow({
       <td className="w-12 flex-shrink-0 pl-3 sm:w-14">
         <div className="flex h-full items-center">
           {parsedRateAmount > 0n ? (
-            <HoverPopupMobile
+            <HoverPopup
               size="200"
               asChild
               trigger={
@@ -360,7 +360,7 @@ export function VaultTableRow({
                 />{" "}
                 {getSirSymbol()}/day.
               </span>
-            </HoverPopupMobile>
+            </HoverPopup>
           ) : (
             <span>{parseInt(vault.id).toString()}</span>
           )}
@@ -401,7 +401,7 @@ export function VaultTableRow({
             />
           </Link>
           {variant.variant === "red" ? (
-            <HoverPopupMobile
+            <HoverPopup
               size="200"
               alignOffset={4}
               asChild
@@ -428,7 +428,7 @@ export function VaultTableRow({
                   </>
                 )}
               </div>
-            </HoverPopupMobile>
+            </HoverPopup>
           ) : showPercent() ? (
             <span className="ml-0.5 text-[10px] font-semibold">
               x{getRealLeverage()}
@@ -439,7 +439,7 @@ export function VaultTableRow({
             </sup>
           )}
           {isExtremeLeverage && (
-            <HoverPopupMobile
+            <HoverPopup
               size="250"
               alignOffset={4}
               asChild
@@ -457,7 +457,7 @@ export function VaultTableRow({
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
-            </HoverPopupMobile>
+            </HoverPopup>
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -506,7 +506,7 @@ export function VaultTableRow({
             </span>
           </Link>
           {variant.variant === "red" ? (
-            <HoverPopupMobile
+            <HoverPopup
               size="200"
               alignOffset={4}
               asChild
@@ -533,7 +533,7 @@ export function VaultTableRow({
                   </>
                 )}
               </div>
-            </HoverPopupMobile>
+            </HoverPopup>
           ) : showPercent() ? (
             <span className="ml-0.5 text-[10px] font-semibold">
               x{getRealLeverage()}
@@ -544,7 +544,7 @@ export function VaultTableRow({
             </sup>
           )}
           {isExtremeLeverage && (
-            <HoverPopupMobile
+            <HoverPopup
               size="250"
               alignOffset={4}
               asChild
@@ -562,7 +562,7 @@ export function VaultTableRow({
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
-            </HoverPopupMobile>
+            </HoverPopup>
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -611,7 +611,7 @@ export function VaultTableRow({
             </span>
           </Link>
           {isExtremeLeverage && (
-            <HoverPopupMobile
+            <HoverPopup
               size="250"
               alignOffset={4}
               asChild
@@ -629,7 +629,7 @@ export function VaultTableRow({
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
-            </HoverPopupMobile>
+            </HoverPopup>
           )}
           {isApe && hasChart && embedUrl && (
             <div onClick={(e) => e.stopPropagation()} className="ml-2">
@@ -640,7 +640,7 @@ export function VaultTableRow({
       </td>
       <td className="w-16 flex-shrink-0 pl-2 sm:w-20 sm:pl-3">
         {!isApe ? (
-          <HoverPopupMobile
+          <HoverPopup
             size="250"
             trigger={
               <h4
@@ -695,7 +695,7 @@ export function VaultTableRow({
                 </span>
               </div>
             </div>
-          </HoverPopupMobile>
+          </HoverPopup>
         ) : (
           <div className="flex items-center gap-1">
             <h4
@@ -717,7 +717,7 @@ export function VaultTableRow({
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
       <td className="relative hidden w-20 flex-shrink-0 items-center xl:flex">
-        <HoverPopupMobile
+        <HoverPopup
           size="200"
           alignOffset={4}
           asChild
@@ -752,11 +752,11 @@ export function VaultTableRow({
               realLeverage={getRealLeverage()}
             ></DisplayBadgeInfo>
           </div>
-        </HoverPopupMobile>
+        </HoverPopup>
       </td>
 
       <td className="flex w-20 flex-shrink-0 items-center justify-end gap-x-1 text-right min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
-        <HoverPopupMobile
+        <HoverPopup
           size="250"
           asChild
           trigger={
@@ -822,7 +822,7 @@ export function VaultTableRow({
               </span>
             </div>
           </div>
-        </HoverPopupMobile>
+        </HoverPopup>
       </td>
     </tr>
   );
