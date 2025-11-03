@@ -33,6 +33,12 @@ export function LpStakingArea() {
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
 
+  // Capture rewards amount when modal opens (prevents display jumping after claim)
+  const [capturedRewardsAmount, setCapturedRewardsAmount] = useState<bigint>(0n);
+
+  // Track claim confirmation for post-close refetch
+  const [claimConfirmed, setClaimConfirmed] = useState(false);
+
   // Timeout refs for cleanup
   const stakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const unstakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,6 +52,20 @@ export function LpStakingArea() {
       if (claimTimeoutRef.current) clearTimeout(claimTimeoutRef.current);
     };
   }, []);
+
+  // Refetch data after claim modal closes (post-close refetch pattern)
+  useEffect(() => {
+    if (claimConfirmed && !claimModalOpen) {
+      // Clear any existing timeout before setting new one
+      if (claimTimeoutRef.current) {
+        clearTimeout(claimTimeoutRef.current);
+      }
+      claimTimeoutRef.current = setTimeout(() => {
+        void refetchAll();
+        setClaimConfirmed(false); // Reset for next claim
+      }, 3000);
+    }
+  }, [claimConfirmed, claimModalOpen, refetchAll]);
 
   // Calculate totals for unstaked positions
   const unstakedTotals = useMemo(() => {
@@ -91,8 +111,10 @@ export function LpStakingArea() {
 
   // Handle claim button click
   const handleClaimClick = useCallback(() => {
+    // Capture current rewards amount to prevent display jumping after claim
+    setCapturedRewardsAmount(userRewards);
     setClaimModalOpen(true);
-  }, []);
+  }, [userRewards]);
 
   return (
     <Card className="card-shadow rounded-[4px] bg-secondary p-4 md:px-6 md:py-6">
@@ -491,18 +513,11 @@ export function LpStakingArea() {
       <LpClaimRewardsModal
         open={claimModalOpen}
         setOpen={setClaimModalOpen}
-        liveRewards={userRewards}
+        liveRewards={capturedRewardsAmount}
         stakedPositions={stakedPositions}
         onSuccess={() => {
-          // Wait for blockchain state to update, then refetch
-          // Keep modal open so user can see success message and close it manually
-          // Clear any existing timeout before setting new one
-          if (claimTimeoutRef.current) {
-            clearTimeout(claimTimeoutRef.current);
-          }
-          claimTimeoutRef.current = setTimeout(() => {
-            void refetchAll();
-          }, 3000);
+          // Mark claim as confirmed - refetch will happen after modal closes
+          setClaimConfirmed(true);
         }}
       />
     </Card>
