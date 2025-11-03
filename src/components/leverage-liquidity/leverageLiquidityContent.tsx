@@ -42,7 +42,7 @@ export default function LeverageLiquidityContent({
           <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
         </div>
 
-        <Card className={"relative overflow-visible md:px-5"}>
+        <Card className={"relative h-full overflow-visible md:px-5"}>
           <NoSSR>
             {!isApe && (
               <>
@@ -92,21 +92,19 @@ export default function LeverageLiquidityContent({
                     Popular Vaults
                   </caption>
                   <thead>
-                    <tr className="grid grid-cols-4 text-left text-[14px] font-normal text-foreground/60 md:grid-cols-9">
-                      <th className="font-medium">Id</th>
-                      <th className="font-medium md:col-span-3">Vault</th>
-                      <th className="hidden items-center gap-x-1 font-medium md:flex">
-                        {!isApe ? "APY" : "Pol"}
+                    <tr className="border-b border-foreground/15 text-left text-[14px] font-normal text-muted-foreground">
+                      <th className="pb-1 pl-3 pr-4 font-medium">Id</th>
+                      <th className="pb-1 pr-4 font-medium">Vault</th>
+                      <th className="pb-1 pr-4 font-medium">
+                        {!isApe ? "APY" : "Fee"}
                       </th>
-                      <th className="gap hidden items-center gap-x-1 font-medium md:flex">
-                        Fees
+                      <th className="hidden pb-1 pr-4 font-medium min-[375px]:table-cell">
+                        POL
                       </th>
-                      <th className="relative z-10 flex items-center gap-x-1 font-medium">
+                      <th className="hidden pb-1 pr-4 font-medium xl:table-cell">
                         Leverage
                       </th>
-                      <th className="relative text-right font-medium md:col-span-2">
-                        TVL
-                      </th>
+                      <th className="pb-1 text-right font-medium">TVL</th>
                     </tr>
                   </thead>
                   <tbody>

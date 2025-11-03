@@ -245,10 +245,7 @@ export function VaultTableRow({
 
   // Calculate TVL in USD
   const tvlRaw = parseUnits(vault.totalValue, 0);
-  const tvlFormatted = formatUnits(
-    tvlRaw,
-    vault.collateralToken.decimals,
-  );
+  const tvlFormatted = formatUnits(tvlRaw, vault.collateralToken.decimals);
 
   const { usdValue: tvlUsd } = useTokenUsdPrice(
     vault.collateralToken.id,
@@ -323,9 +320,9 @@ export function VaultTableRow({
           vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ""),
         );
       }}
-      className="relative flex cursor-pointer items-center justify-between rounded-md py-1 text-left text-[16px] text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
+      className="cursor-pointer border-b border-foreground/5 text-left text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
-      <td className="w-12 flex-shrink-0 pl-3 sm:w-14">
+      <td className="py-2 pl-3 pr-4">
         <div className="flex h-full items-center">
           {parsedRateAmount > 0n ? (
             <HoverPopup
@@ -366,40 +363,58 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="w-24 flex-shrink-0 min-[650px]:min-w-0 min-[650px]:max-w-[200px] min-[650px]:flex-1 lg:w-24 lg:max-w-none lg:flex-shrink-0 min-[1130px]:flex-1">
+      <td className="py-2 pr-4">
         {/* Mobile view - compact logos only with leverage */}
         <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
-          <Link
-            href={collateralTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="hover:opacity-70 transition-opacity flex-shrink-0"
+          <HoverPopup
+            size="200"
+            trigger={
+              <Link
+                href={collateralTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
+              >
+                <TokenImage
+                  address={vault.collateralToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Collateral token"
+                />
+              </Link>
+            }
           >
-            <TokenImage
-              address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
-              width={28}
-              height={28}
-              alt="Collateral token"
-            />
-          </Link>
+            <span className="text-[13px] font-medium">
+              {vault.collateralToken.symbol ?? ""}
+            </span>
+          </HoverPopup>
           <span className="mx-1 font-normal">/</span>
-          <Link
-            href={debtTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="hover:opacity-70 transition-opacity flex-shrink-0"
+          <HoverPopup
+            size="200"
+            trigger={
+              <Link
+                href={debtTokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-shrink-0 transition-opacity hover:opacity-70"
+              >
+                <TokenImage
+                  address={vault.debtToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Debt token"
+                />
+              </Link>
+            }
           >
-            <TokenImage
-              address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
-              width={28}
-              height={28}
-              alt="Debt token"
-            />
-          </Link>
+            <span className="text-[13px] font-medium">
+              {vault.debtToken.symbol ?? ""}
+            </span>
+          </HoverPopup>
           {variant.variant === "red" ? (
             <HoverPopup
               size="200"
@@ -473,11 +488,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center hover:opacity-70 transition-opacity"
+            className="flex items-center transition-opacity hover:opacity-70"
           >
             <TokenImage
               address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
+              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
               width={28}
               height={28}
               alt="Collateral token"
@@ -492,11 +507,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center hover:opacity-70 transition-opacity"
+            className="flex items-center transition-opacity hover:opacity-70"
           >
             <TokenImage
               address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
+              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
               width={28}
               height={28}
               alt="Debt token"
@@ -578,11 +593,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center hover:opacity-70 transition-opacity"
+            className="flex items-center transition-opacity hover:opacity-70"
           >
             <TokenImage
               address={vault.collateralToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
+              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
               width={28}
               height={28}
               alt="Collateral token"
@@ -597,11 +612,11 @@ export function VaultTableRow({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center hover:opacity-70 transition-opacity"
+            className="flex items-center transition-opacity hover:opacity-70"
           >
             <TokenImage
               address={vault.debtToken.id}
-              className="h-6 w-6 rounded-full flex-shrink-0 min-w-[24px] min-h-[24px]"
+              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
               width={28}
               height={28}
               alt="Debt token"
@@ -638,7 +653,7 @@ export function VaultTableRow({
           )}
         </div>
       </td>
-      <td className="w-16 flex-shrink-0 pl-2 sm:w-20 sm:pl-3">
+      <td className="py-2 pr-4">
         {!isApe ? (
           <HoverPopup
             size="250"
@@ -713,10 +728,10 @@ export function VaultTableRow({
           </div>
         )}
       </td>
-      <td className="hidden w-16 flex-shrink-0 pl-2 text-[13px] font-normal text-foreground/80 min-[450px]:block">
+      <td className="hidden py-2 pr-4 text-[13px] font-normal min-[375px]:table-cell">
         <DisplayFormattedNumber num={POL} significant={2} />%
       </td>
-      <td className="relative hidden w-20 flex-shrink-0 items-center xl:flex">
+      <td className="hidden py-2 pr-4 xl:table-cell">
         <HoverPopup
           size="200"
           alignOffset={4}
@@ -755,7 +770,7 @@ export function VaultTableRow({
         </HoverPopup>
       </td>
 
-      <td className="flex w-20 flex-shrink-0 items-center justify-end gap-x-1 text-right min-[450px]:w-32 min-[650px]:w-24 md:w-32 lg:w-24">
+      <td className="py-2 text-right">
         <HoverPopup
           size="250"
           asChild
@@ -798,10 +813,12 @@ export function VaultTableRow({
               <span className="flex items-center gap-x-1">
                 <span>
                   <DisplayFormattedNumber
-                    num={formatUnits(reservesData[0]?.reserveApes ?? 0n, vault.collateralToken.decimals)}
+                    num={formatUnits(
+                      reservesData[0]?.reserveApes ?? 0n,
+                      vault.collateralToken.decimals,
+                    )}
                     significant={3}
-                  />
-                  {" "}
+                  />{" "}
                   {vault.collateralToken.symbol ?? ""}
                 </span>
                 <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
@@ -812,10 +829,12 @@ export function VaultTableRow({
               <span className="flex items-center gap-x-1">
                 <span>
                   <DisplayFormattedNumber
-                    num={formatUnits(reservesData[0]?.reserveLPers ?? 0n, vault.collateralToken.decimals)}
+                    num={formatUnits(
+                      reservesData[0]?.reserveLPers ?? 0n,
+                      vault.collateralToken.decimals,
+                    )}
                     significant={3}
-                  />
-                  {" "}
+                  />{" "}
                   {vault.collateralToken.symbol ?? ""}
                 </span>
                 <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
