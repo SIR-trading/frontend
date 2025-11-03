@@ -1,4 +1,4 @@
-import { ASSET_REPO } from "@/data/constants";
+import { ASSET_REPO, NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { env } from "@/env";
 import buildData from "@/../public/build-data.json";
 
@@ -33,6 +33,31 @@ export function getSirLogo(chainId?: string | number): StaticImageData {
   return id === 999 || id === 998
     ? (sirIconHyperEVM as StaticImageData)
     : (sirIcon as StaticImageData);
+}
+
+/**
+ * Get native token logo from tokenMap (retrieved from assets.json)
+ */
+export function getNativeTokenLogo(
+  tokenMap?: Map<string, { address: string; logoURI?: string; isNative?: boolean }>,
+): string | undefined {
+  const nativeToken = tokenMap?.get(NATIVE_TOKEN_ADDRESS.toLowerCase());
+  return nativeToken?.logoURI;
+}
+
+/**
+ * Get native token info from tokenMap
+ */
+export function getNativeTokenInfo(
+  tokenMap?: Map<string, { address: string; symbol?: string; name?: string; logoURI?: string; isNative?: boolean }>,
+): { symbol?: string; name?: string; logoURI?: string } | undefined {
+  const nativeToken = tokenMap?.get(NATIVE_TOKEN_ADDRESS.toLowerCase());
+  if (!nativeToken) return undefined;
+  return {
+    symbol: nativeToken.symbol,
+    name: nativeToken.name,
+    logoURI: nativeToken.logoURI,
+  };
 }
 
 /**

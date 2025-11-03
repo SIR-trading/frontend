@@ -112,10 +112,7 @@ function Inputs({
               <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
               <Switch
                 checked={useNativeToken}
-                onCheckedChange={() => {
-                  setUseNativeToken(!useNativeToken);
-                }}
-                aria-readonly
+                onCheckedChange={setUseNativeToken}
               />
             </div>
           )}

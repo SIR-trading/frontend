@@ -217,8 +217,21 @@ const logoUrl = logos.fallback ?? logos.primary;
 - `getSirSymbol(chainId?)` - "SIR" or "HyperSIR"
 - `getSirLogo(chainId?)` - Chain-appropriate logo
 - `getSirTokenMetadata()` - Complete SIR metadata
+- `getNativeTokenLogo(tokenMap)` - Native token (ETH/HYPE) logo from CoinGecko
+- `getNativeTokenInfo(tokenMap)` - Native token metadata
 
 **Image fallback chain**: Trust Wallet → CoinGecko (logoURI) → Unknown token placeholder
+
+**Native Token Handling:**
+Native tokens (ETH, HYPE) are stored in `assets.json` with a special address (`0xEeee...EEeE`) and `isNative: true` flag. Logos are retrieved from CoinGecko at build time via `scripts/fetch-token-lists.ts`.
+
+When users toggle "Use ETH" / "Use HYPE":
+- The `Dropdown` component uses React Context to pass `useNativeToken` state to nested `Dropdown.Item` components
+- Logos and symbols swap from WETH/WHYPE to ETH/HYPE within the same structure
+- Default is always wrapped token unless wrapped balance is 0 and native balance > 0
+- Auto-reset on modal open/token change to ensure consistent defaults
+
+Constants: `WRAPPED_NATIVE_TOKEN_ADDRESS`, `NATIVE_TOKEN_ADDRESS` from `@/data/constants`
 
 ### Price Functions API
 

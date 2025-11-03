@@ -79,8 +79,12 @@ export default function MintForm({ isApe }: Props) {
   const isWeth = useIsWeth();
   const setDepositToken = useVaultFilterStore((state) => state.setDepositToken);
 
-  // Auto-enable native token toggle when user has native balance but no wrapped balance
+  // Reset and auto-enable native token toggle based on token selection and balances
   useEffect(() => {
+    // Reset to default (false = wrapped token)
+    setUseNativeToken(false);
+
+    // Then auto-enable only if it's WETH, wrapped balance is 0, and native balance > 0
     if (
       isWeth &&
       userBalance?.tokenBalance?.result === 0n &&
@@ -796,6 +800,7 @@ export default function MintForm({ isApe }: Props) {
               title=""
               disabled={!hasVaultInfo}
               onChange={setDepositToken}
+              useNativeToken={useNativeToken}
             >
               <Show when={hasVaultInfo}>
                 <Dropdown.Item

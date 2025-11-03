@@ -18,7 +18,6 @@ import MintFormSettings from "./MintFormSettings";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import { useTokenUsdPrice } from "./hooks/useTokenUsdPrice";
-
 function Root({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative">
@@ -113,10 +112,7 @@ function Inputs({
               <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
               <Switch
                 checked={useNativeToken}
-                onCheckedChange={() => {
-                  setUseNativeToken(!useNativeToken);
-                }}
-                aria-readonly
+                onCheckedChange={setUseNativeToken}
               />
             </div>
           )}
@@ -127,8 +123,6 @@ function Inputs({
         <div
           className={`flex h-[40px] w-[150px] items-center justify-center gap-x-2 rounded-md bg-tertiary ${!formData.depositToken ? "opacity-70" : ""}`}
         >
-          {/* {!depositAsset && <div className="h-[25px] w-[25px]" />} */}
-          {/* <AssetInfo depositAsset={depositAsset} useNativeToken={useNativeToken} /> */}
           {children}
         </div>
         <h2 className="font-geist-mono pt-1 text-right text-on-bg-subdued whitespace-nowrap">

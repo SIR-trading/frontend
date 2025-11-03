@@ -77,6 +77,7 @@ const tokenSchema = z.object({
   decimals: z.number().optional(), // Optional: some tokens don't properly implement decimals()
   chainId: z.number(),
   logoURI: z.string().optional(),
+  isNative: z.boolean().optional(), // Flag for native tokens (ETH, HYPE)
   // Market data from CoinGecko (optional)
   marketCap: z.number().optional(),
   currentPrice: z.number().optional(),

@@ -69,6 +69,7 @@ interface PlatformToken {
   decimals?: number;
   chainId: number;
   logoURI: string;
+  isNative?: boolean; // Flag for native tokens (ETH, HYPE)
 }
 
 // Map chain IDs to viem chain objects
@@ -238,6 +239,46 @@ async function fetchDecimalsMap(
 }
 
 /**
+ * Fetch native token info from CoinGecko by coin ID
+ */
+async function fetchNativeTokenInfo(
+  coinId: string,
+  symbol: string,
+  name: string,
+  chainId: number,
+): Promise<PlatformToken | null> {
+  try {
+    const url = `https://api.coingecko.com/api/v3/coins/${coinId}`;
+    const data = await httpsRequest<{
+      id: string;
+      symbol: string;
+      name: string;
+      image?: { large?: string; small?: string; thumb?: string };
+    }>(url);
+
+    // Use a special address to represent native tokens (0xeeee...eeee)
+    const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+
+    return {
+      symbol: symbol.toUpperCase(),
+      name: name,
+      marketCap: 0, // Native tokens go at the top
+      address: NATIVE_TOKEN_ADDRESS,
+      decimals: 18,
+      chainId,
+      logoURI: data.image?.large ?? data.image?.small ?? "",
+      isNative: true,
+    };
+  } catch (error) {
+    console.log(
+      `  Warning: Could not fetch native token info for ${coinId}:`,
+      error instanceof Error ? error.message : String(error),
+    );
+    return null;
+  }
+}
+
+/**
  * Load tokens from assetsExtra.json for a specific chain
  */
 function loadAssetsExtra(chainId: number): PlatformToken[] {
@@ -383,6 +424,28 @@ async function main(): Promise<void> {
   // sort by market cap desc before writing
   platformTokens.sort((a, b) => b.marketCap - a.marketCap);
 
+  // Fetch native token info from CoinGecko
+  console.log("  Fetching native token info from CoinGecko...");
+  const nativeCoinId =
+    config.chainId === 1 || config.chainId === 11155111
+      ? "ethereum"
+      : config.chainId === 999 || config.chainId === 998
+        ? "hyperliquid"
+        : null;
+
+  let nativeToken: PlatformToken | null = null;
+  if (nativeCoinId) {
+    nativeToken = await fetchNativeTokenInfo(
+      nativeCoinId,
+      config.nativeCurrency.symbol,
+      config.nativeCurrency.name,
+      config.chainId,
+    );
+    if (nativeToken) {
+      console.log(`  ✓ Added native token: ${nativeToken.symbol}`);
+    }
+  }
+
   // Add SIR token and wrapped token at the beginning
   const sirToken: PlatformToken = {
     symbol:
@@ -418,9 +481,10 @@ async function main(): Promise<void> {
         }
       : undefined;
 
-  // Combine tokens: SIR first, then wrapped token, then the rest
+  // Combine tokens: SIR first, native token, wrapped token, then the rest
   const finalTokens = [
     sirToken,
+    ...(nativeToken ? [nativeToken] : []),
     ...(wrappedToken ? [wrappedToken] : []),
     ...platformTokens,
   ];

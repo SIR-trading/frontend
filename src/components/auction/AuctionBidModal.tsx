@@ -10,7 +10,8 @@ import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+import { WRAPPED_NATIVE_TOKEN_ADDRESS, NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+import { getNativeCurrencySymbol } from "@/lib/chains";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
@@ -59,16 +60,21 @@ export function AuctionBidModal({ open, setOpen }: Props) {
       useNativeToken,
     });
 
-  // Auto-enable native token toggle on HyperEVM when user has HYPE but no WHYPE balance
+  // Reset useNativeToken when modal opens, then auto-enable if needed
   useEffect(() => {
-    if (
-      isHyperEVM() &&
-      open.open &&
-      userBalance?.tokenBalance?.result === 0n &&
-      userNativeTokenBalance &&
-      userNativeTokenBalance > 0n
-    ) {
-      setUseNativeToken(true);
+    if (open.open) {
+      // Reset to default (false = wrapped token)
+      setUseNativeToken(false);
+
+      // Then auto-enable only if wrapped balance is 0 and native balance > 0
+      if (
+        isHyperEVM() &&
+        userBalance?.tokenBalance?.result === 0n &&
+        userNativeTokenBalance &&
+        userNativeTokenBalance > 0n
+      ) {
+        setUseNativeToken(true);
+      }
     }
   }, [open.open, userBalance?.tokenBalance?.result, userNativeTokenBalance]);
 
@@ -257,9 +263,9 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                   setUseNativeToken={setUseNativeToken}
                 >
                   <div className="flex items-center gap-2">
-                    <p>{wrappedTokenSymbol}</p>
+                    <p>{useNativeToken ? getNativeCurrencySymbol() : wrappedTokenSymbol}</p>
                     <TokenImage
-                      address={WRAPPED_NATIVE_TOKEN_ADDRESS}
+                      address={useNativeToken ? NATIVE_TOKEN_ADDRESS : WRAPPED_NATIVE_TOKEN_ADDRESS}
                       alt="alt"
                       width={25}
                       height={25}

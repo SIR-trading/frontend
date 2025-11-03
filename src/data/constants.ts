@@ -5,6 +5,8 @@ import { getWrappedNativeTokenAddress } from "@/config/chains";
 
 export const RPC_URL = "";
 export const WRAPPED_NATIVE_TOKEN_ADDRESS = getWrappedNativeTokenAddress(parseInt(env.NEXT_PUBLIC_CHAIN_ID)).toLowerCase() as TAddressString;
+// Special address to represent native tokens (ETH, HYPE) in assets.json
+export const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE".toLowerCase() as TAddressString;
 export const ASSET_REPO =
   "https://raw.githubusercontent.com/trustwallet/assets/master";
 
