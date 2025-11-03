@@ -132,7 +132,7 @@ function VaultTableRowHeaders({
   setShowTvlInUsd: (value: boolean) => void;
 }) {
   return (
-    <tr className="border-b border-foreground/15 text-left text-[14px] font-normal text-muted-foreground">
+    <tr className="text-left text-[14px] font-normal text-muted-foreground">
       <th className="pb-1 pl-3 pr-4 font-medium">Id</th>
       <th className="pb-1 pr-4 font-medium">Vault</th>
 

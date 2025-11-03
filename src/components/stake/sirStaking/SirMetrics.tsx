@@ -62,7 +62,7 @@ export function SirMetrics() {
           <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
             <span>Total Dividends</span>
             <ToolTip iconSize={12}>
-              Dividends distributed to SIR stakers from protocol revenue.
+              Dividends distributed to {getSirSymbol()} stakers from protocol revenue.
             </ToolTip>
           </div>
           <div className="mt-1 h-7 w-20 animate-pulse rounded bg-foreground/10 mx-auto"></div>
@@ -98,7 +98,7 @@ export function SirMetrics() {
         <div className="flex items-center justify-center gap-x-1 text-xs text-muted-foreground">
           <span>Total Dividends</span>
           <ToolTip iconSize={12}>
-            Dividends distributed to SIR stakers from protocol revenue.
+            Dividends distributed to {getSirSymbol()} stakers from protocol revenue.
           </ToolTip>
         </div>
         <div className="mt-1 text-lg font-semibold">

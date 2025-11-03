@@ -320,7 +320,7 @@ export function VaultTableRow({
           vault.collateralToken.id + "," + (vault.collateralToken.symbol ?? ""),
         );
       }}
-      className="cursor-pointer border-b border-foreground/5 text-left text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
+      className="cursor-pointer text-left text-sm font-normal transition-colors hover:bg-primary/20 dark:hover:bg-primary"
     >
       <td className="py-2 pl-3 pr-4">
         <div className="flex h-full items-center">
