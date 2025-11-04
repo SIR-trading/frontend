@@ -290,6 +290,19 @@ export function VaultTableRow({
   const parsedRateAmount = parseUnits(String(vault.rate || "0"), 0); // CONVERT rate
   const setAll = useVaultFilterStore((state) => state.setAll);
 
+  // Calculate hat outline intensity based on SIR allocation (sqrt scale)
+  const hatOutlineIntensity = useMemo(() => {
+    // Convert daily allocation to number (rate is per second, has 12 decimals)
+    const dailyAllocation = Number(
+      formatUnits(parsedRateAmount * 24n * 60n * 60n, 12),
+    );
+
+    // Square root scale: intensity = sqrt(allocation) * alpha
+    // Alpha determines the scaling factor (no min/max bounds)
+    const alpha = 0.003;
+    return Math.sqrt(dailyAllocation) * alpha;
+  }, [parsedRateAmount]);
+
   // Get Dune chart configuration for this vault
   const { embedUrl, hasChart } = useDuneCharts(parseInt(vault.id).toString());
 
@@ -335,7 +348,7 @@ export function VaultTableRow({
                     src="/images/hat.svg"
                     width="18"
                     height="18"
-                    className="hat-outline absolute -top-[11px] left-1/2 z-10"
+                    className="absolute -top-[11px] left-1/2 z-10"
                     alt="SIR Rewards Hat"
                     style={{
                       width: "18px",
@@ -343,6 +356,9 @@ export function VaultTableRow({
                       minWidth: "18px",
                       minHeight: "18px",
                       transform: "translateX(-40%) rotate(8deg)",
+                      filter: isDarkMode
+                        ? `drop-shadow(0 0 ${2 * hatOutlineIntensity}px rgba(255, 255, 255, ${0.8})) drop-shadow(0 0 ${1 * hatOutlineIntensity}px rgba(255, 255, 255, 1)) drop-shadow(${1 * hatOutlineIntensity}px ${2 * hatOutlineIntensity}px ${3 * hatOutlineIntensity}px rgba(0, 0, 0, 0.5))`
+                        : `drop-shadow(${1 * hatOutlineIntensity}px ${2 * hatOutlineIntensity}px ${2 * hatOutlineIntensity}px rgba(0, 0, 0, 0.3))`,
                     }}
                   />
                   <span className="pt-1">{parseInt(vault.id).toString()}</span>
