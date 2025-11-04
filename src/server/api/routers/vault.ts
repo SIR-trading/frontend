@@ -467,12 +467,29 @@ async function calculateSirRewardsApyWithCachedPrices(
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;
 
     // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
-    const vaultCollateral =
+    const totalLpCollateral =
       parseFloat(vault.reserveLPers) /
       Math.pow(10, vault.collateralToken.decimals);
 
+    // Calculate external LP collateral (excluding POL)
+    const teaSupply = parseFloat(vault.teaSupply);
+    const lockedLiquidity = parseFloat(vault.lockedLiquidity);
+
+    let vaultCollateral = totalLpCollateral;
+
+    // If TEA supply exists, subtract POL portion
+    if (teaSupply > 0) {
+      // POL percentage = lockedLiquidity / teaSupply
+      // External LP collateral = totalLpCollateral * (1 - POL%)
+      const externalLpRatio = Math.max(0, (teaSupply - lockedLiquidity) / teaSupply);
+      vaultCollateral = totalLpCollateral * externalLpRatio;
+    } else if (totalLpCollateral > 0) {
+      // If TEA supply is 0 but there's LP collateral, all of it is POL
+      vaultCollateral = 0;
+    }
+
     if (vaultCollateral === 0) {
-      return 0; // No collateral, can't calculate APY
+      return 0; // No external LP collateral, can't calculate APY
     }
 
     // Check if the vault uses SIR as collateral (compare addresses case-insensitively)
@@ -481,12 +498,8 @@ async function calculateSirRewardsApyWithCachedPrices(
       SirContract.address.toLowerCase()
     ) {
       // For SIR collateral vaults, no price conversion needed
-      // APY is simply: (annual SIR rewards / SIR collateral) * 100
-      // Use the collateral token's decimals from the subgraph
-      const sirVaultCollateral =
-        parseFloat(vault.reserveLPers) /
-        Math.pow(10, vault.collateralToken.decimals);
-      const apy = (annualSirRewards / sirVaultCollateral) * 100;
+      // APY is simply: (annual SIR rewards / external LP SIR collateral) * 100
+      const apy = (annualSirRewards / vaultCollateral) * 100;
       return apy;
     }
 
