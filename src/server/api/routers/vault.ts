@@ -78,11 +78,28 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     const sirPriceInWrappedNativeToken = await getCachedSirPrice();
 
     // Get vault collateral belonging to LPers (reserveLPers) and scale with decimals
-    const gentlemenCollateral =
+    const totalLpCollateral =
       parseFloat(vault.reserveLPers) /
       Math.pow(10, vault.collateralToken.decimals);
 
-    if (gentlemenCollateral === 0) {
+    // Calculate external LP collateral (excluding POL)
+    const teaSupply = parseFloat(vault.teaSupply);
+    const lockedLiquidity = parseFloat(vault.lockedLiquidity);
+
+    let vaultCollateral = totalLpCollateral;
+
+    // If TEA supply exists, subtract POL portion
+    if (teaSupply > 0) {
+      // POL percentage = lockedLiquidity / teaSupply
+      // External LP collateral = totalLpCollateral * (1 - POL%)
+      const externalLpRatio = Math.max(0, (teaSupply - lockedLiquidity) / teaSupply);
+      vaultCollateral = totalLpCollateral * externalLpRatio;
+    } else if (totalLpCollateral > 0) {
+      // If TEA supply is 0 but there's LP collateral, all of it is POL
+      vaultCollateral = 0;
+    }
+
+    if (vaultCollateral === 0) {
       return 0; // No collateral, can't calculate APY
     }
 
@@ -93,7 +110,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     ) {
       // For SIR collateral vaults, no price conversion needed
       // APY is simply: (annual SIR rewards / SIR collateral) * 100
-      const apy = (annualSirRewards / gentlemenCollateral) * 100;
+      const apy = (annualSirRewards / vaultCollateral) * 100;
       return apy;
     }
 
@@ -175,7 +192,7 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     const annualRewardsValue = annualSirRewards * sirPriceInCollateral;
 
     // Calculate APY as percentage: (annual rewards value / collateral) * 100
-    const apy = (annualRewardsValue / gentlemenCollateral) * 100;
+    const apy = (annualRewardsValue / vaultCollateral) * 100;
 
     return apy;
   } catch (error) {

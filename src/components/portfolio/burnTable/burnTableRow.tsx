@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Send, ChevronDown, ChevronUp } from "lucide-react";
+import { MoreVertical, Send, ChevronDown, ChevronUp, XCircle } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
 import { parseUnits } from "viem";
 import { useVaultData } from "@/contexts/VaultDataContext";
@@ -29,6 +29,8 @@ import { TwitterIcon } from "@/components/ui/icons/twitter-icon";
 import { SharePositionModal } from "./SharePositionModal";
 import { getCurrentChainConfig } from "@/lib/chains";
 import Link from "next/link";
+import { getLogoAssetWithFallback } from "@/lib/assets";
+import { useTokenlistContext } from "@/contexts/tokenListProvider";
 
 export function BurnTableRow({
   row,
@@ -56,6 +58,9 @@ export function BurnTableRow({
   const { getVaultById } = useVaultData();
   const vaultData = !isApe ? getVaultById(row.vaultId) : undefined;
 
+  // Get token map for logo lookups
+  const { tokenMap } = useTokenlistContext();
+
   // Get current token balance (APE/TEA tokens have their own decimals)
   const currentBalance = isApe ? apeBal : teaBal;
   const tokenDecimals = row.decimals; // This is APE/TEA token decimals
@@ -72,8 +77,19 @@ export function BurnTableRow({
       decimals: tokenDecimals,
     },
     {
-      staleTime: 1000 * 10,
+      staleTime: 1000 * 10, // Cache for 10s - prevents refetch if data is fresh
       enabled: Boolean(currentBalance && currentBalance > 0n),
+      retry: false, // Don't retry on failure to prevent stream issues
+    },
+  );
+
+  // Get APY for liquidity positions (for share card)
+  const { data: apyDataForShare } = api.vault.getVaultApy.useQuery(
+    { vaultId: row.vaultId },
+    {
+      enabled: Boolean(row.vaultId) && !isApe, // Only fetch for TEA positions
+      staleTime: 60000, // Cache for 1 minute - prevents refetch if data is fresh
+      retry: false, // Don't retry on failure
     },
   );
 
@@ -584,44 +600,6 @@ export function BurnTableRow({
               in {row.debtSymbol}
             </span>
           </HoverPopup>
-          {/* Floating emoji for profitable positions */}
-          {pnlCollateral >= 0 && (
-            <HoverPopup
-              size="200"
-              trigger={
-                <button
-                  onClick={() => setShareModalOpen(true)}
-                  className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
-                >
-                  {(() => {
-                    const percentGain =
-                      initialCollateral > 0
-                        ? (pnlCollateral / initialCollateral) * 100
-                        : 0;
-                    if (percentGain >= 200) return "🚀";
-                    if (percentGain >= 100) return "💎";
-                    if (percentGain >= 50) return "🔥";
-                    if (percentGain >= 20) return "⚡";
-                    return "✨";
-                  })()}
-                </button>
-              }
-            >
-              <span className="text-[13px] font-medium">
-                Tweet about your{" "}
-                {(() => {
-                  const percentGain =
-                    initialCollateral > 0
-                      ? (pnlCollateral / initialCollateral) * 100
-                      : 0;
-                  return percentGain >= 1
-                    ? `${percentGain.toFixed(0)}%`
-                    : `${percentGain.toFixed(1)}%`;
-                })()}{" "}
-                {row.collateralSymbol} gains! 🎉
-              </span>
-            </HoverPopup>
-          )}
         </td>
 
         {/* Break-even price gain column - stacked values */}
@@ -695,20 +673,18 @@ export function BurnTableRow({
                 align="end"
                 className="border-foreground/10 bg-secondary"
               >
-                {/* Share option - only show if position has reached break-even */}
-                <Show when={pnlCollateral >= 0}>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setShareModalOpen(true);
-                    }}
-                    className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                  >
-                    <TwitterIcon className="mr-2 h-3 w-3" />
-                    Share Gains
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-foreground/10" />
-                </Show>
+                {/* Share option */}
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    setShareModalOpen(true);
+                  }}
+                  className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                >
+                  <TwitterIcon className="mr-2 h-3 w-3" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-foreground/10" />
                 <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                   <DropdownMenuItem
                     onClick={() => setSelectedRow("claim")}
@@ -731,6 +707,7 @@ export function BurnTableRow({
                   }
                   className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
                 >
+                  <XCircle className="mr-2 h-3 w-3" />
                   Close
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-foreground/10" />
@@ -753,7 +730,7 @@ export function BurnTableRow({
             </DropdownMenu>
           </div>
 
-          {/* Large screens: Close button + More dropdown */}
+          {/* Large screens: Close button + Share button + More dropdown */}
           <div className="hidden justify-center space-x-1 xl:flex">
             <Button
               onClick={() => {
@@ -768,6 +745,15 @@ export function BurnTableRow({
               className="h-7 rounded-md px-3 text-[12px]"
             >
               Close
+            </Button>
+            {/* Share button */}
+            <Button
+              onClick={() => setShareModalOpen(true)}
+              type="button"
+              className="h-7 rounded-md px-3 text-[12px]"
+            >
+              <TwitterIcon className="mr-1.5 h-3.5 w-3.5" />
+              Share
             </Button>
             {/* More dropdown for additional actions */}
             <DropdownMenu
@@ -786,20 +772,6 @@ export function BurnTableRow({
                 align="end"
                 className="border-foreground/10 bg-secondary"
               >
-                {/* Share option - only show if position has reached break-even */}
-                <Show when={pnlCollateral >= 0}>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setDropdownOpenLg(false);
-                      setShareModalOpen(true);
-                    }}
-                    className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
-                  >
-                    <TwitterIcon className="mr-2 h-3 w-3" />
-                    Share Gains
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-foreground/10" />
-                </Show>
                 <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                   <DropdownMenuItem
                     onClick={() => {
@@ -1082,45 +1054,6 @@ export function BurnTableRow({
               </span>
             </span>
           </div>
-          {/* Floating emoji for profitable positions */}
-          {pnlCollateral >= 0 && (
-            <HoverPopup
-              size="200"
-              trigger={
-                <button
-                  onClick={() => setShareModalOpen(true)}
-                  className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 animate-[pulse_2s_ease-in-out_infinite] cursor-pointer transition-transform hover:scale-125"
-                >
-                  {(() => {
-                    const percentGain =
-                      initialCollateral > 0
-                        ? (pnlCollateral / initialCollateral) * 100
-                        : 0;
-
-                    if (percentGain >= 200) return "🚀";
-                    if (percentGain >= 100) return "💎";
-                    if (percentGain >= 50) return "🔥";
-                    if (percentGain >= 20) return "⚡";
-                    return "✨";
-                  })()}
-                </button>
-              }
-            >
-              <span className="text-[13px] font-medium">
-                Tweet about your{" "}
-                {(() => {
-                  const percentGain =
-                    initialCollateral > 0
-                      ? (pnlCollateral / initialCollateral) * 100
-                      : 0;
-                  return percentGain >= 1
-                    ? `${percentGain.toFixed(0)}%`
-                    : `${percentGain.toFixed(1)}%`;
-                })()}{" "}
-                {row.collateralSymbol} gains! 🎉
-              </span>
-            </HoverPopup>
-          )}
         </td>
 
         {/* % PnL column - stacked values */}
@@ -1242,6 +1175,18 @@ export function BurnTableRow({
                 align="end"
                 className="border-foreground/10 bg-secondary"
               >
+                {/* Share option */}
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    setShareModalOpen(true);
+                  }}
+                  className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
+                >
+                  <TwitterIcon className="mr-2 h-3 w-3" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-foreground/10" />
                 <Show when={!isApe && (teaRewards ?? 0n) > 0n}>
                   <DropdownMenuItem
                     onClick={() => setSelectedRow("claim")}
@@ -1264,6 +1209,7 @@ export function BurnTableRow({
                   }
                   className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
                 >
+                  <XCircle className="mr-2 h-3 w-3" />
                   Close
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-foreground/10" />
@@ -1286,7 +1232,7 @@ export function BurnTableRow({
             </DropdownMenu>
           </div>
 
-          {/* Large screens: Close button + More dropdown */}
+          {/* Large screens: Close button + Share button + More dropdown */}
           <div className="hidden justify-center space-x-1 xl:flex">
             <Button
               onClick={() => {
@@ -1301,6 +1247,15 @@ export function BurnTableRow({
               className="h-7 rounded-md px-3 text-[12px]"
             >
               Close
+            </Button>
+            {/* Share button */}
+            <Button
+              onClick={() => setShareModalOpen(true)}
+              type="button"
+              className="h-7 rounded-md px-3 text-[12px]"
+            >
+              <TwitterIcon className="mr-1.5 h-3.5 w-3.5" />
+              Share
             </Button>
             {/* More dropdown for additional actions */}
             <DropdownMenu
@@ -1378,6 +1333,17 @@ export function BurnTableRow({
           currentDebtTokenValue,
           initialCollateral,
           initialDebtTokenValue,
+          averageEntryPrice: initialPrice,
+          currentPrice: currentPrice,
+          vaultLink: `sir.trading/${isApe ? "leverage" : "liquidity"}?vault=${getDisplayVaultId(row.vaultId)}`,
+          collateralLogoUrl:
+            getLogoAssetWithFallback(row.collateralToken, tokenMap).fallback ??
+            (getLogoAssetWithFallback(row.collateralToken, tokenMap).primary as string),
+          debtLogoUrl:
+            getLogoAssetWithFallback(row.debtToken, tokenMap).fallback ??
+            (getLogoAssetWithFallback(row.debtToken, tokenMap).primary as string),
+          feesApy: apyDataForShare?.feesApy,
+          sirRewardsApy: apyDataForShare?.sirRewardsApy,
         }}
       />
     </>

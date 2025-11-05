@@ -6,7 +6,7 @@ import { GeistMono } from "geist/font/mono";
 import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
 import { Header } from "@/components/header";
-import { Inter } from "next/font/google";
+import { Inter, Source_Serif_4, Playfair_Display } from "next/font/google";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
@@ -22,6 +22,18 @@ import { SirPriceProvider } from "@/contexts/SirPriceContext";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-source-serif",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-playfair",
 });
 
 // console.log(Inter, "INTER");
@@ -71,7 +83,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} relative`}
+          className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} ${sourceSerif4.variable} ${playfairDisplay.variable} relative`}
         >
           <ThemeProvider
             attribute="class"
