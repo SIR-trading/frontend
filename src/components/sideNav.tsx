@@ -44,14 +44,14 @@ export default function SideNav() {
       section: "Features",
       items: [
         { url: "/stake", label: "Stake", icon: Coins },
-        { url: "/market", label: "Market", icon: LineChart },
+        { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
         { url: "/auctions", label: "Auctions", icon: Gavel },
       ],
     },
     {
       section: "Tools",
       items: [
-        { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
+        { url: "/market", label: "Market", icon: LineChart },
         { url: "/create-vault", label: "Create Vault", icon: Plus },
         { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
       ],

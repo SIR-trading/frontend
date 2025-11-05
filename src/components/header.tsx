@@ -104,7 +104,7 @@ export function Header() {
                 >
                   Stake
                 </NavItem>
-                <NavItem url={"/market"} icon={LineChart}>Market</NavItem>
+                <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
                 <NavItem url={"/auctions"} icon={Gavel} hasActiveAuctionsNotification={hasActiveAuctions}>Auctions</NavItem>
               </ul>
               {/* More menu for medium screens (shows all secondary items) */}

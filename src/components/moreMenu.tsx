@@ -40,14 +40,14 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
       hasContributorRewards: Boolean(hasContributorRewardsAboveThreshold || hasLpStakingRewardsAboveThreshold),
       hasDividends: hasDividendsAboveThreshold
     },
-    { url: "/market", label: "Market", icon: LineChart },
+    { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { url: "/auctions", label: "Auctions", icon: Gavel, hasActiveAuctions },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
 
   const largeItems: MenuItem[] = [
-    { url: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { url: "/market", label: "Market", icon: LineChart },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
   ];
