@@ -685,7 +685,7 @@ export function VaultTableRow({
                   "..."
                 ) : (
                   <>
-                    <DisplayFormattedNumber num={APY} significant={2} />%
+                    <DisplayFormattedNumber num={APY} significant={3} />%
                   </>
                 )}
               </h4>
