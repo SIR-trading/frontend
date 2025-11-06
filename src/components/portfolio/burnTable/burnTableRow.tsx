@@ -498,9 +498,31 @@ export function BurnTableRow({
               </span>
             </span>
             <span className="text-xs text-foreground/60">
-              (<DisplayFormattedNumber num={initialPrice} significant={2} />
+              (<HoverPopup
+                size="200"
+                trigger={
+                  <span className="cursor-pointer">
+                    <DisplayFormattedNumber num={initialPrice} significant={2} />
+                  </span>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Average Mint {row.collateralSymbol} Price
+                </span>
+              </HoverPopup>
               <span className="mx-1">→</span>
-              <DisplayFormattedNumber num={currentPrice} significant={2} />
+              <HoverPopup
+                size="200"
+                trigger={
+                  <span className="cursor-pointer">
+                    <DisplayFormattedNumber num={currentPrice} significant={2} />
+                  </span>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Current {row.collateralSymbol} price
+                </span>
+              </HoverPopup>
               <span className="ml-1">{row.debtSymbol}</span>)
             </span>
           </div>
@@ -1002,9 +1024,31 @@ export function BurnTableRow({
               </span>
             </span>
             <span className="text-xs text-foreground/60">
-              (<DisplayFormattedNumber num={initialPrice} significant={2} />
+              (<HoverPopup
+                size="200"
+                trigger={
+                  <span className="cursor-pointer">
+                    <DisplayFormattedNumber num={initialPrice} significant={2} />
+                  </span>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Average Mint {row.collateralSymbol} Price
+                </span>
+              </HoverPopup>
               <span className="mx-1">→</span>
-              <DisplayFormattedNumber num={currentPrice} significant={2} />
+              <HoverPopup
+                size="200"
+                trigger={
+                  <span className="cursor-pointer">
+                    <DisplayFormattedNumber num={currentPrice} significant={2} />
+                  </span>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Current {row.collateralSymbol} price
+                </span>
+              </HoverPopup>
               <span className="ml-1">{row.debtSymbol}</span>)
             </span>
           </div>
