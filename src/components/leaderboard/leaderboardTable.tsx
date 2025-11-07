@@ -5,7 +5,6 @@ import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import { Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import WinnerCard from "@/components/leaderboard/winnerCard";
-import ShareToX from "@/components/shared/shareToX";
 import {
   AccordionItem,
   AccordionContent,
@@ -15,6 +14,11 @@ import {
 import { fromHex } from "viem";
 import { useAccount } from "wagmi";
 import { useVaultData } from "@/contexts/VaultDataContext";
+import { Button } from "@/components/ui/button";
+import { TwitterIcon } from "@/components/ui/icons/twitter-icon";
+import { SharePositionModal } from "@/components/portfolio/burnTable/SharePositionModal";
+import { getLogoAssetWithFallback } from "@/lib/assets";
+import { useTokenlistContext } from "@/contexts/tokenListProvider";
 
 export const cellStyling = "px-2 md:px-4 py-3 col-span-2 flex items-center";
 
@@ -58,9 +62,12 @@ function LeaderboardTable<T, P>({
   const [sortField, setSortField] = useState<SortField>("pnlUsd");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const { address: userAddress, isConnected } = useAccount();
 
   const { allVaults: vaultsData } = useVaultData();
+  const { tokenMap } = useTokenlistContext();
 
   // Transform the vault data to match the expected format
   const vaults = useMemo(() => {
@@ -266,7 +273,7 @@ function LeaderboardTable<T, P>({
               {getSortIcon("pnlUsd")}
             </span>
           </div>
-          <div className={cn(cellStyling, "col-span-1")}></div>
+          <div className="pl-2 md:pl-4 pr-4 md:pr-8 py-3 col-span-1 flex items-center"></div>
         </div>
         <div className="min-h-10 w-full">
           {isLoading ? (
@@ -363,24 +370,19 @@ function LeaderboardTable<T, P>({
                             <DisplayFormattedNumber num={total.pnlUsd} /> USD
                           </span>
                         </div>
-                        <div className={cn(cellStyling, "col-span-1 justify-center")}>
+                        <div className="pl-2 md:pl-4 pr-4 md:pr-8 py-3 col-span-1 flex items-center justify-center">
                           {isUserRow && (
-                            <div onClick={(e) => e.stopPropagation()} className="ml-2 mr-6">
-                              <ShareToX
-                                text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
-                                  total.pnlUsdPercentage > 0 ? "📈" : "📉"
-                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
-                                hashtags={[]}
-                                iconOnly={true}
-                                className="md:hidden"
-                              />
-                              <ShareToX
-                                text={`Leveraging like a sir🧐 in the ${new Date().toLocaleDateString("en-US", { month: "long" })} competition:\n\n🏆 Rank #${Math.min(percentageRank, pnlRank)}\n${
-                                  total.pnlUsdPercentage > 0 ? "📈" : "📉"
-                                } ${total.pnlUsdPercentage > 0 ? "+" : ""}${total.pnlUsdPercentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
-                                hashtags={[]}
-                                className="hidden md:inline-flex"
-                              />
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                onClick={() => {
+                                  setSelectedAddress(address);
+                                  setShareModalOpen(true);
+                                }}
+                                className="h-7 rounded-md px-3 text-[12px]"
+                              >
+                                <TwitterIcon className="mr-1.5 h-3.5 w-3.5" />
+                                Share
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -390,7 +392,7 @@ function LeaderboardTable<T, P>({
                       <ExpandableComponent
                         positions={positions}
                         vault={vault}
-                        userAddress={isConnected ? userAddress : undefined}
+                        userAddress={isConnected && isUserRow ? userAddress : undefined}
                       />
                     </AccordionContent>
                   </AccordionItem>
@@ -403,6 +405,102 @@ function LeaderboardTable<T, P>({
         </div>
       </div>
     </Card>
+
+    {/* Share Position Modal for main row - aggregate USD gains only */}
+    {selectedAddress && (() => {
+      const item = data?.[selectedAddress];
+      if (!item) return null;
+
+      const positions = extractPositions(item);
+      if (!Array.isArray(positions) || positions.length === 0) return null;
+
+      const total = extractTotal(item);
+
+      // Calculate aggregate USD values
+      const positionsArray = positions as Array<{
+        dollarDeposited: number;
+        vaultId: `0x${string}`;
+        pnlUsd: number;
+      }>;
+      const totalDeposited = positionsArray.reduce((sum, pos) => sum + (pos.dollarDeposited ?? 0), 0);
+      const totalRedeemed = totalDeposited + total.pnlUsd;
+
+      // Use first position's vault for logo placeholders (or could use SIR logo)
+      const firstVaultData = vault(positionsArray[0]!.vaultId);
+
+      // Determine the month string
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const monthStr = lastMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+      // Get user's ranks
+      const userPnlRank = pnlRanks.get(selectedAddress.toLowerCase()) ?? 0;
+      const userPercentageRank = percentageRanks.get(selectedAddress.toLowerCase()) ?? 0;
+
+      // Aggregate vaults by $ output
+      const vaultMap = new Map<string, { pnlUsd: number; collateralToken?: `0x${string}`; debtToken?: `0x${string}` }>();
+      positionsArray.forEach((pos) => {
+        const vaultData = vault(pos.vaultId);
+        const vaultSymbol = `${vaultData.collateralSymbol}/${vaultData.debtSymbol}${vaultData.leverageTier ? ` ${1 + Math.pow(2, vaultData.leverageTier)}x` : ''}`;
+        const current = vaultMap.get(vaultSymbol);
+
+        if (current) {
+          current.pnlUsd += pos.pnlUsd;
+        } else {
+          vaultMap.set(vaultSymbol, {
+            pnlUsd: pos.pnlUsd,
+            collateralToken: vaultData.collateralToken,
+            debtToken: vaultData.debtToken,
+          });
+        }
+      });
+
+      // Sort vaults by $ output (largest first)
+      const sortedVaults = Array.from(vaultMap.entries())
+        .map(([symbol, data]) => ({
+          symbol,
+          pnlUsd: data.pnlUsd,
+          collateralToken: data.collateralToken ? getLogoAssetWithFallback(data.collateralToken, tokenMap).fallback ?? "" : undefined,
+          debtToken: data.debtToken ? getLogoAssetWithFallback(data.debtToken, tokenMap).fallback ?? "" : undefined,
+        }))
+        .sort((a, b) => Math.abs(b.pnlUsd) - Math.abs(a.pnlUsd));
+
+      return (
+        <SharePositionModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setSelectedAddress(null);
+          }}
+          position={{
+            isApe: true,
+            collateralSymbol: "USD", // Generic symbol for aggregate
+            debtSymbol: "Multiple Vaults",
+            leverageTier: "0", // Not applicable for aggregate
+            pnlCollateral: total.pnlUsd, // Use USD PnL as collateral gain
+            pnlDebtToken: 0, // No token-specific gain for aggregate
+            currentCollateral: totalRedeemed,
+            currentDebtTokenValue: 0,
+            initialCollateral: totalDeposited,
+            initialDebtTokenValue: 0,
+            averageEntryPrice: 0,
+            currentPrice: 0,
+            vaultLink: `/leaderboard`,
+            collateralLogoUrl: getLogoAssetWithFallback(firstVaultData.collateralToken ?? "0x0", tokenMap).fallback ?? "",
+            debtLogoUrl: getLogoAssetWithFallback(firstVaultData.debtToken ?? "0x0", tokenMap).fallback ?? "",
+            pnlUsdPercentage: total.pnlUsdPercentage,
+            pnlCollateralPercentage: total.pnlUsdPercentage, // Same as USD for aggregate
+          }}
+          showVaultInfo={false}
+          userStats={{
+            percentPnlRank: userPercentageRank,
+            pnlRank: userPnlRank,
+            month: monthStr,
+            vaults: sortedVaults,
+          }}
+        />
+      );
+    })()}
     </>
   );
 }

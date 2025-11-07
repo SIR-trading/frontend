@@ -2,11 +2,18 @@ import type { TClosedApePositions } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { TokenImage } from "@/components/shared/TokenImage";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { TwitterIcon } from "@/components/ui/icons/twitter-icon";
+import { SharePositionModal } from "@/components/portfolio/burnTable/SharePositionModal";
+import { getLogoAssetWithFallback } from "@/lib/assets";
+import { useTokenlistContext } from "@/contexts/tokenListProvider";
 
 const cellStyling = "px-2 md:px-4 py-3 flex items-center";
 const ExpandablePositions = ({
   positions,
   vault,
+  userAddress,
 }: {
   positions: TClosedApePositions[string]["positions"];
   vault: (_vaultId: `0x${string}`) => {
@@ -17,7 +24,12 @@ const ExpandablePositions = ({
     collateralToken?: `0x${string}`;
     debtToken?: `0x${string}`;
   };
+  userAddress?: `0x${string}` | undefined;
 }) => {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<TClosedApePositions[string]["positions"][0] | null>(null);
+  const [selectedVaultData, setSelectedVaultData] = useState<ReturnType<typeof vault> | null>(null);
+  const { tokenMap } = useTokenlistContext();
   return (
     <>
       <div className="flex bg-primary/10 text-left text-xs font-medium text-foreground/70 dark:bg-primary">
@@ -26,6 +38,7 @@ const ExpandablePositions = ({
         <div className={cn(cellStyling, "flex-1 hidden sm:flex")}>Deposit</div>
         <div className={cn(cellStyling, "flex-1")}>% PnL</div>
         <div className={cn(cellStyling, "flex-1")}>PnL</div>
+        {userAddress && <div className="pl-2 md:pl-4 pr-4 md:pr-8 py-3 flex items-center w-[80px] flex-none"></div>}
       </div>
       <div className="w-full space-y-[2px]">
         {positions.map((position, index) => {
@@ -167,10 +180,63 @@ const ExpandablePositions = ({
                   </span>
                 </div>
               </div>
+
+              {/* Share Button - Only for user's positions */}
+              {userAddress && (
+                <div className="pl-2 md:pl-4 pr-4 md:pr-8 py-3 flex items-center w-[80px] flex-none justify-center">
+                  <Button
+                    onClick={() => {
+                      setSelectedPosition(position);
+                      setSelectedVaultData(vaultData);
+                      setShareModalOpen(true);
+                    }}
+                    className="h-7 rounded-md px-3 text-[12px]"
+                  >
+                    <TwitterIcon className="mr-1.5 h-3.5 w-3.5" />
+                    Share
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Share Position Modal */}
+      {selectedPosition && selectedVaultData && (
+        <SharePositionModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setSelectedPosition(null);
+            setSelectedVaultData(null);
+          }}
+          position={{
+            isApe: true,
+            collateralSymbol: selectedVaultData.collateralSymbol,
+            debtSymbol: selectedVaultData.debtSymbol ?? "Unknown",
+            leverageTier: selectedVaultData.leverageTier?.toString() ?? "0",
+            pnlCollateral: selectedPosition.pnlCollateral,
+            pnlDebtToken: 0, // Not available for closed positions
+            currentCollateral: selectedPosition.collateralDeposited + selectedPosition.pnlCollateral,
+            currentDebtTokenValue: 0, // Not available for closed positions
+            initialCollateral: selectedPosition.collateralDeposited,
+            initialDebtTokenValue: 0, // Not available for closed positions
+            // Calculate prices from deposited/redeemed amounts
+            averageEntryPrice: selectedPosition.collateralDeposited > 0
+              ? selectedPosition.dollarDeposited / selectedPosition.collateralDeposited
+              : 0,
+            currentPrice: (selectedPosition.collateralDeposited + selectedPosition.pnlCollateral) > 0
+              ? (selectedPosition.dollarDeposited + selectedPosition.pnlUsd) / (selectedPosition.collateralDeposited + selectedPosition.pnlCollateral)
+              : 0,
+            vaultLink: `/leverage/${selectedVaultData.vaultId}`,
+            collateralLogoUrl: getLogoAssetWithFallback(selectedVaultData.collateralToken ?? "0x0", tokenMap).fallback ?? "",
+            debtLogoUrl: getLogoAssetWithFallback(selectedVaultData.debtToken ?? "0x0", tokenMap).fallback ?? "",
+            pnlUsdPercentage: selectedPosition.pnlUsdPercentage,
+            pnlCollateralPercentage: selectedPosition.pnlCollateralPercentage,
+          }}
+        />
+      )}
     </>
   );
 };

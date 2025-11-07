@@ -2,8 +2,6 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
-import ShareToX from "@/components/shared/shareToX";
-import { useAccount } from "wagmi";
 
 interface WinnerCardProps {
   pnlLeader: {
@@ -22,14 +20,9 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
   percentageLeader,
   isLoading,
 }) => {
-  const { address: userAddress } = useAccount();
-  
   if (isLoading || (!pnlLeader && !percentageLeader)) {
     return null;
   }
-  
-  const isUserPercentageLeader = userAddress && percentageLeader?.address.toLowerCase() === userAddress.toLowerCase();
-  const isUserPnlLeader = userAddress && pnlLeader?.address.toLowerCase() === userAddress.toLowerCase();
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:gap-3 mb-4">
@@ -50,14 +43,6 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
                 </span>
               </div>
             </div>
-            {isUserPercentageLeader && (
-              <ShareToX
-                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n📈 +${percentageLeader.percentage.toFixed(1)}% realized gains\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
-                hashtags={[]}
-                variant="outline"
-                className="ml-2"
-              />
-            )}
           </div>
         </Card>
       )}
@@ -79,14 +64,6 @@ const WinnerCard: React.FC<WinnerCardProps> = ({
                 </span>
               </div>
             </div>
-            {isUserPnlLeader && (
-              <ShareToX
-                text={`Leading the ${new Date().toLocaleDateString("en-US", { month: "long" })} @leveragesir competition!\n\n💰 +$${pnlLeader.amount.toFixed(0)} profit\n\nNo liquidations. No funding fees. Convex returns without decay.\n\nJoin the monthly competition 👇\n`}
-                hashtags={[]}
-                variant="outline"
-                className="ml-2"
-              />
-            )}
           </div>
         </Card>
       )}

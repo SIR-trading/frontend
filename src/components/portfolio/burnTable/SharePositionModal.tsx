@@ -28,6 +28,20 @@ interface SharePositionModalProps {
     debtLogoUrl: string;
     feesApy?: number;
     sirRewardsApy?: number;
+    pnlUsdPercentage?: number;
+    pnlCollateralPercentage?: number;
+  };
+  showVaultInfo?: boolean;
+  userStats?: {
+    percentPnlRank: number;
+    pnlRank: number;
+    month: string;
+    vaults: Array<{
+      symbol: string;
+      pnlUsd: number;
+      collateralToken?: string;
+      debtToken?: string;
+    }>;
   };
 }
 
@@ -35,9 +49,12 @@ export function SharePositionModal({
   isOpen,
   onClose,
   position,
+  showVaultInfo,
+  userStats,
 }: SharePositionModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [copyStatus, setCopyStatus] = useState<string>("");
+  const [copyButtonText, setCopyButtonText] = useState<string>("Copy Image");
+  const [shareButtonText, setShareButtonText] = useState<string>("Post on X");
 
   const getLeverageRatio = (leverageTier: string) => {
     const tier = parseInt(leverageTier);
@@ -45,16 +62,18 @@ export function SharePositionModal({
     return leverage;
   };
 
-  // Calculate percentage gains
-  const percentGainCollateral =
-    position.initialCollateral > 0
+  // Use provided percentages or calculate them
+  const percentGainUsd =
+    position.pnlUsdPercentage ??
+    (position.initialCollateral > 0
       ? (position.pnlCollateral / position.initialCollateral) * 100
-      : 0;
+      : 0);
 
-  const percentGainDebt =
-    position.initialDebtTokenValue > 0
-      ? (position.pnlDebtToken / position.initialDebtTokenValue) * 100
-      : 0;
+  const percentGainCollateral =
+    position.pnlCollateralPercentage ??
+    (position.initialCollateral > 0
+      ? (position.pnlCollateral / position.initialCollateral) * 100
+      : 0);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
@@ -89,20 +108,20 @@ export function SharePositionModal({
             }),
           ]);
 
-          setCopyStatus("Image copied to clipboard!");
+          setCopyButtonText("Copied!");
 
-          // Clear status message after 3 seconds
+          // Reset button text after 1 second
           setTimeout(() => {
-            setCopyStatus("");
-          }, 3000);
+            setCopyButtonText("Copy Image");
+          }, 1000);
         } catch (error) {
           console.error("Failed to copy image:", error);
-          setCopyStatus("Copy failed. Try downloading instead.");
+          setCopyButtonText("Copy failed");
 
-          // Clear error message after 3 seconds
+          // Reset button text after 1 second
           setTimeout(() => {
-            setCopyStatus("");
-          }, 3000);
+            setCopyButtonText("Copy Image");
+          }, 1000);
         }
       })();
     }, "image/png");
@@ -125,7 +144,7 @@ export function SharePositionModal({
             }),
           ]);
 
-          setCopyStatus("Image copied! Paste it in Twitter with Ctrl+V");
+          setShareButtonText("Copied!");
 
           // Generate tweet text based on position type
           const leverage = getLeverageRatio(position.leverageTier);
@@ -143,18 +162,18 @@ export function SharePositionModal({
             );
           }, 100);
 
-          // Clear status message after 3 seconds
+          // Reset button text after 1 second
           setTimeout(() => {
-            setCopyStatus("");
-          }, 3000);
+            setShareButtonText("Post on X");
+          }, 1000);
         } catch (error) {
           console.error("Failed to copy image:", error);
-          setCopyStatus("Copy failed. Try downloading instead.");
+          setShareButtonText("Copy failed");
 
-          // Clear error message after 3 seconds
+          // Reset button text after 1 second
           setTimeout(() => {
-            setCopyStatus("");
-          }, 3000);
+            setShareButtonText("Post on X");
+          }, 1000);
         }
       })();
     }, "image/png");
@@ -191,8 +210,8 @@ export function SharePositionModal({
                 debtSymbol={position.debtSymbol}
                 debtLogoUrl={position.debtLogoUrl}
                 leverageRatio={getLeverageRatio(position.leverageTier)}
+                percentGainUsd={percentGainUsd}
                 percentGainCollateral={percentGainCollateral}
-                percentGainDebt={percentGainDebt}
                 averageEntryPrice={position.averageEntryPrice}
                 currentPrice={position.currentPrice}
                 vaultLink={position.vaultLink}
@@ -200,41 +219,36 @@ export function SharePositionModal({
                 feesApy={position.feesApy}
                 sirRewardsApy={position.sirRewardsApy}
                 onImageGenerated={handleImageGenerated}
+                showVaultInfo={showVaultInfo}
+                userStats={userStats}
               />
             </div>
           </TransactionModal.InfoContainer>
 
           {/* Action Buttons */}
           <TransactionModal.StatSubmitContainer>
-            <div className="flex w-full flex-col gap-3">
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-                <Button
-                  onClick={handleCopyImage}
-                  className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy Image
-                </Button>
-                <Button
-                  onClick={handleDownload}
-                  className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Download
-                </Button>
-                <Button
-                  onClick={handleShare}
-                  className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
-                >
-                  <TwitterIcon className="h-3.5 w-3.5" />
-                  Post on X
-                </Button>
-              </div>
-              {copyStatus && (
-                <p className="text-center text-xs text-muted-foreground">
-                  {copyStatus}
-                </p>
-              )}
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Button
+                onClick={handleCopyImage}
+                className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                {copyButtonText}
+              </Button>
+              <Button
+                onClick={handleDownload}
+                className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download
+              </Button>
+              <Button
+                onClick={handleShare}
+                className="flex h-9 flex-1 items-center gap-1.5 text-sm sm:min-w-[140px]"
+              >
+                <TwitterIcon className="h-3.5 w-3.5" />
+                {shareButtonText}
+              </Button>
             </div>
           </TransactionModal.StatSubmitContainer>
         </div>
