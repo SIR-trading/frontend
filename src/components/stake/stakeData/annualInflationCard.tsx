@@ -116,10 +116,16 @@ export default function AnnualInflationCard() {
   const InflationChart = React.memo(function InflationChart({ containerWidth }: { containerWidth: number }) {
     if (chartData.length === 0) return null;
 
-    // Responsive width but fixed height
-    const width = Math.max(400, Math.min(containerWidth, 600)); // Clamp between 400-600px
-    const height = 300;
-    const padding = { top: 30, right: 30, bottom: 60, left: 70 };
+    // Fully responsive width and height
+    const width = Math.min(containerWidth, 600); // Max 600px, but can go smaller
+    const height = Math.max(250, width * 0.5); // Height scales with width, min 250px
+
+    // Adjust padding for smaller screens
+    const isSmallScreen = width < 400;
+    const padding = isSmallScreen
+      ? { top: 20, right: 15, bottom: 45, left: 50 }
+      : { top: 30, right: 30, bottom: 60, left: 70 };
+
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -242,10 +248,10 @@ export default function AnnualInflationCard() {
           <text
             key={`x-label-${year}`}
             x={padding.left + (year / 5) * chartWidth}
-            y={padding.top + chartHeight + 25}
+            y={padding.top + chartHeight + (isSmallScreen ? 18 : 25)}
             textAnchor="middle"
             fill="#64748b"
-            fontSize="12"
+            fontSize={isSmallScreen ? "10" : "12"}
             fontWeight="500"
           >
             {year === 0 ? "Now" : `${year}Y`}
@@ -269,12 +275,12 @@ export default function AnnualInflationCard() {
           return (
             <text
               key={`y-label-${pct}`}
-              x={padding.left - 15}
+              x={padding.left - (isSmallScreen ? 8 : 15)}
               y={y}
               textAnchor="end"
               dominantBaseline="middle"
               fill="#64748b"
-              fontSize="12"
+              fontSize={isSmallScreen ? "10" : "12"}
               fontWeight="500"
             >
               {formattedValue}%
@@ -285,21 +291,21 @@ export default function AnnualInflationCard() {
         {/* Axis labels */}
         <text
           x={width / 2}
-          y={height - 8}
+          y={height - (isSmallScreen ? 5 : 8)}
           textAnchor="middle"
           fill="#334155"
-          fontSize="14"
+          fontSize={isSmallScreen ? "11" : "14"}
           fontWeight="600"
         >
           Time Horizon
         </text>
         <text
           x={-height / 2}
-          y={18}
+          y={isSmallScreen ? 12 : 18}
           textAnchor="middle"
-          transform={`rotate(-90, 18, ${height / 2})`}
+          transform={`rotate(-90, ${isSmallScreen ? 12 : 18}, ${height / 2})`}
           fill="#334155"
-          fontSize="14"
+          fontSize={isSmallScreen ? "11" : "14"}
           fontWeight="600"
         >
           Inflation Rate
@@ -427,7 +433,7 @@ export default function AnnualInflationCard() {
 
               {/* Chart content */}
               <div className="p-3 sm:p-6 bg-white">
-                <div ref={chartContainerRef} className="w-full h-[350px] flex items-center justify-center overflow-x-auto">
+                <div ref={chartContainerRef} className="w-full min-h-[280px] flex items-center justify-center">
                   <InflationChart containerWidth={containerWidth} />
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-2 sm:mt-4">
