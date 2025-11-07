@@ -499,7 +499,7 @@ export function ImageCardGenerator({
     isApe,
     feesApy,
     sirRewardsApy,
-    onImageGenerated,
+    // onImageGenerated is intentionally excluded - it's only used to pass the canvas ref back once
   ]);
 
   return (

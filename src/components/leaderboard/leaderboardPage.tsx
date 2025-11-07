@@ -27,19 +27,8 @@ const LeaderboardPage = () => {
     <Container className="xl:px-0">
       <Explainer page={EPage.LEADERBOARD} />
       
-      <Tabs defaultValue="closed">
+      <Tabs defaultValue="active">
         <TabsList className="mx-auto w-max mb-8 gap-2">
-          <TabsTrigger value="closed" className="whitespace-nowrap px-5">
-            <div className="flex items-center justify-center gap-1.5">
-              <span>🏁</span>
-              <span>Closed</span>
-              {closedCount > 0 && (
-                <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
-                  {closedCount}
-                </span>
-              )}
-            </div>
-          </TabsTrigger>
           <TabsTrigger value="active" className="whitespace-nowrap px-5">
             <div className="flex items-center justify-center gap-1.5">
               <span>🟢</span>
@@ -47,6 +36,17 @@ const LeaderboardPage = () => {
               {activeCount > 0 && (
                 <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
                   {activeCount}
+                </span>
+              )}
+            </div>
+          </TabsTrigger>
+          <TabsTrigger value="closed" className="whitespace-nowrap px-5">
+            <div className="flex items-center justify-center gap-1.5">
+              <span>🏁</span>
+              <span>Closed</span>
+              {closedCount > 0 && (
+                <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
+                  {closedCount}
                 </span>
               )}
             </div>

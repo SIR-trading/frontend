@@ -21,7 +21,7 @@ export default function Pagination({
   const isLastPage = length < max;
 
   return (
-    <div className="flex items-center justify-end gap-x-3 pt-4">
+    <div className="flex items-center justify-center gap-x-3 pt-4">
       <div className="flex items-center gap-x-3">
         <div>
           <button

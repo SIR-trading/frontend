@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { BurnFormModal } from "@/components/portfolio/burnTable/burnFormModal";
 import BurnForm from "@/components/portfolio/burnForm/burnForm";
 import { useVaultData } from "@/contexts/VaultDataContext";
+import Pagination from "@/components/shared/pagination";
 
 const cellStyling = "pr-2 md:pr-4 py-2.5 flex-1 flex items-center";
 
@@ -32,6 +33,8 @@ export const ActiveApePositionsTable: React.FC<
   const [sortField, setSortField] = useState<SortField>("pnlUsdPercentage");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isClient, setIsClient] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { address: userAddress, isConnected } = useAccount();
   const [selectedPosition, setSelectedPosition] = useState<{
     vaultId: string;
@@ -197,6 +200,28 @@ export const ActiveApePositionsTable: React.FC<
     });
   }, [dataWithUserOnTop, userAddress, isConnected]);
 
+  // Pagination calculations
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = dataWithUserOnTop.slice(startIndex, endIndex);
+
+  // Reset to page 1 when sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortField, sortDirection]);
+
+  const nextPage = () => {
+    if (paginatedData.length === itemsPerPage) {
+      setCurrentPage((page) => page + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "desc" ? "asc" : "desc");
@@ -298,9 +323,9 @@ export const ActiveApePositionsTable: React.FC<
                 <div className="flex justify-center py-8">
                   <Loader2 className="animate-spin" />
                 </div>
-              ) : dataWithUserOnTop.length > 0 ? (
+              ) : paginatedData.length > 0 ? (
                 <div className="w-full">
-                  {dataWithUserOnTop.map(([key, item, realRank]) => {
+                  {paginatedData.map(([key, item, realRank]) => {
                     const { position } = item;
                     if (!position) return null;
 
@@ -522,6 +547,18 @@ export const ActiveApePositionsTable: React.FC<
           </div>
         </div>
       </Card>
+
+      {/* Pagination Controls */}
+      {dataWithUserOnTop.length > itemsPerPage && (
+        <Pagination
+          max={paginatedData.length}
+          page={currentPage}
+          nextPage={nextPage}
+          prevPage={prevPage}
+          length={itemsPerPage}
+          size="lg"
+        />
+      )}
     </>
   );
 };
