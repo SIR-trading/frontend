@@ -526,12 +526,41 @@ async function calculateSirRewardsApyWithCachedPrices(
     }
 
     // Convert SIR price to vault's collateral token using cached prices
-    const sirPriceInCollateral =
+    let sirPriceInCollateral =
       convertWrappedNativeTokenPriceToCollateralCached(
         sirPriceInWrappedNativeToken,
         vault.collateralToken.id,
         tokenPrices,
       );
+
+    // If conversion failed (token not in price cache), try Uniswap fallback
+    if (sirPriceInCollateral === 0) {
+      try {
+        const { getMostLiquidPoolPrice } = await import("./quote");
+        // Try to get direct pool price between collateral and wrapped native token
+        const poolData = await getMostLiquidPoolPrice({
+          tokenA: vault.collateralToken.id,
+          tokenB: WethContract.address,
+          decimalsA: vault.collateralToken.decimals,
+          decimalsB: 18,
+        });
+
+        if (poolData.price > 0) {
+          // poolData.price is collateral/WETH
+          // Get WETH USD price from cache
+          const wethUsdPrice = tokenPrices.get(WethContract.address.toLowerCase());
+
+          if (wethUsdPrice && wethUsdPrice > 0) {
+            // Convert: SIR -> WETH -> USD -> Collateral
+            const sirUsdPrice = sirPriceInWrappedNativeToken * wethUsdPrice;
+            const collateralUsdPrice = poolData.price * wethUsdPrice;
+            sirPriceInCollateral = sirUsdPrice / collateralUsdPrice;
+          }
+        }
+      } catch (fallbackError) {
+        // Silently fail - no pool exists for this token pair
+      }
+    }
 
     if (sirPriceInCollateral === 0) {
       return 0;
@@ -582,7 +611,6 @@ function convertWrappedNativeTokenPriceToCollateralCached(
       !collateralUsdPrice ||
       collateralUsdPrice === 0
     ) {
-      console.warn(`Missing price data for ${collateralTokenAddress}`);
       return 0;
     }
 
