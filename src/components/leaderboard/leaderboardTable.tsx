@@ -492,6 +492,7 @@ function LeaderboardTable<T, P>({
             pnlCollateralPercentage: total.pnlUsdPercentage, // Same as USD for aggregate
           }}
           showVaultInfo={false}
+          isLeaderboard={true}
           userStats={{
             percentPnlRank: userPercentageRank,
             pnlRank: userPnlRank,

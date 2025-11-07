@@ -235,6 +235,7 @@ const ExpandablePositions = ({
             pnlUsdPercentage: selectedPosition.pnlUsdPercentage,
             pnlCollateralPercentage: selectedPosition.pnlCollateralPercentage,
           }}
+          isLeaderboard={true}
         />
       )}
     </>

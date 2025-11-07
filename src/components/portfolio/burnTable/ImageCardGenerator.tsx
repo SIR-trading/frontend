@@ -11,7 +11,7 @@ interface ImageCardGeneratorProps {
   leverageRatio: number;
   percentGainUsd: number;
   percentGainCollateral: number;
-  percentGainDebt?: number; // Optional, for TEA positions
+  percentGainDebt?: number; // Debt token % gains for both APE and TEA
   averageEntryPrice: number;
   currentPrice: number;
   vaultLink: string;
@@ -20,6 +20,7 @@ interface ImageCardGeneratorProps {
   sirRewardsApy?: number;
   onImageGenerated?: (canvas: HTMLCanvasElement) => void;
   showVaultInfo?: boolean; // Default true, false for aggregate positions
+  isLeaderboard?: boolean; // True for leaderboard cards (show USD gains), false/undefined for portfolio cards (show debt token gains)
   userStats?: {
     // For aggregate positions instead of vault info
     percentPnlRank: number;
@@ -51,6 +52,7 @@ export function ImageCardGenerator({
   sirRewardsApy,
   onImageGenerated,
   showVaultInfo = true,
+  isLeaderboard = false,
   userStats,
 }: ImageCardGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -101,7 +103,10 @@ export function ImageCardGenerator({
           bgImage.onerror = reject;
           // TEA (LP) positions use X_liquidity.jpg, APE uses gains/loss backgrounds
           if (isApe) {
-            bgImage.src = percentGainUsd >= 0 ? "/X_gains.jpg" : "/X_loss.jpg";
+            // For leaderboard, use USD gains
+            // For portfolio, use debt token gains
+            const gainToCheck = isLeaderboard ? percentGainUsd : (percentGainDebt ?? 0);
+            bgImage.src = gainToCheck >= 0 ? "/X_gains.jpg" : "/X_loss.jpg";
           } else {
             bgImage.src = "/X_liquidity.jpg";
           }
@@ -276,34 +281,38 @@ export function ImageCardGenerator({
 
         // Draw % gains in large text with explicit sign
         if (isApe) {
-          // APE: Show USD % gain as main percentage
-          const signUsd = percentGainUsd >= 0 ? "+" : "-";
-          const percentFormattedUsd = formatNumber(Math.abs(percentGainUsd), 3);
-          const percentValueUsd =
-            typeof percentFormattedUsd === "string"
-              ? percentFormattedUsd
-              : percentFormattedUsd.sigDigits;
-          const gainsTextUsd = `${signUsd}${percentValueUsd}%`;
+          // For leaderboard: Show USD % gain
+          // For portfolio: Show debt token % gain
+          const mainGain = isLeaderboard ? percentGainUsd : (percentGainDebt ?? 0);
+          const mainLabel = isLeaderboard ? "USD" : debtSymbol;
 
-          // Use serif font for USD gain (main display)
+          const sign = mainGain >= 0 ? "+" : "-";
+          const percentFormatted = formatNumber(Math.abs(mainGain), 3);
+          const percentValue =
+            typeof percentFormatted === "string"
+              ? percentFormatted
+              : percentFormatted.sigDigits;
+          const gainsText = `${sign}${percentValue}%`;
+
+          // Use serif font for main gain display
           ctx.font = `400 210px ${serifFont}`;
-          ctx.fillStyle = percentGainUsd >= 0 ? "#22C55E" : "#EF4444"; // Green for gains, red for losses
+          ctx.fillStyle = mainGain >= 0 ? "#22C55E" : "#EF4444"; // Green for gains, red for losses
           ctx.textAlign = "left";
 
           // Center vertically using metrics for exact positioning
           const targetCenterY = startY + 200;
           ctx.textBaseline = "alphabetic";
-          const m = ctx.measureText(gainsTextUsd);
+          const m = ctx.measureText(gainsText);
           const baselineY =
             targetCenterY +
             (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
-          ctx.fillText(gainsTextUsd, leftAlign, baselineY);
+          ctx.fillText(gainsText, leftAlign, baselineY);
 
-          // Draw USD label to the right of main percentage
-          const usdGainWidth = ctx.measureText(gainsTextUsd).width;
+          // Draw label to the right of main percentage
+          const gainWidth = ctx.measureText(gainsText).width;
           ctx.font = `500 70px ${sansFont}`;
           ctx.fillStyle = "#E5E5E5";
-          ctx.fillText(` USD`, leftAlign + usdGainWidth, baselineY);
+          ctx.fillText(` ${mainLabel}`, leftAlign + gainWidth, baselineY);
 
           // Only show collateral token gains in parentheses if it's a real token (not USD aggregate)
           let priceY = baselineY + 100; // Default position
@@ -754,6 +763,7 @@ export function ImageCardGenerator({
     feesApy,
     sirRewardsApy,
     showVaultInfo,
+    isLeaderboard,
     userStats,
     // onImageGenerated is intentionally excluded - it's only used to pass the canvas ref back once
   ]);

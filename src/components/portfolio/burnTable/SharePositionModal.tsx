@@ -32,6 +32,7 @@ interface SharePositionModalProps {
     pnlCollateralPercentage?: number;
   };
   showVaultInfo?: boolean;
+  isLeaderboard?: boolean; // True for leaderboard cards, false/undefined for portfolio cards
   userStats?: {
     percentPnlRank: number;
     pnlRank: number;
@@ -50,6 +51,7 @@ export function SharePositionModal({
   onClose,
   position,
   showVaultInfo,
+  isLeaderboard = false,
   userStats,
 }: SharePositionModalProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -74,6 +76,11 @@ export function SharePositionModal({
     (position.initialCollateral > 0
       ? (position.pnlCollateral / position.initialCollateral) * 100
       : 0);
+
+  const percentGainDebt =
+    position.initialDebtTokenValue > 0
+      ? (position.pnlDebtToken / position.initialDebtTokenValue) * 100
+      : 0;
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
@@ -212,6 +219,7 @@ export function SharePositionModal({
                 leverageRatio={getLeverageRatio(position.leverageTier)}
                 percentGainUsd={percentGainUsd}
                 percentGainCollateral={percentGainCollateral}
+                percentGainDebt={percentGainDebt}
                 averageEntryPrice={position.averageEntryPrice}
                 currentPrice={position.currentPrice}
                 vaultLink={position.vaultLink}
@@ -220,6 +228,7 @@ export function SharePositionModal({
                 sirRewardsApy={position.sirRewardsApy}
                 onImageGenerated={handleImageGenerated}
                 showVaultInfo={showVaultInfo}
+                isLeaderboard={isLeaderboard}
                 userStats={userStats}
               />
             </div>
