@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import type { VariantProps } from "class-variance-authority";
 import { useMintFormProviderApi } from "@/components/providers/mintFormProviderApi";
 import type { TVault } from "@/lib/types";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, parseUnits, getAddress } from "viem";
 import { useMemo } from "react";
 import useCalculateVaultHealth from "./hooks/useCalculateVaultHealth";
 import { useTheme } from "next-themes";
@@ -29,7 +29,6 @@ import { getSirSymbol } from "@/lib/assets";
 import { useTokenUsdPrice } from "../mintForm/hooks/useTokenUsdPrice";
 import { FeeExplanation } from "@/components/shared/FeeExplanation";
 import { getCurrentChainConfig } from "@/lib/chains";
-import Link from "next/link";
 
 export function VaultTableRow({
   pool: vault,
@@ -315,6 +314,31 @@ export function VaultTableRow({
   const collateralTokenUrl = `${chainConfig.explorerUrl}/token/${vault.collateralToken.id}`;
   const debtTokenUrl = `${chainConfig.explorerUrl}/token/${vault.debtToken.id}`;
 
+  // Helper function to truncate address
+  const truncateAddress = (address: string): string => {
+    const checksummed = getAddress(address);
+    return `${checksummed.slice(0, 6)}...${checksummed.slice(-4)}`;
+  };
+
+  // Helper component for token address tooltip content
+  const TokenAddressTooltip = ({
+    address,
+    explorerUrl,
+  }: {
+    address: string;
+    explorerUrl: string;
+  }) => (
+    <a
+      href={explorerUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block font-mono text-[13px] transition-opacity hover:opacity-70"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {truncateAddress(address)}
+    </a>
+  );
+
   return (
     <tr
       onClick={() => {
@@ -385,13 +409,7 @@ export function VaultTableRow({
           <HoverPopup
             size="200"
             trigger={
-              <Link
-                href={collateralTokenUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex-shrink-0 transition-opacity hover:opacity-70"
-              >
+              <div className="cursor-pointer flex-shrink-0">
                 <TokenImage
                   address={vault.collateralToken.id}
                   className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
@@ -399,24 +417,19 @@ export function VaultTableRow({
                   height={28}
                   alt="Collateral token"
                 />
-              </Link>
+              </div>
             }
           >
-            <span className="text-[13px] font-medium">
-              {vault.collateralToken.symbol ?? ""}
-            </span>
+            <TokenAddressTooltip
+              address={vault.collateralToken.id}
+              explorerUrl={collateralTokenUrl}
+            />
           </HoverPopup>
           <span className="mx-1 font-normal">/</span>
           <HoverPopup
             size="200"
             trigger={
-              <Link
-                href={debtTokenUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="flex-shrink-0 transition-opacity hover:opacity-70"
-              >
+              <div className="cursor-pointer flex-shrink-0">
                 <TokenImage
                   address={vault.debtToken.id}
                   className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
@@ -424,12 +437,13 @@ export function VaultTableRow({
                   height={28}
                   alt="Debt token"
                 />
-              </Link>
+              </div>
             }
           >
-            <span className="text-[13px] font-medium">
-              {vault.debtToken.symbol ?? ""}
-            </span>
+            <TokenAddressTooltip
+              address={vault.debtToken.id}
+              explorerUrl={debtTokenUrl}
+            />
           </HoverPopup>
           {variant.variant === "red" ? (
             <HoverPopup
@@ -499,43 +513,51 @@ export function VaultTableRow({
 
         {/* Medium view (650px to lg, and 1130px to xl) - logos + symbols + leverage */}
         <div className="hidden items-center min-[650px]:flex lg:hidden min-[1130px]:flex xl:hidden">
-          <Link
-            href={collateralTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center transition-opacity hover:opacity-70"
+          <HoverPopup
+            size="200"
+            trigger={
+              <div className="flex cursor-pointer items-center">
+                <TokenImage
+                  address={vault.collateralToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Collateral token"
+                />
+                <span className="ml-1 font-normal">
+                  {vault.collateralToken.symbol ?? ""}
+                </span>
+              </div>
+            }
           >
-            <TokenImage
+            <TokenAddressTooltip
               address={vault.collateralToken.id}
-              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-              width={28}
-              height={28}
-              alt="Collateral token"
+              explorerUrl={collateralTokenUrl}
             />
-            <span className="ml-1 font-normal">
-              {vault.collateralToken.symbol ?? ""}
-            </span>
-          </Link>
+          </HoverPopup>
           <span className="mx-1 font-normal">/</span>
-          <Link
-            href={debtTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center transition-opacity hover:opacity-70"
+          <HoverPopup
+            size="200"
+            trigger={
+              <div className="flex cursor-pointer items-center">
+                <TokenImage
+                  address={vault.debtToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Debt token"
+                />
+                <span className="ml-1 font-normal">
+                  {vault.debtToken.symbol ?? ""}
+                </span>
+              </div>
+            }
           >
-            <TokenImage
+            <TokenAddressTooltip
               address={vault.debtToken.id}
-              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-              width={28}
-              height={28}
-              alt="Debt token"
+              explorerUrl={debtTokenUrl}
             />
-            <span className="ml-1 font-normal">
-              {vault.debtToken.symbol ?? ""}
-            </span>
-          </Link>
+          </HoverPopup>
           {variant.variant === "red" ? (
             <HoverPopup
               size="200"
@@ -604,43 +626,51 @@ export function VaultTableRow({
 
         {/* XL and above view - full names without leverage (shown in separate column) */}
         <div className="hidden items-center xl:flex">
-          <Link
-            href={collateralTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center transition-opacity hover:opacity-70"
+          <HoverPopup
+            size="200"
+            trigger={
+              <div className="flex cursor-pointer items-center">
+                <TokenImage
+                  address={vault.collateralToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Collateral token"
+                />
+                <span className="ml-1 font-normal">
+                  {vault.collateralToken.symbol ?? ""}
+                </span>
+              </div>
+            }
           >
-            <TokenImage
+            <TokenAddressTooltip
               address={vault.collateralToken.id}
-              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-              width={28}
-              height={28}
-              alt="Collateral token"
+              explorerUrl={collateralTokenUrl}
             />
-            <span className="ml-1 font-normal">
-              {vault.collateralToken.symbol ?? ""}
-            </span>
-          </Link>
+          </HoverPopup>
           <span className="mx-1 font-normal">/</span>
-          <Link
-            href={debtTokenUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center transition-opacity hover:opacity-70"
+          <HoverPopup
+            size="200"
+            trigger={
+              <div className="flex cursor-pointer items-center">
+                <TokenImage
+                  address={vault.debtToken.id}
+                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                  width={28}
+                  height={28}
+                  alt="Debt token"
+                />
+                <span className="ml-1 font-normal">
+                  {vault.debtToken.symbol ?? ""}
+                </span>
+              </div>
+            }
           >
-            <TokenImage
+            <TokenAddressTooltip
               address={vault.debtToken.id}
-              className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-              width={28}
-              height={28}
-              alt="Debt token"
+              explorerUrl={debtTokenUrl}
             />
-            <span className="ml-1 font-normal">
-              {vault.debtToken.symbol ?? ""}
-            </span>
-          </Link>
+          </HoverPopup>
           {isExtremeLeverage && (
             <HoverPopup
               size="250"
