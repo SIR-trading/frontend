@@ -840,8 +840,23 @@ export default function MintForm({ isApe }: Props) {
           </DepositInputs.Inputs>
         </DepositInputs.Root>
 
-        {/* Warning when vault is already in red status */}
-        <Show when={isApe && isVaultRed}>
+        {/* Warning when vault has 0 TVL */}
+        <Show when={isApe && selectedVault.result && selectedVault.result.totalValue === "0"}>
+          <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
+            <div className="flex items-start gap-2">
+              <div className="text-orange-500">⚠️</div>
+              <div className="text-sm">
+                <strong className="text-orange-300">Warning:</strong>
+                <span className="ml-1 text-foreground/80">
+                  This vault has no liquidity. You cannot make any leverage gains without LPers providing liquidity first. Consider providing liquidity on the Liquidity page before taking a leveraged position.
+                </span>
+              </div>
+            </div>
+          </div>
+        </Show>
+
+        {/* Warning when vault has limited liquidity (red status but not 0 TVL) */}
+        <Show when={isApe && isVaultRed && selectedVault.result && selectedVault.result.totalValue !== "0"}>
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
