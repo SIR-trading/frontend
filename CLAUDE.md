@@ -417,6 +417,46 @@ executeMulticall({ functionName: "multicall", args: [calls] });
 
 **Always use Next.js `Image` component**, not `<img>` tags.
 
+### Canvas Rendering with Next.js Fonts
+
+**CRITICAL**: Next.js Google Fonts generates hashed font-family names, not literal strings.
+
+**Problem**: Canvas can't find fonts by literal names like `"Open Sans"` - they're registered as `"__Open_Sans_abc123"`.
+
+**Solution Pattern**:
+
+```typescript
+// 1. Create shared font config (src/lib/fonts.ts)
+export const openSans = Open_Sans({ subsets: ["latin"], ... });
+export const ebGaramond = EB_Garamond({ subsets: ["latin"], ... });
+
+// 2. Import in canvas component
+import { openSans, ebGaramond } from "@/lib/fonts";
+
+// 3. Extract real font-family names
+const sansFont = openSans.style.fontFamily;
+const serifFont = ebGaramond.style.fontFamily;
+
+// 4. Preload fonts before rendering
+await document.fonts.ready;
+await Promise.all([
+  document.fonts.load(`500 52px ${sansFont}`),
+  document.fonts.load(`400 240px ${serifFont}`),
+]);
+
+// 5. Use in canvas
+ctx.font = `500 52px ${sansFont}`; // ✅ Uses hashed name
+ctx.font = "500 52px 'Open Sans'"; // ❌ Font not found, defaults to Times New Roman
+```
+
+**Key principles:**
+- Use `fontObject.style.fontFamily` to get actual registered name
+- Preload all font weights/sizes before drawing
+- No fallback fonts if you want guaranteed consistency
+- Share font config between layout and canvas components
+
+**Reference**: `src/lib/fonts.ts`, `src/components/portfolio/burnTable/ImageCardGenerator.tsx`
+
 ---
 
 ## Key File References
@@ -437,3 +477,5 @@ executeMulticall({ functionName: "multicall", args: [calls] });
 - Button: `src/components/ui/button.tsx`
 - Number formatting: `src/components/shared/displayFormattedNumber.tsx`
 - Tooltips: `src/components/ui/hover-popup.tsx` (universal), `src/components/ui/tooltip.tsx` (Info icon wrapper)
+- Fonts config: `src/lib/fonts.ts` (shared font config for canvas rendering)
+- Canvas gains cards: `src/components/portfolio/burnTable/ImageCardGenerator.tsx`

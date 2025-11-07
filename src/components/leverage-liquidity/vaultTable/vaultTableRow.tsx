@@ -484,7 +484,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified."
+                    ? " Both gains and losses are extremely amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
@@ -589,7 +589,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified."
+                    ? " Both gains and losses are extremely amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>
@@ -656,7 +656,7 @@ export function VaultTableRow({
                   This vault&apos;s leverage is ^
                   {getLeverageRatio(vault.leverageTier)}.
                   {isApe
-                    ? " Both gains and losses are significantly amplified."
+                    ? " Both gains and losses are extremely amplified."
                     : " Impermanent loss may be exacerbated due to extreme leverage."}
                 </div>
               </div>

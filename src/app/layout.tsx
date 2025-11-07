@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import EvmProvider from "@/components/providers/evmProvider";
 import { Header } from "@/components/header";
 import { Inter, Source_Serif_4, Playfair_Display } from "next/font/google";
+import { openSans, ebGaramond } from "@/lib/fonts";
 import Warning from "@/components/ui/warning";
 import Footer from "@/components/footer/footer";
 import { VaultProvider } from "@/components/providers/vaultProvider";
@@ -83,7 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} ${sourceSerif4.variable} ${playfairDisplay.variable} relative`}
+          className={`${GeistSans.variable} ${GeistMono.variable} ${inter.className} ${sourceSerif4.variable} ${playfairDisplay.variable} ${openSans.variable} ${ebGaramond.variable} relative`}
         >
           <ThemeProvider
             attribute="class"

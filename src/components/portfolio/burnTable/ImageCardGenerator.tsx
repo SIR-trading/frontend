@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
 import { formatNumber } from "@/lib/utils";
+import { openSans, ebGaramond } from "@/lib/fonts";
 
 interface ImageCardGeneratorProps {
   collateralSymbol: string;
@@ -46,11 +47,31 @@ export function ImageCardGenerator({
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Set canvas size with HiDPI scaling for sharpness
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      // Get the actual font family names from Next.js font objects
+      // Next.js generates hashed font names, not literal "Open Sans" or "EB Garamond"
+      const sansFont = openSans.style.fontFamily;
+      const serifFont = ebGaramond.style.fontFamily;
+
+      // Preload fonts before canvas rendering to ensure consistent metrics across all machines
+      await document.fonts.ready;
+
+      // Explicitly load the fonts we'll use in the canvas
+      await Promise.all([
+        document.fonts.load(`500 28px ${sansFont}`),
+        document.fonts.load(`500 32px ${sansFont}`),
+        document.fonts.load(`500 36px ${sansFont}`),
+        document.fonts.load(`500 38px ${sansFont}`),
+        document.fonts.load(`500 52px ${sansFont}`),
+        document.fonts.load(`500 70px ${sansFont}`),
+        document.fonts.load(`400 80px ${serifFont}`),
+        document.fonts.load(`400 150px ${serifFont}`),
+        document.fonts.load(`400 210px ${serifFont}`),
+      ]);
+
+      // Set canvas size with fixed HiDPI scaling for consistent rendering across zoom levels
+      const dpr = 2; // Fixed DPR to prevent zoom-level rendering inconsistencies
       canvas.width = 1520 * dpr;
       canvas.height = 1080 * dpr;
-      // Don't set inline styles - let CSS handle display size with w-full class
       ctx.scale(dpr, dpr);
 
       try {
@@ -70,8 +91,8 @@ export function ImageCardGenerator({
           }
         });
 
-        // Draw background
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        // Draw background at logical dimensions (not physical pixels)
+        ctx.drawImage(bgImage, 0, 0, 1520, 1080);
 
         // Load token logos
         const collateralLogo = new Image();
@@ -141,7 +162,7 @@ export function ImageCardGenerator({
         currentX += logoSize + 15;
 
         // Draw collateral symbol
-        ctx.font = "500 52px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `500 52px ${sansFont}`;
         ctx.fillStyle = "#E5E5E5";
         ctx.textAlign = "left";
         ctx.fillText(collateralSymbol, currentX, startY + 18);
@@ -149,13 +170,13 @@ export function ImageCardGenerator({
         currentX += collateralWidth + 10;
 
         // Draw slash separator (larger)
-        ctx.font = "500 70px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `500 70px ${sansFont}`;
         ctx.fillText("/", currentX, startY + 18);
         const slashWidth = ctx.measureText("/").width;
         currentX += slashWidth + 10;
 
         // Restore font size for debt symbol
-        ctx.font = "500 52px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `500 52px ${sansFont}`;
 
         // Draw debt logo (rounded)
         const debtLogoSize = 70;
@@ -188,36 +209,141 @@ export function ImageCardGenerator({
 
         // Draw superscript leverage ratio
         const leverageText = leverageRatio.toString();
-        ctx.font = "500 36px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `500 36px ${sansFont}`;
         ctx.fillText(leverageText, currentX, startY - 12);
 
         // Draw % gains in large text with explicit sign
         if (isApe) {
-          // APE: Show only collateral gain (relative to debt token)
-          const sign = percentGainCollateral >= 0 ? "+" : "-";
-          const percentFormatted = formatNumber(
-            Math.abs(percentGainCollateral),
+          // APE: Show debt token gain as main percentage
+          const signDebt = percentGainDebt >= 0 ? "+" : "-";
+          const percentFormattedDebt = formatNumber(
+            Math.abs(percentGainDebt),
             3,
           );
-          const percentValue =
-            typeof percentFormatted === "string"
-              ? percentFormatted
-              : percentFormatted.sigDigits;
-          const gainsText = `${sign}${percentValue}%`;
+          const percentValueDebt =
+            typeof percentFormattedDebt === "string"
+              ? percentFormattedDebt
+              : percentFormattedDebt.sigDigits;
+          const gainsTextDebt = `${signDebt}${percentValueDebt}%`;
 
-          // Use Garamond serif font (larger for APE)
-          ctx.font = "400 240px Garamond";
-          ctx.fillStyle = percentGainCollateral >= 0 ? "#22C55E" : "#EF4444"; // Green for gains, red for losses
+          // Use serif font for debt gain
+          ctx.font = `400 210px ${serifFont}`;
+          ctx.fillStyle = percentGainDebt >= 0 ? "#22C55E" : "#EF4444"; // Green for gains, red for losses
           ctx.textAlign = "left";
 
           // Center vertically using metrics for exact positioning
-          const targetCenterY = startY + 220;
+          const targetCenterY = startY + 200;
           ctx.textBaseline = "alphabetic";
-          const m = ctx.measureText(gainsText);
+          const m = ctx.measureText(gainsTextDebt);
           const baselineY =
             targetCenterY +
             (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
-          ctx.fillText(gainsText, leftAlign, baselineY);
+          ctx.fillText(gainsTextDebt, leftAlign, baselineY);
+
+          // Draw debt token symbol to the right of main percentage
+          const debtGainWidth = ctx.measureText(gainsTextDebt).width;
+          ctx.font = `500 70px ${sansFont}`;
+          ctx.fillStyle = "#E5E5E5";
+          ctx.fillText(` ${debtSymbol}`, leftAlign + debtGainWidth, baselineY);
+
+          // Format collateral token gains for smaller display below in parentheses
+          const signCollateral = percentGainCollateral >= 0 ? "+" : "-";
+          const percentFormattedCollateral = formatNumber(
+            Math.abs(percentGainCollateral),
+            3,
+          );
+          const percentValueCollateral =
+            typeof percentFormattedCollateral === "string"
+              ? percentFormattedCollateral
+              : percentFormattedCollateral.sigDigits;
+          const percentTextCollateral = `${signCollateral}${percentValueCollateral}%`;
+
+          // Draw collateral token gains below main percentage
+          const tokenGainsY = baselineY + 100;
+
+          // Draw opening parenthesis (broken white, same size and font as collateral %)
+          ctx.font = `400 80px ${serifFont}`;
+          ctx.fillStyle = "#E5E5E5";
+          ctx.fillText("(", leftAlign, tokenGainsY);
+          const openParenWidth = ctx.measureText("(").width;
+
+          // Draw collateral percentage (serif)
+          ctx.fillStyle = percentGainCollateral >= 0 ? "#22C55E" : "#EF4444";
+          ctx.fillText(
+            percentTextCollateral,
+            leftAlign + openParenWidth,
+            tokenGainsY,
+          );
+
+          // Draw collateral token symbol (smaller sans)
+          const collateralPercentWidth = ctx.measureText(
+            percentTextCollateral,
+          ).width;
+          ctx.font = `500 32px ${sansFont}`;
+          ctx.fillStyle = "#E5E5E5";
+          ctx.fillText(
+            ` ${collateralSymbol}`,
+            leftAlign + openParenWidth + collateralPercentWidth,
+            tokenGainsY,
+          );
+
+          // Draw closing parenthesis (broken white, same size and font as collateral %)
+          const collateralSymbolWidth = ctx.measureText(
+            ` ${collateralSymbol}`,
+          ).width;
+          ctx.font = `400 80px ${serifFont}`;
+          ctx.fillText(
+            ")",
+            leftAlign +
+              openParenWidth +
+              collateralPercentWidth +
+              collateralSymbolWidth,
+            tokenGainsY,
+          );
+
+          // Draw entry and current prices at same height as APY in liquidity card
+          const priceY = tokenGainsY + 140;
+          ctx.textAlign = "left";
+
+          const formatPrice = (price: number): string => {
+            const formatted = formatNumber(price, 3);
+            if (typeof formatted === "object" && formatted.type === "small") {
+              // For very small numbers, create plain text version
+              return `0.0${formatted.zeroCount}${formatted.sigDigits}`;
+            }
+            return formatted as string;
+          };
+
+          // Entry price label (grey)
+          ctx.font = `500 38px ${sansFont}`;
+          ctx.fillStyle = "#A0A0A0";
+          ctx.fillText("Entry price:", leftAlign, priceY);
+
+          // Entry price value (broken white)
+          const entryLabelWidth = ctx.measureText("Entry price:").width;
+          ctx.font = `500 38px ${sansFont}`;
+          ctx.fillStyle = "#E5E5E5";
+          ctx.fillText(
+            `${formatPrice(averageEntryPrice)} ${debtSymbol}`,
+            leftAlign + entryLabelWidth + 15,
+            priceY,
+          );
+
+          // Current price label (grey)
+          const currentPriceY = priceY + 55;
+          ctx.font = `500 38px ${sansFont}`;
+          ctx.fillStyle = "#A0A0A0";
+          ctx.fillText("Current price:", leftAlign, currentPriceY);
+
+          // Current price value (broken white)
+          const currentLabelWidth = ctx.measureText("Current price:").width;
+          ctx.font = `500 38px ${sansFont}`;
+          ctx.fillStyle = "#E5E5E5";
+          ctx.fillText(
+            `${formatPrice(currentPrice)} ${debtSymbol}`,
+            leftAlign + currentLabelWidth + 15,
+            currentPriceY,
+          );
         } else {
           // TEA: Show both collateral and debt gains
           const signCollateral = percentGainCollateral >= 0 ? "+" : "-";
@@ -249,7 +375,7 @@ export function ImageCardGenerator({
           const firstLineY = startY + 220;
 
           // Draw percentage in Garamond with gain/loss color (larger)
-          ctx.font = "400 150px Garamond";
+          ctx.font = `400 150px ${serifFont}`;
           ctx.fillStyle = percentGainCollateral >= 0 ? "#22C55E" : "#EF4444";
           ctx.fillText(percentTextCollateral, leftAlign, firstLineY);
 
@@ -257,7 +383,7 @@ export function ImageCardGenerator({
           const percentWidthCollateral = ctx.measureText(
             percentTextCollateral,
           ).width;
-          ctx.font = "500 52px 'Lucida Grande', 'Lucida Sans', sans-serif";
+          ctx.font = `500 52px ${sansFont}`;
           ctx.fillStyle = "#E5E5E5";
           ctx.fillText(
             ` ${collateralSymbol}`,
@@ -269,19 +395,19 @@ export function ImageCardGenerator({
           const secondLineY = firstLineY + 160;
 
           // Draw approximate equal sign in grey
-          ctx.font = "500 52px 'Lucida Grande', 'Lucida Sans', sans-serif";
+          ctx.font = `500 52px ${sansFont}`;
           ctx.fillStyle = "#E5E5E5";
           ctx.fillText("≈ ", leftAlign, secondLineY);
           const approxWidth = ctx.measureText("≈ ").width;
 
           // Draw percentage in Garamond with gain/loss color (larger)
-          ctx.font = "400 150px Garamond";
+          ctx.font = `400 150px ${serifFont}`;
           ctx.fillStyle = percentGainDebt >= 0 ? "#22C55E" : "#EF4444";
           ctx.fillText(percentTextDebt, leftAlign + approxWidth, secondLineY);
 
           // Draw token symbol in Lucida with broken white color
           const percentWidthDebt = ctx.measureText(percentTextDebt).width;
-          ctx.font = "500 52px 'Lucida Grande', 'Lucida Sans', sans-serif";
+          ctx.font = `500 52px ${sansFont}`;
           ctx.fillStyle = "#E5E5E5";
           ctx.fillText(
             ` ${debtSymbol}`,
@@ -295,7 +421,7 @@ export function ImageCardGenerator({
 
             // Draw fees APY
             if (feesApy !== undefined) {
-              ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
+              ctx.font = `500 38px ${sansFont}`;
               ctx.fillStyle = "#A0A0A0";
               ctx.fillText("APY (fees): ", leftAlign, currentY);
 
@@ -317,7 +443,7 @@ export function ImageCardGenerator({
 
             // Draw SIR rewards APY
             if (sirRewardsApy !== undefined) {
-              ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
+              ctx.font = `500 38px ${sansFont}`;
               ctx.fillStyle = "#A0A0A0";
               ctx.fillText("SIR Rewards: ", leftAlign, currentY);
 
@@ -333,57 +459,11 @@ export function ImageCardGenerator({
           }
         }
 
-        // Draw entry and current prices (only for APE positions)
-        if (isApe) {
-          const priceY = startY + 450;
-          ctx.textAlign = "left";
-
-          const formatPrice = (price: number): string => {
-            const formatted = formatNumber(price, 3);
-            if (typeof formatted === "object" && formatted.type === "small") {
-              // For very small numbers, create plain text version
-              return `0.0${formatted.zeroCount}${formatted.sigDigits}`;
-            }
-            return formatted as string;
-          };
-
-          // Entry price label (grey)
-          ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
-          ctx.fillStyle = "#A0A0A0";
-          ctx.fillText("Entry price:", leftAlign, priceY);
-
-          // Entry price value (broken white)
-          const entryLabelWidth = ctx.measureText("Entry price:").width;
-          ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
-          ctx.fillStyle = "#E5E5E5";
-          ctx.fillText(
-            `${formatPrice(averageEntryPrice)} ${debtSymbol}`,
-            leftAlign + entryLabelWidth + 15,
-            priceY,
-          );
-
-          // Current price label (grey)
-          const currentPriceY = priceY + 55;
-          ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
-          ctx.fillStyle = "#A0A0A0";
-          ctx.fillText("Current price:", leftAlign, currentPriceY);
-
-          // Current price value (broken white)
-          const currentLabelWidth = ctx.measureText("Current price:").width;
-          ctx.font = "500 38px 'Lucida Grande', 'Lucida Sans', sans-serif";
-          ctx.fillStyle = "#E5E5E5";
-          ctx.fillText(
-            `${formatPrice(currentPrice)} ${debtSymbol}`,
-            leftAlign + currentLabelWidth + 15,
-            currentPriceY,
-          );
-        }
-
         // Draw protocol features and link at bottom (left-aligned)
-        const linkY = canvas.height - 90;
+        const linkY = 1080 - 90;
 
         // Draw feature description
-        ctx.font = "400 28px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `400 28px ${sansFont}`;
         ctx.fillStyle = "#A0A0A0";
         ctx.textAlign = "left";
         const featureText = isApe
@@ -392,7 +472,7 @@ export function ImageCardGenerator({
         ctx.fillText(featureText, leftAlign, linkY);
 
         // Draw link below
-        ctx.font = "400 28px 'Lucida Grande', 'Lucida Sans', sans-serif";
+        ctx.font = `400 28px ${sansFont}`;
         ctx.fillStyle = "#E5E5E5";
         ctx.fillText(`https://${vaultLink}`, leftAlign, linkY + 40);
 
@@ -426,7 +506,7 @@ export function ImageCardGenerator({
     <div className="relative">
       <canvas
         ref={canvasRef}
-        className="w-full rounded-lg border border-foreground/10"
+        className="max-w-full h-auto rounded-lg border border-foreground/10"
         style={{ display: isGenerating ? "none" : "block" }}
       />
       {isGenerating && (
