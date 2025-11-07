@@ -67,7 +67,7 @@ export function BurnTableRow({
   const balanceString = formatUnits(currentBalance ?? 0n, tokenDecimals);
 
   // Get current collateral value from quoteBurn
-  const { data: quoteBurn } = api.vault.quoteBurn.useQuery(
+  const { data: quoteBurn, isLoading: quoteBurnLoading } = api.vault.quoteBurn.useQuery(
     {
       amount: balanceString,
       collateralToken: row.collateralToken,
@@ -483,199 +483,248 @@ export function BurnTableRow({
 
         {/* Price column - stacked values */}
         <td className="hidden py-2 pr-4 text-left font-normal md:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <span className="text-foreground/80">
-                {row.collateralSymbol}:{" "}
-              </span>
-              <span>
-                {priceChangePercent >= 0 ? "+" : ""}
-                <DisplayFormattedNumber
-                  num={priceChangePercent}
-                  significant={2}
-                />
-                %
-              </span>
-            </span>
-            <span className="text-xs text-foreground/60">
-              (<HoverPopup
-                size="200"
-                trigger={
-                  <span className="cursor-pointer">
-                    <DisplayFormattedNumber num={initialPrice} significant={2} />
-                  </span>
-                }
-              >
-                <span className="text-[13px] font-medium">
-                  Average Mint {row.collateralSymbol} Price
+          {quoteBurnLoading ? (
+            <div className="flex flex-col gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-4 w-24 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <span className="text-foreground/80">
+                  {row.collateralSymbol}:{" "}
                 </span>
-              </HoverPopup>
-              <span className="mx-1">→</span>
-              <HoverPopup
-                size="200"
-                trigger={
-                  <span className="cursor-pointer">
-                    <DisplayFormattedNumber num={currentPrice} significant={2} />
-                  </span>
-                }
-              >
-                <span className="text-[13px] font-medium">
-                  Current {row.collateralSymbol} price
+                <span>
+                  {priceChangePercent >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber
+                    num={priceChangePercent}
+                    significant={2}
+                  />
+                  %
                 </span>
-              </HoverPopup>
-              <span className="ml-1">{row.debtSymbol}</span>)
-            </span>
-          </div>
+              </span>
+              <span className="text-xs text-foreground/60">
+                (<HoverPopup
+                  size="200"
+                  trigger={
+                    <span className="cursor-pointer">
+                      <DisplayFormattedNumber num={initialPrice} significant={2} />
+                    </span>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    Average Mint {row.collateralSymbol} Price
+                  </span>
+                </HoverPopup>
+                <span className="mx-1">→</span>
+                <HoverPopup
+                  size="200"
+                  trigger={
+                    <span className="cursor-pointer">
+                      <DisplayFormattedNumber num={currentPrice} significant={2} />
+                    </span>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    Current {row.collateralSymbol} price
+                  </span>
+                </HoverPopup>
+                <span className="ml-1">{row.debtSymbol}</span>)
+              </span>
+            </div>
+          )}
         </td>
 
         {/* Value column - stacked values */}
         <td className="py-2 pr-4 text-right font-normal">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <DisplayFormattedNumber num={currentCollateral} significant={2} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.collateralSymbol}
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <DisplayFormattedNumber num={currentCollateral} significant={2} />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.collateralSymbol}
+                </span>
               </span>
-            </span>
-            <span className="text-sm">
-              <span className="mr-0.5 text-foreground/60">≈</span>
-              <DisplayFormattedNumber
-                num={currentDebtTokenValue}
-                significant={2}
-              />
-              <span className="ml-0.5 text-foreground/60">
-                {row.debtSymbol}
+              <span className="text-sm">
+                <span className="mr-0.5 text-foreground/60">≈</span>
+                <DisplayFormattedNumber
+                  num={currentDebtTokenValue}
+                  significant={2}
+                />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.debtSymbol}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
+          )}
         </td>
 
         {/* PnL column */}
         <td className="hidden py-2 pr-4 text-right font-normal md:table-cell">
-          <HoverPopup
-            size="250"
-            trigger={
-              <div className="flex cursor-pointer flex-col items-end gap-0.5">
-                <span
-                  className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                >
-                  {pnlCollateral >= 0 ? "+" : ""}
-                  <DisplayFormattedNumber num={pnlCollateral} significant={2} />
-                  <span className="ml-0.5 text-foreground/60">
-                    {row.collateralSymbol}
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <HoverPopup
+              size="250"
+              trigger={
+                <div className="flex cursor-pointer flex-col items-end gap-0.5">
+                  <span
+                    className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                  >
+                    {pnlCollateral >= 0 ? "+" : ""}
+                    <DisplayFormattedNumber num={pnlCollateral} significant={2} />
+                    <span className="ml-0.5 text-foreground/60">
+                      {row.collateralSymbol}
+                    </span>
                   </span>
-                </span>
-                <span
-                  className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                >
-                  {pnlDebtToken >= 0 ? "+" : ""}
-                  <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
-                  <span className="ml-0.5 text-foreground/60">
-                    {row.debtSymbol}
+                  <span
+                    className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                  >
+                    {pnlDebtToken >= 0 ? "+" : ""}
+                    <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
+                    <span className="ml-0.5 text-foreground/60">
+                      {row.debtSymbol}
+                    </span>
                   </span>
-                </span>
-              </div>
-            }
-          >
-            <span className="text-[13px] font-medium">
-              Had you held spot {row.collateralSymbol}, your PnL would be{" "}
-              {spotPnlDebt >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={spotPnlDebt} significant={2} />{" "}
-              {row.debtSymbol}
-            </span>
-          </HoverPopup>
+                </div>
+              }
+            >
+              <span className="text-[13px] font-medium">
+                Had you held spot {row.collateralSymbol}, your PnL would be{" "}
+                {spotPnlDebt >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={spotPnlDebt} significant={2} />{" "}
+                {row.debtSymbol}
+              </span>
+            </HoverPopup>
+          )}
         </td>
 
         {/* % PnL column */}
         <td className="relative hidden py-2 pr-4 text-center font-normal xs:table-cell">
-          <HoverPopup
-            size="250"
-            trigger={
-              <div className="flex cursor-pointer flex-col gap-0.5">
-                <span
-                  className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                >
-                  {collateralPnlPercent >= 0 ? "+" : ""}
-                  <DisplayFormattedNumber
-                    num={collateralPnlPercent}
-                    significant={2}
-                  />
-                  %
-                </span>
-                <span
-                  className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-                >
-                  {leveragedPnlPercent >= 0 ? "+" : ""}
-                  <DisplayFormattedNumber
-                    num={leveragedPnlPercent}
-                    significant={2}
-                  />
-                  %
-                </span>
-              </div>
-            }
-          >
-            <span className="text-[13px] font-medium">
-              Had you held spot {row.collateralSymbol}, your PnL would be{" "}
-              {spotPnlPercent >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={spotPnlPercent} significant={2} />%
-              in {row.debtSymbol}
-            </span>
-          </HoverPopup>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <HoverPopup
+              size="250"
+              trigger={
+                <div className="flex cursor-pointer flex-col gap-0.5">
+                  <span
+                    className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                  >
+                    {collateralPnlPercent >= 0 ? "+" : ""}
+                    <DisplayFormattedNumber
+                      num={collateralPnlPercent}
+                      significant={2}
+                    />
+                    %
+                  </span>
+                  <span
+                    className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                  >
+                    {leveragedPnlPercent >= 0 ? "+" : ""}
+                    <DisplayFormattedNumber
+                      num={leveragedPnlPercent}
+                      significant={2}
+                    />
+                    %
+                  </span>
+                </div>
+              }
+            >
+              <span className="text-[13px] font-medium">
+                Had you held spot {row.collateralSymbol}, your PnL would be{" "}
+                {spotPnlPercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={spotPnlPercent} significant={2} />%
+                in {row.debtSymbol}
+              </span>
+            </HoverPopup>
+          )}
         </td>
 
         {/* Break-even price gain column - stacked values */}
         <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.breakeven.collateral}
-                className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.breakeven.debtToken}
-                className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.breakeven.collateral}
+                  className={`text-xs ${priceIncreaseTargets.breakeven.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.breakeven.debtToken}
+                  className={`text-xs ${priceIncreaseTargets.breakeven.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* 2x price gain column - stacked values */}
         <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.double.collateral}
-                className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.double.debtToken}
-                className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.double.collateral}
+                  className={`text-xs ${priceIncreaseTargets.double.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.double.debtToken}
+                  className={`text-xs ${priceIncreaseTargets.double.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* 10x price gain column - stacked values */}
         <td className="hidden py-2 pr-4 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.tenx.collateral}
-                className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <PriceIncreaseDisplay
-                percentage={priceIncreaseTargets.tenx.debtToken}
-                className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.tenx.collateral}
+                  className={`text-xs ${priceIncreaseTargets.tenx.collateral === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <PriceIncreaseDisplay
+                  percentage={priceIncreaseTargets.tenx.debtToken}
+                  className={`text-xs ${priceIncreaseTargets.tenx.debtToken === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* Actions column */}
@@ -1009,197 +1058,246 @@ export function BurnTableRow({
 
         {/* Price column - stacked values */}
         <td className="hidden py-2 pr-4 text-left font-normal md:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <span className="text-foreground/80">
-                {row.collateralSymbol}:{" "}
-              </span>
-              <span>
-                {priceChangePercent >= 0 ? "+" : ""}
-                <DisplayFormattedNumber
-                  num={priceChangePercent}
-                  significant={2}
-                />
-                %
-              </span>
-            </span>
-            <span className="text-xs text-foreground/60">
-              (<HoverPopup
-                size="200"
-                trigger={
-                  <span className="cursor-pointer">
-                    <DisplayFormattedNumber num={initialPrice} significant={2} />
-                  </span>
-                }
-              >
-                <span className="text-[13px] font-medium">
-                  Average Mint {row.collateralSymbol} Price
+          {quoteBurnLoading ? (
+            <div className="flex flex-col gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-4 w-24 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <span className="text-foreground/80">
+                  {row.collateralSymbol}:{" "}
                 </span>
-              </HoverPopup>
-              <span className="mx-1">→</span>
-              <HoverPopup
-                size="200"
-                trigger={
-                  <span className="cursor-pointer">
-                    <DisplayFormattedNumber num={currentPrice} significant={2} />
-                  </span>
-                }
-              >
-                <span className="text-[13px] font-medium">
-                  Current {row.collateralSymbol} price
+                <span>
+                  {priceChangePercent >= 0 ? "+" : ""}
+                  <DisplayFormattedNumber
+                    num={priceChangePercent}
+                    significant={2}
+                  />
+                  %
                 </span>
-              </HoverPopup>
-              <span className="ml-1">{row.debtSymbol}</span>)
-            </span>
-          </div>
+              </span>
+              <span className="text-xs text-foreground/60">
+                (<HoverPopup
+                  size="200"
+                  trigger={
+                    <span className="cursor-pointer">
+                      <DisplayFormattedNumber num={initialPrice} significant={2} />
+                    </span>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    Average Mint {row.collateralSymbol} Price
+                  </span>
+                </HoverPopup>
+                <span className="mx-1">→</span>
+                <HoverPopup
+                  size="200"
+                  trigger={
+                    <span className="cursor-pointer">
+                      <DisplayFormattedNumber num={currentPrice} significant={2} />
+                    </span>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    Current {row.collateralSymbol} price
+                  </span>
+                </HoverPopup>
+                <span className="ml-1">{row.debtSymbol}</span>)
+              </span>
+            </div>
+          )}
         </td>
 
         {/* Value column - stacked values */}
         <td className="py-2 pr-4 text-right font-normal">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <DisplayFormattedNumber num={currentCollateral} significant={2} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.collateralSymbol}
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <DisplayFormattedNumber num={currentCollateral} significant={2} />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.collateralSymbol}
+                </span>
               </span>
-            </span>
-            <span className="text-sm">
-              <span className="mr-0.5 text-foreground/60">≈</span>
-              <DisplayFormattedNumber
-                num={currentDebtTokenValue}
-                significant={2}
-              />
-              <span className="ml-0.5 text-foreground/60">
-                {row.debtSymbol}
+              <span className="text-sm">
+                <span className="mr-0.5 text-foreground/60">≈</span>
+                <DisplayFormattedNumber
+                  num={currentDebtTokenValue}
+                  significant={2}
+                />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.debtSymbol}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
+          )}
         </td>
 
         {/* PnL column - stacked values */}
         <td className="relative hidden py-2 pr-4 text-right font-normal md:table-cell">
-          <div className="flex flex-col items-end gap-0.5">
-            <span
-              className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {pnlCollateral >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={pnlCollateral} significant={2} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.collateralSymbol}
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-20 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-end gap-0.5">
+              <span
+                className={`text-sm ${pnlCollateral > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              >
+                {pnlCollateral >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={pnlCollateral} significant={2} />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.collateralSymbol}
+                </span>
               </span>
-            </span>
-            <span
-              className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {pnlDebtToken >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
-              <span className="ml-0.5 text-foreground/60">
-                {row.debtSymbol}
+              <span
+                className={`text-sm ${pnlDebtToken > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              >
+                {pnlDebtToken >= 0 ? "+" : ""}
+                <DisplayFormattedNumber num={pnlDebtToken} significant={2} />
+                <span className="ml-0.5 text-foreground/60">
+                  {row.debtSymbol}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
+          )}
         </td>
 
         {/* % PnL column - stacked values */}
         <td className="hidden py-2 pr-4 text-center font-normal xs:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span
-              className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {collateralPnlPercent >= 0 ? "+" : ""}
-              <DisplayFormattedNumber
-                num={collateralPnlPercent}
-                significant={2}
-              />
-              %
-            </span>
-            <span
-              className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-            >
-              {leveragedPnlPercent >= 0 ? "+" : ""}
-              <DisplayFormattedNumber
-                num={leveragedPnlPercent}
-                significant={2}
-              />
-              %
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span
+                className={`text-sm font-medium ${collateralPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              >
+                {collateralPnlPercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber
+                  num={collateralPnlPercent}
+                  significant={2}
+                />
+                %
+              </span>
+              <span
+                className={`text-sm font-medium ${leveragedPnlPercent > 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+              >
+                {leveragedPnlPercent >= 0 ? "+" : ""}
+                <DisplayFormattedNumber
+                  num={leveragedPnlPercent}
+                  significant={2}
+                />
+                %
+              </span>
+            </div>
+          )}
         </td>
 
         {/* Break-even time column - stacked values */}
         <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && breakevenTimeDays !== 0
-                    ? Infinity
-                    : breakevenTimeDays
-                }
-                className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && breakevenDebtTimeDays !== 0
-                    ? Infinity
-                    : breakevenDebtTimeDays
-                }
-                className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && breakevenTimeDays !== 0
+                      ? Infinity
+                      : breakevenTimeDays
+                  }
+                  className={`text-xs ${breakevenTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && breakevenDebtTimeDays !== 0
+                      ? Infinity
+                      : breakevenDebtTimeDays
+                  }
+                  className={`text-xs ${breakevenDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* 2x time column - stacked values */}
         <td className="hidden py-2 pr-2 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && doubleTimeDays !== 0
-                    ? Infinity
-                    : doubleTimeDays
-                }
-                className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && doubleDebtTimeDays !== 0
-                    ? Infinity
-                    : doubleDebtTimeDays
-                }
-                className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && doubleTimeDays !== 0
+                      ? Infinity
+                      : doubleTimeDays
+                  }
+                  className={`text-xs ${doubleTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && doubleDebtTimeDays !== 0
+                      ? Infinity
+                      : doubleDebtTimeDays
+                  }
+                  className={`text-xs ${doubleDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* 10x time column - stacked values */}
         <td className="hidden py-2 pr-4 text-right font-normal xl:table-cell">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
-                }
-                className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-            <span className="text-sm">
-              <TimeDisplay
-                days={
-                  isInfiniteTime && tenxDebtTimeDays !== 0
-                    ? Infinity
-                    : tenxDebtTimeDays
-                }
-                className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
-              />
-            </span>
-          </div>
+          {quoteBurnLoading ? (
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+              <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && tenxTimeDays !== 0 ? Infinity : tenxTimeDays
+                  }
+                  className={`text-xs ${tenxTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+              <span className="text-sm">
+                <TimeDisplay
+                  days={
+                    isInfiniteTime && tenxDebtTimeDays !== 0
+                      ? Infinity
+                      : tenxDebtTimeDays
+                  }
+                  className={`text-xs ${tenxDebtTimeDays === 0 ? "text-accent-600 dark:text-accent-100" : ""}`}
+                />
+              </span>
+            </div>
+          )}
         </td>
 
         {/* Actions column */}
