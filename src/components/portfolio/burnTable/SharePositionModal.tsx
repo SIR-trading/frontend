@@ -185,7 +185,7 @@ export function SharePositionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent title="Share Position" className="bg-transparent">
+      <DialogContent title="Share Position" className="w-[calc(100vw-2rem)] max-w-2xl bg-transparent sm:w-full">
         <div className="nav-shadow relative rounded-xl border border-foreground/10 bg-secondary transition-all duration-700">
           <TransactionModal.Close setOpen={onClose} />
 
