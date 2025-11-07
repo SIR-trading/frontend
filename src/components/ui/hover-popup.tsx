@@ -18,6 +18,7 @@ const hoverPopupVariants = cva(
   {
     variants: {
       size: {
+        "150": "max-w-[150px]",
         "200": "max-w-[200px]",
         "250": "max-w-[250px]",
         "300": "max-w-[300px]"

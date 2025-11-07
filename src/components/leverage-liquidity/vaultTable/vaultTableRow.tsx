@@ -407,17 +407,15 @@ export function VaultTableRow({
         {/* Mobile view - compact logos only with leverage */}
         <div className="flex items-center min-[650px]:hidden lg:flex min-[1130px]:hidden">
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
-              <div className="cursor-pointer flex-shrink-0">
-                <TokenImage
-                  address={vault.collateralToken.id}
-                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Collateral token"
-                />
-              </div>
+              <TokenImage
+                address={vault.collateralToken.id}
+                className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                width={28}
+                height={28}
+                alt="Collateral token"
+              />
             }
           >
             <TokenAddressTooltip
@@ -427,17 +425,15 @@ export function VaultTableRow({
           </HoverPopup>
           <span className="mx-1 font-normal">/</span>
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
-              <div className="cursor-pointer flex-shrink-0">
-                <TokenImage
-                  address={vault.debtToken.id}
-                  className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
-                  width={28}
-                  height={28}
-                  alt="Debt token"
-                />
-              </div>
+              <TokenImage
+                address={vault.debtToken.id}
+                className="h-6 min-h-[24px] w-6 min-w-[24px] flex-shrink-0 rounded-full"
+                width={28}
+                height={28}
+                alt="Debt token"
+              />
             }
           >
             <TokenAddressTooltip
@@ -514,7 +510,7 @@ export function VaultTableRow({
         {/* Medium view (650px to lg, and 1130px to xl) - logos + symbols + leverage */}
         <div className="hidden items-center min-[650px]:flex lg:hidden min-[1130px]:flex xl:hidden">
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
               <div className="flex cursor-pointer items-center">
                 <TokenImage
@@ -537,7 +533,7 @@ export function VaultTableRow({
           </HoverPopup>
           <span className="mx-1 font-normal">/</span>
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
               <div className="flex cursor-pointer items-center">
                 <TokenImage
@@ -627,7 +623,7 @@ export function VaultTableRow({
         {/* XL and above view - full names without leverage (shown in separate column) */}
         <div className="hidden items-center xl:flex">
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
               <div className="flex cursor-pointer items-center">
                 <TokenImage
@@ -650,7 +646,7 @@ export function VaultTableRow({
           </HoverPopup>
           <span className="mx-1 font-normal">/</span>
           <HoverPopup
-            size="200"
+            size="150"
             trigger={
               <div className="flex cursor-pointer items-center">
                 <TokenImage
