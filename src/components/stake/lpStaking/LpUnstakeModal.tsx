@@ -13,16 +13,13 @@ import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/tran
 import ExplorerLink from "@/components/shared/explorerLink";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { UniswapV3StakerContract } from "@/contracts/uniswapV3Staker";
-import { getCurrentActiveIncentives } from "@/data/uniswapIncentives";
+import { getAllChainIncentives, type IncentiveKey } from "@/data/uniswapIncentives";
 import { encodeFunctionData } from "viem";
+import type { LpPosition } from "./types";
 
-interface LpPosition {
-  tokenId: bigint;
-  liquidity: bigint;
-  tickLower: number;
-  tickUpper: number;
-  isInRange: boolean;
-  valueUsd: number;
+// Generate a unique ID for an incentive key (for matching with stakesPerIncentive map)
+function getIncentiveId(incentive: IncentiveKey): string {
+  return `${incentive.rewardToken}-${incentive.pool}-${incentive.startTime}-${incentive.endTime}`;
 }
 
 interface LpUnstakeModalProps {
@@ -53,9 +50,9 @@ export function LpUnstakeModal({
   // Use snapshot for all calculations if available, otherwise use live positions
   const activePositions = positionsSnapshot.length > 0 ? positionsSnapshot : positions;
 
-  // Get ALL active incentives (we need to unstake from all of them)
-  const activeIncentives = useMemo(() => {
-    return getCurrentActiveIncentives();
+  // Get ALL incentives (active, past, and future) - positions might be staked in any of them
+  const allIncentives = useMemo(() => {
+    return getAllChainIncentives();
   }, []);
 
   // Calculate total USD value from positions
@@ -84,38 +81,49 @@ export function LpUnstakeModal({
 
   // Handle unstaking multiple positions
   const handleUnstake = useCallback(async () => {
-    if (!address || activeIncentives.length === 0 || activePositions.length === 0) return;
+    if (!address || activePositions.length === 0) return;
 
     console.log('=== handleUnstake CALLED ===');
     console.log('activePositions:', activePositions);
-    console.log('activeIncentives:', activeIncentives);
+    console.log('allIncentives (checking all):', allIncentives);
 
     // Build multicall array for all positions
     const calls: `0x${string}`[] = [];
 
-    // For each position, unstake from ALL active incentives, then withdraw
+    // For each position, unstake from ALL incentives (past, present, future)
+    // We check stakesPerIncentive to know which ones it's actually in
     activePositions.forEach((position) => {
       console.log(`Processing position #${position.tokenId}`);
+      console.log(`  numberOfStakes: ${position.numberOfStakes}`);
+      console.log(`  stakesPerIncentive:`, position.stakesPerIncentive);
 
-      // Unstake from ALL active incentives
-      activeIncentives.forEach((incentive, idx) => {
-        console.log(`  - Unstaking from incentive ${idx + 1}`);
-        calls.push(
-          encodeFunctionData({
-            abi: UniswapV3StakerContract.abi,
-            functionName: "unstakeToken",
-            args: [
-              {
-                rewardToken: incentive.rewardToken,
-                pool: incentive.pool,
-                startTime: incentive.startTime,
-                endTime: incentive.endTime,
-                refundee: incentive.refundee,
-              },
-              position.tokenId
-            ],
-          })
-        );
+      // Check ALL incentives (not just active ones) - position might be in past/future incentives
+      allIncentives.forEach((incentive, idx) => {
+        const incentiveId = getIncentiveId(incentive);
+        const stakedLiquidity = position.stakesPerIncentive.get(incentiveId);
+
+        // Only call unstakeToken if position is staked in this incentive (liquidity > 0)
+        if (stakedLiquidity && stakedLiquidity > 0n) {
+          console.log(`  - Unstaking from incentive ${idx + 1}: ${incentiveId.substring(0, 20)}... (liquidity: ${stakedLiquidity})`);
+          calls.push(
+            encodeFunctionData({
+              abi: UniswapV3StakerContract.abi,
+              functionName: "unstakeToken",
+              args: [
+                {
+                  rewardToken: incentive.rewardToken,
+                  pool: incentive.pool,
+                  startTime: incentive.startTime,
+                  endTime: incentive.endTime,
+                  refundee: incentive.refundee,
+                },
+                position.tokenId
+              ],
+            })
+          );
+        } else {
+          console.log(`  - Skipping incentive ${idx + 1} (not staked or liquidity = 0)`);
+        }
       });
 
       // After unstaking from all incentives, withdraw the NFT back to wallet
@@ -140,7 +148,7 @@ export function LpUnstakeModal({
     });
 
     console.log('executeMulticall called!');
-  }, [executeMulticall, address, activePositions, activeIncentives]);
+  }, [executeMulticall, address, activePositions, allIncentives]);
 
   // Handle success callback
   useEffect(() => {
@@ -161,22 +169,6 @@ export function LpUnstakeModal({
     }
   }, [setOpen, reset, writeError]);
 
-  if (activeIncentives.length === 0) {
-    return (
-      <TransactionModal.Root
-        title="Unstake LP Positions"
-        open={open}
-        setOpen={handleClose}
-      >
-        <TransactionModal.Close setOpen={handleClose} />
-        <TransactionModal.InfoContainer isConfirming={false} hash={undefined}>
-          <div className="text-center text-muted-foreground">
-            No active incentives found. Cannot unstake at this time.
-          </div>
-        </TransactionModal.InfoContainer>
-      </TransactionModal.Root>
-    );
-  }
 
   const inRangeCount = activePositions.filter(p => p.isInRange).length;
 
@@ -255,15 +247,10 @@ export function LpUnstakeModal({
 
             <div className="px-6 py-4">
               <TransactionModal.Disclaimer>
-                {activeIncentives.length > 1 ? (
-                  activePositions.length === 1
-                    ? `This will unstake your position from all ${activeIncentives.length} active incentives and return the NFT to your wallet.`
-                    : `All ${activePositions.length} positions will be unstaked from all ${activeIncentives.length} active incentives and the NFTs returned to your wallet in a single transaction.`
-                ) : (
-                  activePositions.length === 1
-                    ? "This will unstake your position and return the NFT to your wallet."
-                    : `All ${activePositions.length} positions will be unstaked and the NFTs returned to your wallet in a single transaction.`
-                )}
+                {activePositions.length === 1
+                  ? "This will unstake your position from any active incentives and return the NFT to your wallet."
+                  : `All ${activePositions.length} positions will be unstaked from any active incentives and the NFTs returned to your wallet in a single transaction.`
+                }
               </TransactionModal.Disclaimer>
             </div>
           </>
@@ -300,7 +287,7 @@ export function LpUnstakeModal({
           <div className="mx-4 border-t border-foreground/10" />
           <TransactionModal.StatSubmitContainer>
             <TransactionModal.SubmitButton
-              disabled={isPending || isConfirming || activeIncentives.length === 0 || activePositions.length === 0}
+              disabled={isPending || isConfirming || activePositions.length === 0}
               isPending={isPending}
               loading={isConfirming}
               onClick={() => {
@@ -334,6 +321,23 @@ export function LpUnstakeModal({
           </TransactionModal.StatSubmitContainer>
         </>
       )}
+
+      {/* Show errors */}
+      {writeError && !isConfirming && !isConfirmed && (() => {
+        const errorMessage = writeError.message || "";
+        const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                               errorMessage.toLowerCase().includes("user denied");
+
+        if (!isUserRejection) {
+          return (
+            <div className="px-6 pb-4">
+              <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                Transaction failed: {errorMessage}
+              </p>
+            </div>
+          );
+        }
+      })()}
     </TransactionModal.Root>
   );
 }

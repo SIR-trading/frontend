@@ -272,7 +272,7 @@ export function useUserLpPositions() {
   });
 
   // Fetch position details for all token IDs
-  // For each tokenId, we fetch: positions, deposits, stakes for each active incentive, and getRewardInfo for all incentives
+  // For each tokenId, we fetch: positions, deposits, stakes for ALL incentives, and getRewardInfo for all incentives
   const positionContracts = useMemo(() => {
     return tokenIds.flatMap((tokenId) => [
       // 1. Position data from NonfungiblePositionManager
@@ -289,8 +289,8 @@ export function useUserLpPositions() {
         args: [tokenId] as const,
         chainId: ENV_CHAIN_ID,
       },
-      // 3. Stakes data for each active incentive
-      ...activeIncentives.map((incentive) => ({
+      // 3. Stakes data for ALL incentives (past, present, future) - needed for unstaking
+      ...allIncentives.map((incentive) => ({
         ...UniswapV3StakerContract,
         functionName: "stakes" as const,
         args: [tokenId, computeIncentiveId(incentive)] as const,
@@ -313,7 +313,7 @@ export function useUserLpPositions() {
         chainId: ENV_CHAIN_ID,
       })),
     ]);
-  }, [tokenIds, activeIncentives, allIncentives]);
+  }, [tokenIds, allIncentives]);
 
   const {
     data: positionsData,
@@ -349,7 +349,7 @@ export function useUserLpPositions() {
       let inRangeValueStakedUsd = 0;
 
       // Calculate the number of calls per token ID
-      const callsPerToken = 2 + activeIncentives.length + allIncentives.length; // positions + deposits + (stakes per active incentive) + (getRewardInfo per all incentives)
+      const callsPerToken = 2 + allIncentives.length + allIncentives.length; // positions + deposits + (stakes per all incentives) + (getRewardInfo per all incentives)
 
       for (let i = 0; i < tokenIds.length; i++) {
         const baseIndex = i * callsPerToken;
@@ -408,17 +408,14 @@ export function useUserLpPositions() {
 
         if (!isSirWethPair || !isTargetFee) continue;
 
-        // Check if position is staked by the current user
-        const isStaked =
-          depositOwner !== "0x0000000000000000000000000000000000000000" &&
-          Number(numberOfStakes) > 0;
-        const isStakedByUser = address
-          ? isStaked && depositOwner.toLowerCase() === address.toLowerCase()
+        // Check if position is deposited in staker contract by the current user
+        // A position is "deposited" if depositOwner is not zero address (regardless of numberOfStakes)
+        const isDepositedInStaker = depositOwner !== "0x0000000000000000000000000000000000000000";
+        const isDepositedByUser = address && isDepositedInStaker
+          ? depositOwner.toLowerCase() === address.toLowerCase()
           : false;
         const isOwnedByUser = address
-          ? !isStaked &&
-            (depositOwner === "0x0000000000000000000000000000000000000000" ||
-              depositOwner.toLowerCase() === address.toLowerCase())
+          ? depositOwner === "0x0000000000000000000000000000000000000000"
           : false;
 
         // Build position object
@@ -428,14 +425,14 @@ export function useUserLpPositions() {
         // Calculate if position is in range
         const isInRange = currentTick >= tickLower && currentTick < tickUpper;
 
-        // Extract stakes data for each active incentive
+        // Extract stakes data for ALL incentives (past, present, future)
         const stakesPerIncentive = new Map<string, bigint>();
         const missingIncentives: IncentiveKey[] = [];
 
-        for (let j = 0; j < activeIncentives.length; j++) {
+        for (let j = 0; j < allIncentives.length; j++) {
           const stakeIndex = stakesStartIndex + j;
           const stakeResult = positionsData[stakeIndex];
-          const incentive = activeIncentives[j];
+          const incentive = allIncentives[j];
 
           if (!incentive) continue;
 
@@ -448,13 +445,22 @@ export function useUserLpPositions() {
 
             stakesPerIncentive.set(incentiveId, stakedLiquidity);
 
-            // If liquidity is 0, position is not staked in this incentive
-            if (stakedLiquidity === 0n) {
+            // Only consider ACTIVE incentives as "missing" if not staked
+            // (We don't care about past/future incentives for staking new positions)
+            const isActiveIncentive = activeIncentives.some(
+              active => getIncentiveId(active) === incentiveId
+            );
+            if (isActiveIncentive && stakedLiquidity === 0n) {
               missingIncentives.push(incentive);
             }
           } else {
-            // If we couldn't fetch stakes, assume it's missing
-            missingIncentives.push(incentive);
+            // If we couldn't fetch stakes for an active incentive, assume it's missing
+            const isActiveIncentive = activeIncentives.some(
+              active => getIncentiveId(active) === incentiveId
+            );
+            if (isActiveIncentive) {
+              missingIncentives.push(incentive);
+            }
           }
         }
 
@@ -490,7 +496,7 @@ export function useUserLpPositions() {
 
         const lpPosition: LpPosition = {
           tokenId: currentTokenId,
-          owner: isStaked
+          owner: isDepositedInStaker
             ? depositOwner
             : address ??
               ("0x0000000000000000000000000000000000000000" as Address),
@@ -500,7 +506,7 @@ export function useUserLpPositions() {
           tickLower,
           tickUpper,
           liquidity,
-          isStaked,
+          isStaked: isDepositedInStaker,
           numberOfStakes: Number(numberOfStakes),
           valueUsd: positionValueUsd,
           rewardsSir: 0n, // Will be fetched later for staked positions
@@ -509,19 +515,19 @@ export function useUserLpPositions() {
           missingIncentives,
         };
 
-        // Track global staking stats for ALL staked positions
-        if (isStaked && positionValueUsd > 0) {
+        // Track global staking stats for ALL deposited positions (in staker contract)
+        if (isDepositedInStaker && positionValueUsd > 0) {
           totalValueStakedUsd += positionValueUsd;
           if (isInRange) {
             inRangeValueStakedUsd += positionValueUsd;
           }
         }
 
-        // Categorize user positions based on stake status and incentive participation
-        // "LP Positions" card: unstaked OR missing some incentives (for completing stake)
-        // "Staked LP Positions" card: in staker contract (for unstaking)
-        if (isStakedByUser) {
-          // Position is in staker contract - always show in "Staked" for unstaking option
+        // Categorize user positions based on deposit status and incentive participation
+        // "LP Positions" card: not in staker contract OR missing some incentives (for completing stake)
+        // "Staked LP Positions" card: in staker contract (for unstaking/withdrawing)
+        if (isDepositedByUser) {
+          // Position is in staker contract - always show in "Staked" for unstaking/withdrawing option
           staked.push(lpPosition);
 
           // If missing some incentives, also show in "LP Positions" to allow completing the stake
@@ -551,7 +557,7 @@ export function useUserLpPositions() {
       sirPrice,
       wethPrice,
       activeIncentives,
-      allIncentives.length,
+      allIncentives,
     ]);
 
   // Calculate staking APR from incentive data
@@ -630,13 +636,13 @@ export function useUserLpPositions() {
     }
 
     // Calculate the number of calls per token ID
-    const callsPerToken = 2 + activeIncentives.length + allIncentives.length;
+    const callsPerToken = 2 + allIncentives.length + allIncentives.length;
 
     // For each tokenId, check if it's staked by the user and add getRewardInfo results
     for (let i = 0; i < tokenIds.length; i++) {
       const baseIndex = i * callsPerToken;
       const depositIndex = baseIndex + 1;
-      const rewardInfoStartIndex = baseIndex + 2 + activeIncentives.length;
+      const rewardInfoStartIndex = baseIndex + 2 + allIncentives.length;
 
       const depositResult = positionsData[depositIndex];
       if (!depositResult?.result) continue;
@@ -650,15 +656,16 @@ export function useUserLpPositions() {
 
       const [depositOwner, numberOfStakes] = deposit;
 
-      // Check if this position is staked by the current user
-      const isStaked =
-        depositOwner !== "0x0000000000000000000000000000000000000000" &&
-        Number(numberOfStakes) > 0;
-      const isStakedByUser =
-        isStaked && depositOwner.toLowerCase() === address.toLowerCase();
+      // Check if this position is deposited in staker and earning rewards
+      // Rewards only accrue when staked in at least one incentive (numberOfStakes > 0)
+      const isDepositedInStaker =
+        depositOwner !== "0x0000000000000000000000000000000000000000";
+      const isEarningRewards = isDepositedInStaker && Number(numberOfStakes) > 0;
+      const isDepositedByUser =
+        isDepositedInStaker && depositOwner.toLowerCase() === address.toLowerCase();
 
-      // Only add rewards for positions staked by this user
-      if (isStakedByUser) {
+      // Only add rewards for positions deposited by this user that are earning rewards
+      if (isDepositedByUser && isEarningRewards) {
         // For each incentive, get the getRewardInfo result
         for (let j = 0; j < allIncentives.length; j++) {
           const rewardInfoIndex = rewardInfoStartIndex + j;
@@ -683,7 +690,6 @@ export function useUserLpPositions() {
     positionsData,
     tokenIds,
     address,
-    activeIncentives.length,
     allIncentives,
   ]);
 
