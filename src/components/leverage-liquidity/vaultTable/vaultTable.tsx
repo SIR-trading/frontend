@@ -32,6 +32,33 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
     return currentPageVaults.map((vault) => vault.id);
   }, [currentPageVaults]);
 
+  // Extract unique collateral tokens and decimals for batch price query
+  const { collateralTokens, decimalsMap } = useMemo(() => {
+    const uniqueTokens = new Set<string>();
+    const decimals: Record<string, number> = {};
+
+    currentPageVaults.forEach((vault) => {
+      const tokenAddress = vault.collateralToken.id;
+      uniqueTokens.add(tokenAddress);
+      decimals[tokenAddress] = vault.collateralToken.decimals;
+    });
+
+    return {
+      collateralTokens: Array.from(uniqueTokens),
+      decimalsMap: decimals,
+    };
+  }, [currentPageVaults]);
+
+  // Batch fetch collateral prices for all unique tokens on current page
+  const { data: batchPriceData } = api.vault.getBatchCollateralPrices.useQuery(
+    { collateralTokens, decimals: decimalsMap },
+    {
+      enabled: hasMounted && collateralTokens.length > 0,
+      refetchOnMount: false,
+      staleTime: 60 * 1000, // 1 minute
+    },
+  );
+
   // Batch fetch APY data for all vaults on current page (only for liquidity page and after mount)
   const { data: batchApyData, isLoading: isBatchApyLoading } =
     api.vault.getVaultsApy.useQuery(
@@ -113,6 +140,9 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
                 apyData={batchApyData?.[pool.id]}
                 isApyLoading={isBatchApyLoading}
                 showTvlInUsd={showTvlInUsd}
+                collateralUsdPrice={
+                  batchPriceData?.[pool.collateralToken.id.toLowerCase()]
+                }
               />
             );
           })}

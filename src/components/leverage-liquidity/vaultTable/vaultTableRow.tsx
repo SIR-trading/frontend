@@ -26,7 +26,6 @@ import type { TCalculatorFormFields } from "@/components/providers/calculatorFor
 import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
-import { useTokenUsdPrice } from "../mintForm/hooks/useTokenUsdPrice";
 import { FeeExplanation } from "@/components/shared/FeeExplanation";
 import { getCurrentChainConfig } from "@/lib/chains";
 
@@ -38,6 +37,7 @@ export function VaultTableRow({
   apyData,
   isApyLoading,
   showTvlInUsd = true,
+  collateralUsdPrice,
 }: {
   badgeVariant: VariantProps<typeof badgeVariants>;
   number: string;
@@ -51,6 +51,7 @@ export function VaultTableRow({
   };
   isApyLoading?: boolean;
   showTvlInUsd?: boolean;
+  collateralUsdPrice?: number;
 }) {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
@@ -246,11 +247,11 @@ export function VaultTableRow({
   const tvlRaw = parseUnits(vault.totalValue, 0);
   const tvlFormatted = formatUnits(tvlRaw, vault.collateralToken.decimals);
 
-  const { usdValue: tvlUsd } = useTokenUsdPrice(
-    vault.collateralToken.id,
-    tvlFormatted,
-    vault.collateralToken.decimals,
-  );
+  // Use batch-fetched price instead of individual hook
+  const tvlUsd =
+    collateralUsdPrice !== undefined
+      ? parseFloat(tvlFormatted) * collateralUsdPrice
+      : undefined;
 
   const variant = useCalculateVaultHealth({
     isApe,
@@ -826,7 +827,7 @@ export function VaultTableRow({
               {showTvlInUsd ? (
                 vault.totalValue === "0" ? (
                   <span>$0</span>
-                ) : tvlUsd !== null && tvlUsd >= 0 ? (
+                ) : tvlUsd !== undefined && tvlUsd !== null && tvlUsd >= 0 ? (
                   <span>
                     $
                     <DisplayFormattedNumber

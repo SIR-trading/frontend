@@ -982,6 +982,259 @@ export const vaultRouter = createTRPCRouter({
       }
     }),
 
+  // Optimized endpoint to batch fetch collateral prices using Uniswap + single Alchemy call
+  getBatchCollateralPrices: publicProcedure
+    .input(
+      z.object({
+        collateralTokens: z.array(z.string().startsWith("0x").length(42)),
+        decimals: z.record(z.string(), z.number()),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { collateralTokens, decimals } = input;
+
+      if (collateralTokens.length === 0) {
+        return {};
+      }
+
+      const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+      const priceMap: Record<string, number> = {};
+
+      try {
+        // Import helper functions
+        const { getWrappedNativeTokenAddress } = await import("@/config/chains");
+        const { UniswapV3PoolABI, FEE_TIERS } = await import("@/contracts/uniswap-v3-pool");
+        const { getAddress, keccak256, encodeAbiParameters, parseAbiParameters } = await import("viem");
+        const { getUniswapV3Factory, getUniswapV3PoolInitCodeHash } = await import("@/contracts/uniswap-v3-pool");
+
+        const wrappedNativeAddress = getWrappedNativeTokenAddress(chainId);
+
+        // Helper to compute pool address (same as in quote.ts)
+        const computePoolAddress = (tokenA: string, tokenB: string, fee: number): string => {
+          const [token0, token1] = tokenA.toLowerCase() < tokenB.toLowerCase()
+            ? [tokenA, tokenB]
+            : [tokenB, tokenA];
+
+          const salt = keccak256(
+            encodeAbiParameters(
+              parseAbiParameters("address, address, uint24"),
+              [getAddress(token0), getAddress(token1), fee]
+            )
+          );
+
+          const poolInitCodeHash = getUniswapV3PoolInitCodeHash(chainId);
+          const factoryAddress = getUniswapV3Factory(chainId);
+
+          const data = keccak256(
+            `0xff${factoryAddress.slice(2)}${salt.slice(2)}${poolInitCodeHash.slice(2)}` as `0x${string}`
+          );
+
+          return getAddress(`0x${data.slice(-40)}`);
+        };
+
+        // Helper to convert sqrtPriceX96 to price
+        const sqrtPriceX96ToPrice = (
+          sqrtPriceX96: bigint,
+          decimals0: number,
+          decimals1: number,
+          token0IsInput: boolean
+        ): number => {
+          const price = Number(sqrtPriceX96) ** 2 / (2 ** 192);
+          const adjustedPrice = price * (10 ** decimals0) / (10 ** decimals1);
+          return token0IsInput ? adjustedPrice : 1 / adjustedPrice;
+        };
+
+        // Step 1: Build multicall contracts for ALL pools (all tokens × all fee tiers)
+        const feeTiers = [FEE_TIERS.LOWEST, FEE_TIERS.LOW, FEE_TIERS.MEDIUM, FEE_TIERS.HIGH];
+        const multicallContracts: Array<{
+          address: TAddressString;
+          abi: typeof UniswapV3PoolABI;
+          functionName: "slot0" | "liquidity" | "token0";
+          tokenAddress: string;
+          fee: number;
+          queryType: "slot0" | "liquidity" | "token0";
+        }> = [];
+
+        collateralTokens.forEach((tokenAddress) => {
+          // Skip wrapped native token itself (price is 1:1)
+          if (tokenAddress.toLowerCase() === wrappedNativeAddress.toLowerCase()) {
+            return;
+          }
+
+          feeTiers.forEach((fee) => {
+            const poolAddress = computePoolAddress(tokenAddress, wrappedNativeAddress, fee);
+
+            // Add slot0 query
+            multicallContracts.push({
+              address: poolAddress as TAddressString,
+              abi: UniswapV3PoolABI,
+              functionName: "slot0",
+              tokenAddress,
+              fee,
+              queryType: "slot0",
+            });
+
+            // Add liquidity query
+            multicallContracts.push({
+              address: poolAddress as TAddressString,
+              abi: UniswapV3PoolABI,
+              functionName: "liquidity",
+              tokenAddress,
+              fee,
+              queryType: "liquidity",
+            });
+
+            // Add token0 query
+            multicallContracts.push({
+              address: poolAddress as TAddressString,
+              abi: UniswapV3PoolABI,
+              functionName: "token0",
+              tokenAddress,
+              fee,
+              queryType: "token0",
+            });
+          });
+        });
+
+        // Step 2: Execute single multicall for ALL pool data
+        const results = await multicall({
+          contracts: multicallContracts.map(c => ({
+            address: c.address,
+            abi: c.abi,
+            functionName: c.functionName,
+          })),
+          allowFailure: true,
+        });
+
+        // Step 3: Process results to find most liquid pool per token
+        const poolPrices: Array<{ tokenAddress: string; wethPrice: number | null }> = [];
+        const processedTokens = new Set<string>();
+
+        collateralTokens.forEach((tokenAddress) => {
+          // Wrapped native token has 1:1 price with itself
+          if (tokenAddress.toLowerCase() === wrappedNativeAddress.toLowerCase()) {
+            poolPrices.push({ tokenAddress, wethPrice: 1 });
+            processedTokens.add(tokenAddress.toLowerCase());
+            return;
+          }
+
+          let bestLiquidity = 0n;
+          let bestPrice: number | null = null;
+
+          feeTiers.forEach((fee) => {
+            const baseIndex = multicallContracts.findIndex(
+              c => c.tokenAddress === tokenAddress && c.fee === fee && c.queryType === "slot0"
+            );
+
+            if (baseIndex === -1) return;
+
+            const slot0Result = results[baseIndex];
+            const liquidityResult = results[baseIndex + 1];
+            const token0Result = results[baseIndex + 2];
+
+            if (
+              slot0Result?.status === "success" &&
+              liquidityResult?.status === "success" &&
+              token0Result?.status === "success"
+            ) {
+              const liquidity = liquidityResult.result as bigint;
+
+              if (liquidity > bestLiquidity) {
+                bestLiquidity = liquidity;
+
+                const slot0 = slot0Result.result as readonly [bigint, number, number, number, number, number, boolean];
+                const sqrtPriceX96 = slot0[0];
+                const token0 = token0Result.result as string;
+
+                const isToken0 = token0.toLowerCase() === tokenAddress.toLowerCase();
+                const decimalsA = decimals[tokenAddress] ?? 18;
+                const decimalsB = 18; // Wrapped native token always 18 decimals
+
+                bestPrice = sqrtPriceX96ToPrice(
+                  sqrtPriceX96,
+                  isToken0 ? decimalsA : decimalsB,
+                  isToken0 ? decimalsB : decimalsA,
+                  isToken0
+                );
+              }
+            }
+          });
+
+          poolPrices.push({ tokenAddress, wethPrice: bestPrice });
+          processedTokens.add(tokenAddress.toLowerCase());
+        });
+
+        // Step 4: Get wrapped native token price in USD (single external API call)
+        // WETH on Ethereum chains, WHYPE on HyperEVM chains
+        const useCoinGecko = shouldUseCoinGecko(chainId);
+        let wrappedNativeUsdPrice = 0;
+
+        if (useCoinGecko) {
+          // Use CoinGecko for HyperEVM chains
+          const platformId = getCoinGeckoPlatformId(chainId);
+          if (platformId) {
+            const headers: HeadersInit = {
+              accept: "application/json",
+            };
+
+            if (process.env.COINGECKO_API_KEY) {
+              headers["x-cg-demo-api-key"] = process.env.COINGECKO_API_KEY;
+            }
+
+            const url = `https://api.coingecko.com/api/v3/simple/token_price/${platformId}?contract_addresses=${wrappedNativeAddress.toLowerCase()}&vs_currencies=usd&include_24hr_change=false`;
+            const response = await fetch(url, { headers });
+
+            if (response.ok) {
+              const data = (await response.json()) as Record<
+                string,
+                { usd?: number }
+              >;
+              wrappedNativeUsdPrice = data[wrappedNativeAddress.toLowerCase()]?.usd ?? 0;
+            }
+          }
+        } else {
+          // Use Alchemy for Ethereum chains
+          const alchemyChain = getAlchemyChainString(chainId);
+          const response = await fetch(
+            `https://api.g.alchemy.com/prices/v1/${process.env.ALCHEMY_BEARER}/tokens/by-address`,
+            {
+              method: "POST",
+              headers: {
+                accept: "application/json",
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                addresses: [{ network: alchemyChain, address: wrappedNativeAddress }],
+              }),
+            },
+          );
+
+          if (response.ok) {
+            const data = (await response.json()) as {
+              data: Array<{
+                address: string;
+                prices: Array<{ value: string; currency: string }>;
+              }>;
+            };
+            wrappedNativeUsdPrice = parseFloat(data.data[0]?.prices[0]?.value ?? "0");
+          }
+        }
+
+        // Step 5: Calculate USD prices for all tokens
+        // Formula: token_usd = token_wrapped_native × wrapped_native_usd
+        poolPrices.forEach(({ tokenAddress, wethPrice }) => {
+          if (wethPrice !== null && wrappedNativeUsdPrice > 0) {
+            priceMap[tokenAddress.toLowerCase()] = wethPrice * wrappedNativeUsdPrice;
+          }
+        });
+
+        return priceMap;
+      } catch (error) {
+        console.error("Error batch fetching collateral prices:", error);
+        return priceMap;
+      }
+    }),
+
   // Optimized endpoint to get APY for multiple vaults with shared price data
   getVaultsApy: publicProcedure
     .input(
