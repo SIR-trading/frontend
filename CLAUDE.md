@@ -31,6 +31,13 @@ SIR is a DeFi protocol frontend for leveraged trading without liquidation risk. 
 
 **Notifications**: Golden dots for SIR rewards (≥100k), green dots for dividends (≥0.01 ETH/1 HYPE).
 
+**Automatic Network Switching**:
+- App uses `NEXT_PUBLIC_CHAIN_ID` on load
+- When user switches wallet network, app automatically redirects to corresponding deployment URL
+- Configuration: `src/config/chains.json` - add `deploymentUrl` field per chain
+- Implementation: `src/hooks/useNetworkRedirect.ts` listens to `window.ethereum.on('chainChanged')`
+- Console errors during redirect (React #423, WebSocket closed) are expected and harmless
+
 ---
 
 ## Core Development Principles

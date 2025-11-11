@@ -4,6 +4,7 @@ export interface ChainConfig {
   chainId: number;
   name: string;
   isTestnet: boolean;
+  deploymentUrl?: string;
   nativeCurrency: {
     name: string;
     symbol: string;

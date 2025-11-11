@@ -20,6 +20,7 @@ import { ClaimableBalancesProvider } from "@/contexts/ClaimableBalancesContext";
 import { VaultDataProvider } from "@/contexts/VaultDataContext";
 import { StakingProvider } from "@/contexts/StakingContext";
 import { SirPriceProvider } from "@/contexts/SirPriceContext";
+import { NetworkRedirectWrapper } from "@/components/networkRedirectWrapper";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -97,6 +98,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <TRPCReactProvider>
               <TokenlistContextProvider>
                 <EvmProvider>
+                  <NetworkRedirectWrapper />
                   <VaultDataProvider>
                     <StakingProvider>
                       <SirPriceProvider>

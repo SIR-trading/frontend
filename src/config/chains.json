@@ -27,7 +27,8 @@
       "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
       "symbol": "WETH",
       "name": "Wrapped Ether"
-    }
+    },
+    "deploymentUrl": "https://app.sir.trading"
   },
   "11155111": {
     "chainId": 11155111,
@@ -57,7 +58,8 @@
       "address": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
       "symbol": "WETH",
       "name": "Wrapped Ether"
-    }
+    },
+    "deploymentUrl": ""
   },
   "998": {
     "chainId": 998,
@@ -87,7 +89,8 @@
       "address": "0xADcb2f358Eae6492F61A5F87eb8893d09391d160",
       "symbol": "WHYPE",
       "name": "Wrapped HYPE"
-    }
+    },
+    "deploymentUrl": ""
   },
   "999": {
     "chainId": 999,
@@ -117,6 +120,7 @@
       "address": "0x5555555555555555555555555555555555555555",
       "symbol": "WHYPE",
       "name": "Wrapped HYPE"
-    }
+    },
+    "deploymentUrl": "https://hype.sir.trading"
   }
 }
