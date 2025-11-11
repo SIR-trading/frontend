@@ -9,6 +9,7 @@ import { getSirSymbol } from "@/lib/assets";
 import { LpStakeModal } from "./LpStakeModal";
 import { LpUnstakeModal } from "./LpUnstakeModal";
 import { LpClaimRewardsModal } from "./LpClaimRewardsModal";
+import { LpRestakeModal } from "./LpRestakeModal";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { CheckCircle2, XCircle } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
@@ -26,11 +27,14 @@ export function LpStakingArea() {
     isLoading,
     refetchAll,
     stakingApr,
+    hasPositionsWithMissingIncentives,
+    positionsNeedingRestake,
   } = useUserLpPositions();
 
   // Modal states
   const [stakeModalOpen, setStakeModalOpen] = useState(false);
   const [unstakeModalOpen, setUnstakeModalOpen] = useState(false);
+  const [restakeModalOpen, setRestakeModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
 
   // Capture rewards amount when modal opens (prevents display jumping after claim)
@@ -42,6 +46,7 @@ export function LpStakingArea() {
   // Timeout refs for cleanup
   const stakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const unstakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const restakeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const claimTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup timeouts on unmount
@@ -49,6 +54,7 @@ export function LpStakingArea() {
     return () => {
       if (stakeTimeoutRef.current) clearTimeout(stakeTimeoutRef.current);
       if (unstakeTimeoutRef.current) clearTimeout(unstakeTimeoutRef.current);
+      if (restakeTimeoutRef.current) clearTimeout(restakeTimeoutRef.current);
       if (claimTimeoutRef.current) clearTimeout(claimTimeoutRef.current);
     };
   }, []);
@@ -109,6 +115,13 @@ export function LpStakingArea() {
     }
   }, [stakedPositions]);
 
+  // Handle restake button click - restakes positions with missing incentives
+  const handleRestakeClick = useCallback(() => {
+    if (positionsNeedingRestake.length > 0) {
+      setRestakeModalOpen(true);
+    }
+  }, [positionsNeedingRestake]);
+
   // Handle claim button click
   const handleClaimClick = useCallback(() => {
     // Capture current rewards amount to prevent display jumping after claim
@@ -141,8 +154,8 @@ export function LpStakingArea() {
                 <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
                   <span>LP Balance</span>
                   <ToolTip iconSize={12}>
-                    Includes both completely unstaked positions and positions
-                    only earning from some of the active incentives.
+                    Unstaked positions in your wallet. Stake them to earn SIR
+                    rewards.
                   </ToolTip>
                 </h2>
                 <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
@@ -203,60 +216,6 @@ export function LpStakingArea() {
                             Out of range
                           </span>
                         </HoverPopup>
-                        {unstakedPositions.length > 0 && (
-                          <HoverPopup
-                            trigger={
-                              <div className="flex cursor-pointer items-baseline gap-1 ml-2">
-                                <span className="text-sm text-muted-foreground hover:text-foreground">
-                                  ({unstakedPositions.length}{" "}
-                                  {unstakedPositions.length === 1
-                                    ? "position"
-                                    : "positions"}
-                                  )
-                                </span>
-                              </div>
-                            }
-                            size="250"
-                          >
-                            <div className="space-y-2">
-                              {unstakedPositions.map((position) => (
-                                <div
-                                  key={position.tokenId.toString()}
-                                  className="flex items-center justify-between gap-3"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={`inline-block rounded-full ${position.isInRange ? "animate-pulse" : ""}`}
-                                      style={{
-                                        width: "10px",
-                                        height: "10px",
-                                        backgroundColor: position.isInRange
-                                          ? "#22c55e"
-                                          : "rgb(107, 114, 128)",
-                                        minWidth: "10px",
-                                        minHeight: "10px",
-                                      }}
-                                    />
-                                    <span className="text-xs">
-                                      #{position.tokenId.toString()}
-                                    </span>
-                                  </div>
-                                  <span className="whitespace-nowrap text-xs font-medium">
-                                    {position.valueUsd > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={position.valueUsd}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}{" "}
-                                    USD
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </HoverPopup>
-                        )}
                       </div>
                     </>
                   ) : (
@@ -286,10 +245,22 @@ export function LpStakingArea() {
                 <h2 className="flex items-center gap-x-1 pb-1 text-sm text-muted-foreground">
                   <span>Staked LP Balance</span>
                   <ToolTip iconSize={12}>
-                    Positions staked in at least one reward program. Partially
-                    staked positions are only earning from some of the active
-                    incentives.
+                    Positions staked in at least one reward program. Use
+                    Restake to subscribe to all active incentives.
                   </ToolTip>
+                  {hasPositionsWithMissingIncentives && (
+                    <HoverPopup
+                      trigger={
+                        <span className="cursor-pointer text-base leading-none">⚠️</span>
+                      }
+                      size="250"
+                    >
+                      <span className="text-[13px] font-medium">
+                        Some positions are not subscribed to all active
+                        incentives. Click Restake to maximize rewards.
+                      </span>
+                    </HoverPopup>
+                  )}
                 </h2>
                 <div className="flex min-h-[32px] items-baseline justify-between text-3xl">
                   {!isConnected ? (
@@ -349,60 +320,6 @@ export function LpStakingArea() {
                             Out of range
                           </span>
                         </HoverPopup>
-                        {stakedPositions.length > 0 && (
-                          <HoverPopup
-                            trigger={
-                              <div className="flex cursor-pointer items-baseline gap-1 ml-2">
-                                <span className="text-sm text-muted-foreground hover:text-foreground">
-                                  ({stakedPositions.length}{" "}
-                                  {stakedPositions.length === 1
-                                    ? "position"
-                                    : "positions"}
-                                  )
-                                </span>
-                              </div>
-                            }
-                            size="250"
-                          >
-                            <div className="space-y-2">
-                              {stakedPositions.map((position) => (
-                                <div
-                                  key={position.tokenId.toString()}
-                                  className="flex items-center justify-between gap-3"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={`inline-block rounded-full ${position.isInRange ? "animate-pulse" : ""}`}
-                                      style={{
-                                        width: "10px",
-                                        height: "10px",
-                                        backgroundColor: position.isInRange
-                                          ? "#22c55e"
-                                          : "rgb(107, 114, 128)",
-                                        minWidth: "10px",
-                                        minHeight: "10px",
-                                      }}
-                                    />
-                                    <span className="text-xs">
-                                      #{position.tokenId.toString()}
-                                    </span>
-                                  </div>
-                                  <span className="whitespace-nowrap text-xs font-medium">
-                                    {position.valueUsd > 0 ? (
-                                      <DisplayFormattedNumber
-                                        num={position.valueUsd}
-                                        significant={3}
-                                      />
-                                    ) : (
-                                      "0"
-                                    )}{" "}
-                                    USD
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </HoverPopup>
-                        )}
                       </div>
                     </>
                   ) : (
@@ -410,7 +327,16 @@ export function LpStakingArea() {
                   )}
                 </div>
               </div>
-              <div className="flex items-end">
+              <div className="flex items-end gap-2">
+                {positionsNeedingRestake.length > 0 && (
+                  <Button
+                    onClick={handleRestakeClick}
+                    type="button"
+                    className="w-[75px] py-2"
+                  >
+                    Restake
+                  </Button>
+                )}
                 <Button
                   disabled={!stakedPositions.length}
                   onClick={handleUnstakeClick}
@@ -505,6 +431,23 @@ export function LpStakingArea() {
             clearTimeout(unstakeTimeoutRef.current);
           }
           unstakeTimeoutRef.current = setTimeout(() => {
+            void refetchAll();
+          }, 3000);
+        }}
+      />
+
+      <LpRestakeModal
+        open={restakeModalOpen}
+        setOpen={setRestakeModalOpen}
+        positions={positionsNeedingRestake}
+        onSuccess={() => {
+          // Wait for blockchain state to update, then refetch
+          // Keep modal open so user can see success message and close it manually
+          // Clear any existing timeout before setting new one
+          if (restakeTimeoutRef.current) {
+            clearTimeout(restakeTimeoutRef.current);
+          }
+          restakeTimeoutRef.current = setTimeout(() => {
             void refetchAll();
           }, 3000);
         }}

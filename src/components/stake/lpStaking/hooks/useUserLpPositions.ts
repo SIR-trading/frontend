@@ -327,7 +327,7 @@ export function useUserLpPositions() {
   });
 
   // Process positions and filter for SIR/WETH 1% pool
-  const { unstakedPositions, stakedPositions, globalStakingStats } =
+  const { unstakedPositions, stakedPositions, globalStakingStats, incentiveStats } =
     useMemo(() => {
       // Check if all required data for calculations is available
       if (!positionsData || !sirPrice || !wethPrice || !sqrtPriceX96) {
@@ -338,6 +338,7 @@ export function useUserLpPositions() {
             totalValueStakedUsd: 0,
             inRangeValueStakedUsd: 0,
           },
+          incentiveStats: new Map<string, { inRangeValueStakedUsd: number }>(),
         };
       }
 
@@ -347,6 +348,13 @@ export function useUserLpPositions() {
       // Track all staked positions globally (for TVL calculation)
       let totalValueStakedUsd = 0;
       let inRangeValueStakedUsd = 0;
+
+      // Track TVL per incentive (for accurate APR calculation)
+      const incentiveStatsMap = new Map<string, { inRangeValueStakedUsd: number }>();
+      // Initialize all active incentives
+      activeIncentives.forEach((incentive) => {
+        incentiveStatsMap.set(getIncentiveId(incentive), { inRangeValueStakedUsd: 0 });
+      });
 
       // Calculate the number of calls per token ID
       const callsPerToken = 2 + allIncentives.length + allIncentives.length; // positions + deposits + (stakes per all incentives) + (getRewardInfo per all incentives)
@@ -521,21 +529,29 @@ export function useUserLpPositions() {
           if (isInRange) {
             inRangeValueStakedUsd += positionValueUsd;
           }
+
+          // Track TVL per incentive (only for in-range positions)
+          if (isInRange) {
+            stakesPerIncentive.forEach((stakedLiquidity, incentiveId) => {
+              // Only count if this position is actually staked in this incentive
+              if (stakedLiquidity > 0n) {
+                const stats = incentiveStatsMap.get(incentiveId);
+                if (stats) {
+                  stats.inRangeValueStakedUsd += positionValueUsd;
+                }
+              }
+            });
+          }
         }
 
-        // Categorize user positions based on deposit status and incentive participation
-        // "LP Positions" card: not in staker contract OR missing some incentives (for completing stake)
-        // "Staked LP Positions" card: in staker contract (for unstaking/withdrawing)
+        // Categorize user positions based on deposit status
+        // "LP Positions" card: ONLY positions not in staker contract (truly unstaked, in user's wallet)
+        // "Staked LP Positions" card: positions in staker contract (for unstaking/restaking)
         if (isDepositedByUser) {
-          // Position is in staker contract - always show in "Staked" for unstaking/withdrawing option
+          // Position is in staker contract - show in "Staked" for unstaking/restaking
           staked.push(lpPosition);
-
-          // If missing some incentives, also show in "LP Positions" to allow completing the stake
-          if (missingIncentives.length > 0) {
-            unstaked.push(lpPosition);
-          }
         } else if (isOwnedByUser) {
-          // Not in staker contract at all - only show in "LP Positions"
+          // Not in staker contract at all - show in "LP Positions"
           unstaked.push(lpPosition);
         }
       }
@@ -547,6 +563,7 @@ export function useUserLpPositions() {
           totalValueStakedUsd,
           inRangeValueStakedUsd,
         },
+        incentiveStats: incentiveStatsMap,
       };
     }, [
       positionsData,
@@ -561,6 +578,7 @@ export function useUserLpPositions() {
     ]);
 
   // Calculate staking APR from incentive data
+  // Each incentive's APR is calculated separately based on its own TVL, then summed
   const stakingApr = useMemo(() => {
     // Need all required data - return null only when we're sure there's no APR to calculate
     // If data is still loading, this will naturally return null which shows as "TBD"
@@ -568,16 +586,23 @@ export function useUserLpPositions() {
       !sirPrice ||
       !sqrtPriceX96 ||
       !wethPrice ||
-      globalStakingStats.inRangeValueStakedUsd === 0 ||
       activeIncentives.length === 0
     ) {
       return null;
     }
 
-    let totalSirPerSecond = 0;
+    let totalApr = 0;
 
-    // Sum up SIR per second across all active incentives
+    // Calculate APR for each active incentive separately
     for (const incentive of activeIncentives) {
+      const incentiveId = getIncentiveId(incentive);
+      const stats = incentiveStats.get(incentiveId);
+
+      // If no one is staked in this incentive, skip it (would be infinite APR)
+      if (!stats || stats.inRangeValueStakedUsd === 0) {
+        continue;
+      }
+
       // Use the original total rewards from the incentive configuration
       // NOT totalRewardUnclaimed which decreases as users claim
       const totalRewardSir = Number(incentive.rewards) / 1e12;
@@ -589,29 +614,31 @@ export function useUserLpPositions() {
 
       if (duration <= 0) continue;
 
-      // Calculate SIR per second for this incentive based on original allocation
+      // Calculate SIR per second for this incentive
       const sirPerSecond = totalRewardSir / duration;
-      totalSirPerSecond += sirPerSecond;
+
+      // Convert to USD per second
+      const usdPerSecond = sirPerSecond * sirPrice;
+
+      // Calculate annual USD (seconds in a year)
+      const annualUsd = usdPerSecond * 31536000;
+
+      // Calculate APR for this incentive as percentage
+      const incentiveApr = (annualUsd / stats.inRangeValueStakedUsd) * 100;
+
+      totalApr += incentiveApr;
     }
 
-    if (totalSirPerSecond === 0) return null;
+    // If no valid APRs were calculated, return null
+    if (totalApr === 0) return null;
 
-    // Convert to USD per second
-    const usdPerSecond = totalSirPerSecond * sirPrice;
-
-    // Calculate annual USD (seconds in a year)
-    const annualUsd = usdPerSecond * 31536000;
-
-    // Calculate APR as percentage
-    const apr = (annualUsd / globalStakingStats.inRangeValueStakedUsd) * 100;
-
-    return apr;
+    return totalApr;
   }, [
     activeIncentives,
     sirPrice,
     sqrtPriceX96,
     wethPrice,
-    globalStakingStats.inRangeValueStakedUsd,
+    incentiveStats,
   ]);
 
   // Fetch base rewards for the user (already recorded on-chain)
@@ -703,6 +730,16 @@ export function useUserLpPositions() {
     }));
   }, [stakedPositions, liveUserRewards]);
 
+  // Check if any staked positions have missing incentives (for warning display)
+  const hasPositionsWithMissingIncentives = useMemo(() => {
+    return stakedPositions.some(position => position.missingIncentives.length > 0);
+  }, [stakedPositions]);
+
+  // Get positions that need restaking (have missing incentives)
+  const positionsNeedingRestake = useMemo(() => {
+    return stakedPositionsWithRewards.filter(position => position.missingIncentives.length > 0);
+  }, [stakedPositionsWithRewards]);
+
   // Check if we have staked positions but haven't calculated their value yet
   // This detects the race condition where positions exist but prices aren't ready
   const hasUncalculatedPositions =
@@ -764,6 +801,8 @@ export function useUserLpPositions() {
       userRewards: 0n,
       refetchAll,
       stakingApr: null,
+      hasPositionsWithMissingIncentives: false,
+      positionsNeedingRestake: [],
     };
   }
 
@@ -775,5 +814,7 @@ export function useUserLpPositions() {
     userRewards: liveUserRewards,
     refetchAll,
     stakingApr,
+    hasPositionsWithMissingIncentives,
+    positionsNeedingRestake,
   };
 }
