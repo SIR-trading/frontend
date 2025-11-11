@@ -138,6 +138,23 @@ export function useUserLpPositions() {
     },
   );
 
+  // Get global staking stats from server (cached 5 minutes server-side)
+  const {
+    data: globalStats,
+    isLoading: isGlobalStatsLoading,
+    isFetching: isGlobalStatsFetching,
+    refetch: refetchGlobalStats,
+  } = api.lpStaking.getGlobalStats.useQuery(
+    {
+      sirPrice: sirPrice ?? 0,
+      wethPrice: wethPrice ?? 0,
+    },
+    {
+      enabled: isLpStakingEnabled && sirPrice !== undefined && wethPrice !== undefined,
+      staleTime: 60000, // Cache for 1 minute client-side (server caches for 5 minutes)
+    },
+  );
+
   // Get current tick and sqrtPriceX96 from the SIR/WETH pool
   const {
     data: slot0Data,
@@ -157,7 +174,7 @@ export function useUserLpPositions() {
   const currentTick = slot0Data ? slot0Data[1] : 0;
   const sqrtPriceX96 = slot0Data ? slot0Data[0] : 0n;
 
-  // Get user's NFT balance
+  // Get user's NFT balance (positions in wallet)
   const {
     data: balance,
     isLoading: isLoadingBalance,
@@ -172,9 +189,7 @@ export function useUserLpPositions() {
     },
   });
 
-  // Also get staker's NFT balance (for staked positions)
-  // This is GLOBAL data - all staked positions in the protocol, not user-specific
-  // Must always be enabled to calculate Total Value Staked for all users
+  // Get staker's NFT balance (positions staked by anyone)
   const {
     data: stakerBalance,
     isLoading: isLoadingStakerBalance,
@@ -185,15 +200,15 @@ export function useUserLpPositions() {
     args: [UniswapV3StakerContract.address],
     chainId: ENV_CHAIN_ID,
     query: {
-      enabled: isLpStakingEnabled, // Only fetch when LP staking is available
+      enabled: isLpStakingEnabled,
     },
   });
 
-  // Get all token IDs owned by user AND staker contract
+  // Get all token IDs owned by user (in wallet) AND staker contract (staked positions)
   const tokenIdContracts = useMemo(() => {
     const contracts = [];
 
-    // User's own positions
+    // User's own positions (in wallet)
     if (balance && balance > 0n && address) {
       for (let i = 0; i < Number(balance); i++) {
         contracts.push({
@@ -205,7 +220,7 @@ export function useUserLpPositions() {
       }
     }
 
-    // Staker's positions (we'll filter for user's later)
+    // Staker's positions (we'll filter for user's deposited ones later)
     if (stakerBalance && stakerBalance > 0n) {
       for (let i = 0; i < Number(stakerBalance); i++) {
         contracts.push({
@@ -327,34 +342,18 @@ export function useUserLpPositions() {
   });
 
   // Process positions and filter for SIR/WETH 1% pool
-  const { unstakedPositions, stakedPositions, globalStakingStats, incentiveStats } =
+  const { unstakedPositions, stakedPositions } =
     useMemo(() => {
       // Check if all required data for calculations is available
       if (!positionsData || !sirPrice || !wethPrice || !sqrtPriceX96) {
         return {
           unstakedPositions: [],
           stakedPositions: [],
-          globalStakingStats: {
-            totalValueStakedUsd: 0,
-            inRangeValueStakedUsd: 0,
-          },
-          incentiveStats: new Map<string, { inRangeValueStakedUsd: number }>(),
         };
       }
 
       const unstaked: LpPosition[] = [];
       const staked: LpPosition[] = [];
-
-      // Track all staked positions globally (for TVL calculation)
-      let totalValueStakedUsd = 0;
-      let inRangeValueStakedUsd = 0;
-
-      // Track TVL per incentive (for accurate APR calculation)
-      const incentiveStatsMap = new Map<string, { inRangeValueStakedUsd: number }>();
-      // Initialize all active incentives
-      activeIncentives.forEach((incentive) => {
-        incentiveStatsMap.set(getIncentiveId(incentive), { inRangeValueStakedUsd: 0 });
-      });
 
       // Calculate the number of calls per token ID
       const callsPerToken = 2 + allIncentives.length + allIncentives.length; // positions + deposits + (stakes per all incentives) + (getRewardInfo per all incentives)
@@ -523,27 +522,6 @@ export function useUserLpPositions() {
           missingIncentives,
         };
 
-        // Track global staking stats for ALL deposited positions (in staker contract)
-        if (isDepositedInStaker && positionValueUsd > 0) {
-          totalValueStakedUsd += positionValueUsd;
-          if (isInRange) {
-            inRangeValueStakedUsd += positionValueUsd;
-          }
-
-          // Track TVL per incentive (only for in-range positions)
-          if (isInRange) {
-            stakesPerIncentive.forEach((stakedLiquidity, incentiveId) => {
-              // Only count if this position is actually staked in this incentive
-              if (stakedLiquidity > 0n) {
-                const stats = incentiveStatsMap.get(incentiveId);
-                if (stats) {
-                  stats.inRangeValueStakedUsd += positionValueUsd;
-                }
-              }
-            });
-          }
-        }
-
         // Categorize user positions based on deposit status
         // "LP Positions" card: ONLY positions not in staker contract (truly unstaked, in user's wallet)
         // "Staked LP Positions" card: positions in staker contract (for unstaking/restaking)
@@ -559,11 +537,6 @@ export function useUserLpPositions() {
       return {
         unstakedPositions: unstaked,
         stakedPositions: staked,
-        globalStakingStats: {
-          totalValueStakedUsd,
-          inRangeValueStakedUsd,
-        },
-        incentiveStats: incentiveStatsMap,
       };
     }, [
       positionsData,
@@ -586,6 +559,7 @@ export function useUserLpPositions() {
       !sirPrice ||
       !sqrtPriceX96 ||
       !wethPrice ||
+      !globalStats ||
       activeIncentives.length === 0
     ) {
       return null;
@@ -596,7 +570,7 @@ export function useUserLpPositions() {
     // Calculate APR for each active incentive separately
     for (const incentive of activeIncentives) {
       const incentiveId = getIncentiveId(incentive);
-      const stats = incentiveStats.get(incentiveId);
+      const stats = globalStats.incentiveStats[incentiveId];
 
       // If no one is staked in this incentive, skip it (would be infinite APR)
       if (!stats || stats.inRangeValueStakedUsd === 0) {
@@ -638,7 +612,7 @@ export function useUserLpPositions() {
     sirPrice,
     sqrtPriceX96,
     wethPrice,
-    incentiveStats,
+    globalStats,
   ]);
 
   // Fetch base rewards for the user (already recorded on-chain)
@@ -740,26 +714,21 @@ export function useUserLpPositions() {
     return stakedPositionsWithRewards.filter(position => position.missingIncentives.length > 0);
   }, [stakedPositionsWithRewards]);
 
-  // Check if we have staked positions but haven't calculated their value yet
-  // This detects the race condition where positions exist but prices aren't ready
-  const hasUncalculatedPositions =
-    stakerBalance !== undefined &&
-    stakerBalance > 0n &&
-    globalStakingStats.totalValueStakedUsd === 0 &&
-    (!sirPrice || !wethPrice || !sqrtPriceX96);
-
   // Check if essential data is still loading or fetching
   // We need to check both isLoading (initial load) and isFetching (refetch/refresh)
   const essentialDataLoading =
     isSirPriceLoading ||
     isWethPriceLoading ||
     isWethPriceFetching ||
+    isGlobalStatsLoading ||
+    isGlobalStatsFetching ||
     isSlot0Loading ||
     isSlot0Fetching ||
     (incentiveContracts.length > 0 &&
       (isIncentivesLoading || isIncentivesFetching)) ||
     !sirPrice ||
     !wethPrice ||
+    !globalStats ||
     !slot0Data ||
     (incentiveContracts.length > 0 && !incentivesData);
 
@@ -768,17 +737,18 @@ export function useUserLpPositions() {
     isLoadingStakerBalance ||
     (tokenIdContracts.length > 0 && isLoadingTokenIds) ||
     (positionContracts.length > 0 && isLoadingPositions) ||
-    essentialDataLoading ||
-    hasUncalculatedPositions;
+    essentialDataLoading;
 
   // Combined refetch function to refresh all data
   const refetchAll = useCallback(async () => {
     if (!isLpStakingEnabled) return;
-    // Refetch in order - balances first, then token IDs, then positions
-    await Promise.all([refetchUserBalance(), refetchStakerBalance()]);
+    // Refetch position data only (skip prices - they don't change from staking actions)
+    await refetchUserBalance();
+    await refetchStakerBalance();
     await refetchTokenIds();
     await refetchPositions();
     await refetchRewards();
+    await refetchGlobalStats();
   }, [
     isLpStakingEnabled,
     refetchUserBalance,
@@ -786,6 +756,7 @@ export function useUserLpPositions() {
     refetchTokenIds,
     refetchPositions,
     refetchRewards,
+    refetchGlobalStats,
   ]);
 
   // Early return if LP staking is not enabled (after all hooks are called)
@@ -810,7 +781,10 @@ export function useUserLpPositions() {
     unstakedPositions,
     stakedPositions: stakedPositionsWithRewards,
     isLoading,
-    globalStakingStats,
+    globalStakingStats: globalStats ?? {
+      totalValueStakedUsd: 0,
+      inRangeValueStakedUsd: 0,
+    },
     userRewards: liveUserRewards,
     refetchAll,
     stakingApr,

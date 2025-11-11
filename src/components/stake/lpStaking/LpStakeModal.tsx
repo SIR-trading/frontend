@@ -5,7 +5,6 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useAccount,
-  useReadContracts,
 } from "wagmi";
 import { CircleCheck } from "lucide-react";
 import { motion } from "motion/react";
@@ -22,10 +21,6 @@ import {
   type IncentiveKey,
 } from "@/data/uniswapIncentives";
 import { encodeAbiParameters, encodeFunctionData } from "viem";
-import { env } from "@/env";
-
-// Get environment chain ID to ensure we always read from the correct chain
-const ENV_CHAIN_ID = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
 
 interface LpPosition {
   tokenId: bigint;
@@ -88,30 +83,6 @@ export function LpStakeModal({
       .reduce((sum, p) => sum + (p.valueUsd || 0), 0);
   }, [activePositions]);
 
-  // Check which positions need approval
-  const { data: approvalData, refetch: refetchApprovals } = useReadContracts({
-    contracts: activePositions.map((position) => ({
-      address: NonfungiblePositionManagerContract.address,
-      abi: NonfungiblePositionManagerContract.abi,
-      functionName: "getApproved" as const,
-      args: [position.tokenId],
-      chainId: ENV_CHAIN_ID,
-    })),
-    query: {
-      enabled: activePositions.length > 0 && !!address,
-    },
-  });
-
-  // Determine which positions need approval
-  const positionsNeedingApproval = useMemo(() => {
-    if (!approvalData) return activePositions.map(() => true);
-
-    return approvalData.map((result) => {
-      if (result.status === "failure" || !result.result) return true;
-      return result.result !== UniswapV3StakerContract.address;
-    });
-  }, [approvalData, activePositions]);
-
   // Contract write for multicall
   const {
     writeContract: executeMulticall,
@@ -143,22 +114,15 @@ export function LpStakeModal({
     const calls: `0x${string}`[] = [];
 
     // For truly unstaked positions: approve + transfer to staker (which stakes in ALL incentives at once!)
-    unstakedPositions.forEach((position, _index) => {
-      // Find the original index in the full activePositions array for approval checking
-      const originalIndex = activePositions.findIndex(
-        (p) => p.tokenId === position.tokenId,
+    unstakedPositions.forEach((position) => {
+      // Always add approval (atomic with transfer in multicall)
+      calls.push(
+        encodeFunctionData({
+          abi: NonfungiblePositionManagerContract.abi,
+          functionName: "approve",
+          args: [UniswapV3StakerContract.address, position.tokenId],
+        }),
       );
-
-      // Add approval if needed
-      if (originalIndex >= 0 && positionsNeedingApproval[originalIndex]) {
-        calls.push(
-          encodeFunctionData({
-            abi: NonfungiblePositionManagerContract.abi,
-            functionName: "approve",
-            args: [UniswapV3StakerContract.address, position.tokenId],
-          }),
-        );
-      }
 
       // Encode ALL active incentives as an array
       // The UniswapV3Staker's onERC721Received supports both single and array of incentives!
@@ -239,13 +203,7 @@ export function LpStakeModal({
       functionName: "multicall",
       args: [calls],
     });
-  }, [
-    executeMulticall,
-    address,
-    activePositions,
-    activeIncentives,
-    positionsNeedingApproval,
-  ]);
+  }, [executeMulticall, address, activePositions, activeIncentives]);
 
   // Handle success callback
   useEffect(() => {
@@ -263,11 +221,10 @@ export function LpStakeModal({
         setPositionsSnapshot([]);
         if (writeError) {
           reset();
-          void refetchApprovals();
         }
       }
     },
-    [setOpen, reset, writeError, refetchApprovals],
+    [setOpen, reset, writeError],
   );
 
   if (activeIncentives.length === 0) {
