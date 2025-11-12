@@ -1,64 +1,8 @@
-import { parseUnits, zeroAddress, type Address } from "viem";
-import { useSimulateContract, useAccount } from "wagmi";
-import { SirContract } from "@/contracts/sir";
+import { parseUnits, type Address } from "viem";
 
-export const useStartAuction = ({ id }: { id?: string }) => {
-  const { isConnected } = useAccount();
-
-  const startAuctionSimulate = useSimulateContract({
-    ...SirContract,
-    functionName: "collectFeesAndStartAuction",
-    args: [(id ?? zeroAddress) as Address],
-    query: {
-      enabled: isConnected && !!id,
-      retry: false, // Don't retry on provider errors
-    },
-  });
-
-  if (startAuctionSimulate.error && isConnected && id) {
-    console.log(
-      startAuctionSimulate.error,
-      "start auction error",
-      startAuctionSimulate.data,
-    );
-  }
-
-  return id && isConnected ? startAuctionSimulate.data?.request : undefined;
-};
-export const useGetAuctionLot = ({
-  id,
-  receiver,
-}: {
-  id?: string;
-  receiver?: string;
-}) => {
-  const { isConnected } = useAccount();
-  
-  const getAuctionLotSimulate = useSimulateContract({
-    ...SirContract,
-    functionName: "getAuctionLot",
-    args: [
-      (id ?? zeroAddress) as Address,
-      (receiver ?? zeroAddress) as Address,
-    ],
-    query: {
-      enabled: isConnected && !!id && !!receiver,
-      retry: false, // Don't retry on provider errors
-    },
-  });
-
-  if (getAuctionLotSimulate.error && isConnected && id && receiver) {
-    console.log(
-      getAuctionLotSimulate.error,
-      "get auction lot error",
-      getAuctionLotSimulate.data,
-    );
-  }
-
-  return id && receiver && isConnected ? getAuctionLotSimulate.data?.request : undefined;
-};
-
-export const useBid = ({
+// Refactored to return contract config data instead of simulating
+// Direct writeContract calls should be used following CLAUDE.md guidelines
+export const useBidConfig = ({
   token,
   amount,
   tokenDecimals,
@@ -69,37 +13,11 @@ export const useBid = ({
   tokenDecimals?: number;
   useNativeToken?: boolean;
 }) => {
-  const { isConnected } = useAccount();
-
   const bidAmount = parseUnits(amount || "0", tokenDecimals ?? 18);
 
-  const baseConfig = {
-    ...SirContract,
-    functionName: "bid" as const,
-    args: [
-      (token ?? zeroAddress) as Address,
-      bidAmount,
-    ] as const,
-    query: {
-      enabled: isConnected && !!token && !!amount && amount !== "0",
-      retry: false, // Don't retry on provider errors
-    },
-  };
-
-  // Note: bid function is payable on HyperEVM chains but not on Ethereum
-  // Type assertion needed since ABI may not reflect chain-specific differences
-  const bidSimulate = useSimulateContract(
-    useNativeToken
-      ? ({ ...baseConfig, value: bidAmount } as typeof baseConfig & { value: bigint })
-      : baseConfig
-  );
-
-  if (bidSimulate.error && isConnected && token && amount && amount !== "0") {
-    console.log(bidSimulate.error, "bid error", bidSimulate.data);
-  }
-
   return {
-    request: isConnected && token && amount && amount !== "0" ? bidSimulate.data?.request : undefined,
-    refetch: bidSimulate.refetch
+    token: token as Address | undefined,
+    bidAmount,
+    useNativeToken,
   };
 };

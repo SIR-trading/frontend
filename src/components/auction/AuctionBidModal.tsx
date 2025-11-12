@@ -6,8 +6,9 @@ import { formatEther, parseEther } from "viem";
 import useAuctionTokenInfo from "@/components/auction/hooks/useAuctionTokenInfo";
 import { useFormContext } from "react-hook-form";
 import type { TAuctionBidFormFields } from "@/components/providers/auctionBidFormProvider";
-import { useBid } from "@/components/auction/hooks/auctionSimulationHooks";
+import { useBidConfig } from "@/components/auction/hooks/auctionSimulationHooks";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { SirContract } from "@/contracts/sir";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
 import { useCallback, useMemo, useState, useEffect } from "react";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS, NATIVE_TOKEN_ADDRESS } from "@/data/constants";
@@ -78,9 +79,10 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     }
   }, [open.open, userBalance?.tokenBalance?.result, userNativeTokenBalance]);
 
-  const { request: bidRequest, refetch: reSimulateBid } = useBid({
+  const { token, bidAmount } = useBidConfig({
     token: tokenAddress,
     amount: formData.bid,
+    tokenDecimals: 18,
     useNativeToken,
   });
 
@@ -116,14 +118,31 @@ export function AuctionBidModal({ open, setOpen }: Props) {
       return;
     }
 
-    if (bidRequest && !isConfirmed) {
+    if (!isConfirmed && token && bidAmount > 0n) {
       // Store the bid amount before submitting (for success screen)
       // For top-ups, show the total bid amount (current + top-up)
       const displayAmount = isTopUp
         ? formatEther((currentBid ?? 0n) + parseEther(formData.bid))
         : formData.bid;
       setConfirmedBidAmount(displayAmount);
-      writeContract(bidRequest);
+
+      // Direct writeContract call - Wagmi handles simulation internally
+      // Note: bid function is payable on HyperEVM chains
+      if (useNativeToken) {
+        // Type assertion needed as ABI may not reflect chain-specific payable differences
+        writeContract({
+          ...SirContract,
+          functionName: "bid",
+          args: [token, bidAmount],
+          value: bidAmount,
+        } as unknown as Parameters<typeof writeContract>[0]);
+      } else {
+        writeContract({
+          ...SirContract,
+          functionName: "bid",
+          args: [token, bidAmount],
+        });
+      }
       return;
     }
 
@@ -134,7 +153,9 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     form.reset();
   }, [
     approveRequest,
-    bidRequest,
+    token,
+    bidAmount,
+    useNativeToken,
     isConfirmed,
     needsApproval,
     setOpen,
@@ -150,16 +171,13 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     isConfirmed,
     reset: () => {
       reset();
-      reSimulateBid()
-        .then((r) => r)
-        .catch((e) => console.log(e));
     },
     needsApproval,
   });
 
   useResetAuctionsOnSuccess({
-    isConfirming: Boolean(isConfirming && bidRequest),
-    isConfirmed: Boolean(isConfirmed && bidRequest),
+    isConfirming: Boolean(isConfirming && !needsApproval),
+    isConfirmed: Boolean(isConfirmed && !needsApproval),
     txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
     auctionType: "ongoing",
     actions: () => {

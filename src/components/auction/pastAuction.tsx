@@ -4,14 +4,12 @@ import AuctionCard, {
 } from "@/components/auction/auctionCard";
 import { TokenDisplay } from "@/components/ui/token-display";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
-import { useGetAuctionLot } from "@/components/auction/hooks/auctionSimulationHooks";
 import { SirContract } from "@/contracts/sir";
 import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { api } from "@/trpc/react";
 import { compareAddress } from "@/lib/utils/index";
-import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionModal from "@/components/shared/transactionModal";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
 import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
@@ -70,7 +68,6 @@ const PastAuction = ({
     useResetTransactionModal({ reset, isConfirmed });
 
   const [id, setId] = useState<string>();
-  const getAuctionLotRequest = useGetAuctionLot({ id, receiver: address });
 
   const handleGetAuctionLot = (id: string) => {
     setId(id);

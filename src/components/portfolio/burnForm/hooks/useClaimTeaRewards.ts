@@ -1,6 +1,5 @@
-import { SirContract } from "@/contracts/sir";
-import { useSimulateContract } from "wagmi";
-
+// This hook is no longer needed - direct writeContract calls should be used instead
+// Kept for backwards compatibility but returns contract config for direct calls
 export function useClaimTeaRewards({
   vaultId,
   claimAndStake,
@@ -8,10 +7,9 @@ export function useClaimTeaRewards({
   vaultId: bigint;
   claimAndStake: boolean;
 }) {
-  const { data: teaRewardData } = useSimulateContract({
-    ...SirContract,
-    functionName: claimAndStake ? "lperMintAndStake" : "lperMint",
-    args: [vaultId],
-  });
-  return { claimRewardRequest: teaRewardData?.request };
+  // Return the contract config data needed for writeContract
+  return {
+    vaultId,
+    functionName: claimAndStake ? "lperMintAndStake" : "lperMint"
+  };
 }

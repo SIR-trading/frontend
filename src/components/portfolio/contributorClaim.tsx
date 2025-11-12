@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   useAccount,
-  useSimulateContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
@@ -19,10 +18,6 @@ export default function ContributorClaim() {
     );
   const [checked, setChecked] = useState(false);
   const [open, setOpen] = useState(false);
-  const { data } = useSimulateContract({
-    ...SirContract,
-    functionName: !checked ? "contributorMint" : "contributorMintAndStake",
-  });
   const { writeContract, reset, isPending, data: hash } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
@@ -33,9 +28,10 @@ export default function ContributorClaim() {
       setOpen(false);
       return;
     }
-    if (data?.request) {
-      writeContract(data?.request);
-    }
+    writeContract({
+      ...SirContract,
+      functionName: !checked ? "contributorMint" : "contributorMintAndStake",
+    });
   };
   const utils = api.useUtils();
   // Invalidate queries after successful tx
@@ -82,7 +78,7 @@ export default function ContributorClaim() {
       />
 
       <div className="flex  ">
-        {data?.request && unclaimedRewards > 0n && (
+        {isConnected && unclaimedRewards > 0n && (
           <div className="">
             <Button
               onClick={() => setOpen(true)}

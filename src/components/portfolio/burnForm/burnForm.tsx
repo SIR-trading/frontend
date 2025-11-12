@@ -21,6 +21,7 @@ import { subgraphSyncPoll } from "@/lib/utils/sync";
 import { useBurnFormValidation } from "./hooks/useBurnFormValidation";
 import ErrorMessage from "@/components/ui/error-message";
 import { VaultContract } from "@/contracts/vault";
+import { SirContract } from "@/contracts/sir";
 import { SirClaimModal } from "@/components/shared/SirClaimModal";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { TokenImage } from "@/components/shared/TokenImage";
@@ -143,7 +144,7 @@ export default function BurnForm({
 
   // No longer using simulation - removed useBurnApe hook usage
 
-  const { claimRewardRequest } = useClaimTeaRewards({
+  const { vaultId: teaRewardVaultId, functionName: teaRewardFunctionName } = useClaimTeaRewards({
     vaultId: parseUnits(row.vaultId, 0),
     claimAndStake,
   });
@@ -186,8 +187,12 @@ export default function BurnForm({
       close();
       return;
     }
-    if (isClaimingRewards && claimRewardRequest) {
-      writeContract(claimRewardRequest);
+    if (isClaimingRewards) {
+      writeContract({
+        ...SirContract,
+        functionName: teaRewardFunctionName as "lperMint" | "lperMintAndStake",
+        args: [teaRewardVaultId],
+      });
       return;
     }
 
