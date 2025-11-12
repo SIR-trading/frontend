@@ -19,14 +19,20 @@ import { SirContract } from "@/contracts/sir";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
 import { env } from "@/env";
 import { useSirPrice } from "@/contexts/SirPriceContext";
-import { getAllChainIncentives, getCurrentActiveIncentives } from "@/data/uniswapIncentives";
+import { getAllChainIncentives, getCurrentActiveIncentives, type IncentiveKey } from "@/data/uniswapIncentives";
+import type { LpPosition } from "./types";
+
+// Generate a unique ID for an incentive key (for matching with stakesPerIncentive map)
+function getIncentiveId(incentive: IncentiveKey): string {
+  return `${incentive.rewardToken}-${incentive.pool}-${incentive.startTime}-${incentive.endTime}`;
+}
 
 interface LpClaimRewardsModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   onSuccess?: () => void;
   liveRewards: bigint; // Live rewards including fresh accruals from getRewardInfo
-  stakedPositions: Array<{ tokenId: bigint }>; // Staked positions for unstaking before claim
+  stakedPositions: LpPosition[]; // Staked positions for unstaking before claim
 }
 
 export function LpClaimRewardsModal({
@@ -43,7 +49,7 @@ export function LpClaimRewardsModal({
   const { sirPrice } = useSirPrice();
 
   // Read base rewards (already recorded on-chain)
-  const { data: baseRewards, refetch: refetchRewards } = useReadContract({
+  const { refetch: refetchRewards } = useReadContract({
     address: UniswapV3StakerContract.address,
     abi: UniswapV3StakerContract.abi,
     functionName: "rewards",
@@ -80,24 +86,31 @@ export function LpClaimRewardsModal({
       const calls: `0x${string}`[] = [];
 
       // Step 1: Unstake from ALL incentives (to move fresh accruals to rewards mapping)
+      // Only unstake from incentives where the position is actually staked
       for (const position of stakedPositions) {
         for (const incentive of allIncentives) {
-          calls.push(
-            encodeFunctionData({
-              abi: UniswapV3StakerContract.abi,
-              functionName: "unstakeToken",
-              args: [
-                {
-                  rewardToken: incentive.rewardToken,
-                  pool: incentive.pool,
-                  startTime: incentive.startTime,
-                  endTime: incentive.endTime,
-                  refundee: incentive.refundee,
-                },
-                position.tokenId,
-              ],
-            }),
-          );
+          const incentiveId = getIncentiveId(incentive);
+          const stakedLiquidity = position.stakesPerIncentive.get(incentiveId);
+
+          // Only unstake if position is actually staked in this incentive
+          if (stakedLiquidity && stakedLiquidity > 0n) {
+            calls.push(
+              encodeFunctionData({
+                abi: UniswapV3StakerContract.abi,
+                functionName: "unstakeToken",
+                args: [
+                  {
+                    rewardToken: incentive.rewardToken,
+                    pool: incentive.pool,
+                    startTime: incentive.startTime,
+                    endTime: incentive.endTime,
+                    refundee: incentive.refundee,
+                  },
+                  position.tokenId,
+                ],
+              }),
+            );
+          }
         }
       }
 
@@ -111,6 +124,7 @@ export function LpClaimRewardsModal({
       );
 
       // Step 3: Restake to ACTIVE incentives only
+      // After unstaking above, all positions are now unstaked, so we can restake to all active incentives
       for (const position of stakedPositions) {
         for (const incentive of activeIncentives) {
           calls.push(
@@ -275,6 +289,23 @@ export function LpClaimRewardsModal({
           </motion.div>
         )}
       </TransactionModal.InfoContainer>
+
+      {/* Show errors */}
+      {writeError && !isConfirming && !isConfirmed && (() => {
+        const errorMessage = writeError.message || "";
+        const isUserRejection = errorMessage.toLowerCase().includes("user rejected") ||
+                               errorMessage.toLowerCase().includes("user denied");
+
+        if (!isUserRejection) {
+          return (
+            <div className="px-6 pb-4">
+              <p className="text-xs text-center" style={{ color: "#ef4444" }}>
+                Transaction failed: {errorMessage}
+              </p>
+            </div>
+          );
+        }
+      })()}
 
       {!isConfirmed && (
         <>
