@@ -62,7 +62,14 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveConfig[]> = {
   998: [],
 
   // HyperEVM Mainnet
-  999: [],
+  999: [
+    {
+      startTime: 1762965600n,
+      endTime: 1765553700n,
+      refundee: "0x5000Ff6Cc1864690d947B864B9FB0d603E8d1F1A" as Address,
+      rewards: 818000000000000000n,
+    },
+  ],
 };
 
 /**

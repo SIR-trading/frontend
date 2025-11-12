@@ -8,17 +8,16 @@ export function ManageDexLiquidityButton() {
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const sirAddress = buildData.contractAddresses.sir;
 
-  // Get the SIR/WETH 1% pool address from build data
+  // Get the SIR/WETH 1% pool address from build data (used for Uniswap on Ethereum/Sepolia)
   const SIR_WETH_POOL_ADDRESS = buildData.contractAddresses
     .sirWethPool1Percent as `0x${string}`;
 
   const { dexName, dexUrl } = useMemo(() => {
     // HyperEVM chains (998 testnet, 999 mainnet)
-    // TODO: Check for dexUrl link validity
     if (chainId === 998 || chainId === 999) {
       return {
         dexName: "HyperSwap",
-        dexUrl: `https://app.hyperswap.exchange/#/add/HYPE/${SIR_WETH_POOL_ADDRESS}`,
+        dexUrl: `https://app.hyperswap.exchange/#/add/HYPE/${sirAddress}/10000`,
       };
     }
 

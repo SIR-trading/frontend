@@ -20,7 +20,6 @@ export interface ChainConfig {
     uniswapV3Factory: string;
     uniswapV3PoolInitCodeHash: string;
     uniswapV3Staker: string;
-    sirWethPool1Percent: string;
   };
   coingecko: {
     platformId: string | null;
@@ -77,10 +76,6 @@ export function getWrappedNativeTokenAddress(chainId: number): string {
 
 export function getUniswapV3Staker(chainId: number): string {
   return getChainConfig(chainId).contracts.uniswapV3Staker;
-}
-
-export function getSirWethPool1Percent(chainId: number): string {
-  return getChainConfig(chainId).contracts.sirWethPool1Percent;
 }
 
 // Export all chain IDs for convenience
