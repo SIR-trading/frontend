@@ -16,8 +16,8 @@ export function SirPriceProvider({ children }: { children: React.ReactNode }) {
   const { data: sirPrice, isLoading, error } = api.price.getSirPriceInUsd.useQuery(
     undefined,
     {
-      staleTime: 60000, // 1 minute cache
-      refetchInterval: 60000, // Refetch every minute
+      staleTime: 300000, // 5 minute cache
+      refetchInterval: 300000, // Refetch every 5 minutes
       refetchOnWindowFocus: false, // Don't refetch on window focus
       refetchOnMount: false, // Don't refetch when components mount
     }

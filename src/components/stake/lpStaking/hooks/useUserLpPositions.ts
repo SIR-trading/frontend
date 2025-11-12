@@ -714,18 +714,14 @@ export function useUserLpPositions() {
     return stakedPositionsWithRewards.filter(position => position.missingIncentives.length > 0);
   }, [stakedPositionsWithRewards]);
 
-  // Check if essential data is still loading or fetching
-  // We need to check both isLoading (initial load) and isFetching (refetch/refresh)
+  // Check if essential data is still loading (initial load only)
+  // Don't include isFetching states - background refetches should not show loading skeletons
   const essentialDataLoading =
     isSirPriceLoading ||
     isWethPriceLoading ||
-    isWethPriceFetching ||
     isGlobalStatsLoading ||
-    isGlobalStatsFetching ||
     isSlot0Loading ||
-    isSlot0Fetching ||
-    (incentiveContracts.length > 0 &&
-      (isIncentivesLoading || isIncentivesFetching)) ||
+    (incentiveContracts.length > 0 && isIncentivesLoading) ||
     !sirPrice ||
     !wethPrice ||
     !globalStats ||
