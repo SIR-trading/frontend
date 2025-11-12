@@ -2,11 +2,11 @@
 
 import { Form } from "@/components/ui/form";
 import { useFormContext } from "react-hook-form";
-import { useWaitForTransactionReceipt } from "wagmi";
+import { useWaitForTransactionReceipt, useAccount } from "wagmi";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
-import { parseUnits, formatUnits, type SimulateContractReturnType } from "viem";
+import { parseUnits, formatUnits } from "viem";
 
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
@@ -15,11 +15,9 @@ import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
 import StakeInput from "../stakeInput";
-import { useStake } from "@/components/stake/hooks/useStake";
 import type { TUnstakeFormFields } from "@/lib/types";
 import { api } from "@/trpc/react";
 import { useGetReceivedSir } from "@/components/portfolio/hooks/useGetReceivedSir";
-import { useCheckStakeValidity } from "./useCheckStakeValidity";
 import SubmitButton from "../../submitButton";
 import ErrorMessage from "@/components/ui/error-message";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
@@ -27,6 +25,8 @@ import Image from "next/image";
 import DisplayFormattedNumber from "../../displayFormattedNumber";
 import { useStaking } from "@/contexts/StakingContext";
 import { useSirUsdPrice } from "../hooks/useSirUsdPrice";
+import useGetChainId from "@/components/shared/hooks/useGetChainId";
+import { env } from "@/env";
 
 
 const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
@@ -34,11 +34,33 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
   const formData = form.watch();
 
   const { usdValue } = useSirUsdPrice(formData.amount);
+  const { isConnected } = useAccount();
+  const chainId = useGetChainId();
 
   const { unstakedBalance: balance } = useStaking();
-  const { stake, isFetching: unstakeFetching } = useStake({
-    amount: parseUnits(formData.amount ?? "0", 12),
-  });
+
+  // Simple validation without simulation
+  const { isValid, errorMessage } = useMemo(() => {
+    if (!isConnected) {
+      return { isValid: false, errorMessage: "Connect wallet" };
+    }
+
+    if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
+      return { isValid: false, errorMessage: "Wrong network!" };
+    }
+
+    const amount = parseUnits(formData.amount ?? "0", 12);
+
+    if (amount <= 0n) {
+      return { isValid: false, errorMessage: "Enter amount greater than 0." };
+    }
+
+    if ((balance ?? 0n) < amount) {
+      return { isValid: false, errorMessage: "Insufficient Balance." };
+    }
+
+    return { isValid: true, errorMessage: "" };
+  }, [formData.amount, balance, isConnected, chainId]);
 
   const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
   const {
@@ -46,34 +68,14 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
     isSuccess: isConfirmed,
     data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
-  // REFACTOR THIS INTO REUSABLE HOOK
-  console.log("Stake debug:", {
-    amount: formData.amount,
-    stake,
-    unstakeFetching,
-    balance,
-  });
-
-  const { isValid, errorMessage } = useCheckStakeValidity({
-    deposit: formData.amount ?? "0",
-    depositToken: SirContract.address,
-    requests: {
-      mintRequest: stake?.request as SimulateContractReturnType["request"] | undefined,
-    },
-    tokenBalance: balance,
-    mintFetching: unstakeFetching,
-    decimals: 12,
-  });
-
-  console.log("Stake validity:", {
-    isValid,
-    errorMessage,
-  });
 
   const onSubmit = () => {
-    if (stake) {
-      writeContract(stake?.request);
-    }
+    const amount = parseUnits(formData.amount ?? "0", 12);
+    writeContract({
+      ...SirContract,
+      functionName: "stake",
+      args: [amount],
+    });
   };
 
 
@@ -116,6 +118,15 @@ const StakeForm = ({ closeStakeModal }: { closeStakeModal: () => void }) => {
       reset();
     }
   }, [isConfirmed, open, reset]);
+
+  // Update error display
+  useEffect(() => {
+    if (errorMessage && errorMessage !== form.formState.errors.root?.message) {
+      form.setError("root", { message: errorMessage });
+    } else if (!errorMessage && form.formState.errors.root?.message) {
+      form.clearErrors("root");
+    }
+  }, [errorMessage, form]);
 
   return (
     <>

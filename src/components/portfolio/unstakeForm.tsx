@@ -4,20 +4,17 @@ import { api } from "@/trpc/react";
 import { useFormContext } from "react-hook-form";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import type { TUnstakeFormFields } from "@/lib/types";
-import { useEffect, useState } from "react";
-import { parseUnits, formatUnits, type SimulateContractReturnType } from "viem";
+import { useEffect, useState, useMemo } from "react";
+import { parseUnits, formatUnits } from "viem";
 import { useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
-import useUnstakeError from "@/components/stake/hooks/useUnstakeError";
 import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import TransactionSuccess from "@/components/shared/transactionSuccess";
 import { useGetStakedSir } from "@/components/shared/hooks/useGetStakedSir";
 import StakeInput from "@/components/shared/stake/stakeInput";
-import { useUnstake } from "../stake/hooks/useUnstake";
 import ClaimFeesCheckbox from "./claimFeesCheck";
 import { useGetReceivedSir } from "./hooks/useGetReceivedSir";
-import { useCheckStakeValidity } from "../shared/stake/stakeForm/useCheckStakeValidity";
 import SubmitButton from "../shared/submitButton";
 import ErrorMessage from "../ui/error-message";
 import { getSirSymbol, getSirLogo } from "@/lib/assets";
@@ -28,6 +25,8 @@ import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { TokenImage } from "../shared/TokenImage";
 import { useSirUsdPrice } from "../shared/stake/hooks/useSirUsdPrice";
 import { useNativeTokenUsdPrice } from "../shared/hooks/useNativeTokenUsdPrice";
+import useGetChainId from "@/components/shared/hooks/useGetChainId";
+import { env } from "@/env";
 
 
 const UnstakeForm = ({
@@ -42,6 +41,7 @@ const UnstakeForm = ({
 
   const balance = useGetStakedSir();
   const { address, isConnected } = useAccount();
+  const chainId = useGetChainId();
 
   // Get dividends amount for USD conversion
   const { data: dividends } = api.user.getUserSirDividends.useQuery(
@@ -55,10 +55,29 @@ const UnstakeForm = ({
   const { usdValue: dividendsUsdValue } = useNativeTokenUsdPrice(dividendsFormatted);
 
   const [unstakeAndClaimFees, setUnstakeAndClaimFees] = useState(false);
-  const { Unstake, isFetching: unstakeFetching } = useUnstake({
-    amount: parseUnits(formData.amount ?? "0", 12),
-    unstakeAndClaimFees,
-  });
+
+  // Simple validation without simulation
+  const { isValid, errorMessage } = useMemo(() => {
+    if (!isConnected) {
+      return { isValid: false, errorMessage: "Connect wallet" };
+    }
+
+    if (chainId?.toString() !== env.NEXT_PUBLIC_CHAIN_ID && Boolean(chainId)) {
+      return { isValid: false, errorMessage: "Wrong network!" };
+    }
+
+    const amount = parseUnits(formData.amount ?? "0", 12);
+
+    if (amount <= 0n) {
+      return { isValid: false, errorMessage: "Enter amount greater than 0." };
+    }
+
+    if ((balance.unlockedStake ?? 0n) < amount) {
+      return { isValid: false, errorMessage: "Insufficient Balance." };
+    }
+
+    return { isValid: true, errorMessage: "" };
+  }, [formData.amount, balance.unlockedStake, isConnected, chainId]);
 
   const { writeContract, reset, data: hash, isPending, error: writeError } = useWriteContract();
   const {
@@ -88,37 +107,23 @@ const UnstakeForm = ({
     utils.user.getUserSirDividends,
   ]);
 
-  console.log("Unstake debug:", {
-    amount: formData.amount,
-    Unstake,
-    unstakeFetching,
-    unlockedStake: balance.unlockedStake,
-    unstakeAndClaimFees,
-  });
-
-  const { isValid, errorMessage } = useCheckStakeValidity({
-    deposit: formData.amount ?? "0",
-    depositToken: SirContract.address,
-    requests: {
-      mintRequest: Unstake?.request as SimulateContractReturnType["request"] | undefined,
-    },
-    tokenBalance: balance.unlockedStake,
-    mintFetching: unstakeFetching,
-    decimals: 12,
-  });
-
   const onSubmit = () => {
-    if (Unstake) {
-      writeContract(Unstake?.request);
-    }
+    const amount = parseUnits(formData.amount ?? "0", 12);
+    writeContract({
+      ...SirContract,
+      functionName: unstakeAndClaimFees ? "unstakeAndClaim" : "unstake",
+      args: [amount],
+    });
   };
 
-  useUnstakeError({
-    formData,
-    setError: form.setError,
-    errorMessage,
-    rootErrorMessage: form.formState.errors.root?.message,
-  });
+  // Update error display
+  useEffect(() => {
+    if (errorMessage && errorMessage !== form.formState.errors.root?.message) {
+      form.setError("root", { message: errorMessage });
+    } else if (!errorMessage && form.formState.errors.root?.message) {
+      form.clearErrors("root");
+    }
+  }, [errorMessage, form]);
 
   const [open, setOpen] = useState(false);
 

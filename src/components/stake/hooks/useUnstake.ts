@@ -2,7 +2,6 @@
 
 import { useSimulateContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
-import { useEffect } from "react";
 
 interface Props {
   amount: bigint | undefined;
@@ -28,10 +27,6 @@ export const useUnstake = ({ amount, unstakeAndClaimFees }: Props) => {
     error: error?.message ?? error,
     isFetching,
   });
-
-  useEffect(() => {
-    refetch().catch((e) => console.log("useUnstake refetch error:", e));
-  }, [refetch]);
 
   return { Unstake, isFetching, error };
 };
