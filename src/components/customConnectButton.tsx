@@ -37,7 +37,7 @@ export const CustomConnectButton = () => {
                 return (
                   <Button
                     variant="outline"
-                    className="rounded-full py-1"
+                    className="rounded-full py-1 border-foreground/20 hover:border-foreground/40 hover:bg-gold hover:text-white transition-all duration-200"
                     onClick={openConnectModal}
                     type="button"
                   >
@@ -49,7 +49,7 @@ export const CustomConnectButton = () => {
                 return (
                   <Button
                     variant={"outline"}
-                    className="rounded-full border-red py-1  text-red"
+                    className="rounded-full border-red py-1 text-red hover:bg-red hover:text-white transition-all duration-200"
                     onClick={openChainModal}
                     type="button"
                   >
@@ -61,7 +61,7 @@ export const CustomConnectButton = () => {
                 <div style={{ display: "flex", gap: 12 }}>
                   <Button
                     variant="outline"
-                    className="rounded-full  py-1"
+                    className="rounded-full py-1 border-foreground/20 hover:border-foreground/40 hover:bg-gold hover:text-white transition-all duration-200"
                     onClick={openAccountModal}
                     type="button"
                   >

@@ -15,6 +15,9 @@ import { useActiveAuctions } from "@/hooks/useActiveAuctions";
 const DarkModeToggle = dynamic(() => import("./darkModeToggle"), {
   ssr: false,
 });
+const NetworkToggle = dynamic(() => import("./networkToggle"), {
+  ssr: false,
+});
 export function Header() {
   // Check for claimable balances
   const {
@@ -75,7 +78,7 @@ export function Header() {
           </div>
         </Link>
         <div className="flex items-center">
-          <nav className="hidden md:flex items-center mt-[7px]">
+          <nav className="hidden nav:flex items-center mt-[7px]">
             <div className="flex gap-x-[16px] rounded-md pl-[12px] pr-[24px] lg:pr-[12px] text-sm items-center">
               <ul
                 aria-label="Core Navigation"
@@ -121,6 +124,7 @@ export function Header() {
       </div>
       <div className="flex items-center justify-end gap-x-2">
         <DarkModeToggle />
+        <NetworkToggle />
         <CustomConnectButton />
         <SideNav />
       </div>
