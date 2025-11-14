@@ -57,8 +57,10 @@ const config = {
     },
     extend: {
       screens: {
+        'network': '450px',
         xs: '540px',
-        'nav': '910px',
+        'nav': '900px',
+        'nav-secondary': '1210px',
         'custom-lg': '1580px',
       },
       keyframes: {

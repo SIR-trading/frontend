@@ -10,19 +10,44 @@ import {
   Gavel,
   Plus,
   Calculator,
+  ChevronDown,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
 import NetworkBadge from "./networkBadge";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 import { useActiveAuctions } from "@/hooks/useActiveAuctions";
+import { CHAIN_CONFIGS } from "@/config/chains";
+import { env } from "@/env";
+import Image from "next/image";
+
+// Helper function to get logo URL for any network's native token
+function getNetworkLogoUrl(symbol: string): string {
+  if (symbol === "ETH") {
+    return "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png?1696501628";
+  }
+  if (symbol === "HYPE") {
+    return "https://coin-images.coingecko.com/coins/images/50882/large/hyperliquid.jpg?1729431300";
+  }
+  return "";
+}
 
 export default function SideNav() {
   const [openModal, setOpen] = useState(false);
+  const [networkDropdownOpen, setNetworkDropdownOpen] = useState(false);
   const pathname = usePathname();
+  const currentChainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  const currentChain = CHAIN_CONFIGS[currentChainId];
+
   const {
     hasDividendsAboveThreshold,
     hasContributorRewardsAboveThreshold,
@@ -30,6 +55,19 @@ export default function SideNav() {
     hasLpStakingRewardsAboveThreshold
   } = useClaimableBalances();
   const { hasActiveAuctions } = useActiveAuctions();
+
+  // Get all available networks with deployment URLs
+  const availableNetworks = useMemo(() => {
+    return Object.values(CHAIN_CONFIGS).filter(
+      (chain) =>
+        chain.deploymentUrl &&
+        chain.deploymentUrl.trim() !== ""
+    );
+  }, []);
+
+  const handleNetworkSwitch = (deploymentUrl: string) => {
+    window.location.href = deploymentUrl;
+  };
 
   const menuItems = [
     {
@@ -59,13 +97,87 @@ export default function SideNav() {
   ];
 
   return (
-    <div className="flex items-center md:hidden">
+    <div className="flex items-center nav:hidden">
       <Sheet open={openModal} onOpenChange={setOpen}>
         <SheetTrigger className="rounded-md p-1.5 transition-colors hover:bg-accent">
           <Menu className="cursor-pointer" size={24} />
         </SheetTrigger>
         <SheetContent side="right" className="w-[180px]">
-          <nav className="mt-8 space-y-6">
+          {/* Network Switcher - only shown below 450px */}
+          <div className="network:hidden mt-8 mb-4 pb-4 border-b border-foreground/10">
+            <DropdownMenu open={networkDropdownOpen} onOpenChange={setNetworkDropdownOpen}>
+              <DropdownMenuTrigger
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-all w-full",
+                  "hover:bg-gold hover:text-white",
+                  "outline-none cursor-pointer"
+                )}
+              >
+                {(() => {
+                  const logoUrl = getNetworkLogoUrl(currentChain?.nativeCurrency.symbol ?? "");
+                  return logoUrl ? (
+                    <Image
+                      src={logoUrl}
+                      alt={currentChain?.nativeCurrency.symbol ?? "Network"}
+                      width={16}
+                      height={16}
+                      className="rounded-full flex-shrink-0"
+                    />
+                  ) : null;
+                })()}
+                <span className="truncate flex-1 text-left">
+                  {currentChain?.name.replace(" Mainnet", "").replace(" Testnet", "")}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-200 flex-shrink-0",
+                    networkDropdownOpen && "rotate-180"
+                  )}
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className="w-[164px] bg-background/95 backdrop-blur-md border border-border"
+              >
+                {availableNetworks.map((network) => {
+                  const isCurrentNetwork = network.chainId === currentChainId;
+                  const logoUrl = getNetworkLogoUrl(network.nativeCurrency.symbol);
+                  return (
+                    <DropdownMenuItem
+                      key={network.chainId}
+                      className={cn(
+                        "focus:bg-transparent cursor-pointer",
+                        isCurrentNetwork && "opacity-50 cursor-default"
+                      )}
+                      onClick={() => !isCurrentNetwork && handleNetworkSwitch(network.deploymentUrl!)}
+                    >
+                      <div className="flex items-center gap-2 w-full">
+                        {logoUrl && (
+                          <Image
+                            src={logoUrl}
+                            alt={network.nativeCurrency.symbol}
+                            width={16}
+                            height={16}
+                            className="rounded-full flex-shrink-0"
+                          />
+                        )}
+                        <span className={cn(
+                          "text-sm truncate",
+                          isCurrentNetwork ? "text-foreground font-medium" : "text-foreground/60 hover:text-foreground"
+                        )}>
+                          {network.name.replace(" Mainnet", "").replace(" Testnet", "")}
+                        </span>
+                        {isCurrentNetwork && (
+                          <span className="ml-auto text-xs text-foreground/40">✓</span>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <nav className="network:mt-8 mt-4 space-y-6">
             {menuItems.map((section) => (
               <div key={section.section}>
                 <h3 className="mb-2 px-2 text-xs font-semibold uppercase text-muted-foreground">

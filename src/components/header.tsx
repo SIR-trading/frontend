@@ -5,7 +5,7 @@ import Image from "next/image";
 import SideNav from "./sideNav";
 import { CustomConnectButton } from "./customConnectButton";
 import MoreMenu from "./moreMenu";
-import { TrendingUp, Droplets, Briefcase, Coins, LineChart, Trophy, Gavel } from "lucide-react";
+import { TrendingUp, Droplets, Briefcase, Coins, Trophy, Gavel } from "lucide-react";
 import dynamic from "next/dynamic";
 import { env } from "@/env";
 import { useMemo } from "react";
@@ -53,7 +53,7 @@ export function Header() {
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">
       <div className="flex gap-x-8 lg:gap-x-10">
-        <Link href={"/"} className="flex items-center gap-x-2">
+        <Link href={"/"} className="flex items-center gap-x-2 mt-[7px]">
           {/* <Image src={logo} alt="Sir-Trading Logo" className="h-[60px] w-auto" /> */}
           <div className="flex gap-x-1">
             <Image
@@ -79,7 +79,7 @@ export function Header() {
         </Link>
         <div className="flex items-center">
           <nav className="hidden nav:flex items-center mt-[7px]">
-            <div className="flex gap-x-[16px] rounded-md pl-[12px] pr-[24px] lg:pr-[12px] text-sm items-center">
+            <div className="flex gap-x-[16px] rounded-md pl-[12px] pr-[24px] nav-secondary:pr-[12px] text-sm items-center">
               <ul
                 aria-label="Core Navigation"
                 className="flex gap-x-3 rounded-md"
@@ -94,11 +94,11 @@ export function Header() {
                   Portfolio
                 </NavItem>
               </ul>
-              {/* Show secondary nav items only on large screens */}
-              <div className="hidden items-center lg:flex">
+              {/* Show secondary nav items only on nav-secondary screens */}
+              <div className="hidden items-center nav-secondary:flex">
                 <div className="mx-3 h-5 w-[2px] bg-foreground/25 rounded-full"></div>
               </div>
-              <ul className="hidden lg:flex gap-x-3" aria-label="Secondary Navigation">
+              <ul className="hidden nav-secondary:flex gap-x-3" aria-label="Secondary Navigation">
                 <NavItem
                   url={"/stake"}
                   icon={Coins}
@@ -110,21 +110,23 @@ export function Header() {
                 <NavItem url={"/leaderboard"} icon={Trophy}>Leaderboard</NavItem>
                 <NavItem url={"/auctions"} icon={Gavel} hasActiveAuctionsNotification={hasActiveAuctions}>Auctions</NavItem>
               </ul>
-              {/* More menu for medium screens (shows all secondary items) */}
-              <div className="flex lg:hidden">
+              {/* More menu for nav screens (shows all secondary items) */}
+              <div className="flex nav-secondary:hidden">
                 <MoreMenu variant="medium" />
               </div>
-              {/* More menu for large screens (shows only Create Vault & Calculator) */}
-              <div className="hidden lg:flex">
+              {/* More menu for nav-secondary screens (shows only Create Vault & Calculator) */}
+              <div className="hidden nav-secondary:flex">
                 <MoreMenu variant="large" />
               </div>
             </div>
           </nav>
         </div>
       </div>
-      <div className="flex items-center justify-end gap-x-2">
+      <div className="flex items-center justify-end gap-x-2 mt-[7px]">
         <DarkModeToggle />
-        <NetworkToggle />
+        <div className="hidden network:block">
+          <NetworkToggle />
+        </div>
         <CustomConnectButton />
         <SideNav />
       </div>
