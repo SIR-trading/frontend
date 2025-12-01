@@ -7,10 +7,16 @@ import VaultRowSkeleton from "./vaultRowSkeleton";
 import Show from "@/components/shared/show";
 import { api } from "@/trpc/react";
 import { getSirSymbol } from "@/lib/assets";
+import { ChevronUp, ChevronDown } from "lucide-react";
+
+type SortColumn = "id" | "tvl" | "apy" | "pol";
+type SortDirection = "asc" | "desc";
 
 export default function VaultTable({ isApe }: { isApe: boolean }) {
   const [hasMounted, setHasMounted] = useState(false);
   const [showTvlInUsd, setShowTvlInUsd] = useState(true); // Default to USD
+  const [sortColumn, setSortColumn] = useState<SortColumn>("tvl");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   // Ensure component has mounted before accessing window or making queries
   useEffect(() => {
@@ -19,18 +25,101 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
 
   const { vaults, isFetching, page } = useVaultProvider();
 
-  // Client-side pagination: slice the vaults array based on current page
+  // Handle column header click for sorting
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      // New column: default to desc for tvl/apy/pol, asc for id
+      setSortColumn(column);
+      setSortDirection(column === "id" ? "asc" : "desc");
+    }
+  };
+
+  // Get all vaults for sorting
+  const allVaults = vaults?.vaults ?? [];
+
+  // Extract ALL vault IDs for batch APY query (needed for APY sorting)
+  const allVaultIds = useMemo(() => {
+    return allVaults.map((vault) => vault.id);
+  }, [allVaults]);
+
+  // Batch fetch APY data for ALL vaults (only for liquidity page and after mount)
+  const { data: batchApyData, isLoading: isBatchApyLoading } =
+    api.vault.getVaultsApy.useQuery(
+      { vaultIds: allVaultIds },
+      {
+        enabled: hasMounted && !isApe && allVaultIds.length > 0,
+        refetchOnMount: false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
+    );
+
+  // Sort all vaults, then paginate
+  const sortedVaults = useMemo(() => {
+    const vaultsToSort = [...allVaults];
+
+    vaultsToSort.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortColumn) {
+        case "id":
+          comparison = parseInt(a.id) - parseInt(b.id);
+          break;
+        case "tvl":
+          comparison =
+            parseFloat(a.totalValueUsd || "0") -
+            parseFloat(b.totalValueUsd || "0");
+          break;
+        case "pol": {
+          // POL percentage: lockedLiquidity / teaSupply
+          // Special case: if totalValue > 0 but teaSupply === 0, POL is 100%
+          const aTeaSupply = parseFloat(a.teaSupply || "0");
+          const bTeaSupply = parseFloat(b.teaSupply || "0");
+          const aTotalValue = parseFloat(a.totalValue || "0");
+          const bTotalValue = parseFloat(b.totalValue || "0");
+          const aLocked = parseFloat(a.lockedLiquidity || "0");
+          const bLocked = parseFloat(b.lockedLiquidity || "0");
+
+          let aPol = 0;
+          if (aTotalValue > 0 && aTeaSupply === 0) {
+            aPol = 100;
+          } else if (aLocked > 0 && aTeaSupply > 0) {
+            aPol = (aLocked / aTeaSupply) * 100;
+          }
+
+          let bPol = 0;
+          if (bTotalValue > 0 && bTeaSupply === 0) {
+            bPol = 100;
+          } else if (bLocked > 0 && bTeaSupply > 0) {
+            bPol = (bLocked / bTeaSupply) * 100;
+          }
+
+          comparison = aPol - bPol;
+          break;
+        }
+        case "apy": {
+          // Use APY data if available, otherwise treat as 0
+          const aApy = batchApyData?.[a.id]?.apy ?? 0;
+          const bApy = batchApyData?.[b.id]?.apy ?? 0;
+          comparison = aApy - bApy;
+          break;
+        }
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return vaultsToSort;
+  }, [allVaults, sortColumn, sortDirection, batchApyData]);
+
+  // Client-side pagination: slice the sorted vaults array based on current page
   const currentPageVaults = useMemo(() => {
-    const allVaults = vaults?.vaults ?? [];
     const startIndex = (page - 1) * 10;
     const endIndex = startIndex + 10;
-    return allVaults.slice(startIndex, endIndex);
-  }, [vaults, page]);
-
-  // Extract vault IDs for batch APY query
-  const vaultIds = useMemo(() => {
-    return currentPageVaults.map((vault) => vault.id);
-  }, [currentPageVaults]);
+    return sortedVaults.slice(startIndex, endIndex);
+  }, [sortedVaults, page]);
 
   // Extract unique collateral tokens and decimals for batch price query
   const { collateralTokens, decimalsMap } = useMemo(() => {
@@ -59,17 +148,6 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
     },
   );
 
-  // Batch fetch APY data for all vaults on current page (only for liquidity page and after mount)
-  const { data: batchApyData, isLoading: isBatchApyLoading } =
-    api.vault.getVaultsApy.useQuery(
-      { vaultIds },
-      {
-        enabled: hasMounted && !isApe && vaultIds.length > 0, // Only fetch after mount and if we need to show APY
-        refetchOnMount: false,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-      },
-    );
-
   // Show loading state until component has mounted
   if (!hasMounted) {
     return (
@@ -82,6 +160,9 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
             isApe={isApe}
             showTvlInUsd={showTvlInUsd}
             setShowTvlInUsd={setShowTvlInUsd}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
         </thead>
         <tbody>
@@ -106,6 +187,9 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
           isApe={isApe}
           showTvlInUsd={showTvlInUsd}
           setShowTvlInUsd={setShowTvlInUsd}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={handleSort}
         />
       </thead>
 
@@ -152,29 +236,87 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   );
 }
 
+// Sortable header component
+function SortableHeader({
+  column,
+  label,
+  currentColumn,
+  direction,
+  onSort,
+  children,
+  className,
+}: {
+  column: SortColumn;
+  label: string;
+  currentColumn: SortColumn;
+  direction: SortDirection;
+  onSort: (column: SortColumn) => void;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  const isActive = currentColumn === column;
+
+  return (
+    <button
+      onClick={() => onSort(column)}
+      className={`flex cursor-pointer items-center gap-x-1 transition-colors hover:text-foreground ${className ?? ""}`}
+    >
+      <span>{label}</span>
+      {children}
+      <span className="flex flex-col">
+        <ChevronUp
+          className={`h-3 w-3 -mb-1 ${isActive && direction === "asc" ? "text-foreground" : "text-muted-foreground/40"}`}
+        />
+        <ChevronDown
+          className={`h-3 w-3 ${isActive && direction === "desc" ? "text-foreground" : "text-muted-foreground/40"}`}
+        />
+      </span>
+    </button>
+  );
+}
+
 function VaultTableRowHeaders({
   isApe,
   showTvlInUsd,
   setShowTvlInUsd,
+  sortColumn,
+  sortDirection,
+  onSort,
 }: {
   isApe: boolean;
   showTvlInUsd: boolean;
   setShowTvlInUsd: (value: boolean) => void;
+  sortColumn: SortColumn;
+  sortDirection: SortDirection;
+  onSort: (column: SortColumn) => void;
 }) {
   return (
     <tr className="text-left text-[14px] font-normal text-muted-foreground">
-      <th className="pb-1 pl-3 pr-4 font-medium">Id</th>
+      <th className="pb-1 pl-3 pr-4 font-medium">
+        <SortableHeader
+          column="id"
+          label="Id"
+          currentColumn={sortColumn}
+          direction={sortDirection}
+          onSort={onSort}
+        />
+      </th>
       <th className="pb-1 pr-4 font-medium">Vault</th>
 
       {!isApe ? (
         <th className="pb-1 pr-4 font-medium">
-          <div className="flex items-center gap-x-1">
-            <span>APY</span>
+          <SortableHeader
+            column="apy"
+            label="APY"
+            currentColumn={sortColumn}
+            direction={sortDirection}
+            onSort={onSort}
+          >
             <ToolTip iconSize={12}>
               Annualized Percentage Yield including LP fees from the last 30
               days and {getSirSymbol()} token rewards.
             </ToolTip>
-          </div>
+          </SortableHeader>
         </th>
       ) : (
         <th className="pb-1 pr-4 font-medium">
@@ -188,12 +330,17 @@ function VaultTableRowHeaders({
         </th>
       )}
       <th className="hidden pb-1 pr-4 font-medium min-[375px]:table-cell">
-        <div className="flex items-center gap-x-1">
-          <span>POL</span>
+        <SortableHeader
+          column="pol"
+          label="POL"
+          currentColumn={sortColumn}
+          direction={sortDirection}
+          onSort={onSort}
+        >
           <ToolTip iconSize={12}>
             Protocol Owned Liquidity is liquidity that will never be withdrawn.
           </ToolTip>
-        </div>
+        </SortableHeader>
       </th>
       <th className="hidden pb-1 pr-4 font-medium xl:table-cell">
         <div className="flex items-center gap-x-1">
@@ -205,30 +352,42 @@ function VaultTableRowHeaders({
       </th>
       <th className="pb-1 text-right font-medium">
         <div className="flex items-center justify-end gap-1">
-          <span>TVL</span>
-          <button
-            onClick={() => setShowTvlInUsd(!showTvlInUsd)}
-            className="cursor-pointer rounded p-0.5 transition-colors hover:text-foreground dark:hover:bg-primary/20"
-            title={
-              showTvlInUsd ? "Click to show in tokens" : "Click to show in USD"
-            }
+          <SortableHeader
+            column="tvl"
+            label="TVL"
+            currentColumn={sortColumn}
+            direction={sortDirection}
+            onSort={onSort}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTvlInUsd(!showTvlInUsd);
+              }}
+              className="cursor-pointer rounded p-0.5 transition-colors hover:text-foreground dark:hover:bg-primary/20"
+              title={
+                showTvlInUsd
+                  ? "Click to show in tokens"
+                  : "Click to show in USD"
+              }
             >
-              <path d="M21 2v6h-6" />
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-              <path d="M3 22v-6h6" />
-              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-            </svg>
-          </button>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 2v6h-6" />
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                <path d="M3 22v-6h6" />
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+              </svg>
+            </button>
+          </SortableHeader>
         </div>
       </th>
     </tr>
