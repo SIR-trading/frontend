@@ -307,12 +307,7 @@ const PastAuction = ({
                           title: AuctionCardTitle.AMOUNT,
                           content: (
                             <TokenDisplay
-                              amount={
-                                (auctionLots?.get(token.id) ?? 0n) > 0n
-                                  ? auctionLots?.get(token.id)
-                                  : BigInt(amount)
-                              }
-                              
+                              amount={BigInt(amount)}
                               amountSize="large"
                               decimals={
                                 uniqueAuctionCollection.collateralDecimalsMap.get(
@@ -372,7 +367,7 @@ const PastAuction = ({
                         },
                       ],
                     ]}
-                    key={token.id}
+                    key={`${token.id}-${startTime}`}
                     action={
                       compareAddress(highestBidder, address)
                         ? {
@@ -390,12 +385,13 @@ const PastAuction = ({
               )}
             </AuctionContentWrapper>{" "}
             <div className="pr-4">
+              {(() => { console.log('Pagination debug:', { page, length, allAuctionsLength: allAuctions?.length, isLastPage: page * length >= (allAuctions?.length ?? 0) }); return null; })()}
               <Pagination
-                max={auctions.length}
+                max={length}
                 page={page}
                 nextPage={nextPage}
                 prevPage={prevPage}
-                length={length}
+                length={page * length >= (allAuctions?.length ?? 0) ? 0 : length}
                 size="lg"
               />
             </div>
