@@ -94,5 +94,15 @@
       "decimals": 6,
       "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694"
     }
+  ],
+  "999": [
+    {
+      "symbol": "SWAP",
+      "name": "HyperSwap",
+      "marketCap": 0,
+      "address": "0x03832767BDf9A8EF007449942125Ad605aCfADb8",
+      "decimals": 18,
+      "logoURI": "https://assets.coingecko.com/coins/images/70204/standard/hyperswap.png?1761045307"
+    }
   ]
 }
