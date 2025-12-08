@@ -23,11 +23,11 @@ import { TokenImage } from "@/components/shared/TokenImage";
 import useVaultFilterStore from "@/lib/store";
 import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
-import DuneChartPopup from "@/components/shared/duneChartPopup";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
 import { FeeExplanation } from "@/components/shared/FeeExplanation";
 import { getCurrentChainConfig } from "@/lib/chains";
+import DuneChartPopup from "@/components/shared/duneChartPopup";
 
 export function VaultTableRow({
   pool: vault,
@@ -442,7 +442,7 @@ export function VaultTableRow({
               explorerUrl={debtTokenUrl}
             />
           </HoverPopup>
-          {variant.variant === "red" ? (
+          {variant.variant === "red" || isExtremeLeverage ? (
             <HoverPopup
               size="200"
               alignOffset={4}
@@ -460,7 +460,9 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                {tvl === 0 ? (
+                {isExtremeLeverage ? (
+                  "Extreme Leverage: Both gains and losses are extremely amplified."
+                ) : tvl === 0 ? (
                   "No liquidity for leverage long."
                 ) : (
                   <>
@@ -479,32 +481,6 @@ export function VaultTableRow({
             <sup className="ml-0.5 text-[10px] font-semibold">
               {getLeverageRatio(vault.leverageTier)}
             </sup>
-          )}
-          {isExtremeLeverage && (
-            <HoverPopup
-              size="250"
-              alignOffset={4}
-              asChild
-              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
-            >
-              <div className="text-[13px] font-medium">
-                <div className="text-amber-500 font-semibold">
-                  Extreme Leverage Warning
-                </div>
-                <div className="mt-1">
-                  This vault&apos;s leverage is ^
-                  {getLeverageRatio(vault.leverageTier)}.
-                  {isApe
-                    ? " Both gains and losses are extremely amplified."
-                    : " Impermanent loss may be exacerbated due to extreme leverage."}
-                </div>
-              </div>
-            </HoverPopup>
-          )}
-          {isApe && hasChart && embedUrl && (
-            <div onClick={(e) => e.stopPropagation()} className="ml-2">
-              <DuneChartPopup embedUrl={embedUrl} />
-            </div>
           )}
         </div>
 
@@ -555,7 +531,7 @@ export function VaultTableRow({
               explorerUrl={debtTokenUrl}
             />
           </HoverPopup>
-          {variant.variant === "red" ? (
+          {variant.variant === "red" || isExtremeLeverage ? (
             <HoverPopup
               size="200"
               alignOffset={4}
@@ -573,7 +549,9 @@ export function VaultTableRow({
               }
             >
               <div className="text-[13px] font-medium">
-                {tvl === 0 ? (
+                {isExtremeLeverage ? (
+                  "Extreme Leverage: Both gains and losses are extremely amplified."
+                ) : tvl === 0 ? (
                   "No liquidity for leverage long."
                 ) : (
                   <>
@@ -592,32 +570,6 @@ export function VaultTableRow({
             <sup className="ml-0.5 text-[10px] font-semibold">
               {getLeverageRatio(vault.leverageTier)}
             </sup>
-          )}
-          {isExtremeLeverage && (
-            <HoverPopup
-              size="250"
-              alignOffset={4}
-              asChild
-              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
-            >
-              <div className="text-[13px] font-medium">
-                <div className="text-amber-500 font-semibold">
-                  Extreme Leverage Warning
-                </div>
-                <div className="mt-1">
-                  This vault&apos;s leverage is ^
-                  {getLeverageRatio(vault.leverageTier)}.
-                  {isApe
-                    ? " Both gains and losses are extremely amplified."
-                    : " Impermanent loss may be exacerbated due to extreme leverage."}
-                </div>
-              </div>
-            </HoverPopup>
-          )}
-          {isApe && hasChart && embedUrl && (
-            <div onClick={(e) => e.stopPropagation()} className="ml-2">
-              <DuneChartPopup embedUrl={embedUrl} />
-            </div>
           )}
         </div>
 
@@ -668,32 +620,6 @@ export function VaultTableRow({
               explorerUrl={debtTokenUrl}
             />
           </HoverPopup>
-          {isExtremeLeverage && (
-            <HoverPopup
-              size="250"
-              alignOffset={4}
-              asChild
-              trigger={<span className="ml-1 cursor-help text-base">⚠️</span>}
-            >
-              <div className="text-[13px] font-medium">
-                <div className="text-amber-500 font-semibold">
-                  Extreme Leverage Warning
-                </div>
-                <div className="mt-1">
-                  This vault&apos;s leverage is ^
-                  {getLeverageRatio(vault.leverageTier)}.
-                  {isApe
-                    ? " Both gains and losses are extremely amplified."
-                    : " Impermanent loss may be exacerbated due to extreme leverage."}
-                </div>
-              </div>
-            </HoverPopup>
-          )}
-          {isApe && hasChart && embedUrl && (
-            <div onClick={(e) => e.stopPropagation()} className="ml-2">
-              <DuneChartPopup embedUrl={embedUrl} />
-            </div>
-          )}
         </div>
       </td>
       <td className="py-2 pr-4">
@@ -786,7 +712,7 @@ export function VaultTableRow({
               transition={{ duration: 1 }}
             >
               <Badge
-                variant={variant.variant}
+                variant={isExtremeLeverage ? "red" : variant.variant}
                 className="text-nowrap text-[10px]"
               >
                 ^{getLeverageRatio(vault.leverageTier)}
@@ -808,83 +734,91 @@ export function VaultTableRow({
               leverageRatio={getLeverageRatio(vault.leverageTier).toString()}
               tvl={tvl}
               realLeverage={getRealLeverage()}
-            ></DisplayBadgeInfo>
+              isExtremeLeverage={isExtremeLeverage}
+            />
           </div>
         </HoverPopup>
       </td>
 
       <td className="py-2 text-right">
-        <HoverPopup
-          size="250"
-          asChild
-          trigger={
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1 }}
-              className="text-sm"
-            >
-              {showTvlInUsd ? (
-                vault.totalValue === "0" ? (
-                  <span>$0</span>
-                ) : tvlUsd !== undefined && tvlUsd !== null && tvlUsd >= 0 ? (
-                  <span>
-                    $
-                    <DisplayFormattedNumber
-                      num={tvlUsd.toString()}
-                      significant={3}
-                    />
-                  </span>
+        <div className="flex items-center justify-end gap-2">
+          {hasChart && embedUrl && (
+            <div onClick={(e) => e.stopPropagation()} className="hidden min-[375px]:block">
+              <DuneChartPopup embedUrl={embedUrl} />
+            </div>
+          )}
+          <HoverPopup
+            size="250"
+            asChild
+            trigger={
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+                className="text-sm"
+              >
+                {showTvlInUsd ? (
+                  vault.totalValue === "0" ? (
+                    <span>$0</span>
+                  ) : tvlUsd !== undefined && tvlUsd !== null && tvlUsd >= 0 ? (
+                    <span>
+                      $
+                      <DisplayFormattedNumber
+                        num={tvlUsd.toString()}
+                        significant={3}
+                      />
+                    </span>
+                  ) : (
+                    <span>...</span>
+                  )
                 ) : (
-                  <span>...</span>
-                )
-              ) : (
-                <TokenDisplay
-                  amountSize="small"
-                  amount={parseUnits(vault.totalValue, 0)}
-                  decimals={vault.collateralToken.decimals}
-                  unitLabel={vault.collateralToken.symbol ?? ""}
-                />
-              )}
-            </motion.div>
-          }
-        >
-          <div className="space-y-1 text-[13px] font-medium">
-            <div className="text-left font-semibold">TVL Breakdown:</div>
-            <div className="flex justify-between gap-x-4">
-              <span>Apes:</span>
-              <span className="flex items-center gap-x-1">
-                <span>
-                  <DisplayFormattedNumber
-                    num={formatUnits(
-                      reservesData[0]?.reserveApes ?? 0n,
-                      vault.collateralToken.decimals,
-                    )}
-                    significant={3}
-                  />{" "}
-                  {vault.collateralToken.symbol ?? ""}
+                  <TokenDisplay
+                    amountSize="small"
+                    amount={parseUnits(vault.totalValue, 0)}
+                    decimals={vault.collateralToken.decimals}
+                    unitLabel={vault.collateralToken.symbol ?? ""}
+                  />
+                )}
+              </motion.div>
+            }
+          >
+            <div className="space-y-1 text-[13px] font-medium">
+              <div className="text-left font-semibold">TVL Breakdown:</div>
+              <div className="flex justify-between gap-x-4">
+                <span>Apes:</span>
+                <span className="flex items-center gap-x-1">
+                  <span>
+                    <DisplayFormattedNumber
+                      num={formatUnits(
+                        reservesData[0]?.reserveApes ?? 0n,
+                        vault.collateralToken.decimals,
+                      )}
+                      significant={3}
+                    />{" "}
+                    {vault.collateralToken.symbol ?? ""}
+                  </span>
+                  <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
                 </span>
-                <span>({Math.round((apeCollateral * 100) / (tvl ?? 1))}%)</span>
-              </span>
-            </div>
-            <div className="flex justify-between gap-x-4">
-              <span>LPers:</span>
-              <span className="flex items-center gap-x-1">
-                <span>
-                  <DisplayFormattedNumber
-                    num={formatUnits(
-                      reservesData[0]?.reserveLPers ?? 0n,
-                      vault.collateralToken.decimals,
-                    )}
-                    significant={3}
-                  />{" "}
-                  {vault.collateralToken.symbol ?? ""}
+              </div>
+              <div className="flex justify-between gap-x-4">
+                <span>LPers:</span>
+                <span className="flex items-center gap-x-1">
+                  <span>
+                    <DisplayFormattedNumber
+                      num={formatUnits(
+                        reservesData[0]?.reserveLPers ?? 0n,
+                        vault.collateralToken.decimals,
+                      )}
+                      significant={3}
+                    />{" "}
+                    {vault.collateralToken.symbol ?? ""}
+                  </span>
+                  <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
                 </span>
-                <span>({Math.round((teaCollateral * 100) / (tvl ?? 1))}%)</span>
-              </span>
+              </div>
             </div>
-          </div>
-        </HoverPopup>
+          </HoverPopup>
+        </div>
       </td>
     </tr>
   );
@@ -896,13 +830,24 @@ function DisplayBadgeInfo({
   leverageRatio,
   tvl,
   realLeverage,
+  isExtremeLeverage,
 }: {
   variant: VariantProps<typeof badgeVariants>;
   isApe: boolean;
   leverageRatio?: string;
   tvl?: number;
   realLeverage?: string;
+  isExtremeLeverage?: boolean;
 }) {
+  // For extreme leverage, show only the warning message
+  if (isExtremeLeverage) {
+    return (
+      <span>
+        Extreme Leverage: Both gains and losses are extremely amplified.
+      </span>
+    );
+  }
+
   if (variant.variant === "green") {
     return isApe ? (
       <span>Healthy, enough liquidity for constant leverage.</span>
@@ -931,4 +876,5 @@ function DisplayBadgeInfo({
       <span>Minimally profitable</span>
     );
   }
+  return null;
 }

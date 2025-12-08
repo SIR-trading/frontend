@@ -482,7 +482,7 @@ export async function validateIncentives(
         args: [incentiveId],
       });
 
-      const [totalRewardUnclaimed, totalSecondsClaimedX128, numberOfStakes] = result;
+      const [totalRewardUnclaimed, , numberOfStakes] = result;
       const exists = totalRewardUnclaimed > 0n;
 
       if (!exists) {

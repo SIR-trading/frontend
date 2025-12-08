@@ -27,9 +27,6 @@ export function FeeExplanation({
   const feePercentage = Math.round(feeDecimal * 100);
 
   // Calculate gains at different price levels (after fees)
-  const gainNeg80 = Math.round(
-    (100 - feePercentage) * Math.pow(0.2, leverageRatio) - 100,
-  );
   const gainNeg50 = Math.round(
     (100 - feePercentage) * Math.pow(0.5, leverageRatio) - 100,
   );

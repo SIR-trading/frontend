@@ -45,12 +45,9 @@ import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
 import { NotoTeapot } from "@/components/ui/icons/teapot-icon";
 import { Checkbox } from "@/components/ui/checkbox";
 import ToolTip from "@/components/ui/tooltip";
-import Image from "next/image";
-import NoSSR from "@/components/ui/no-ssr";
 import useVaultFilterStore from "@/lib/store";
 import { api } from "@/trpc/react";
 import {
-  calculatePriceIncreaseToTarget,
   calculateBreakevenTime,
   calculateValueGainFromPriceGain,
 } from "@/lib/utils/breakeven";
@@ -516,47 +513,6 @@ export default function MintForm({ isApe }: Props) {
     <Card className="relative overflow-visible h-full">
       {/* Handle vault URL synchronization (wrapped in Suspense for SSR) */}
       <VaultUrlSync />
-      {/* Mobile images - visible on small screens, positioned in minting box */}
-      <NoSSR>
-        {!isApe && (
-          <>
-            {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
-            <Image
-              src="/Gorilla_drinking_tea.png"
-              alt="Gorilla drinking tea"
-              width={120}
-              height={120}
-              className="pointer-events-none absolute -top-[4.5rem] right-0 z-10 hidden dark:block dark:lg:hidden"
-            />
-            <Image
-              src="/Gorilla_drinking_tea_white.png"
-              alt="Gorilla drinking tea"
-              width={120}
-              height={120}
-              className="pointer-events-none absolute -top-[4.5rem] right-0 z-10 block lg:hidden dark:hidden"
-            />
-          </>
-        )}
-        {isApe && (
-          <>
-            {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
-            <Image
-              src="/Monkey_drinking_whiskey.png"
-              alt="Monkey drinking whiskey"
-              width={147}
-              height={147}
-              className="pointer-events-none absolute -top-[4.5rem] right-[-1.5rem] z-10 hidden dark:block dark:lg:hidden"
-            />
-            <Image
-              src="/Monkey_drinking_whiskey_white.png"
-              alt="Monkey drinking whiskey"
-              width={147}
-              height={147}
-              className="pointer-events-none absolute -top-[4.5rem] right-[-1.5rem] z-10 block lg:hidden dark:hidden"
-            />
-          </>
-        )}
-      </NoSSR>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TransactionModal.Root
           title="Mint"

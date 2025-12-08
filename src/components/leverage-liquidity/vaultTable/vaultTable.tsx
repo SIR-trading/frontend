@@ -38,7 +38,7 @@ export default function VaultTable({ isApe }: { isApe: boolean }) {
   };
 
   // Get all vaults for sorting
-  const allVaults = vaults?.vaults ?? [];
+  const allVaults = useMemo(() => vaults?.vaults ?? [], [vaults?.vaults]);
 
   // Extract ALL vault IDs for batch APY query (needed for APY sorting)
   const allVaultIds = useMemo(() => {

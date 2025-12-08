@@ -4,7 +4,6 @@ import AuctionCard, {
   AuctionCardTitle,
 } from "@/components/auction/auctionCard";
 import { api } from "@/trpc/react";
-import { TokenDisplay } from "@/components/ui/token-display";
 import { TokenDisplayWithUsd } from "@/components/auction/TokenDisplayWithUsd";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";

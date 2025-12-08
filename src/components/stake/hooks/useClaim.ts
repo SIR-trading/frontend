@@ -7,7 +7,6 @@ export const useClaim = () => {
   const {
     data: claimData,
     error,
-    refetch,
     isFetching,
   } = useSimulateContract({
     ...SirContract,

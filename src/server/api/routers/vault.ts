@@ -66,10 +66,6 @@ async function calculateSirRewardsApy(vaultId: string): Promise<number> {
     // Log the rate for debugging
     console.log("Rate per second:", ratePerSecond);
 
-    // Log rate per day for debugging
-    const SECONDS_IN_DAY = 24 * 60 * 60;
-    const dailyRate = ratePerSecond * SECONDS_IN_DAY;
-
     // Convert to annual rate (seconds in a year = 365 * 24 * 60 * 60)
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
     const annualSirRewards = ratePerSecond * SECONDS_IN_YEAR;

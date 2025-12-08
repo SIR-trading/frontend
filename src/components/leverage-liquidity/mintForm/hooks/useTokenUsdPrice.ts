@@ -2,7 +2,6 @@ import { api } from "@/trpc/react";
 import { shouldUseCoinGecko, getCoinGeckoPlatformId, getAlchemyChainString } from "@/lib/chains";
 import { useChainId } from "wagmi";
 import { useMemo, useState, useEffect } from "react";
-import { parseUnits } from "viem";
 
 export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimals?: number) {
   const chainId = useChainId();
@@ -25,7 +24,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
   const shouldFetchPrice = !!tokenAddress && !!debouncedAmount && parseFloat(debouncedAmount) > 0;
 
   // Fetch price using Alchemy for Ethereum chains
-  const { data: alchemyPrice, isLoading: alchemyLoading } = api.price.getTokenPrice.useQuery(
+  const { data: alchemyPrice } = api.price.getTokenPrice.useQuery(
     {
       contractAddress: tokenAddress ?? "",
       chain: getAlchemyChainString(chainId)
@@ -37,7 +36,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
   );
 
   // Fetch price using CoinGecko for HyperEVM chains
-  const { data: coinGeckoPrice, isLoading: coinGeckoLoading } = api.price.getCoinGeckoPrice.useQuery(
+  const { data: coinGeckoPrice } = api.price.getCoinGeckoPrice.useQuery(
     {
       platformId: getCoinGeckoPlatformId(chainId),
       contractAddress: tokenAddress ?? ""
@@ -54,7 +53,7 @@ export function useTokenUsdPrice(tokenAddress?: string, amount?: string, decimal
   );
 
   // Fetch price with Uniswap fallback for exotic tokens
-  const { data: fallbackPrice, isLoading: fallbackLoading } = api.price.getTokenPriceWithFallback.useQuery(
+  const { data: fallbackPrice } = api.price.getTokenPriceWithFallback.useQuery(
     {
       tokenAddress: tokenAddress ?? "",
       tokenDecimals: decimals ?? 18,

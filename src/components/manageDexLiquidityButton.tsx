@@ -42,7 +42,7 @@ export function ManageDexLiquidityButton() {
       dexName: "DEX",
       dexUrl: "#",
     };
-  }, [chainId, sirAddress]);
+  }, [chainId, sirAddress, SIR_WETH_POOL_ADDRESS]);
 
   // Don't render if we don't have a valid URL
   if (dexUrl === "#") {

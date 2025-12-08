@@ -9,8 +9,6 @@ import VaultPagination from "@/components/shared/leverage/VaultPagination";
 import VaultRowSkeleton from "./vaultTable/vaultRowSkeleton";
 import NoSSR from "@/components/ui/no-ssr";
 import { api } from "@/trpc/react";
-import Image from "next/image";
-
 export default function LeverageLiquidityContent({
   isApe,
   offset = 0,
@@ -37,52 +35,11 @@ export default function LeverageLiquidityContent({
       <Explainer page={isApe ? EPage.LEVERAGE : EPage.LIQUIDITY} />
       <div className="grid w-full gap-x-[16px] gap-y-4 lg:grid-cols-2">
         {/* Always show the form immediately - it handles its own loading states */}
-        {/* Add margin-top on mobile to prevent image overlap with explainer text */}
-        <div className="mt-10 lg:mt-0">
+        <div>
           <MintForm vaultsQuery={vaultQuery?.vaultQuery} isApe={isApe} />
         </div>
 
         <Card className={"relative h-full overflow-visible md:px-5"}>
-          <NoSSR>
-            {!isApe && (
-              <>
-                {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
-                <Image
-                  src="/Gorilla_drinking_tea.png"
-                  alt="Gorilla drinking tea"
-                  width={180}
-                  height={180}
-                  className="pointer-events-none absolute -top-[6.7rem] right-0 z-10 hidden dark:lg:block"
-                />
-                <Image
-                  src="/Gorilla_drinking_tea_white.png"
-                  alt="Gorilla drinking tea"
-                  width={180}
-                  height={180}
-                  className="pointer-events-none absolute -top-[6.7rem] right-0 z-10 hidden lg:block dark:lg:hidden"
-                />
-              </>
-            )}
-            {isApe && (
-              <>
-                {/* CSS-based theme switching: Both images loaded, visibility controlled by CSS */}
-                <Image
-                  src="/Monkey_drinking_whiskey.png"
-                  alt="Monkey drinking whiskey"
-                  width={220}
-                  height={220}
-                  className="pointer-events-none absolute -right-[2.3rem] -top-[6.8rem] z-10 hidden dark:lg:block"
-                />
-                <Image
-                  src="/Monkey_drinking_whiskey_white.png"
-                  alt="Monkey drinking whiskey"
-                  width={220}
-                  height={220}
-                  className="pointer-events-none absolute -right-[2.3rem] -top-[6.8rem] z-10 hidden lg:block dark:lg:hidden"
-                />
-              </>
-            )}
-          </NoSSR>
           <div className="flex h-full flex-col justify-between">
             {/* Wrap VaultTable in NoSSR to prevent SSR issues */}
             <NoSSR

@@ -126,7 +126,6 @@ export function useUserLpPositions() {
   const {
     data: wethPrice,
     isLoading: isWethPriceLoading,
-    isFetching: isWethPriceFetching,
   } = api.price.getTokenPriceWithFallback.useQuery(
     {
       tokenAddress: WrappedNativeTokenContract.address,
@@ -142,7 +141,6 @@ export function useUserLpPositions() {
   const {
     data: globalStats,
     isLoading: isGlobalStatsLoading,
-    isFetching: isGlobalStatsFetching,
     refetch: refetchGlobalStats,
   } = api.lpStaking.getGlobalStats.useQuery(
     {
@@ -159,7 +157,6 @@ export function useUserLpPositions() {
   const {
     data: slot0Data,
     isLoading: isSlot0Loading,
-    isFetching: isSlot0Fetching,
   } = useReadContract({
     address: SIR_WETH_POOL_ADDRESS,
     abi: UniswapV3PoolABI,
@@ -277,7 +274,6 @@ export function useUserLpPositions() {
   const {
     data: incentivesData,
     isLoading: isIncentivesLoading,
-    isFetching: isIncentivesFetching,
   } = useReadContracts({
     contracts: incentiveContracts,
     query: {

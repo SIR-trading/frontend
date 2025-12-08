@@ -162,12 +162,13 @@ const OngoingAuction = ({
 
   // Cleanup all timeouts on unmount
   useEffect(() => {
+    const timeouts = pulsingTimeoutsRef.current;
     return () => {
       // Clear all pending timeouts
-      pulsingTimeoutsRef.current.forEach((timeout) => {
+      timeouts.forEach((timeout) => {
         clearTimeout(timeout);
       });
-      pulsingTimeoutsRef.current.clear();
+      timeouts.clear();
     };
   }, []);
 

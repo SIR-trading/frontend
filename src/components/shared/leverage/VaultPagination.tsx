@@ -9,7 +9,6 @@ const VaultPagination = ({}: { max: number }) => {
   // Calculate the number of items on the current page
   const itemsPerPage = 10;
   const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
   const currentPageLength = Math.min(itemsPerPage, Math.max(0, vaultLength - startIndex));
 
   return (

@@ -11,7 +11,6 @@ export const useStake = ({ amount }: Props) => {
   const {
     data: stake,
     error,
-    refetch,
     isFetching,
   } = useSimulateContract({
     ...SirContract,

@@ -1,6 +1,6 @@
 import { readContract } from "./viemClient";
 import { AssistantContract } from "@/contracts/assistant";
-import type { TCollateral, TVaults, VaultFieldFragment } from "./types";
+import type { TCollateral, TVaults } from "./types";
 import { executeVaultsQuery } from "@/server/queries/vaults";
 
 const getVaults = async ({

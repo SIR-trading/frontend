@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Send, ChevronDown, ChevronUp, XCircle } from "lucide-react";
+import { MoreVertical, Send, XCircle } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
 import { parseUnits } from "viem";
 import { useVaultData } from "@/contexts/VaultDataContext";
@@ -51,7 +51,6 @@ export function BurnTableRow({
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenLg, setDropdownOpenLg] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Get vault data from context to get the rate for TEA rewards
@@ -138,7 +137,6 @@ export function BurnTableRow({
   let leveragedPnlPercent = 0;
   let spotPnlPercent = 0;
   let spotPnlDebt = 0;
-  let spotPnlCollateral = 0;
 
   if (initialDebtTokenValue > 0 && initialCollateral > 0) {
     // Collateral PnL percentage
@@ -153,7 +151,6 @@ export function BurnTableRow({
 
       spotPnlPercent = (priceChange - 1) * 100;
       spotPnlDebt = initialCollateral * currentPrice - initialDebtTokenValue;
-      spotPnlCollateral = 0; // Holding spot collateral doesn't change collateral amount
     }
   }
 

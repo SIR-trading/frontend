@@ -6,7 +6,6 @@ const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
 import type { StaticImageData } from "next/image";
 import sirIcon from "../../public/images/sir-logo.svg";
 import sirIconHyperEVM from "../../public/images/sir-logo-hyperevm.svg";
-import unknownImg from "../../public/IconUnknown.png";
 import { getAddress } from "viem";
 import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";

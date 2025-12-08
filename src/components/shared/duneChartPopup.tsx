@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Move } from "lucide-react";
+import { X, Move, BarChart3 } from "lucide-react";
+import HoverPopup from "@/components/ui/hover-popup";
 
 interface DuneChartPopupProps {
   embedUrl: string;
@@ -17,13 +18,19 @@ export default function DuneChartPopup({ embedUrl }: DuneChartPopupProps) {
 
   if (!isOpen) {
     return (
-      <button
-        className="h-8 w-8 p-0 flex items-center justify-center rounded hover:bg-foreground/10 transition-colors text-base"
-        title="View chart"
-        onClick={handleOpen}
+      <HoverPopup
+        size="150"
+        trigger={
+          <button
+            className="h-6 w-6 p-0 flex items-center justify-center rounded hover:bg-foreground/10 transition-colors cursor-pointer"
+            onClick={handleOpen}
+          >
+            <BarChart3 className="h-4 w-4 text-foreground/60 hover:text-foreground" />
+          </button>
+        }
       >
-        📊
-      </button>
+        <span className="text-[13px] font-medium">View price chart</span>
+      </HoverPopup>
     );
   }
 

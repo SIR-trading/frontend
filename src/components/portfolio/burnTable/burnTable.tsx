@@ -261,11 +261,3 @@ export default function BurnTable({
     </div>
   );
 }
-
-function IdleContainer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex justify-center py-6">
-      <h1 className="italic text-foreground">{children}</h1>
-    </div>
-  );
-}

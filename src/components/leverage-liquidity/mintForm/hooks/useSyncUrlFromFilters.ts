@@ -74,5 +74,6 @@ export function useSyncUrlFromFilters() {
       const newUrl = `${window.location.pathname}?${newParams.toString()}`;
       router.replace(newUrl, { scroll: false });
     }
-  }, [long, versus, leverageTier, selectedVault, router, searchParams, hasUserInteractedRef.current]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [long, versus, leverageTier, selectedVault, router, searchParams]);
 }

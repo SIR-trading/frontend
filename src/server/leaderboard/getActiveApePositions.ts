@@ -1,6 +1,5 @@
 import { ApeContract } from "@/contracts/ape";
 import { AssistantContract } from "@/contracts/assistant";
-import { env } from "@/env";
 import type { TCurrentApePositions } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { getCurrentApePositions } from "@/server/queries/leaderboard";
