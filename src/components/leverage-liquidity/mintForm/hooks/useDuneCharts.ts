@@ -9,7 +9,7 @@ const VAULT_CHARTS: VaultChartConfigs = {
   1: {
     "1": "https://dune.com/embeds/5640030/9172204",
     "2": "https://dune.com/embeds/5648390/9177434",
-    "9": "https://dune.com/embeds/5648413/9177463"
+    "9": "https://dune.com/embeds/5648413/9177463",
     // Add more vault IDs and their embed URLs as needed
   },
   // Sepolia (chain ID 11155111)
@@ -22,8 +22,8 @@ const VAULT_CHARTS: VaultChartConfigs = {
   },
   // HyperEVM Mainnet (chain ID 999)
   999: {
-    // Add HyperEVM mainnet vault charts here
-  }
+    "1": "https://dune.com/embeds/6319310/10063283/",
+  },
 };
 
 export function useDuneCharts(vaultId?: string) {
