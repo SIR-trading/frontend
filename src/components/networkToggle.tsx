@@ -57,7 +57,11 @@ export default function NetworkToggle() {
   }
 
   const handleNetworkSwitch = (deploymentUrl: string) => {
-    window.location.href = deploymentUrl;
+    // Preserve the current path when switching networks
+    const currentPath = window.location.pathname;
+    const url = new URL(deploymentUrl);
+    url.pathname = currentPath;
+    window.location.href = url.toString();
   };
 
   return (
