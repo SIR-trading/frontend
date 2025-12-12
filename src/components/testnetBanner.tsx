@@ -69,20 +69,18 @@ export default function TestnetBanner() {
             <span className="text-xs text-foreground/60 hidden sm:inline">Mint test tokens:</span>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleMint(MOCK_TOKEN_A)}
               disabled={isPending && mintingToken === MOCK_TOKEN_A}
-              className="h-7 text-xs"
+              className="h-7 text-xs py-1"
             >
               <Coins className="h-3 w-3 mr-1" />
               Mock Token A
             </Button>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleMint(MOCK_TOKEN_B)}
               disabled={isPending && mintingToken === MOCK_TOKEN_B}
-              className="h-7 text-xs"
+              className="h-7 text-xs py-1"
             >
               <Coins className="h-3 w-3 mr-1" />
               Mock Token B
