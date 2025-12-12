@@ -447,9 +447,13 @@ async function main(): Promise<void> {
   }
 
   // Add SIR token and wrapped token at the beginning
+  const getSirSymbol = (chainId: number) => {
+    if (chainId === 999 || chainId === 998) return "HyperSIR";
+    if (chainId === 6343) return "MegaSIR";
+    return "SIR";
+  };
   const sirToken: PlatformToken = {
-    symbol:
-      config.chainId === 999 || config.chainId === 998 ? "HyperSIR" : "SIR",
+    symbol: getSirSymbol(config.chainId),
     name: "Synthetics Implemented Right",
     marketCap: 0, // Will be at the top regardless
     address: buildData.contractAddresses.sir,

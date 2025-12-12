@@ -292,14 +292,14 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       }),
     ]);
 
-    // Step 2.5: Get Contributors address and constants from SIR contract (HyperEVM only)
-    const isHyperEVM = CHAIN_ID === 998 || CHAIN_ID === 999;
+    // Step 2.5: Get Contributors address and constants from SIR contract (HyperEVM and MegaETH)
+    const isHyperEVMOrMegaETH = CHAIN_ID === 998 || CHAIN_ID === 999 || CHAIN_ID === 6343;
     let contributorsAddress: Address = '0x0000000000000000000000000000000000000000' as Address;
     let issuanceRate = 0n;
     let lpIssuanceFirst3Years = 0n;
 
-    if (isHyperEVM) {
-      console.log('🔍 Fetching Contributors data (HyperEVM chain)...');
+    if (isHyperEVMOrMegaETH) {
+      console.log('🔍 Fetching Contributors data...');
       [contributorsAddress, issuanceRate, lpIssuanceFirst3Years] = await Promise.all([
         client.readContract({
           address: sirAddress,
@@ -318,7 +318,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
         }),
       ]);
     } else {
-      console.log('⏭️  Skipping Contributors data fetch (not a HyperEVM chain)');
+      console.log('⏭️  Skipping Contributors data fetch (not applicable for this chain)');
     }
 
     // Step 3: Get NFT Position Manager address from Uniswap V3 Staker contract (if available)
@@ -389,7 +389,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       buildTimestamp: Date.now(),
     };
 
-    if (isHyperEVM) {
+    if (isHyperEVMOrMegaETH) {
       buildData.contributorConstants = {
         issuanceRate: issuanceRate.toString(),
         lpIssuanceFirst3Years: lpIssuanceFirst3Years.toString(),

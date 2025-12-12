@@ -70,6 +70,9 @@ export const INCENTIVES_BY_CHAIN: Record<number, IncentiveConfig[]> = {
       rewards: 818000000000000000n,
     },
   ],
+
+  // MegaETH Testnet
+  6343: [],
 };
 
 /**

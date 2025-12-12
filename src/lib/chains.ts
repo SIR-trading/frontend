@@ -85,6 +85,22 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
     },
     auctionBidIncreasePercentage: 5, // 5% for non-mainnet
   },
+  6343: {
+    id: 6343,
+    name: "MegaETH Testnet",
+    alchemyPrefix: "https://megaeth-testnet.g.alchemy.com/v2/",
+    explorerUrl: "https://megaeth-testnet-v2.blockscout.com",
+    nativeCurrency: {
+      name: "Ether",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    wrappedToken: {
+      symbol: "WETH",
+      name: "Wrapped Ether",
+    },
+    auctionBidIncreasePercentage: 5, // 5% for testnet
+  },
 };
 
 export function getCurrentChainConfig(): ChainConfig {
@@ -153,6 +169,10 @@ export function getDexName(chainId?: number): string {
   // HyperEVM chains use HyperSwap
   if (targetChainId === 998 || targetChainId === 999) {
     return "HyperSwap";
+  }
+  // MegaETH uses Uni v3 clone
+  if (targetChainId === 6343) {
+    return "Uni v3 clone";
   }
   // All other chains use Uniswap v3
   return "Uniswap v3";

@@ -18,7 +18,9 @@ export function getSirSymbol(chainId?: string | number): string {
     typeof chainId === "string"
       ? parseInt(chainId)
       : chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-  return id === 999 || id === 998 ? "HyperSIR" : "SIR";
+  if (id === 999 || id === 998) return "HyperSIR";
+  if (id === 6343) return "MegaSIR";
+  return "SIR";
 }
 
 /**

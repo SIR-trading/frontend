@@ -13,24 +13,25 @@ export default function NetworkBadge({
   className,
   variant = "full",
 }: NetworkBadgeProps) {
-  // Determine if we're on a HyperEVM chain
-  const isHyperEVM = useMemo(() => {
-    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-    return chainId === 998 || chainId === 999;
-  }, []);
-
   const networkInfo = useMemo(() => {
-    if (isHyperEVM) {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+    if (chainId === 998 || chainId === 999) {
       return {
         displayName: "HyperEVM",
         imageSrc: "/built_on_hyperevm.jpg",
+      };
+    }
+    if (chainId === 6343) {
+      return {
+        displayName: "MegaETH",
+        imageSrc: "/built_on_megaeth.jpg",
       };
     }
     return {
       displayName: "Ethereum",
       imageSrc: "/built_on_ethereum.jpg",
     };
-  }, [isHyperEVM]);
+  }, []);
 
   // Render minimal variant (smaller image)
   if (variant === "minimal") {

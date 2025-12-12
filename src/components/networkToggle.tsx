@@ -18,6 +18,10 @@ import { cn } from "@/lib/utils/index";
 
 // Helper function to get logo URL for any network's native token
 function getNetworkLogoUrl(chain: ChainConfig): string {
+  // MegaETH uses its own logo, not ETH
+  if (chain.chainId === 6343) {
+    return "https://coin-images.coingecko.com/coins/images/69995/large/ICON.png?1760337992";
+  }
   const symbol = chain.nativeCurrency.symbol;
   // Native token logos from CoinGecko
   if (symbol === "ETH") {
@@ -35,8 +39,8 @@ export default function NetworkToggle() {
   const { tokenMap } = useTokenlistContext();
   const [open, setOpen] = useState(false);
 
-  // Get native token logo for current chain
-  const nativeLogoUrl = getNativeTokenLogo(tokenMap);
+  // Get native token logo for current chain (fallback to getNetworkLogoUrl if not in tokenMap)
+  const nativeLogoUrl = getNativeTokenLogo(tokenMap) ?? (currentChain ? getNetworkLogoUrl(currentChain) : undefined);
 
   // Get all chains with deployment URLs (including current for display)
   const allNetworks = React.useMemo(() => {
@@ -73,7 +77,10 @@ export default function NetworkToggle() {
             alt={currentChain?.nativeCurrency.symbol ?? "Network"}
             width={20}
             height={20}
-            className="rounded-full"
+            className={cn(
+              "rounded-full",
+              currentChainId === 6343 && "bg-[#f5f5dc]"
+            )}
           />
         ) : (
           <span className="text-xs font-semibold w-[20px] h-[20px] flex items-center justify-center">
@@ -106,13 +113,18 @@ export default function NetworkToggle() {
             >
               <div className="flex items-center gap-2 w-full">
                 {logoUrl ? (
-                  <Image
-                    src={logoUrl}
-                    alt={network.nativeCurrency.symbol}
-                    width={20}
-                    height={20}
-                    className="rounded-full"
-                  />
+                  <div className={cn(
+                    "w-5 h-5 rounded-full overflow-hidden flex items-center justify-center",
+                    network.chainId === 6343 && "bg-[#f5f5dc]"
+                  )}>
+                    <Image
+                      src={logoUrl}
+                      alt={network.nativeCurrency.symbol}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                  </div>
                 ) : (
                   <div className="w-5 h-5 flex items-center justify-center">
                     <span className="text-xs font-semibold">
@@ -124,7 +136,7 @@ export default function NetworkToggle() {
                   "text-sm",
                   isCurrentNetwork ? "text-foreground font-medium" : "text-foreground/60 hover:text-foreground"
                 )}>
-                  {network.name.replace(" Mainnet", "").replace(" Testnet", "")}
+                  {network.name.replace(" Mainnet", "")}
                 </span>
                 {isCurrentNetwork && (
                   <span className="ml-auto text-xs text-foreground/40">✓</span>

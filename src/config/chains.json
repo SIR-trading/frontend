@@ -118,5 +118,35 @@
       "name": "Wrapped HYPE"
     },
     "deploymentUrl": "https://hype.sir.trading"
+  },
+  "6343": {
+    "chainId": 6343,
+    "name": "MegaETH Testnet",
+    "isTestnet": true,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "blockExplorers": {
+      "default": {
+        "name": "MegaETH Blockscout",
+        "url": "https://megaeth-testnet-v2.blockscout.com"
+      }
+    },
+    "contracts": {
+      "uniswapV3Factory": "0x94996d371622304F2eB85df1eb7f328F7B317C3E",
+      "uniswapV3PoolInitCodeHash": "0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54",
+      "uniswapV3Staker": "0x0000000000000000000000000000000000000000"
+    },
+    "coingecko": {
+      "platformId": null
+    },
+    "wrappedNativeToken": {
+      "address": "0x4200000000000000000000000000000000000006",
+      "symbol": "WETH",
+      "name": "Wrapped Ether"
+    },
+    "deploymentUrl": "https://mega.sir.trading"
   }
 }
