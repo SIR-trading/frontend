@@ -16,6 +16,7 @@ import MintFormProvider from "@/components/providers/mintFormProvider";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import FloatingNetworkBadge from "@/components/floatingNetworkBadge";
+import TestnetBanner from "@/components/testnetBanner";
 import { ClaimableBalancesProvider } from "@/contexts/ClaimableBalancesContext";
 import { VaultDataProvider } from "@/contexts/VaultDataContext";
 import { StakingProvider } from "@/contexts/StakingContext";
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                             <MintFormProvider>
                         <div className=" flex min-h-screen flex-col">
                           <Header />
+                          <TestnetBanner />
                           <Warning />
                           <div className="">
                             <div className="flex flex-col justify-center">
