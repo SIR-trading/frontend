@@ -796,8 +796,8 @@ export default function MintForm({ isApe }: Props) {
           </DepositInputs.Inputs>
         </DepositInputs.Root>
 
-        {/* Warning when vault has 0 TVL */}
-        <Show when={!!(isApe && selectedVault.result && selectedVault.result.totalValue === "0")}>
+        {/* Warning when vault has 0 LP liquidity (check actual reserves, not USD value) */}
+        <Show when={!!(isApe && selectedVault.result && selectedVault.result.reserveLPers === "0")}>
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
@@ -811,8 +811,8 @@ export default function MintForm({ isApe }: Props) {
           </div>
         </Show>
 
-        {/* Warning when vault has limited liquidity (red status but not 0 TVL) */}
-        <Show when={!!(isApe && isVaultRed && selectedVault.result && selectedVault.result.totalValue !== "0")}>
+        {/* Warning when vault has limited liquidity (red status but has some LP reserves) */}
+        <Show when={!!(isApe && isVaultRed && selectedVault.result && selectedVault.result.reserveLPers !== "0")}>
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
