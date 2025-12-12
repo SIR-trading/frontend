@@ -243,14 +243,11 @@ export function VaultTableRow({
   const tvl = apeCollateral + teaCollateral;
   const realLeverage = tvl / apeCollateral;
 
-  // Calculate TVL in USD
-  const tvlRaw = parseUnits(vault.totalValue, 0);
-  const tvlFormatted = formatUnits(tvlRaw, vault.collateralToken.decimals);
-
-  // Use batch-fetched price instead of individual hook
+  // Calculate TVL in USD using actual reserves (tvl), not subgraph's totalValue
+  // The subgraph totalValue may not be indexed yet for new vaults
   const tvlUsd =
-    collateralUsdPrice !== undefined
-      ? parseFloat(tvlFormatted) * collateralUsdPrice
+    collateralUsdPrice !== undefined && collateralUsdPrice > 0
+      ? tvl * collateralUsdPrice
       : undefined;
 
   const variant = useCalculateVaultHealth({
@@ -758,9 +755,9 @@ export function VaultTableRow({
                 className="text-sm"
               >
                 {showTvlInUsd ? (
-                  vault.totalValue === "0" ? (
+                  tvl === 0 ? (
                     <span>$0</span>
-                  ) : tvlUsd !== undefined && tvlUsd !== null && tvlUsd >= 0 ? (
+                  ) : tvlUsd && tvlUsd > 0 ? (
                     <span>
                       $
                       <DisplayFormattedNumber
@@ -769,7 +766,7 @@ export function VaultTableRow({
                       />
                     </span>
                   ) : (
-                    <span>...</span>
+                    <span>N/A</span>
                   )
                 ) : (
                   <TokenDisplay
