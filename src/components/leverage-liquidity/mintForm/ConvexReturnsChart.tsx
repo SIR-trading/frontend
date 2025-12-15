@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import {
   calculateSaturationPrice,
   getLeverageRatio,
 } from "@/lib/utils/calculations";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import ToolTip from "@/components/ui/tooltip";
+
+// Default axis bounds
+const DEFAULT_X_MIN = -100;
+const DEFAULT_X_MAX = 300;
 
 /**
  * Core gain function f(x) for APE positions:
@@ -41,7 +45,7 @@ function calculateApeGain(
   exitPrice: number,
   saturationPrice: number,
   leverageRatio: number,
-  baseFee: number
+  baseFee: number,
 ): number {
   if (saturationPrice <= 0 || entryPrice <= 0) return 1;
 
@@ -77,8 +81,8 @@ interface ChartPoint {
 // SVG dimensions and padding - constant, defined outside component
 // Width is set high to match typical container aspect ratios and avoid empty space
 const CHART_WIDTH = 500;
-const CHART_HEIGHT = 250;
-const CHART_PADDING = { top: 18, right: 18, bottom: 32, left: 42 };
+const CHART_HEIGHT = 260;
+const CHART_PADDING = { top: 18, right: 18, bottom: 42, left: 42 };
 const INNER_WIDTH = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
 const INNER_HEIGHT = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
 
@@ -95,6 +99,104 @@ export default function ConvexReturnsChart({
   collateralDecimals,
 }: ConvexReturnsChartProps) {
   const leverageRatio = getLeverageRatio(leverageTier);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // Zoom state
+  const [zoomBounds, setZoomBounds] = useState<{
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+  } | null>(null);
+
+  // Drag selection state
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Reset to default view
+  const resetZoom = useCallback(() => {
+    setZoomBounds(null);
+  }, []);
+
+  // Handle keyboard shortcuts - Escape resets to default view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && zoomBounds) {
+        resetZoom();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [zoomBounds, resetZoom]);
+
+  // Get SVG coordinates from mouse event
+  const getSvgCoords = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    if (!svg) return null;
+
+    const rect = svg.getBoundingClientRect();
+    const scaleX = CHART_WIDTH / rect.width;
+    const scaleY = CHART_HEIGHT / rect.height;
+
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  }, []);
+
+  // Mouse handlers for drag selection
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const coords = getSvgCoords(e);
+      if (!coords) return;
+
+      // Only start drag if within the plot area
+      if (
+        coords.x >= CHART_PADDING.left &&
+        coords.x <= CHART_WIDTH - CHART_PADDING.right &&
+        coords.y >= CHART_PADDING.top &&
+        coords.y <= CHART_PADDING.top + INNER_HEIGHT
+      ) {
+        setDragStart(coords);
+        setDragEnd(coords);
+        setIsDragging(true);
+      }
+    },
+    [getSvgCoords],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (!isDragging || !dragStart) return;
+
+      const coords = getSvgCoords(e);
+      if (!coords) return;
+
+      // Clamp to plot area
+      const clampedX = Math.max(
+        CHART_PADDING.left,
+        Math.min(CHART_WIDTH - CHART_PADDING.right, coords.x),
+      );
+      const clampedY = Math.max(
+        CHART_PADDING.top,
+        Math.min(CHART_PADDING.top + INNER_HEIGHT, coords.y),
+      );
+
+      setDragEnd({ x: clampedX, y: clampedY });
+    },
+    [isDragging, dragStart, getSvgCoords],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+    }
+  }, [isDragging]);
 
   // Calculate adjusted reserves after user's deposit
   // Upon minting: deposit is reduced by 1/(1+(l-1)*fBase)
@@ -102,7 +204,11 @@ export default function ConvexReturnsChart({
   // Fee portion (510-tax)/510 goes to tea reserve
   // Deposit after fee goes to ape reserve
   const adjustedReserves = useMemo(() => {
-    if (!depositAmount || depositAmount <= 0 || !Number.isFinite(depositAmount)) {
+    if (
+      !depositAmount ||
+      depositAmount <= 0 ||
+      !Number.isFinite(depositAmount)
+    ) {
       return { apeReserve, teaReserve };
     }
 
@@ -115,21 +221,39 @@ export default function ConvexReturnsChart({
     const feeAmount = depositAmount - depositAfterFee;
 
     // Fee portion that goes to LP (tea) reserve
-    const feeToLp = feeAmount * (510 - tax) / 510;
+    const feeToLp = (feeAmount * (510 - tax)) / 510;
 
     // Convert to bigint with proper decimals - ensure valid values
-    const depositAfterFeeBigInt = BigInt(Math.floor(Math.max(0, depositAfterFee) * Math.pow(10, collateralDecimals)));
-    const feeToLpBigInt = BigInt(Math.floor(Math.max(0, feeToLp) * Math.pow(10, collateralDecimals)));
+    const depositAfterFeeBigInt = BigInt(
+      Math.floor(
+        Math.max(0, depositAfterFee) * Math.pow(10, collateralDecimals),
+      ),
+    );
+    const feeToLpBigInt = BigInt(
+      Math.floor(Math.max(0, feeToLp) * Math.pow(10, collateralDecimals)),
+    );
 
     return {
       apeReserve: apeReserve + depositAfterFeeBigInt,
       teaReserve: teaReserve + feeToLpBigInt,
     };
-  }, [apeReserve, teaReserve, depositAmount, leverageRatio, baseFee, tax, collateralDecimals]);
+  }, [
+    apeReserve,
+    teaReserve,
+    depositAmount,
+    leverageRatio,
+    baseFee,
+    tax,
+    collateralDecimals,
+  ]);
 
   // Calculate saturation price and the price change % at which saturation occurs
   const saturationData = useMemo(() => {
-    if (!currentPrice || currentPrice === 0 || adjustedReserves.apeReserve === 0n) {
+    if (
+      !currentPrice ||
+      currentPrice === 0 ||
+      adjustedReserves.apeReserve === 0n
+    ) {
       return { saturationPrice: 0, saturationPriceChange: Infinity };
     }
 
@@ -137,7 +261,7 @@ export default function ConvexReturnsChart({
       currentPrice,
       adjustedReserves.apeReserve,
       adjustedReserves.teaReserve,
-      leverageRatio
+      leverageRatio,
     );
 
     const satPriceChange = ((satPrice - currentPrice) / currentPrice) * 100;
@@ -146,47 +270,12 @@ export default function ConvexReturnsChart({
       saturationPrice: satPrice,
       saturationPriceChange: satPriceChange,
     };
-  }, [currentPrice, adjustedReserves.apeReserve, adjustedReserves.teaReserve, leverageRatio]);
-
-  // Generate chart points using the correct gain formula:
-  // G = f(g1) / f(g0) / [1 + (l-1)*fBase]^2
-  const chartData = useMemo(() => {
-    const points: ChartPoint[] = [];
-    const entryPrice = currentPrice;
-    const satPrice = saturationData.saturationPrice;
-
-    if (satPrice <= 0) return points;
-
-    // Generate points from -100% to +300% price change
-    const minChange = -100;
-    const maxChange = 300;
-    const step = 5;
-
-    for (let priceChange = minChange; priceChange <= maxChange; priceChange += step) {
-      const exitPrice = entryPrice * (1 + priceChange / 100);
-
-      if (exitPrice <= 0) continue;
-
-      // Calculate gain using the correct formula
-      const gain = calculateApeGain(
-        entryPrice,
-        exitPrice,
-        satPrice,
-        leverageRatio,
-        baseFee
-      );
-
-      // Convert to percentage (0% = break-even, where gain = 1)
-      const gainPercent = (gain - 1) * 100;
-
-      points.push({
-        priceChange,
-        gain: gainPercent,
-      });
-    }
-
-    return points;
-  }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice]);
+  }, [
+    currentPrice,
+    adjustedReserves.apeReserve,
+    adjustedReserves.teaReserve,
+    leverageRatio,
+  ]);
 
   // Key points to highlight (-50%, +100%, +250%)
   const keyPoints = useMemo(() => {
@@ -203,7 +292,7 @@ export default function ConvexReturnsChart({
         exitPrice,
         satPrice,
         leverageRatio,
-        baseFee
+        baseFee,
       );
 
       const gainPercent = (gain - 1) * 100;
@@ -215,12 +304,8 @@ export default function ConvexReturnsChart({
     });
   }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice]);
 
-  // Calculate scales and Y-axis ticks
-  const { xScale, yScale, yMin, yMax, yTicks } = useMemo(() => {
-    const xMin = -100;
-    const xMax = 300;
-
-    // Y-axis: fixed minimum at -100%, maximum from largest key point (rounded up to nice tick)
+  // Calculate default Y bounds (before zoom)
+  const defaultYBounds = useMemo(() => {
     const keyPointGains = keyPoints.map((p) => p.gain);
     const yMin = -100;
     const rawYMax = Math.max(...keyPointGains, 100);
@@ -234,33 +319,205 @@ export default function ConvexReturnsChart({
     else if (rawRange > 200) step = 50;
     else step = 25;
 
-    // Round yMax up to the next tick value so highest tick equals yMax
+    // Round yMax up to the next tick value
     const yMax = Math.ceil(rawYMax / step) * step;
-
-    const xScale = (val: number) =>
-      CHART_PADDING.left + ((val - xMin) / (xMax - xMin)) * INNER_WIDTH;
-    const yScale = (val: number) =>
-      CHART_PADDING.top + INNER_HEIGHT - ((val - yMin) / (yMax - yMin)) * INNER_HEIGHT;
-
-    // Generate Y-axis ticks (used for both grid lines and labels)
-
-    const ticks: number[] = [];
-    const start = Math.ceil(yMin / step) * step;
-    for (let val = start; val <= yMax; val += step) {
-      ticks.push(val);
-    }
-    // Ensure 0 is included if in range
-    if (yMin <= 0 && yMax >= 0 && !ticks.includes(0)) {
-      ticks.push(0);
-      ticks.sort((a, b) => a - b);
-    }
-    // Limit to ~5 ticks max
-    const maxTicks = 5;
-    const skipFactor = Math.ceil(ticks.length / maxTicks);
-    const yTicks = ticks.filter((_, i) => i % skipFactor === 0 || ticks[i] === 0);
-
-    return { xScale, yScale, yMin, yMax, yTicks };
+    return { yMin, yMax };
   }, [keyPoints]);
+
+  // Compute effective bounds (used for chart data generation and scales)
+  const effectiveBounds = useMemo(() => {
+    return {
+      xMin: zoomBounds?.xMin ?? DEFAULT_X_MIN,
+      xMax: zoomBounds?.xMax ?? DEFAULT_X_MAX,
+      yMin: zoomBounds?.yMin ?? defaultYBounds.yMin,
+      yMax: zoomBounds?.yMax ?? defaultYBounds.yMax,
+    };
+  }, [zoomBounds, defaultYBounds]);
+
+  // Generate chart points using the correct gain formula:
+  // G = f(g1) / f(g0) / [1 + (l-1)*fBase]^2
+  // Dynamically generated based on current view bounds
+  const chartData = useMemo(() => {
+    const points: ChartPoint[] = [];
+    const entryPrice = currentPrice;
+    const satPrice = saturationData.saturationPrice;
+
+    if (satPrice <= 0) return points;
+
+    // Generate points based on current view with some padding
+    // Use ~100 points across the visible range for smooth curves
+    const minChange = Math.max(-99, effectiveBounds.xMin - 10);
+    const maxChange = effectiveBounds.xMax + 10;
+    const range = maxChange - minChange;
+    const step = Math.max(1, range / 100);
+
+    for (
+      let priceChange = minChange;
+      priceChange <= maxChange;
+      priceChange += step
+    ) {
+      const exitPrice = entryPrice * (1 + priceChange / 100);
+
+      if (exitPrice <= 0) continue;
+
+      // Calculate gain using the correct formula
+      const gain = calculateApeGain(
+        entryPrice,
+        exitPrice,
+        satPrice,
+        leverageRatio,
+        baseFee,
+      );
+
+      // Convert to percentage (0% = break-even, where gain = 1)
+      const gainPercent = (gain - 1) * 100;
+
+      points.push({
+        priceChange,
+        gain: gainPercent,
+      });
+    }
+
+    return points;
+  }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice, effectiveBounds]);
+
+  // Zoom out - expand current view by 2x, centered on current center
+  const zoomOut = useCallback(() => {
+    // Get current bounds
+    const currentXMin = zoomBounds?.xMin ?? DEFAULT_X_MIN;
+    const currentXMax = zoomBounds?.xMax ?? DEFAULT_X_MAX;
+    const currentYMin = zoomBounds?.yMin ?? defaultYBounds.yMin;
+    const currentYMax = zoomBounds?.yMax ?? defaultYBounds.yMax;
+
+    // Calculate center points
+    const xCenter = (currentXMin + currentXMax) / 2;
+    const yCenter = (currentYMin + currentYMax) / 2;
+
+    // Expand range by 2x
+    const xRange = currentXMax - currentXMin;
+    const yRange = currentYMax - currentYMin;
+
+    // Cap minimums at -100% (can't lose more than 100%)
+    const newXMin = Math.max(-100, xCenter - xRange);
+    const newXMax = xCenter + xRange;
+    const newYMin = Math.max(-100, yCenter - yRange);
+    const newYMax = yCenter + yRange;
+
+    setZoomBounds({
+      xMin: newXMin,
+      xMax: newXMax,
+      yMin: newYMin,
+      yMax: newYMax,
+    });
+  }, [zoomBounds, defaultYBounds]);
+
+  // Calculate scales and Y-axis ticks (with zoom support)
+  const { xScale, yScale, xMin, xMax, yMin, yMax, yTicks, xTicks } =
+    useMemo(() => {
+      // Use zoom bounds if set, otherwise use defaults
+      const xMin = zoomBounds?.xMin ?? DEFAULT_X_MIN;
+      const xMax = zoomBounds?.xMax ?? DEFAULT_X_MAX;
+      const yMin = zoomBounds?.yMin ?? defaultYBounds.yMin;
+      const yMax = zoomBounds?.yMax ?? defaultYBounds.yMax;
+
+      const xScale = (val: number) =>
+        CHART_PADDING.left + ((val - xMin) / (xMax - xMin)) * INNER_WIDTH;
+      const yScale = (val: number) =>
+        CHART_PADDING.top +
+        INNER_HEIGHT -
+        ((val - yMin) / (yMax - yMin)) * INNER_HEIGHT;
+
+      // Generate Y-axis ticks
+      const yRange = yMax - yMin;
+      let yStep = 100;
+      if (yRange > 2000) yStep = 500;
+      else if (yRange > 1000) yStep = 250;
+      else if (yRange > 500) yStep = 100;
+      else if (yRange > 200) yStep = 50;
+      else if (yRange > 100) yStep = 25;
+      else yStep = 10;
+
+      const yTicksArr: number[] = [];
+      const yStart = Math.ceil(yMin / yStep) * yStep;
+      for (let val = yStart; val <= yMax; val += yStep) {
+        yTicksArr.push(val);
+      }
+      if (yMin <= 0 && yMax >= 0 && !yTicksArr.includes(0)) {
+        yTicksArr.push(0);
+        yTicksArr.sort((a, b) => a - b);
+      }
+      const maxYTicks = 6;
+      const ySkipFactor = Math.ceil(yTicksArr.length / maxYTicks);
+      const yTicks = yTicksArr.filter(
+        (_, i) => i % ySkipFactor === 0 || yTicksArr[i] === 0,
+      );
+
+      // Generate X-axis ticks
+      const xRange = xMax - xMin;
+      let xStep = 50;
+      if (xRange > 300) xStep = 100;
+      else if (xRange > 150) xStep = 50;
+      else if (xRange > 80) xStep = 25;
+      else xStep = 10;
+
+      const xTicksArr: number[] = [];
+      const xStart = Math.ceil(xMin / xStep) * xStep;
+      for (let val = xStart; val <= xMax; val += xStep) {
+        xTicksArr.push(val);
+      }
+      if (xMin <= 0 && xMax >= 0 && !xTicksArr.includes(0)) {
+        xTicksArr.push(0);
+        xTicksArr.sort((a, b) => a - b);
+      }
+      const maxXTicks = 9;
+      const xSkipFactor = Math.ceil(xTicksArr.length / maxXTicks);
+      const xTicks = xTicksArr.filter(
+        (_, i) => i % xSkipFactor === 0 || xTicksArr[i] === 0,
+      );
+
+      return { xScale, yScale, xMin, xMax, yMin, yMax, yTicks, xTicks };
+    }, [zoomBounds, defaultYBounds]);
+
+  // Handle mouse up - must be defined after scales so it can use xMin/xMax/yMin/yMax
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging || !dragStart || !dragEnd) {
+      setIsDragging(false);
+      setDragStart(null);
+      setDragEnd(null);
+      return;
+    }
+
+    // Calculate selection rectangle in data coordinates
+    const x1 = Math.min(dragStart.x, dragEnd.x);
+    const x2 = Math.max(dragStart.x, dragEnd.x);
+    const y1 = Math.min(dragStart.y, dragEnd.y);
+    const y2 = Math.max(dragStart.y, dragEnd.y);
+
+    // Minimum selection size (20px) to zoom in
+    if (x2 - x1 > 20 && y2 - y1 > 20) {
+      // Convert SVG coordinates to data coordinates
+      const newXMin =
+        xMin + ((x1 - CHART_PADDING.left) / INNER_WIDTH) * (xMax - xMin);
+      const newXMax =
+        xMin + ((x2 - CHART_PADDING.left) / INNER_WIDTH) * (xMax - xMin);
+      // Y is inverted (SVG y increases downward, data y increases upward)
+      const newYMax =
+        yMax - ((y1 - CHART_PADDING.top) / INNER_HEIGHT) * (yMax - yMin);
+      const newYMin =
+        yMax - ((y2 - CHART_PADDING.top) / INNER_HEIGHT) * (yMax - yMin);
+
+      setZoomBounds({
+        xMin: newXMin,
+        xMax: newXMax,
+        yMin: newYMin,
+        yMax: newYMax,
+      });
+    }
+
+    setIsDragging(false);
+    setDragStart(null);
+    setDragEnd(null);
+  }, [isDragging, dragStart, dragEnd, xMin, xMax, yMin, yMax]);
 
   // Generate SVG path for the curve
   const linePath = useMemo(() => {
@@ -278,33 +535,34 @@ export default function ConvexReturnsChart({
   // Generate spot (1x) holding line - gain equals price change
   const spotLinePath = useMemo(() => {
     // Spot line: gain% = priceChange% (simple 1:1 relationship)
-    // Clipped to visible Y range
-    const xMin = -100;
-    const xMax = 300;
+    // Dynamically extend based on current view bounds
+    const lineXMin = Math.max(-99, xMin - 10);
+    const lineXMax = xMax + 10;
 
     // The line goes from (xMin, xMin) to (xMax, xMax) but clipped to yMin/yMax
-    const startX = Math.max(xMin, yMin);
-    const endX = Math.min(xMax, yMax);
+    const startX = Math.max(lineXMin, yMin);
+    const endX = Math.min(lineXMax, yMax);
 
     if (startX >= endX) return "";
 
     return `M ${xScale(startX)} ${yScale(startX)} L ${xScale(endX)} ${yScale(endX)}`;
-  }, [xScale, yScale, yMin, yMax]);
+  }, [xScale, yScale, xMin, xMax, yMin, yMax]);
 
   // Generate regular leverage line - gain = l * priceChange (linear, with liquidation risk)
   const regularLeveragePath = useMemo(() => {
     // Regular leverage: gain% = leverageRatio * priceChange%
     // Formula: l*(x-1)+1 where x = exitPrice/entryPrice, so gain% = l * priceChange%
-    const xMin = -100;
-    const xMax = 300;
+    // Dynamically extend based on current view bounds
+    const lineXMin = Math.max(-99, xMin - 10);
+    const lineXMax = xMax + 10;
 
     // Find where the line intersects yMin and yMax
     // y = l * x, so x = y / l
     const xAtYMin = yMin / leverageRatio;
     const xAtYMax = yMax / leverageRatio;
 
-    const startX = Math.max(xMin, xAtYMin);
-    const endX = Math.min(xMax, xAtYMax);
+    const startX = Math.max(lineXMin, xAtYMin);
+    const endX = Math.min(lineXMax, xAtYMax);
 
     if (startX >= endX) return "";
 
@@ -312,7 +570,7 @@ export default function ConvexReturnsChart({
     const endY = leverageRatio * endX;
 
     return `M ${xScale(startX)} ${yScale(startY)} L ${xScale(endX)} ${yScale(endY)}`;
-  }, [xScale, yScale, yMin, yMax, leverageRatio]);
+  }, [xScale, yScale, xMin, xMax, yMin, yMax, leverageRatio]);
 
   // Don't render if we don't have valid data
   if (!currentPrice || currentPrice === 0 || chartData.length === 0) {
@@ -321,31 +579,63 @@ export default function ConvexReturnsChart({
 
   const zeroY = yScale(0);
   // Show saturation line if it falls within the visible x-axis range (-100% to 300%)
-  const saturationX = saturationData.saturationPriceChange > -100 && saturationData.saturationPriceChange < 300
-    ? xScale(saturationData.saturationPriceChange)
-    : null;
+  const saturationX =
+    saturationData.saturationPriceChange > -100 &&
+    saturationData.saturationPriceChange < 300
+      ? xScale(saturationData.saturationPriceChange)
+      : null;
 
   return (
     <div className="mt-4 rounded-md bg-primary/5 p-4 dark:bg-primary">
-      <div className="mb-3 flex items-center gap-2">
-        <h4 className="text-sm font-medium text-foreground">
-          Potential Returns
-        </h4>
-        <ToolTip size="300">
-          This chart shows your potential profit/loss in {debtSymbol} terms as the{" "}
-          {collateralSymbol}/{debtSymbol} price changes. In the &quot;power zone&quot;
-          (before saturation), gains follow (price)^leverage. Past the saturation
-          threshold, gains become more linear.
-        </ToolTip>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-medium text-foreground">
+            Potential Returns
+          </h4>
+          <ToolTip size="300">
+            This chart shows your potential profit/loss in {debtSymbol} terms as
+            the {collateralSymbol}/{debtSymbol} price changes. In the
+            &quot;power zone&quot; (before saturation), gains follow
+            (price)^leverage. Past the saturation threshold, gains become
+            linear. Drag to zoom in, double-click to zoom out.
+          </ToolTip>
+        </div>
+        {zoomBounds && (
+          <button
+            onClick={resetZoom}
+            className="text-[11px] text-on-bg-subdued transition-colors hover:text-foreground"
+          >
+            Reset zoom
+          </button>
+        )}
       </div>
 
       {/* Chart area with lighter background for readability */}
-      <div className="rounded bg-background/80 dark:bg-background/40 p-2">
+      <div className="rounded bg-background/80 p-2 dark:bg-background/40">
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-          className="w-full"
+          className="w-full select-none"
           preserveAspectRatio="xMidYMid meet"
+          style={{ cursor: isDragging ? "crosshair" : "zoom-out" }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onDoubleClick={zoomOut}
         >
+          <defs>
+            {/* Clip path to constrain chart lines within the plot area, capped at -100% (can't lose more than 100%) */}
+            <clipPath id="chartClip">
+              <rect
+                x={CHART_PADDING.left}
+                y={CHART_PADDING.top}
+                width={INNER_WIDTH}
+                height={Math.min(yScale(-100), CHART_PADDING.top + INNER_HEIGHT) - CHART_PADDING.top}
+              />
+            </clipPath>
+          </defs>
+
           {/* Grid lines */}
           <g>
             {/* Horizontal grid lines - use same ticks as Y-axis labels */}
@@ -363,14 +653,14 @@ export default function ConvexReturnsChart({
                 />
               );
             })}
-            {/* Vertical grid lines - extend from min to max yTick */}
-            {[-50, 0, 50, 100, 150, 200, 250, 300].map((val) => (
+            {/* Vertical grid lines - extend full chart height */}
+            {xTicks.map((val) => (
               <line
                 key={`v-${val}`}
                 x1={xScale(val)}
-                y1={yScale(yTicks[yTicks.length - 1] ?? yMax)}
+                y1={CHART_PADDING.top}
                 x2={xScale(val)}
-                y2={yScale(yTicks[0] ?? yMin)}
+                y2={CHART_PADDING.top + INNER_HEIGHT}
                 style={{ stroke: "hsla(var(--foreground), 0.12)" }}
                 strokeDasharray="3,3"
               />
@@ -390,99 +680,104 @@ export default function ConvexReturnsChart({
           {/* Y-axis at 0% price change (entry point) */}
           <line
             x1={xScale(0)}
-            y1={yScale(yTicks[yTicks.length - 1] ?? yMax)}
+            y1={CHART_PADDING.top}
             x2={xScale(0)}
-            y2={yScale(yTicks[0] ?? yMin)}
+            y2={CHART_PADDING.top + INNER_HEIGHT}
             style={{ stroke: "hsla(var(--foreground), 0.3)" }}
             strokeWidth="1"
           />
 
-        {/* Saturation threshold line */}
-        {saturationX && saturationX > CHART_PADDING.left && saturationX < CHART_WIDTH - CHART_PADDING.right && (
-          <g>
-            <line
-              x1={saturationX}
-              y1={yScale(yTicks[yTicks.length - 1] ?? yMax)}
-              x2={saturationX}
-              y2={yScale(yTicks[0] ?? yMin)}
-              stroke="currentColor"
+          {/* Saturation threshold line */}
+          {saturationX &&
+            saturationX > CHART_PADDING.left &&
+            saturationX < CHART_WIDTH - CHART_PADDING.right && (
+              <g>
+                <line
+                  x1={saturationX}
+                  y1={CHART_PADDING.top}
+                  x2={saturationX}
+                  y2={CHART_PADDING.top + INNER_HEIGHT}
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeDasharray="4,3"
+                  className="text-amber-500"
+                />
+                <text
+                  x={saturationX}
+                  y={CHART_PADDING.top - 5}
+                  textAnchor="middle"
+                  className="fill-amber-500 text-[8px]"
+                >
+                  Saturation
+                </text>
+              </g>
+            )}
+
+          {/* Spot (1x) holding reference line */}
+          {spotLinePath && (
+            <path
+              d={spotLinePath}
+              fill="none"
+              stroke="#a78bfa"
               strokeWidth="1.5"
-              strokeDasharray="4,3"
-              className="text-amber-500"
+              strokeLinecap="round"
+              clipPath="url(#chartClip)"
             />
-            <text
-              x={saturationX}
-              y={yScale(yTicks[yTicks.length - 1] ?? yMax) - 8}
-              textAnchor="middle"
-              className="fill-amber-500 text-[8px]"
-            >
-              Saturation
-            </text>
-          </g>
-        )}
+          )}
 
-        {/* Spot (1x) holding reference line */}
-        {spotLinePath && (
+          {/* Regular leverage reference line */}
+          {regularLeveragePath && (
+            <path
+              d={regularLeveragePath}
+              fill="none"
+              stroke="#fb923c"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              clipPath="url(#chartClip)"
+            />
+          )}
+
+          {/* Main curve line (leveraged position) */}
           <path
-            d={spotLinePath}
+            d={linePath}
             fill="none"
-            stroke="#a78bfa"
-            strokeWidth="1.5"
+            stroke="currentColor"
+            strokeWidth="2"
             strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-accent"
+            clipPath="url(#chartClip)"
           />
-        )}
 
-        {/* Regular leverage reference line */}
-        {regularLeveragePath && (
-          <path
-            d={regularLeveragePath}
-            fill="none"
-            stroke="#fb923c"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        )}
-
-        {/* Main curve line (leveraged position) */}
-        <path
-          d={linePath}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-accent"
-        />
-
-        {/* Key points */}
-        {keyPoints.map((point, i) => {
-          const x = xScale(point.priceChange);
-          const y = yScale(point.gain);
-          return (
-            <g key={i}>
-              <circle
-                cx={x}
-                cy={y}
-                r="4"
-                fill="currentColor"
-                className="text-accent"
-              />
-              <circle
-                cx={x}
-                cy={y}
-                r="6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-accent/50"
-              />
-            </g>
-          );
-        })}
+          {/* Key points */}
+          {keyPoints.map((point, i) => {
+            const x = xScale(point.priceChange);
+            const y = yScale(point.gain);
+            return (
+              <g key={i}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="4"
+                  fill="currentColor"
+                  className="text-accent"
+                />
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="text-accent/50"
+                />
+              </g>
+            );
+          })}
 
           {/* X-axis labels */}
           <g>
-            {[-100, -50, 0, 50, 100, 150, 200, 250, 300].map((val) => (
+            {xTicks.map((val) => (
               <text
                 key={`xl-${val}`}
                 x={xScale(val)}
@@ -522,6 +817,20 @@ export default function ConvexReturnsChart({
           >
             {collateralSymbol}/{debtSymbol} Price Change
           </text>
+
+          {/* Selection rectangle during drag */}
+          {isDragging && dragStart && dragEnd && (
+            <rect
+              x={Math.min(dragStart.x, dragEnd.x)}
+              y={Math.min(dragStart.y, dragEnd.y)}
+              width={Math.abs(dragEnd.x - dragStart.x)}
+              height={Math.abs(dragEnd.y - dragStart.y)}
+              fill="hsla(var(--accent), 0.15)"
+              stroke="hsla(var(--accent), 0.5)"
+              strokeWidth="1"
+              strokeDasharray="4,2"
+            />
+          )}
         </svg>
       </div>
 
@@ -530,10 +839,19 @@ export default function ConvexReturnsChart({
         {keyPoints.map((point, i) => (
           <div
             key={i}
-            className="flex flex-col items-center rounded bg-background/60 dark:bg-background/30 px-2 py-1.5"
+            className="flex flex-col items-center rounded bg-background/60 px-2 py-1.5 dark:bg-background/30"
           >
-            <span className="text-foreground/70 text-[11px]">{point.priceChange >= 0 ? "+" : ""}{point.priceChange}%</span>
-            <span className={point.gain >= 0 ? "text-accent font-semibold" : "text-red font-semibold"}>
+            <span className="text-[11px] text-foreground/70">
+              {point.priceChange >= 0 ? "+" : ""}
+              {point.priceChange}%
+            </span>
+            <span
+              className={
+                point.gain >= 0
+                  ? "font-semibold text-accent"
+                  : "font-semibold text-red"
+              }
+            >
               {point.gain >= 0 ? "+" : ""}
               <DisplayFormattedNumber num={point.gain} />%
             </span>
@@ -546,31 +864,48 @@ export default function ConvexReturnsChart({
         {/* APE leveraged line legend */}
         <div className="flex items-center gap-1.5">
           <span className="inline-block h-0 w-4 border-t-2 border-solid border-accent"></span>
-          <span className="font-medium">APE <span className="text-on-bg-subdued font-normal">(incl. fees)</span></span>
+          <span className="font-medium">
+            APE{" "}
+            <span className="font-normal text-on-bg-subdued">(incl. fees)</span>
+          </span>
         </div>
         {/* Regular leverage line legend */}
         <div className="flex items-center gap-1.5">
-          <span className="inline-block h-0 w-4 border-t-[1.5px] border-solid" style={{ borderColor: "#fb923c" }}></span>
-          <span>Perp {leverageRatio}x <span className="text-on-bg-subdued">(excl. fees)</span></span>
+          <span
+            className="inline-block h-0 w-4 border-t-[1.5px] border-solid"
+            style={{ borderColor: "#fb923c" }}
+          ></span>
+          <span>
+            Perp {leverageRatio}x{" "}
+            <span className="text-on-bg-subdued">(excl. fees)</span>
+          </span>
         </div>
         {/* Spot line legend */}
         <div className="flex items-center gap-1.5">
-          <span className="inline-block h-0 w-4 border-t-[1.5px] border-solid" style={{ borderColor: "#a78bfa" }}></span>
+          <span
+            className="inline-block h-0 w-4 border-t-[1.5px] border-solid"
+            style={{ borderColor: "#a78bfa" }}
+          ></span>
           <span>Spot</span>
         </div>
       </div>
       {/* Saturation info */}
-      {saturationData.saturationPriceChange < 300 && saturationData.saturationPriceChange > 0 && (
-        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-on-bg-subdued">
-          <span className="inline-block h-0 w-4 border-t-[1.5px] border-dashed border-amber-500"></span>
-          <span>
-            Power zone up to{" "}
-            <span className="text-amber-500 font-medium">
-              +<DisplayFormattedNumber num={saturationData.saturationPriceChange} />%
+      {saturationData.saturationPriceChange < 300 &&
+        saturationData.saturationPriceChange > 0 && (
+          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-on-bg-subdued">
+            <span className="border-amber-500 inline-block h-0 w-4 border-t-[1.5px] border-dashed"></span>
+            <span>
+              Power zone up to{" "}
+              <span className="text-amber-500 font-medium">
+                +
+                <DisplayFormattedNumber
+                  num={saturationData.saturationPriceChange}
+                />
+                %
+              </span>
             </span>
-          </span>
-        </div>
-      )}
+          </div>
+        )}
     </div>
   );
 }
