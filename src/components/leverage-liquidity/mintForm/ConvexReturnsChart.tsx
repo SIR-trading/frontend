@@ -7,6 +7,12 @@ import {
 } from "@/lib/utils/calculations";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import ToolTip from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 // Default axis bounds
 const DEFAULT_X_MIN = -100;
@@ -100,6 +106,9 @@ export default function ConvexReturnsChart({
 }: ConvexReturnsChartProps) {
   const leverageRatio = getLeverageRatio(leverageTier);
   const svgRef = useRef<SVGSVGElement>(null);
+
+  // Collapsible state - default to collapsed
+  const [isOpen, setIsOpen] = useState(false);
 
   // Zoom state
   const [zoomBounds, setZoomBounds] = useState<{
@@ -578,40 +587,59 @@ export default function ConvexReturnsChart({
   }
 
   const zeroY = yScale(0);
-  // Show saturation line if it falls within the visible x-axis range (-100% to 300%)
+  // Show saturation line if it falls within the current visible x-axis range
   const saturationX =
-    saturationData.saturationPriceChange > -100 &&
-    saturationData.saturationPriceChange < 300
+    saturationData.saturationPriceChange > xMin &&
+    saturationData.saturationPriceChange < xMax
       ? xScale(saturationData.saturationPriceChange)
       : null;
 
   return (
-    <div className="mt-4 rounded-md bg-primary/5 p-4 dark:bg-primary">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h4 className="text-sm font-medium text-foreground">
-            Potential Returns
-          </h4>
-          <ToolTip size="300">
-            This chart shows your potential profit/loss in {debtSymbol} terms as
-            the {collateralSymbol}/{debtSymbol} price changes. In the
-            &quot;power zone&quot; (before saturation), gains follow
-            (price)^leverage. Past the saturation threshold, gains become
-            linear. Drag to zoom in, double-click to zoom out.
-          </ToolTip>
-        </div>
-        {zoomBounds && (
-          <button
-            onClick={resetZoom}
-            className="text-[11px] text-on-bg-subdued transition-colors hover:text-foreground"
-          >
-            Reset zoom
-          </button>
-        )}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="pt-2">
+      <div className="flex items-center gap-2">
+        <h4 className="text-sm text-foreground">
+          Potential Returns
+        </h4>
+        <ToolTip size="300">
+          This chart shows your potential profit/loss in {debtSymbol} terms as
+          the {collateralSymbol}/{debtSymbol} price changes.
+        </ToolTip>
       </div>
-
-      {/* Chart area with lighter background for readability */}
-      <div className="rounded bg-background/80 p-2 dark:bg-background/40">
+      <div className="pt-1"></div>
+      <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+        <CollapsibleTrigger className="flex w-full items-center justify-between">
+          {!isOpen ? (
+            <span className="text-sm text-on-bg-subdued">
+              Click to see chart
+            </span>
+          ) : (
+            <span className="text-sm text-on-bg-subdued">
+              Click to hide chart
+            </span>
+          )}
+          <div className="flex items-center gap-2">
+            {zoomBounds && isOpen && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetZoom();
+                }}
+                className="text-[11px] text-on-bg-subdued transition-colors hover:text-foreground"
+              >
+                Reset zoom
+              </button>
+            )}
+            <ChevronDown
+              className={`h-4 w-4 text-on-bg-subdued transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+          <div className="pt-3">
+            {/* Chart area with lighter background for readability */}
+            <div className="rounded bg-background/80 p-2 dark:bg-background/40">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
@@ -673,7 +701,7 @@ export default function ConvexReturnsChart({
             y1={zeroY}
             x2={CHART_WIDTH - CHART_PADDING.right}
             y2={zeroY}
-            style={{ stroke: "hsla(var(--foreground), 0.3)" }}
+            style={{ stroke: "hsl(var(--foreground))" }}
             strokeWidth="1"
           />
 
@@ -683,7 +711,7 @@ export default function ConvexReturnsChart({
             y1={CHART_PADDING.top}
             x2={xScale(0)}
             y2={CHART_PADDING.top + INNER_HEIGHT}
-            style={{ stroke: "hsla(var(--foreground), 0.3)" }}
+            style={{ stroke: "hsl(var(--foreground))" }}
             strokeWidth="1"
           />
 
@@ -697,23 +725,14 @@ export default function ConvexReturnsChart({
                   y1={CHART_PADDING.top}
                   x2={saturationX}
                   y2={CHART_PADDING.top + INNER_HEIGHT}
-                  stroke="currentColor"
-                  strokeWidth="1.5"
+                  style={{ stroke: "hsla(var(--foreground), 0.6)" }}
+                  strokeWidth="1"
                   strokeDasharray="4,3"
-                  className="text-amber-500"
                 />
-                <text
-                  x={saturationX}
-                  y={CHART_PADDING.top - 5}
-                  textAnchor="middle"
-                  className="fill-amber-500 text-[8px]"
-                >
-                  Saturation
-                </text>
               </g>
             )}
 
-          {/* Spot (1x) holding reference line */}
+          {/* Spot (1x) holding reference line - dashed */}
           {spotLinePath && (
             <path
               d={spotLinePath}
@@ -721,11 +740,12 @@ export default function ConvexReturnsChart({
               stroke="#a78bfa"
               strokeWidth="1.5"
               strokeLinecap="round"
+              strokeDasharray="6,4"
               clipPath="url(#chartClip)"
             />
           )}
 
-          {/* Regular leverage reference line */}
+          {/* Regular leverage reference line - dashed */}
           {regularLeveragePath && (
             <path
               d={regularLeveragePath}
@@ -733,6 +753,7 @@ export default function ConvexReturnsChart({
               stroke="#fb923c"
               strokeWidth="1.5"
               strokeLinecap="round"
+              strokeDasharray="6,4"
               clipPath="url(#chartClip)"
             />
           )}
@@ -784,7 +805,7 @@ export default function ConvexReturnsChart({
                 y={CHART_HEIGHT - CHART_PADDING.bottom + 15}
                 textAnchor="middle"
                 className="text-[9px]"
-                style={{ fill: "hsla(var(--foreground), 0.7)" }}
+                style={{ fill: "hsl(var(--foreground))" }}
               >
                 {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
               </text>
@@ -800,7 +821,7 @@ export default function ConvexReturnsChart({
                 y={yScale(val) + 3}
                 textAnchor="end"
                 className="text-[9px]"
-                style={{ fill: "hsla(var(--foreground), 0.7)" }}
+                style={{ fill: "hsl(var(--foreground))" }}
               >
                 {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
               </text>
@@ -813,7 +834,7 @@ export default function ConvexReturnsChart({
             y={CHART_HEIGHT - 3}
             textAnchor="middle"
             className="text-[9px]"
-            style={{ fill: "hsla(var(--foreground), 0.6)" }}
+            style={{ fill: "hsl(var(--foreground))" }}
           >
             {collateralSymbol}/{debtSymbol} Price Change
           </text>
@@ -860,52 +881,55 @@ export default function ConvexReturnsChart({
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
         {/* APE leveraged line legend */}
         <div className="flex items-center gap-1.5">
-          <span className="inline-block h-0 w-4 border-t-2 border-solid border-accent"></span>
+          <svg width="16" height="4" className="inline-block">
+            <line x1="0" y1="2" x2="16" y2="2" stroke="currentColor" strokeWidth="2" className="text-accent" />
+          </svg>
           <span className="font-medium">
             APE{" "}
             <span className="font-normal text-on-bg-subdued">(incl. fees)</span>
           </span>
         </div>
-        {/* Regular leverage line legend */}
+        {/* Regular leverage line legend - dashed */}
         <div className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-0 w-4 border-t-[1.5px] border-solid"
-            style={{ borderColor: "#fb923c" }}
-          ></span>
+          <svg width="16" height="4" className="inline-block">
+            <line x1="0" y1="2" x2="16" y2="2" stroke="#fb923c" strokeWidth="1.5" strokeDasharray="6,4" />
+          </svg>
           <span>
             Perp {leverageRatio}x{" "}
             <span className="text-on-bg-subdued">(excl. fees)</span>
           </span>
         </div>
-        {/* Spot line legend */}
+        {/* Spot line legend - dashed */}
         <div className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-0 w-4 border-t-[1.5px] border-solid"
-            style={{ borderColor: "#a78bfa" }}
-          ></span>
+          <svg width="16" height="4" className="inline-block">
+            <line x1="0" y1="2" x2="16" y2="2" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="6,4" />
+          </svg>
           <span>Spot</span>
         </div>
+        {/* Saturation threshold legend */}
+        <div className="flex items-center gap-1.5">
+          <svg width="16" height="12" className="inline-block">
+            <line x1="8" y1="0" x2="8" y2="12" stroke="currentColor" strokeWidth="1" strokeDasharray="3,2" className="text-foreground/60" />
+          </svg>
+          <span>Saturation</span>
+          <ToolTip iconSize={12} size="300">
+            <div className="space-y-1.5">
+              <div>
+                This threshold marks where returns shift from convex to linear gains.
+              </div>
+              <div>
+                It depends on the vault&apos;s current liquidity and your deposit size. Larger deposits relative to vault liquidity lower this threshold.
+              </div>
+            </div>
+          </ToolTip>
+        </div>
       </div>
-      {/* Saturation info */}
-      {saturationData.saturationPriceChange < 300 &&
-        saturationData.saturationPriceChange > 0 && (
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-on-bg-subdued">
-            <span className="border-amber-500 inline-block h-0 w-4 border-t-[1.5px] border-dashed"></span>
-            <span>
-              Power zone up to{" "}
-              <span className="text-amber-500 font-medium">
-                +
-                <DisplayFormattedNumber
-                  num={saturationData.saturationPriceChange}
-                />
-                %
-              </span>
-            </span>
           </div>
-        )}
-    </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }

@@ -41,7 +41,7 @@ export default function Estimations({
 
   return (
     <div className={` pt-2 ${disabled ? "opacity-80" : ""}`}>
-      <h2 className="font-geist text-sm font-medium text-foreground">
+      <h2 className="font-geist text-sm text-foreground">
         You receive
       </h2>
       <div className="pt-1"></div>

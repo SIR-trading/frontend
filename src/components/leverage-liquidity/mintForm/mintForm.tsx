@@ -37,8 +37,6 @@ import { useFormContext } from "react-hook-form";
 import { useFindVault } from "./hooks/useFindVault";
 import useIsDebtToken from "./hooks/useIsDebtToken";
 import useGetFormTokensInfo from "./hooks/useGetUserBals";
-import { IonCalculator } from "@/components/ui/icons/calculator-icon";
-import Link from "next/link";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
 import SubmitButton from "@/components/shared/submitButton";
 import { FxemojiMonkeyface } from "@/components/ui/icons/monkey-icon";
@@ -821,6 +819,41 @@ export default function MintForm({ isApe }: Props) {
           </DepositInputs.Inputs>
         </DepositInputs.Root>
 
+        {/* Convex Returns Chart - only show for APE */}
+        {isApe && (
+          selectedVault.result &&
+          poolPrice?.price &&
+          poolPrice.price > 0 &&
+          selectedVault.result.reserveLPers !== "0" ? (
+            <ConvexReturnsChart
+              leverageTier={parseFloat(leverageTier ?? "0")}
+              baseFee={BASE_FEE}
+              apeReserve={BigInt(selectedVault.result.reserveApes || 0)}
+              teaReserve={BigInt(selectedVault.result.reserveLPers || 0)}
+              currentPrice={poolPrice.price}
+              collateralSymbol={collateralTokenSymbol}
+              debtSymbol={debtTokenSymbol}
+              depositAmount={
+                usingDebtToken && poolPrice.price > 0
+                  ? parseFloat(deposit ?? "0") / poolPrice.price
+                  : parseFloat(deposit ?? "0")
+              }
+              tax={parseInt(selectedVault.result.tax ?? "0")}
+              collateralDecimals={selectedVault.result.collateralToken.decimals}
+            />
+          ) : (
+            <div className="pt-2">
+              <h4 className="text-sm text-foreground">Potential Returns</h4>
+              <div className="pt-1"></div>
+              <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+                <p className="text-sm text-on-bg-subdued">
+                  Select a vault to see returns chart
+                </p>
+              </div>
+            </div>
+          )
+        )}
+
         {/* Warning when vault has 0 LP liquidity (check actual reserves, not USD value) */}
         <Show when={!!(isApe && selectedVault.result && selectedVault.result.reserveLPers === "0")}>
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
@@ -934,19 +967,6 @@ export default function MintForm({ isApe }: Props) {
           </div>
         </Show>
 
-        {
-          /* Calculator link */
-          isApe && (
-            <div className="my-2 flex w-full justify-start">
-              <Link className="hover:underline" href={"/leverage-calculator"}>
-                <div className="flex flex-row items-center text-foreground">
-                  <IonCalculator className="mr-1 h-5 w-5" />
-                  Profit Calculator
-                </div>
-              </Link>
-            </div>
-          )
-        }
         <Estimations
           isApe={isApe}
           disabled={!Boolean(amountTokens)}
@@ -962,30 +982,6 @@ export default function MintForm({ isApe }: Props) {
               : undefined
           }
         />
-
-        {/* Convex Returns Chart - only show for APE when vault is selected and has liquidity */}
-        {isApe &&
-          selectedVault.result &&
-          poolPrice?.price &&
-          poolPrice.price > 0 &&
-          selectedVault.result.reserveLPers !== "0" && (
-            <ConvexReturnsChart
-              leverageTier={parseFloat(leverageTier ?? "0")}
-              baseFee={BASE_FEE}
-              apeReserve={BigInt(selectedVault.result.reserveApes || 0)}
-              teaReserve={BigInt(selectedVault.result.reserveLPers || 0)}
-              currentPrice={poolPrice.price}
-              collateralSymbol={collateralTokenSymbol}
-              debtSymbol={debtTokenSymbol}
-              depositAmount={
-                usingDebtToken && poolPrice.price > 0
-                  ? parseFloat(deposit ?? "0") / poolPrice.price
-                  : parseFloat(deposit ?? "0")
-              }
-              tax={parseInt(selectedVault.result.tax ?? "0")}
-              collateralDecimals={selectedVault.result.collateralToken.decimals}
-            />
-          )}
 
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>

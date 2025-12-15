@@ -187,7 +187,7 @@ const UnstakeForm = ({
                   {/* Unstaking Amount */}
                   <div className="pt-2">
                     <div className="mb-2">
-                      <label className="text-sm text-foreground/70">Unstaking Amount</label>
+                      <label className="text-sm text-muted-foreground">Unstaking Amount</label>
                     </div>
                     <div className="flex items-center justify-between">
                       <h3 className="text-xl">
@@ -219,7 +219,7 @@ const UnstakeForm = ({
                   {unstakeAndClaimFees && dividends && parseFloat(formatUnits(dividends, 18)) > 0 && (
                     <div className="pt-2">
                       <div className="mb-2">
-                        <label className="text-sm text-foreground/70">Claiming Dividends</label>
+                        <label className="text-sm text-muted-foreground">Claiming Dividends</label>
                       </div>
                       <div className="flex items-center justify-between">
                         <h3 className="text-xl text-green-400">

@@ -34,7 +34,7 @@ export default function MintFormSettings() {
             <div className="text-gray-300 flex w-full items-center justify-between rounded-sm border border-foreground/10 bg-foreground/10 p-4">
               {" "}
               <div className="flex items-center gap-x-1">
-                <label htmlFor="slippage" className="text-sm ">
+                <label htmlFor="slippage" className="text-sm text-foreground">
                   Slippage
                 </label>
                 <ToolTip>Slippage info</ToolTip>
