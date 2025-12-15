@@ -55,6 +55,10 @@ import { PriceIncreaseDisplay } from "@/components/portfolio/burnTable/PriceIncr
 import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
 import { getLeverageRatio } from "@/lib/utils/calculations";
 import { VaultUrlSync } from "./VaultUrlSync";
+import ConvexReturnsChart from "./ConvexReturnsChart";
+import buildData from "@/../public/build-data.json";
+
+const BASE_FEE = buildData.systemParams.baseFee;
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -403,6 +407,27 @@ export default function MintForm({ isApe }: Props) {
     { vaultId: selectedVault.result?.id ?? "" },
     {
       enabled: !isApe && Boolean(selectedVault.result?.id),
+      staleTime: 60000, // Cache for 1 minute
+    },
+  );
+
+  // Fetch current market price for convex returns chart (APE only)
+  const { data: poolPrice } = api.quote.getMostLiquidPoolPrice.useQuery(
+    {
+      tokenA: selectedVault.result?.collateralToken.id ?? "",
+      tokenB: selectedVault.result?.debtToken.id ?? "",
+      decimalsA: selectedVault.result?.collateralToken.decimals,
+      decimalsB: selectedVault.result?.debtToken.decimals,
+    },
+    {
+      enabled:
+        isApe &&
+        Boolean(
+          selectedVault.result?.collateralToken.id &&
+            selectedVault.result?.debtToken.id &&
+            selectedVault.result?.collateralToken.decimals &&
+            selectedVault.result?.debtToken.decimals,
+        ),
       staleTime: 60000, // Cache for 1 minute
     },
   );
@@ -937,6 +962,31 @@ export default function MintForm({ isApe }: Props) {
               : undefined
           }
         />
+
+        {/* Convex Returns Chart - only show for APE when vault is selected and has liquidity */}
+        {isApe &&
+          selectedVault.result &&
+          poolPrice?.price &&
+          poolPrice.price > 0 &&
+          selectedVault.result.reserveLPers !== "0" && (
+            <ConvexReturnsChart
+              leverageTier={parseFloat(leverageTier ?? "0")}
+              baseFee={BASE_FEE}
+              apeReserve={BigInt(selectedVault.result.reserveApes || 0)}
+              teaReserve={BigInt(selectedVault.result.reserveLPers || 0)}
+              currentPrice={poolPrice.price}
+              collateralSymbol={collateralTokenSymbol}
+              debtSymbol={debtTokenSymbol}
+              depositAmount={
+                usingDebtToken && poolPrice.price > 0
+                  ? parseFloat(deposit ?? "0") / poolPrice.price
+                  : parseFloat(deposit ?? "0")
+              }
+              tax={parseInt(selectedVault.result.tax ?? "0")}
+              collateralDecimals={selectedVault.result.collateralToken.decimals}
+            />
+          )}
+
         <motion.div animate={{ opacity: 1 }} initial={{ opacity: 0.2 }}>
           <MintFormSubmit.Root>
             <MintFormSubmit.FeeInfo

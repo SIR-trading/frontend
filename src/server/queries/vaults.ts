@@ -50,7 +50,7 @@ const vaults = (
 
   query VaultQuery($collateralToken: Bytes, $skip: Int, $debtToken: Bytes, $leverageTier: Int ) {
     vaults(
-      where: { exists: true ${whereClauses.length > 0 ? ", " + whereClauses.join(", ") : ""} }
+      ${whereClauses.length > 0 ? `where: { ${whereClauses.join(", ")} }` : ""}
       first: ${first}
       skip: $skip
       orderBy: ${sortbyVaultId ? "id" : "totalValueUsd"}

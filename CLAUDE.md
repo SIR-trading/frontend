@@ -568,6 +568,91 @@ ctx.font = "500 52px 'Open Sans'"; // ❌ Font not found, defaults to Times New 
 
 ---
 
+## APE Gain Formula & Convex Returns Chart
+
+### Core Concept: Convex Gains
+
+SIR provides leveraged exposure with two distinct zones:
+
+1. **Power Zone** (price < saturation price): Gains compound exponentially with `price^leverage`
+2. **Saturation Zone** (price ≥ saturation price): Gains become linear, protecting LP liquidity
+
+### The Gain Function f(x)
+
+The core gain function where `x = price / saturationPrice` and `l = leverage`:
+
+```typescript
+function f(x: number, l: number): number {
+  if (x <= 1) {
+    return Math.pow(x, l);  // Power zone: convex gains
+  } else {
+    return l * (x - 1) + 1; // Saturation zone: linear gains
+  }
+}
+```
+
+### Complete APE Gain Formula (Debt Token Denominated)
+
+```
+G = f(g₁) / f(g₀) / [1 + (l-1) × fBase]²
+```
+
+Where:
+- `g₀ = p₀ / pSat` (entry price relative to saturation)
+- `g₁ = p₁ / pSat` (exit price relative to saturation)
+- `l = 1 + 2^leverageTier` (leverage ratio)
+- `fBase` = base fee (decimal, e.g., 0.1 for 10%)
+- `pSat` = saturation price (calculated from reserves)
+
+### Fee Structure
+
+**Upon minting**, the deposit is reduced by:
+```
+effectiveDeposit = deposit / [1 + (l-1) × fBase]
+```
+
+So the effective fee is:
+```
+feePercent = (l-1) × fBase / [1 + (l-1) × fBase]
+```
+
+**Fee distribution** (controlled by vault `tax` parameter):
+- `(510 - tax) / 510` → Goes to LP reserve (increases saturation price)
+- `tax / 510` → Goes to SIR stakers as dividends
+
+**The `[1 + (l-1) × fBase]²` factor** accounts for fees charged on both mint AND burn.
+
+### Impact on Reserves
+
+When a user mints:
+1. User deposit (after fee) increases `apeReserve`
+2. Fee portion `(510 - tax) / 510` increases `teaReserve` (gentlemen/LP reserve)
+3. This changes the saturation price for subsequent calculations
+
+### Saturation Price Calculation
+
+```typescript
+pSat = currentPrice × (totalReserves / (leverage × apeReserve))^(1/(leverage-1))
+```
+
+Where `totalReserves = apeReserve + teaReserve`.
+
+### Chart Display
+
+The Convex Returns Chart (`ConvexReturnsChart.tsx`) plots:
+- **X-axis**: Price change % = `(p₁/p₀ - 1) × 100`
+- **Y-axis**: Gain % = `(G - 1) × 100`
+
+Key visual elements:
+- Convex curve in power zone
+- Linear curve in saturation zone
+- Dashed amber line at saturation threshold
+- Key points marked at -50%, +100%, +250%
+
+**Reference**: `src/components/leverage-liquidity/mintForm/ConvexReturnsChart.tsx`
+
+---
+
 ## Key File References
 
 ### Transaction Patterns
