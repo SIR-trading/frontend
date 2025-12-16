@@ -410,7 +410,7 @@ export default function MintForm({ isApe }: Props) {
   );
 
   // Fetch current market price for convex returns chart (APE only)
-  const { data: poolPrice } = api.quote.getMostLiquidPoolPrice.useQuery(
+  const { data: poolPrice, isFetching: isPoolPriceFetching } = api.quote.getMostLiquidPoolPrice.useQuery(
     {
       tokenA: selectedVault.result?.collateralToken.id ?? "",
       tokenB: selectedVault.result?.debtToken.id ?? "",
@@ -823,8 +823,7 @@ export default function MintForm({ isApe }: Props) {
         {isApe &&
           (selectedVault.result &&
           poolPrice?.price &&
-          poolPrice.price > 0 &&
-          selectedVault.result.reserveLPers !== "0" ? (
+          poolPrice.price > 0 ? (
             <ConvexReturnsChart
               leverageTier={parseFloat(leverageTier ?? "0")}
               baseFee={BASE_FEE}
@@ -841,6 +840,17 @@ export default function MintForm({ isApe }: Props) {
               tax={parseInt(selectedVault.result.tax ?? "0")}
               collateralDecimals={selectedVault.result.collateralToken.decimals}
             />
+          ) : selectedVault.result && isPoolPriceFetching ? (
+            <div className="pt-2">
+              <h4 className="text-sm text-foreground">Potential Returns</h4>
+              <div className="pt-1"></div>
+              <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+                <div className="flex items-center gap-2 text-sm text-on-bg-subdued">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground/60" />
+                  <span>Loading chart data...</span>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="pt-2">
               <h4 className="text-sm text-foreground">Potential Returns</h4>

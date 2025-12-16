@@ -66,6 +66,26 @@ function calculateApeGain(
   return gain;
 }
 
+/**
+ * Calculate spot-like gain for 0 TVL vaults.
+ * When there's no existing liquidity, minting APE is essentially like holding spot.
+ * Gain = (exitPrice / entryPrice) / feeFactor
+ */
+function calculateSpotGain(
+  entryPrice: number,
+  exitPrice: number,
+  leverageRatio: number,
+  baseFee: number,
+): number {
+  if (entryPrice <= 0) return 1;
+
+  const feeMultiplier = 1 + (leverageRatio - 1) * baseFee;
+  const feeFactor = feeMultiplier * feeMultiplier; // squared for mint + burn
+
+  // Spot-like: 1:1 with price change, minus fees
+  return (exitPrice / entryPrice) / feeFactor;
+}
+
 interface ConvexReturnsChartProps {
   leverageTier: number;
   baseFee: number; // decimal, e.g., 0.025 for 2.5%
@@ -87,8 +107,8 @@ interface ChartPoint {
 // SVG dimensions and padding - constant, defined outside component
 // Width is set high to match typical container aspect ratios and avoid empty space
 const CHART_WIDTH = 500;
-const CHART_HEIGHT = 260;
-const CHART_PADDING = { top: 18, right: 18, bottom: 42, left: 42 };
+const CHART_HEIGHT = 300;
+const CHART_PADDING = { top: 28, right: 18, bottom: 42, left: 42 };
 const INNER_WIDTH = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
 const INNER_HEIGHT = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
 
@@ -256,6 +276,9 @@ export default function ConvexReturnsChart({
     collateralDecimals,
   ]);
 
+  // Check if this is a 0 TVL vault (no existing liquidity)
+  const isZeroTvl = apeReserve === 0n && teaReserve === 0n;
+
   // Calculate saturation price and the price change % at which saturation occurs
   const saturationData = useMemo(() => {
     if (
@@ -286,38 +309,18 @@ export default function ConvexReturnsChart({
     leverageRatio,
   ]);
 
-  // Key points to highlight (-50%, +100%, +250%)
-  const keyPoints = useMemo(() => {
-    const entryPrice = currentPrice;
-    const satPrice = saturationData.saturationPrice;
-
-    if (satPrice <= 0) return [];
-
-    return [-50, 100, 250].map((priceChange) => {
-      const exitPrice = entryPrice * (1 + priceChange / 100);
-
-      const gain = calculateApeGain(
-        entryPrice,
-        exitPrice,
-        satPrice,
-        leverageRatio,
-        baseFee,
-      );
-
-      const gainPercent = (gain - 1) * 100;
-
-      return {
-        priceChange,
-        gain: gainPercent,
-      };
-    });
-  }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice]);
-
-  // Calculate default Y bounds (before zoom)
+  // Calculate default Y bounds based on perp line at rightmost key point (7R/8 + xMin)
+  // Perp line: gain% = leverageRatio * priceChange%, always above APE curve
   const defaultYBounds = useMemo(() => {
-    const keyPointGains = keyPoints.map((p) => p.gain);
+    // Calculate perp gain at rightmost default key point: 7R/8 + xMin
+    // For default view: 7*400/8 + (-100) = 250
+    const defaultRange = DEFAULT_X_MAX - DEFAULT_X_MIN;
+    const rightmostPriceChange = DEFAULT_X_MIN + (7 * defaultRange) / 8;
+
+    // Perp line gain: leverageRatio * priceChange, doubled for headroom
+    const rawYMax = Math.max(2 * leverageRatio * rightmostPriceChange, 100);
+
     const yMin = -100;
-    const rawYMax = Math.max(...keyPointGains, 100);
 
     // Calculate step based on range to get nice round tick values
     const rawRange = rawYMax - yMin;
@@ -331,7 +334,7 @@ export default function ConvexReturnsChart({
     // Round yMax up to the next tick value
     const yMax = Math.ceil(rawYMax / step) * step;
     return { yMin, yMax };
-  }, [keyPoints]);
+  }, [leverageRatio]);
 
   // Compute effective bounds (used for chart data generation and scales)
   const effectiveBounds = useMemo(() => {
@@ -343,15 +346,51 @@ export default function ConvexReturnsChart({
     };
   }, [zoomBounds, defaultYBounds]);
 
+  // Key points to highlight - dynamically positioned based on current view
+  // Uses R/8+xMin, R/2+xMin, 7R/8+xMin where R = xMax - xMin
+  // This gives -50%, 100%, 250% in the default view (-100 to 300)
+  const keyPoints = useMemo(() => {
+    const entryPrice = currentPrice;
+    const satPrice = saturationData.saturationPrice;
+
+    // For 0 TVL vaults, use spot gain; otherwise need valid saturation price
+    if (satPrice <= 0 && !isZeroTvl) return [];
+
+    const range = effectiveBounds.xMax - effectiveBounds.xMin;
+    const priceChanges = [
+      effectiveBounds.xMin + range / 8,
+      effectiveBounds.xMin + range / 2,
+      effectiveBounds.xMin + (7 * range) / 8,
+    ];
+
+    return priceChanges.map((priceChange) => {
+      const exitPrice = entryPrice * (1 + priceChange / 100);
+
+      // For 0 TVL vaults, gains are spot-like (1:1 with price, minus fees)
+      const gain = isZeroTvl
+        ? calculateSpotGain(entryPrice, exitPrice, leverageRatio, baseFee)
+        : calculateApeGain(entryPrice, exitPrice, satPrice, leverageRatio, baseFee);
+
+      const gainPercent = (gain - 1) * 100;
+
+      return {
+        priceChange,
+        gain: gainPercent,
+      };
+    });
+  }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice, isZeroTvl, effectiveBounds]);
+
   // Generate chart points using the correct gain formula:
   // G = f(g1) / f(g0) / [1 + (l-1)*fBase]^2
+  // For 0 TVL vaults: G = (exitPrice / entryPrice) / feeFactor (spot-like)
   // Dynamically generated based on current view bounds
   const chartData = useMemo(() => {
     const points: ChartPoint[] = [];
     const entryPrice = currentPrice;
     const satPrice = saturationData.saturationPrice;
 
-    if (satPrice <= 0) return points;
+    // For 0 TVL vaults, we still generate chart data using spot gain
+    if (satPrice <= 0 && !isZeroTvl) return points;
 
     // Generate points based on current view with some padding
     // Use ~100 points across the visible range for smooth curves
@@ -369,14 +408,10 @@ export default function ConvexReturnsChart({
 
       if (exitPrice <= 0) continue;
 
-      // Calculate gain using the correct formula
-      const gain = calculateApeGain(
-        entryPrice,
-        exitPrice,
-        satPrice,
-        leverageRatio,
-        baseFee,
-      );
+      // For 0 TVL vaults, gains are spot-like (1:1 with price, minus fees)
+      const gain = isZeroTvl
+        ? calculateSpotGain(entryPrice, exitPrice, leverageRatio, baseFee)
+        : calculateApeGain(entryPrice, exitPrice, satPrice, leverageRatio, baseFee);
 
       // Convert to percentage (0% = break-even, where gain = 1)
       const gainPercent = (gain - 1) * 100;
@@ -396,7 +431,7 @@ export default function ConvexReturnsChart({
     effectiveBounds,
   ]);
 
-  // Zoom out - expand current view by 2x, centered on current center
+  // Zoom out - expand from current view center, cap xMin/yMin at -100%
   const zoomOut = useCallback(() => {
     // Get current bounds
     const currentXMin = zoomBounds?.xMin ?? DEFAULT_X_MIN;
@@ -404,19 +439,15 @@ export default function ConvexReturnsChart({
     const currentYMin = zoomBounds?.yMin ?? defaultYBounds.yMin;
     const currentYMax = zoomBounds?.yMax ?? defaultYBounds.yMax;
 
-    // Calculate center points
-    const xCenter = (currentXMin + currentXMax) / 2;
-    const yCenter = (currentYMin + currentYMax) / 2;
-
-    // Expand range by 2x
+    // Calculate expansion amount (25% of current range on each side)
     const xRange = currentXMax - currentXMin;
     const yRange = currentYMax - currentYMin;
 
-    // Cap minimums at -100% (can't lose more than 100%)
-    const newXMin = Math.max(-100, xCenter - xRange);
-    const newXMax = xCenter + xRange;
-    const newYMin = Math.max(-100, yCenter - yRange);
-    const newYMax = yCenter + yRange;
+    // Expand from center, but cap minimums at -100%
+    const newXMin = Math.max(-100, currentXMin - xRange * 0.25);
+    const newXMax = currentXMax + xRange * 0.25;
+    const newYMin = Math.max(-100, currentYMin - yRange * 0.25);
+    const newYMax = currentYMax + yRange * 0.25;
 
     setZoomBounds({
       xMin: newXMin,
@@ -642,6 +673,94 @@ export default function ConvexReturnsChart({
         </CollapsibleTrigger>
         <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
           <div className="pt-3">
+            {/* Legend */}
+            <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
+              {/* APE leveraged line legend */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-accent"
+                  />
+                </svg>
+                <span className="font-medium">
+                  APE{" "}
+                  <span className="font-normal text-on-bg-subdued">
+                    (incl. fees)
+                  </span>
+                </span>
+              </div>
+              {/* Regular leverage line legend - dashed */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="#fb923c"
+                    strokeWidth="1.5"
+                    strokeDasharray="6,4"
+                  />
+                </svg>
+                <span>
+                  Perp {leverageRatio}x{" "}
+                  <span className="text-on-bg-subdued">(excl. fees)</span>
+                </span>
+              </div>
+              {/* Spot line legend - dashed */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="#a78bfa"
+                    strokeWidth="1.5"
+                    strokeDasharray="6,4"
+                  />
+                </svg>
+                <span>Spot</span>
+              </div>
+              {/* Saturation threshold legend - hide for 0 TVL vaults */}
+              {!isZeroTvl && (
+                <div className="flex items-center gap-1.5">
+                  <svg width="16" height="12" className="inline-block">
+                    <line
+                      x1="8"
+                      y1="0"
+                      x2="8"
+                      y2="12"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeDasharray="3,2"
+                      className="text-foreground/60"
+                    />
+                  </svg>
+                  <span>Saturation</span>
+                  <ToolTip iconSize={12} size="300">
+                    <div className="space-y-1.5">
+                      <div>
+                        This threshold marks where returns shift from convex to
+                        linear gains.
+                      </div>
+                      <div>
+                        It depends on the vault&apos;s current liquidity and your
+                        deposit size. Larger deposits relative to vault liquidity
+                        lower this threshold.
+                      </div>
+                    </div>
+                  </ToolTip>
+                </div>
+              )}
+            </div>
+
             {/* Chart area with lighter background for readability */}
             <div className="rounded bg-background/80 p-2 dark:bg-background/40">
               <svg
@@ -839,6 +958,15 @@ export default function ConvexReturnsChart({
 
                 {/* Axis titles */}
                 <text
+                  x={4}
+                  y={8}
+                  textAnchor="start"
+                  className="text-[9px]"
+                  style={{ fill: "hsl(var(--foreground))" }}
+                >
+                  Returns
+                </text>
+                <text
                   x={CHART_WIDTH / 2}
                   y={CHART_HEIGHT - 3}
                   textAnchor="middle"
@@ -873,7 +1001,7 @@ export default function ConvexReturnsChart({
                 >
                   <span className="text-[11px] text-foreground/70">
                     {point.priceChange >= 0 ? "+" : ""}
-                    {point.priceChange}%
+                    <DisplayFormattedNumber num={point.priceChange} significant={3} />%
                   </span>
                   <span
                     className={
@@ -883,96 +1011,10 @@ export default function ConvexReturnsChart({
                     }
                   >
                     {point.gain >= 0 ? "+" : ""}
-                    <DisplayFormattedNumber num={point.gain} />%
+                    <DisplayFormattedNumber num={point.gain} significant={3} />%
                   </span>
                 </div>
               ))}
-            </div>
-
-            {/* Legend */}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
-              {/* APE leveraged line legend */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="4" className="inline-block">
-                  <line
-                    x1="0"
-                    y1="2"
-                    x2="16"
-                    y2="2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-accent"
-                  />
-                </svg>
-                <span className="font-medium">
-                  APE{" "}
-                  <span className="font-normal text-on-bg-subdued">
-                    (incl. fees)
-                  </span>
-                </span>
-              </div>
-              {/* Regular leverage line legend - dashed */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="4" className="inline-block">
-                  <line
-                    x1="0"
-                    y1="2"
-                    x2="16"
-                    y2="2"
-                    stroke="#fb923c"
-                    strokeWidth="1.5"
-                    strokeDasharray="6,4"
-                  />
-                </svg>
-                <span>
-                  Perp {leverageRatio}x{" "}
-                  <span className="text-on-bg-subdued">(excl. fees)</span>
-                </span>
-              </div>
-              {/* Spot line legend - dashed */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="4" className="inline-block">
-                  <line
-                    x1="0"
-                    y1="2"
-                    x2="16"
-                    y2="2"
-                    stroke="#a78bfa"
-                    strokeWidth="1.5"
-                    strokeDasharray="6,4"
-                  />
-                </svg>
-                <span>Spot</span>
-              </div>
-              {/* Saturation threshold legend */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="12" className="inline-block">
-                  <line
-                    x1="8"
-                    y1="0"
-                    x2="8"
-                    y2="12"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeDasharray="3,2"
-                    className="text-foreground/60"
-                  />
-                </svg>
-                <span>Saturation</span>
-                <ToolTip iconSize={12} size="300">
-                  <div className="space-y-1.5">
-                    <div>
-                      This threshold marks where returns shift from convex to
-                      linear gains.
-                    </div>
-                    <div>
-                      It depends on the vault&apos;s current liquidity and your
-                      deposit size. Larger deposits relative to vault liquidity
-                      lower this threshold.
-                    </div>
-                  </div>
-                </ToolTip>
-              </div>
             </div>
           </div>
         </CollapsibleContent>
