@@ -1005,6 +1005,10 @@ export default function ConvexReturnsChart({
                 {keyPoints.map((point, i) => {
                   const x = xScale(point.priceChange);
                   const y = yScale(point.gain);
+                  // Skip points that are outside the chart bounds
+                  if (y < CHART_PADDING.top || y > CHART_PADDING.top + INNER_HEIGHT) {
+                    return null;
+                  }
                   return (
                     <g key={i}>
                       <circle
