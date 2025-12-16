@@ -34,7 +34,7 @@ function f(x: number, l: number): number {
 }
 
 /**
- * Calculate APE gain in debt token terms.
+ * Calculate APE gain in collateral terms.
  *
  * Formula: G = f(g1) / f(g0) / [1 + (l-1)*fBase]^2
  *
@@ -731,7 +731,20 @@ export default function ConvexReturnsChart({
               {/* Saturation threshold legend - hide for 0 TVL vaults */}
               {!isZeroTvl && (
                 <div className="flex items-center gap-1.5">
-                  <svg width="16" height="12" className="inline-block">
+                  <svg width="20" height="12" className="inline-block">
+                    <defs>
+                      <linearGradient id="legendSaturationGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.15" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x="8"
+                      y="0"
+                      width="12"
+                      height="12"
+                      fill="url(#legendSaturationGradient)"
+                    />
                     <line
                       x1="8"
                       y1="0"
@@ -739,8 +752,8 @@ export default function ConvexReturnsChart({
                       y2="12"
                       stroke="currentColor"
                       strokeWidth="1"
-                      strokeDasharray="3,2"
-                      className="text-foreground/60"
+                      strokeDasharray="6,3"
+                      className="text-foreground"
                     />
                   </svg>
                   <span>Saturation</span>
@@ -790,6 +803,11 @@ export default function ConvexReturnsChart({
                       }
                     />
                   </clipPath>
+                  {/* Gradient for saturation zone */}
+                  <linearGradient id="saturationGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                  </linearGradient>
                 </defs>
 
                 {/* Grid lines */}
@@ -843,6 +861,19 @@ export default function ConvexReturnsChart({
                   strokeWidth="1"
                 />
 
+                {/* Saturation zone gradient fill */}
+                {saturationX &&
+                  saturationX > CHART_PADDING.left &&
+                  saturationX < CHART_WIDTH - CHART_PADDING.right && (
+                    <rect
+                      x={saturationX}
+                      y={CHART_PADDING.top}
+                      width={CHART_WIDTH - CHART_PADDING.right - saturationX}
+                      height={INNER_HEIGHT}
+                      fill="url(#saturationGradient)"
+                    />
+                  )}
+
                 {/* Saturation threshold line */}
                 {saturationX &&
                   saturationX > CHART_PADDING.left &&
@@ -853,9 +884,9 @@ export default function ConvexReturnsChart({
                         y1={CHART_PADDING.top}
                         x2={saturationX}
                         y2={CHART_PADDING.top + INNER_HEIGHT}
-                        style={{ stroke: "hsla(var(--foreground), 0.6)" }}
+                        style={{ stroke: "hsl(var(--foreground))" }}
                         strokeWidth="1"
-                        strokeDasharray="4,3"
+                        strokeDasharray="6,3"
                       />
                     </g>
                   )}

@@ -920,10 +920,10 @@ export default function MintForm({ isApe }: Props) {
             <div className="flex items-start gap-2">
               <div className="text-yellow-500">⚠️</div>
               <div className="text-yellow-200 text-sm">
-                <strong>Leverage Variability Warning:</strong>
+                <strong>Large Deposit Warning:</strong>
                 <span className="text-foreground/80">
-                  The amount you&apos;ve entered exceeds the vault&apos;s
-                  optimal liquidity threshold of{" "}
+                  {" "}The current liquidity in this vault can only support
+                  deposits up to{" "}
                   <button
                     type="button"
                     onClick={() => {
@@ -933,7 +933,7 @@ export default function MintForm({ isApe }: Props) {
                       );
                       setValue("deposit", maxAmount);
                     }}
-                    className="text-yellow-100 font-bold underline transition-colors hover:text-white"
+                    className="text-yellow-600 dark:text-yellow-100 font-bold underline transition-colors hover:text-yellow-800 dark:hover:text-white"
                   >
                     <span>
                       <DisplayFormattedNumber
@@ -942,8 +942,8 @@ export default function MintForm({ isApe }: Props) {
                       {depositTokenSymbol}
                     </span>
                   </button>
-                  . Beyond this point, your leverage ratio may not remain
-                  constant and could vary with market conditions.
+                  {" "}if you want to outperform a {getLeverageRatio(parseFloat(leverageTier ?? "0"))}x
+                  Perp. Beyond this amount, your position may underperform.
                 </span>
               </div>
             </div>

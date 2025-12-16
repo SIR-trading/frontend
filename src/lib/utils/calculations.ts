@@ -37,13 +37,37 @@ export function getLeverageRatio(k: number) {
 }
 
 /**
- * Calculate maximum amount of ape that can be minted without causing insufficient liquidity.
- * @param leverageTier - bigint - The leverage tier
- * @param baseFeeBigInt - bigint - The base fee (will be divided by 10000)
- * @param apeReserve - bigint - The ape reserve amount
- * @param gentlemenReserve - bigint - The gentlemen reserve amount
- * @param taxAmountBigInt - bigint - The tax amount (will be divided by 255)
+ * Calculate maximum deposit such that APE slope in saturation >= perp slope.
  *
+ * For APE to outperform perp even in saturation zone, we need the saturation
+ * price to remain high enough after the deposit.
+ *
+ * Constraint: pSat >= p0 × f^(2/(l-1))
+ *
+ * Where:
+ *   pSat = p0 × [(A+T) / (l×A)]^(1/(l-1))  (power zone formula)
+ *   f = 1 + (l-1) × baseFee
+ *
+ * Substituting and simplifying:
+ *   (A+T) / (l×A) >= f²
+ *   T/A >= l×f² - 1
+ *
+ * So R = l×f² - 1 is the threshold ratio T/A must exceed.
+ *
+ * After deposit d:
+ *   A' = A + d/f  (deposit after minting fee goes to ape reserve)
+ *   T' = T + d×(f-1)×k/f  (fee portion × LP share goes to tea reserve)
+ *
+ * where k = (510 - tax) / 510
+ *
+ * Solving T'/A' >= R for max d:
+ *   maxDeposit = f × (T - R×A) / [R - (f-1)×k]
+ *
+ * @param leverageTier - bigint - The leverage tier
+ * @param baseFeeBigInt - bigint - The base fee scaled by 10000 (e.g., 250 for 2.5%)
+ * @param apeReserve - bigint - The ape reserve amount
+ * @param gentlemenReserve - bigint - The gentlemen (TEA) reserve amount
+ * @param taxAmountBigInt - bigint - The tax amount (0-255)
  */
 interface Params {
   leverageTier: bigint;
@@ -59,32 +83,54 @@ export function calculateMaxApe({
   apeReserve,
   gentlemenReserve,
   taxAmountBigInt,
-}: Params) {
+}: Params): bigint | undefined {
   try {
-    // leverageRatio = 2^leverageTier + 1
+    // Convert to numbers for floating point calculation
+    // leverageRatio l = 1 + 2^leverageTier
+    const tierNum = Number(leverageTier);
+    const l = 1 + Math.pow(2, tierNum);
 
-    const absoluteTier = 2n ** (leverageTier >= 0 ? leverageTier : -leverageTier);
+    // baseFee as decimal (baseFeeBigInt is scaled by 10000)
+    const baseFee = Number(baseFeeBigInt) / 10000;
 
-    // gentlemenReserveMin = (leverageRatio - 1) * apeReserve
-    const gentlemenReserveMin = leverageTier >= 0n ?
-      apeReserve * absoluteTier:
-      apeReserve / absoluteTier;
+    // feeMultiplier f = 1 + (l-1) * baseFee
+    const f = 1 + (l - 1) * baseFee;
 
-    const gentlemenReserveMinInc = gentlemenReserve - gentlemenReserveMin;
+    // R = l×f² - 1 is the threshold ratio T/A must exceed
+    // Derived from: pSat >= p0 × f^(2/(l-1))
+    // which becomes: T/A >= l×f² - 1
+    const R = l * f * f - 1;
 
-    const denominator = 10_000n * 510n + baseFeeBigInt * (taxAmountBigInt - 510n);
+    // k = (510 - tax) / 510 (fraction of fee going to LP/tea reserve)
+    const tax = Number(taxAmountBigInt);
+    const k = (510 - tax) / 510;
 
-    // Handle leverage ratio calculation using only BigInt operations
-    if (leverageTier < 0n) {
-      const numerator = absoluteTier * 10_000n + baseFeeBigInt;
-      const result = 510n * numerator * gentlemenReserveMinInc / denominator;
-      return result;
+    // Convert reserves to numbers
+    const A = Number(apeReserve);
+    const T = Number(gentlemenReserve);
+
+    // Check if current state already violates constraint (T/A < R)
+    // meaning APE can't beat perp even without any deposit
+    if (T - R * A <= 0) {
+      return 0n;
     }
 
-    const numerator =  10_000n + absoluteTier * baseFeeBigInt;
-    const result = 510n * numerator * gentlemenReserveMinInc / (denominator * absoluteTier);
-    return result;
+    // Denominator: R - (f-1)×k
+    const denom = R - (f - 1) * k;
+    if (denom <= 0) {
+      // Edge case: shouldn't happen with typical parameters
+      // This would mean deposits always help, return unlimited
+      return undefined;
+    }
 
+    // maxDeposit = f × (T - R×A) / [R - (f-1)×k]
+    const maxDeposit = (f * (T - R * A)) / denom;
+
+    if (maxDeposit <= 0 || !Number.isFinite(maxDeposit)) {
+      return 0n;
+    }
+
+    return BigInt(Math.floor(maxDeposit));
   } catch (error) {
     return undefined;
   }
