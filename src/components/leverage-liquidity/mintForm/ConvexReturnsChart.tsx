@@ -388,7 +388,13 @@ export default function ConvexReturnsChart({
     }
 
     return points;
-  }, [currentPrice, leverageRatio, baseFee, saturationData.saturationPrice, effectiveBounds]);
+  }, [
+    currentPrice,
+    leverageRatio,
+    baseFee,
+    saturationData.saturationPrice,
+    effectiveBounds,
+  ]);
 
   // Zoom out - expand current view by 2x, centered on current center
   const zoomOut = useCallback(() => {
@@ -597,9 +603,7 @@ export default function ConvexReturnsChart({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="pt-2">
       <div className="flex items-center gap-2">
-        <h4 className="text-sm text-foreground">
-          Potential Returns
-        </h4>
+        <h4 className="text-sm text-foreground">Potential Returns</h4>
         <ToolTip size="300">
           This chart shows your potential profit/loss in {debtSymbol} terms as
           the {collateralSymbol}/{debtSymbol} price changes.
@@ -636,297 +640,340 @@ export default function ConvexReturnsChart({
             />
           </div>
         </CollapsibleTrigger>
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+        <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
           <div className="pt-3">
             {/* Chart area with lighter background for readability */}
             <div className="rounded bg-background/80 p-2 dark:bg-background/40">
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-          className="w-full select-none"
-          preserveAspectRatio="xMidYMid meet"
-          style={{ cursor: isDragging ? "crosshair" : "zoom-out" }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onDoubleClick={zoomOut}
-        >
-          <defs>
-            {/* Clip path to constrain chart lines within the plot area, capped at -100% (can't lose more than 100%) */}
-            <clipPath id="chartClip">
-              <rect
-                x={CHART_PADDING.left}
-                y={CHART_PADDING.top}
-                width={INNER_WIDTH}
-                height={Math.min(yScale(-100), CHART_PADDING.top + INNER_HEIGHT) - CHART_PADDING.top}
-              />
-            </clipPath>
-          </defs>
+              <svg
+                ref={svgRef}
+                viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
+                className="w-full select-none"
+                preserveAspectRatio="xMidYMid meet"
+                style={{ cursor: isDragging ? "crosshair" : "zoom-out" }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+                onDoubleClick={zoomOut}
+              >
+                <defs>
+                  {/* Clip path to constrain chart lines within the plot area, capped at -100% (can't lose more than 100%) */}
+                  <clipPath id="chartClip">
+                    <rect
+                      x={CHART_PADDING.left}
+                      y={CHART_PADDING.top}
+                      width={INNER_WIDTH}
+                      height={
+                        Math.min(
+                          yScale(-100),
+                          CHART_PADDING.top + INNER_HEIGHT,
+                        ) - CHART_PADDING.top
+                      }
+                    />
+                  </clipPath>
+                </defs>
 
-          {/* Grid lines */}
-          <g>
-            {/* Horizontal grid lines - use same ticks as Y-axis labels */}
-            {yTicks.map((val) => {
-              const y = yScale(val);
-              return (
+                {/* Grid lines */}
+                <g>
+                  {/* Horizontal grid lines - use same ticks as Y-axis labels */}
+                  {yTicks.map((val) => {
+                    const y = yScale(val);
+                    return (
+                      <line
+                        key={`h-${val}`}
+                        x1={CHART_PADDING.left}
+                        y1={y}
+                        x2={CHART_WIDTH - CHART_PADDING.right}
+                        y2={y}
+                        style={{ stroke: "hsla(var(--foreground), 0.12)" }}
+                        strokeDasharray="3,3"
+                      />
+                    );
+                  })}
+                  {/* Vertical grid lines - extend full chart height */}
+                  {xTicks.map((val) => (
+                    <line
+                      key={`v-${val}`}
+                      x1={xScale(val)}
+                      y1={CHART_PADDING.top}
+                      x2={xScale(val)}
+                      y2={CHART_PADDING.top + INNER_HEIGHT}
+                      style={{ stroke: "hsla(var(--foreground), 0.12)" }}
+                      strokeDasharray="3,3"
+                    />
+                  ))}
+                </g>
+
+                {/* X-axis at 0% gain (break-even line) */}
                 <line
-                  key={`h-${val}`}
                   x1={CHART_PADDING.left}
-                  y1={y}
+                  y1={zeroY}
                   x2={CHART_WIDTH - CHART_PADDING.right}
-                  y2={y}
-                  style={{ stroke: "hsla(var(--foreground), 0.12)" }}
-                  strokeDasharray="3,3"
-                />
-              );
-            })}
-            {/* Vertical grid lines - extend full chart height */}
-            {xTicks.map((val) => (
-              <line
-                key={`v-${val}`}
-                x1={xScale(val)}
-                y1={CHART_PADDING.top}
-                x2={xScale(val)}
-                y2={CHART_PADDING.top + INNER_HEIGHT}
-                style={{ stroke: "hsla(var(--foreground), 0.12)" }}
-                strokeDasharray="3,3"
-              />
-            ))}
-          </g>
-
-          {/* X-axis at 0% gain (break-even line) */}
-          <line
-            x1={CHART_PADDING.left}
-            y1={zeroY}
-            x2={CHART_WIDTH - CHART_PADDING.right}
-            y2={zeroY}
-            style={{ stroke: "hsl(var(--foreground))" }}
-            strokeWidth="1"
-          />
-
-          {/* Y-axis at 0% price change (entry point) */}
-          <line
-            x1={xScale(0)}
-            y1={CHART_PADDING.top}
-            x2={xScale(0)}
-            y2={CHART_PADDING.top + INNER_HEIGHT}
-            style={{ stroke: "hsl(var(--foreground))" }}
-            strokeWidth="1"
-          />
-
-          {/* Saturation threshold line */}
-          {saturationX &&
-            saturationX > CHART_PADDING.left &&
-            saturationX < CHART_WIDTH - CHART_PADDING.right && (
-              <g>
-                <line
-                  x1={saturationX}
-                  y1={CHART_PADDING.top}
-                  x2={saturationX}
-                  y2={CHART_PADDING.top + INNER_HEIGHT}
-                  style={{ stroke: "hsla(var(--foreground), 0.6)" }}
+                  y2={zeroY}
+                  style={{ stroke: "hsl(var(--foreground))" }}
                   strokeWidth="1"
-                  strokeDasharray="4,3"
                 />
-              </g>
-            )}
 
-          {/* Spot (1x) holding reference line - dashed */}
-          {spotLinePath && (
-            <path
-              d={spotLinePath}
-              fill="none"
-              stroke="#a78bfa"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeDasharray="6,4"
-              clipPath="url(#chartClip)"
-            />
-          )}
-
-          {/* Regular leverage reference line - dashed */}
-          {regularLeveragePath && (
-            <path
-              d={regularLeveragePath}
-              fill="none"
-              stroke="#fb923c"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeDasharray="6,4"
-              clipPath="url(#chartClip)"
-            />
-          )}
-
-          {/* Main curve line (leveraged position) */}
-          <path
-            d={linePath}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-accent"
-            clipPath="url(#chartClip)"
-          />
-
-          {/* Key points */}
-          {keyPoints.map((point, i) => {
-            const x = xScale(point.priceChange);
-            const y = yScale(point.gain);
-            return (
-              <g key={i}>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="4"
-                  fill="currentColor"
-                  className="text-accent"
+                {/* Y-axis at 0% price change (entry point) */}
+                <line
+                  x1={xScale(0)}
+                  y1={CHART_PADDING.top}
+                  x2={xScale(0)}
+                  y2={CHART_PADDING.top + INNER_HEIGHT}
+                  style={{ stroke: "hsl(var(--foreground))" }}
+                  strokeWidth="1"
                 />
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="6"
+
+                {/* Saturation threshold line */}
+                {saturationX &&
+                  saturationX > CHART_PADDING.left &&
+                  saturationX < CHART_WIDTH - CHART_PADDING.right && (
+                    <g>
+                      <line
+                        x1={saturationX}
+                        y1={CHART_PADDING.top}
+                        x2={saturationX}
+                        y2={CHART_PADDING.top + INNER_HEIGHT}
+                        style={{ stroke: "hsla(var(--foreground), 0.6)" }}
+                        strokeWidth="1"
+                        strokeDasharray="4,3"
+                      />
+                    </g>
+                  )}
+
+                {/* Spot (1x) holding reference line - dashed */}
+                {spotLinePath && (
+                  <path
+                    d={spotLinePath}
+                    fill="none"
+                    stroke="#a78bfa"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeDasharray="6,4"
+                    clipPath="url(#chartClip)"
+                  />
+                )}
+
+                {/* Regular leverage reference line - dashed */}
+                {regularLeveragePath && (
+                  <path
+                    d={regularLeveragePath}
+                    fill="none"
+                    stroke="#fb923c"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeDasharray="6,4"
+                    clipPath="url(#chartClip)"
+                  />
+                )}
+
+                {/* Main curve line (leveraged position) */}
+                <path
+                  d={linePath}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="text-accent/50"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-accent"
+                  clipPath="url(#chartClip)"
                 />
-              </g>
-            );
-          })}
 
-          {/* X-axis labels */}
-          <g>
-            {xTicks.map((val) => (
-              <text
-                key={`xl-${val}`}
-                x={xScale(val)}
-                y={CHART_HEIGHT - CHART_PADDING.bottom + 15}
-                textAnchor="middle"
-                className="text-[9px]"
-                style={{ fill: "hsl(var(--foreground))" }}
-              >
-                {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
-              </text>
-            ))}
-          </g>
+                {/* Key points */}
+                {keyPoints.map((point, i) => {
+                  const x = xScale(point.priceChange);
+                  const y = yScale(point.gain);
+                  return (
+                    <g key={i}>
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r="4"
+                        fill="currentColor"
+                        className="text-accent"
+                      />
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r="6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        className="text-accent/50"
+                      />
+                    </g>
+                  );
+                })}
 
-          {/* Y-axis labels - uses same ticks as grid lines */}
-          <g>
-            {yTicks.map((val) => (
-              <text
-                key={`yl-${val}`}
-                x={CHART_PADDING.left - 5}
-                y={yScale(val) + 3}
-                textAnchor="end"
-                className="text-[9px]"
-                style={{ fill: "hsl(var(--foreground))" }}
-              >
-                {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
-              </text>
-            ))}
-          </g>
+                {/* X-axis labels */}
+                <g>
+                  {xTicks.map((val) => (
+                    <text
+                      key={`xl-${val}`}
+                      x={xScale(val)}
+                      y={CHART_HEIGHT - CHART_PADDING.bottom + 15}
+                      textAnchor="middle"
+                      className="text-[9px]"
+                      style={{ fill: "hsl(var(--foreground))" }}
+                    >
+                      {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
+                    </text>
+                  ))}
+                </g>
 
-          {/* Axis titles */}
-          <text
-            x={CHART_WIDTH / 2}
-            y={CHART_HEIGHT - 3}
-            textAnchor="middle"
-            className="text-[9px]"
-            style={{ fill: "hsl(var(--foreground))" }}
-          >
-            {collateralSymbol}/{debtSymbol} Price Change
-          </text>
+                {/* Y-axis labels - uses same ticks as grid lines */}
+                <g>
+                  {yTicks.map((val) => (
+                    <text
+                      key={`yl-${val}`}
+                      x={CHART_PADDING.left - 5}
+                      y={yScale(val) + 3}
+                      textAnchor="end"
+                      className="text-[9px]"
+                      style={{ fill: "hsl(var(--foreground))" }}
+                    >
+                      {val === 0 ? "0" : val > 0 ? `+${val}%` : `${val}%`}
+                    </text>
+                  ))}
+                </g>
 
-          {/* Selection rectangle during drag */}
-          {isDragging && dragStart && dragEnd && (
-            <rect
-              x={Math.min(dragStart.x, dragEnd.x)}
-              y={Math.min(dragStart.y, dragEnd.y)}
-              width={Math.abs(dragEnd.x - dragStart.x)}
-              height={Math.abs(dragEnd.y - dragStart.y)}
-              fill="hsla(var(--accent), 0.15)"
-              stroke="hsla(var(--accent), 0.5)"
-              strokeWidth="1"
-              strokeDasharray="4,2"
-            />
-          )}
-        </svg>
-      </div>
+                {/* Axis titles */}
+                <text
+                  x={CHART_WIDTH / 2}
+                  y={CHART_HEIGHT - 3}
+                  textAnchor="middle"
+                  className="text-[9px]"
+                  style={{ fill: "hsl(var(--foreground))" }}
+                >
+                  {collateralSymbol}/{debtSymbol} Price Change
+                </text>
 
-      {/* Key points summary */}
-      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-        {keyPoints.map((point, i) => (
-          <div
-            key={i}
-            className="flex flex-col items-center rounded bg-background/60 px-2 py-1.5 dark:bg-background/30"
-          >
-            <span className="text-[11px] text-foreground/70">
-              {point.priceChange >= 0 ? "+" : ""}
-              {point.priceChange}%
-            </span>
-            <span
-              className={
-                point.gain >= 0
-                  ? "font-semibold text-accent"
-                  : "font-semibold text-red"
-              }
-            >
-              {point.gain >= 0 ? "+" : ""}
-              <DisplayFormattedNumber num={point.gain} />%
-            </span>
-          </div>
-        ))}
-      </div>
+                {/* Selection rectangle during drag */}
+                {isDragging && dragStart && dragEnd && (
+                  <rect
+                    x={Math.min(dragStart.x, dragEnd.x)}
+                    y={Math.min(dragStart.y, dragEnd.y)}
+                    width={Math.abs(dragEnd.x - dragStart.x)}
+                    height={Math.abs(dragEnd.y - dragStart.y)}
+                    fill="hsla(var(--accent), 0.15)"
+                    stroke="hsla(var(--accent), 0.5)"
+                    strokeWidth="1"
+                    strokeDasharray="4,2"
+                  />
+                )}
+              </svg>
+            </div>
 
-      {/* Legend */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
-        {/* APE leveraged line legend */}
-        <div className="flex items-center gap-1.5">
-          <svg width="16" height="4" className="inline-block">
-            <line x1="0" y1="2" x2="16" y2="2" stroke="currentColor" strokeWidth="2" className="text-accent" />
-          </svg>
-          <span className="font-medium">
-            APE{" "}
-            <span className="font-normal text-on-bg-subdued">(incl. fees)</span>
-          </span>
-        </div>
-        {/* Regular leverage line legend - dashed */}
-        <div className="flex items-center gap-1.5">
-          <svg width="16" height="4" className="inline-block">
-            <line x1="0" y1="2" x2="16" y2="2" stroke="#fb923c" strokeWidth="1.5" strokeDasharray="6,4" />
-          </svg>
-          <span>
-            Perp {leverageRatio}x{" "}
-            <span className="text-on-bg-subdued">(excl. fees)</span>
-          </span>
-        </div>
-        {/* Spot line legend - dashed */}
-        <div className="flex items-center gap-1.5">
-          <svg width="16" height="4" className="inline-block">
-            <line x1="0" y1="2" x2="16" y2="2" stroke="#a78bfa" strokeWidth="1.5" strokeDasharray="6,4" />
-          </svg>
-          <span>Spot</span>
-        </div>
-        {/* Saturation threshold legend */}
-        <div className="flex items-center gap-1.5">
-          <svg width="16" height="12" className="inline-block">
-            <line x1="8" y1="0" x2="8" y2="12" stroke="currentColor" strokeWidth="1" strokeDasharray="3,2" className="text-foreground/60" />
-          </svg>
-          <span>Saturation</span>
-          <ToolTip iconSize={12} size="300">
-            <div className="space-y-1.5">
-              <div>
-                This threshold marks where returns shift from convex to linear gains.
+            {/* Key points summary */}
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              {keyPoints.map((point, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center rounded bg-background/60 px-2 py-1.5 dark:bg-background/30"
+                >
+                  <span className="text-[11px] text-foreground/70">
+                    {point.priceChange >= 0 ? "+" : ""}
+                    {point.priceChange}%
+                  </span>
+                  <span
+                    className={
+                      point.gain >= 0
+                        ? "font-semibold text-accent"
+                        : "font-semibold text-red"
+                    }
+                  >
+                    {point.gain >= 0 ? "+" : ""}
+                    <DisplayFormattedNumber num={point.gain} />%
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-foreground">
+              {/* APE leveraged line legend */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-accent"
+                  />
+                </svg>
+                <span className="font-medium">
+                  APE{" "}
+                  <span className="font-normal text-on-bg-subdued">
+                    (incl. fees)
+                  </span>
+                </span>
               </div>
-              <div>
-                It depends on the vault&apos;s current liquidity and your deposit size. Larger deposits relative to vault liquidity lower this threshold.
+              {/* Regular leverage line legend - dashed */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="#fb923c"
+                    strokeWidth="1.5"
+                    strokeDasharray="6,4"
+                  />
+                </svg>
+                <span>
+                  Perp {leverageRatio}x{" "}
+                  <span className="text-on-bg-subdued">(excl. fees)</span>
+                </span>
+              </div>
+              {/* Spot line legend - dashed */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="4" className="inline-block">
+                  <line
+                    x1="0"
+                    y1="2"
+                    x2="16"
+                    y2="2"
+                    stroke="#a78bfa"
+                    strokeWidth="1.5"
+                    strokeDasharray="6,4"
+                  />
+                </svg>
+                <span>Spot</span>
+              </div>
+              {/* Saturation threshold legend */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="12" className="inline-block">
+                  <line
+                    x1="8"
+                    y1="0"
+                    x2="8"
+                    y2="12"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeDasharray="3,2"
+                    className="text-foreground/60"
+                  />
+                </svg>
+                <span>Saturation</span>
+                <ToolTip iconSize={12} size="300">
+                  <div className="space-y-1.5">
+                    <div>
+                      This threshold marks where returns shift from convex to
+                      linear gains.
+                    </div>
+                    <div>
+                      It depends on the vault&apos;s current liquidity and your
+                      deposit size. Larger deposits relative to vault liquidity
+                      lower this threshold.
+                    </div>
+                  </div>
+                </ToolTip>
               </div>
             </div>
-          </ToolTip>
-        </div>
-      </div>
           </div>
         </CollapsibleContent>
       </div>

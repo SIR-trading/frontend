@@ -19,8 +19,10 @@ import useCalculateVaultHealth from "@/components/leverage-liquidity/vaultTable/
 import useVaultFilterStore from "@/lib/store";
 import { calculateSaturationPrice, getLeverageRatio, isVaultInPowerZone } from "@/lib/utils/calculations";
 import { useMemo } from "react";
-import useFormFee from "./hooks/useFormFee";
 import useIsDebtToken from "./hooks/useIsDebtToken";
+import buildData from "@/../public/build-data.json";
+
+const BASE_FEE = buildData.systemParams.baseFee;
 
 interface Props {
   vaultsQuery: TVaults; // Adjust the type as needed
@@ -156,19 +158,27 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
   const liquidityMultiplier = formData.liquidityMultiplier ?? 1;
   const deposit = formData.deposit;
 
-  // Calculate deposit impact
+  // Calculate deposit impact using minting fee only (not squared mint+burn fee)
+  // Matching ConvexReturnsChart logic for consistency
   const isDebtToken = useIsDebtToken();
-  const strFee = useFormFee({
-    leverageTier: formData.leverageTier,
-    isApe: true,
-  });
-  const fee = Number(strFee);
   const depositAmount = Number(deposit ?? 0);
+
+  // Fix: use multiplication for debt token (entryPrice is in collateral/debt format, e.g., 0.000333 ETH/USDC)
   const depositInCollateral = isDebtToken
-    ? depositAmount / Number(formData.entryPrice ?? 1)
+    ? depositAmount * Number(formData.entryPrice ?? 1)
     : depositAmount;
-  const feeAmount = depositInCollateral * (fee / 100);
-  const depositAfterFee = depositInCollateral - feeAmount;
+
+  // Calculate leverage ratio here (needed for fee calculation)
+  const leverageRatioForFee = getLeverageRatio(parseFloat(leverageTier || "0"));
+
+  // Use minting-only fee multiplier: 1 + (l-1)*baseFee (not the squared fee)
+  const feeMultiplier = 1 + (leverageRatioForFee - 1) * BASE_FEE;
+  const depositAfterFee = feeMultiplier > 0 ? depositInCollateral / feeMultiplier : depositInCollateral;
+  const feeAmount = depositInCollateral - depositAfterFee;
+
+  // Only LP portion of fee goes to tea reserve (staker portion = tax/510)
+  const vaultTax = Number(selectedVault.result?.tax ?? 0);
+  const feeToLp = (feeAmount * (510 - vaultTax)) / 510;
 
   // Get vault decimals
   const vaultDecimals = selectedVault.result?.collateralToken?.decimals ?? 18;
@@ -191,7 +201,7 @@ export default function CalculatorForm({ vaultsQuery }: Props) {
     : liquidityAdjustedApeReserve;
 
   const teaReserve = shouldConsiderDeposit
-    ? liquidityAdjustedTeaReserve + BigInt(Math.floor(feeAmount * Math.pow(10, vaultDecimals)))
+    ? liquidityAdjustedTeaReserve + BigInt(Math.floor(feeToLp * Math.pow(10, vaultDecimals)))
     : liquidityAdjustedTeaReserve;
   
   

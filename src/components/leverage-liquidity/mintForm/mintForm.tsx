@@ -533,7 +533,7 @@ export default function MintForm({ isApe }: Props) {
   ]);
 
   return (
-    <Card className="relative overflow-visible h-full">
+    <Card className="relative h-full overflow-visible">
       {/* Handle vault URL synchronization (wrapped in Suspense for SSR) */}
       <VaultUrlSync />
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -820,8 +820,8 @@ export default function MintForm({ isApe }: Props) {
         </DepositInputs.Root>
 
         {/* Convex Returns Chart - only show for APE */}
-        {isApe && (
-          selectedVault.result &&
+        {isApe &&
+          (selectedVault.result &&
           poolPrice?.price &&
           poolPrice.price > 0 &&
           selectedVault.result.reserveLPers !== "0" ? (
@@ -851,18 +851,28 @@ export default function MintForm({ isApe }: Props) {
                 </p>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* Warning when vault has 0 LP liquidity (check actual reserves, not USD value) */}
-        <Show when={!!(isApe && selectedVault.result && selectedVault.result.reserveLPers === "0")}>
+        <Show
+          when={
+            !!(
+              isApe &&
+              selectedVault.result &&
+              selectedVault.result.reserveLPers === "0"
+            )
+          }
+        >
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>
               <div className="text-sm">
                 <strong className="text-orange-300">Warning:</strong>
                 <span className="ml-1 text-foreground/80">
-                  This vault has no liquidity. You cannot make any leverage gains without LPers providing liquidity first. Consider providing liquidity on the Liquidity page before taking a leveraged position.
+                  This vault has no liquidity. You cannot make any leverage
+                  gains without LPers providing liquidity first. Consider
+                  providing liquidity on the Liquidity page before taking a
+                  leveraged position.
                 </span>
               </div>
             </div>
@@ -870,7 +880,16 @@ export default function MintForm({ isApe }: Props) {
         </Show>
 
         {/* Warning when vault has limited liquidity (red status but has some LP reserves) */}
-        <Show when={!!(isApe && isVaultRed && selectedVault.result && selectedVault.result.reserveLPers !== "0")}>
+        <Show
+          when={
+            !!(
+              isApe &&
+              isVaultRed &&
+              selectedVault.result &&
+              selectedVault.result.reserveLPers !== "0"
+            )
+          }
+        >
           <div className="bg-orange-500/10 my-3 rounded-md border-2 border-foreground/20 p-3">
             <div className="flex items-start gap-2">
               <div className="text-orange-500">⚠️</div>

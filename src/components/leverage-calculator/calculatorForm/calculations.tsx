@@ -4,7 +4,7 @@ import type { TCalculatorFormFields } from "@/components/providers/calculatorFor
 import useFormFee from "@/components/leverage-calculator/calculatorForm/hooks/useFormFee";
 import useIsDebtToken from "@/components/leverage-calculator/calculatorForm/hooks/useIsDebtToken";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
-import { calculateCollateralGainWithLiquidity, calculateSaturationPrice, getLeverageRatio } from "@/lib/utils/calculations";
+import { calculateCollateralGainWithLiquidity } from "@/lib/utils/calculations";
 import { useFindVault } from "./hooks/useFindVault";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
@@ -38,12 +38,15 @@ export default function Calculations({
   // Get the selected vault to fetch reserve data (only for fallback)
   const selectedVault = useFindVault(vaultsQuery);
 
-  // Use reserves from props when provided (parent handles liquidity multiplier)
-  // Only calculate as fallback when props are not provided
-  const baseApeReserve =
+  // Use reserves from props - parent handles liquidity multiplier AND deposit impact
+  // Parent (calculatorForm.tsx) correctly calculates:
+  // - Minting fee only (not squared mint+burn)
+  // - Tax split (only LP portion goes to tea reserve)
+  // - Proper debt token conversion (multiplication, not division)
+  const apeReserve =
     propsApeReserve ??
     (selectedVault.result ? BigInt(selectedVault.result.reserveApes || 0) : 0n);
-  const baseTeaReserve =
+  const teaReserve =
     propsTeaReserve ??
     (selectedVault.result
       ? BigInt(selectedVault.result.reserveLPers || 0)
@@ -52,133 +55,15 @@ export default function Calculations({
   // Use the currentPrice passed from parent component (calculatorForm.tsx)
   const marketPrice = currentPrice ?? 0;
 
-  // Extract fee
+  // Extract fee for gain calculation (this IS the squared fee, used for final P&L)
   const strFee = useFormFee({
     leverageTier: formData.leverageTier,
     isApe: true,
   });
   const fee = Number(strFee);
 
-  // Calculate adjusted reserves if "Consider deposit" is checked
-  const depositAmount = Number(formData.deposit ?? 0);
-  const depositInCollateral = isDebtToken
-    ? depositAmount / Number(formData.entryPrice ?? 1)
-    : depositAmount;
-  const feeAmount = depositInCollateral * (fee / 100);
-  const depositAfterFee = depositInCollateral - feeAmount;
-
   // Get vault decimals (fallback to 18 if not available)
   const vaultDecimals = selectedVault.result?.collateralToken?.decimals ?? 18;
-
-  // Adjust reserves based on deposit if both considerLiquidity and considerDeposit are true
-  const shouldConsiderDeposit =
-    (formData.considerLiquidity ?? true) &&
-    (formData.considerDeposit ?? false) &&
-    depositInCollateral > 0;
-
-  const apeReserve = shouldConsiderDeposit
-    ? baseApeReserve +
-      BigInt(Math.floor(depositAfterFee * Math.pow(10, vaultDecimals))) // Adding deposit minus fee to ape reserve
-    : baseApeReserve;
-
-  const teaReserve = shouldConsiderDeposit
-    ? baseTeaReserve +
-      BigInt(Math.floor(feeAmount * Math.pow(10, vaultDecimals))) // Adding fee to tea reserve
-    : baseTeaReserve;
-
-  // Log the reserve changes and saturation price
-  if (formData.considerLiquidity) {
-    if (shouldConsiderDeposit) {
-      const baseApeFormatted = Number(baseApeReserve) / Math.pow(10, vaultDecimals);
-      const baseTeaFormatted = Number(baseTeaReserve) / Math.pow(10, vaultDecimals);
-      const adjustedApeFormatted = Number(apeReserve) / Math.pow(10, vaultDecimals);
-      const adjustedTeaFormatted = Number(teaReserve) / Math.pow(10, vaultDecimals);
-
-      // Calculate leverage ratio for saturation price
-      const leverageValue = parseFloat(formData.leverageTier || "0");
-      const leverageRatio = getLeverageRatio(leverageValue);
-
-      // Calculate saturation prices (need to pass currentPrice as first parameter)
-      const baseSaturationPrice = calculateSaturationPrice(
-        marketPrice,
-        baseApeReserve,
-        baseTeaReserve,
-        leverageRatio
-      );
-      const adjustedSaturationPrice = calculateSaturationPrice(
-        marketPrice,
-        apeReserve,
-        teaReserve,
-        leverageRatio
-      );
-      const saturationPriceChange = adjustedSaturationPrice - baseSaturationPrice;
-      const saturationPriceChangePerc = (saturationPriceChange / baseSaturationPrice) * 100;
-
-      console.log("📊 Reserve Impact Analysis:", {
-        "📍 Deposit Info": {
-          depositAmount,
-          depositInCollateral,
-          feePercentage: `${fee}%`,
-          feeAmount,
-          depositAfterFee,
-        },
-        "🔵 Base Reserves (Before Deposit)": {
-          apeReserve: baseApeFormatted,
-          teaReserve: baseTeaFormatted,
-          totalTVL: baseApeFormatted + baseTeaFormatted,
-          apeRatio: `${((baseApeFormatted / (baseApeFormatted + baseTeaFormatted)) * 100).toFixed(2)}%`,
-          saturationPrice: baseSaturationPrice,
-        },
-        "🟢 Adjusted Reserves (After Deposit)": {
-          apeReserve: adjustedApeFormatted,
-          teaReserve: adjustedTeaFormatted,
-          totalTVL: adjustedApeFormatted + adjustedTeaFormatted,
-          apeRatio: `${((adjustedApeFormatted / (adjustedApeFormatted + adjustedTeaFormatted)) * 100).toFixed(2)}%`,
-          saturationPrice: adjustedSaturationPrice,
-        },
-        "📈 Changes": {
-          apeChange: `+${depositAfterFee} (${((depositAfterFee / baseApeFormatted) * 100).toFixed(2)}% increase)`,
-          teaChange: `+${feeAmount} (${((feeAmount / baseTeaFormatted) * 100).toFixed(2)}% increase)`,
-          depositAsPercentOfTVL: `${((depositInCollateral / (baseApeFormatted + baseTeaFormatted)) * 100).toFixed(2)}%`,
-          saturationPriceChange: `${saturationPriceChange > 0 ? '+' : ''}${saturationPriceChange.toFixed(6)} (${saturationPriceChangePerc > 0 ? '+' : ''}${saturationPriceChangePerc.toFixed(2)}%)`,
-        },
-        "🎯 Saturation Analysis": {
-          leverageRatio,
-          beforeDeposit: {
-            saturationPrice: baseSaturationPrice,
-            currentToSaturationRatio: marketPrice / baseSaturationPrice,
-          },
-          afterDeposit: {
-            saturationPrice: adjustedSaturationPrice,
-            currentToSaturationRatio: marketPrice / adjustedSaturationPrice,
-          },
-          impact: `Saturation price ${saturationPriceChange > 0 ? 'increased' : 'decreased'} by ${Math.abs(saturationPriceChangePerc).toFixed(2)}%`,
-        }
-      });
-    } else {
-      const apeFormatted = Number(apeReserve) / Math.pow(10, vaultDecimals);
-      const teaFormatted = Number(teaReserve) / Math.pow(10, vaultDecimals);
-
-      // Calculate leverage ratio and saturation price
-      const leverageValue = parseFloat(formData.leverageTier || "0");
-      const leverageRatio = getLeverageRatio(leverageValue);
-      const saturationPrice = calculateSaturationPrice(
-        marketPrice,
-        apeReserve,
-        teaReserve,
-        leverageRatio
-      );
-
-      console.log("📊 Current Liquidity (No Deposit Impact):", {
-        apeReserve: apeFormatted,
-        teaReserve: teaFormatted,
-        totalTVL: apeFormatted + teaFormatted,
-        apeRatio: `${((apeFormatted / (apeFormatted + teaFormatted)) * 100).toFixed(2)}%`,
-        saturationPrice,
-        currentToSaturationRatio: marketPrice / saturationPrice,
-      });
-    }
-  }
 
   // Make sure entryPrice and exitPrice are provided to avoid calculation errors.
   const entryPrice = isDebtToken
