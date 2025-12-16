@@ -12,7 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 // Default axis bounds
@@ -571,9 +571,12 @@ export default function ConvexReturnsChart({
     const y1 = Math.min(dragStart.y, dragEnd.y);
     const y2 = Math.max(dragStart.y, dragEnd.y);
 
-    // Minimum selection size (20px) to zoom in
-    if (x2 - x1 > 20 && y2 - y1 > 20) {
-      // Convert SVG coordinates to data coordinates
+    const dragWidth = x2 - x1;
+    const dragHeight = y2 - y1;
+
+    // Minimum selection size (20px) to use drag-zoom; otherwise use click-zoom
+    if (dragWidth > 20 && dragHeight > 20) {
+      // Drag-zoom: zoom to selected rectangle
       const newXMin =
         xMin + ((x1 - CHART_PADDING.left) / INNER_WIDTH) * (xMax - xMin);
       const newXMax =
@@ -685,16 +688,36 @@ export default function ConvexReturnsChart({
             </span>
           )}
           <div className="flex items-center gap-2">
-            {zoomBounds && isOpen && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  resetZoom();
-                }}
-                className="text-[11px] text-on-bg-subdued transition-colors hover:text-foreground"
-              >
-                Reset zoom
-              </button>
+            {isOpen && (
+              <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                {zoomBounds ? (
+                  <div className="flex items-center rounded-full border border-foreground/20 text-[11px]">
+                    <button
+                      onClick={resetZoom}
+                      className="rounded-l-full px-2 py-0.5 text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={zoomOut}
+                      className="flex items-center gap-1 rounded-r-full border-l border-foreground/20 px-2 py-0.5 text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
+                      title="Zoom out"
+                    >
+                      <Search className="h-3 w-3" />
+                      <span>−</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={zoomOut}
+                    className="flex items-center gap-1 rounded-full border border-foreground/20 px-2 py-0.5 text-[11px] text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
+                    title="Zoom out"
+                  >
+                    <Search className="h-3 w-3" />
+                    <span>−</span>
+                  </button>
+                )}
+              </div>
             )}
             <ChevronDown
               className={`h-4 w-4 text-on-bg-subdued transition-transform duration-200 ${
@@ -853,12 +876,11 @@ export default function ConvexReturnsChart({
                 viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
                 className="w-full select-none"
                 preserveAspectRatio="xMidYMid meet"
-                style={{ cursor: isDragging ? "crosshair" : "zoom-out" }}
+                style={{ cursor: isDragging ? "crosshair" : "default" }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
-                onDoubleClick={zoomOut}
               >
                 <defs>
                   {/* Clip path to constrain chart lines within the plot area, capped at -100% (can't lose more than 100%) */}
