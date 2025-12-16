@@ -49,9 +49,8 @@ import {
   calculateBreakevenTime,
   calculateValueGainFromPriceGain,
 } from "@/lib/utils/breakeven";
-import { PriceIncreaseDisplay } from "@/components/portfolio/burnTable/PriceIncreaseDisplay";
 import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
-import { getLeverageRatio } from "@/lib/utils/calculations";
+import { getLeverageRatio, calculateSaturationPrice } from "@/lib/utils/calculations";
 import { VaultUrlSync } from "./VaultUrlSync";
 import ConvexReturnsChart from "./ConvexReturnsChart";
 import buildData from "@/../public/build-data.json";
@@ -441,6 +440,38 @@ export default function MintForm({ isApe }: Props) {
     return amountAfterFees;
   }, [deposit, fee, depositDecimals]);
 
+  // Core gain function f(x) for APE positions (same as chart):
+  // f(x) = x^l if x <= 1 (power zone - convex gains)
+  // f(x) = l*(x-1) + 1 if x >= 1 (saturation zone - linear gains)
+  const fGain = useCallback((x: number, l: number): number => {
+    if (x <= 1) {
+      return Math.pow(x, l);
+    } else {
+      return l * (x - 1) + 1;
+    }
+  }, []);
+
+  // Calculate APE gain with saturation effects (expected returns)
+  const calculateExpectedGain = useCallback((
+    priceGainPercent: number,
+    saturationPrice: number,
+    entryPrice: number,
+    leverage: number,
+    baseFeeDecimal: number,
+  ): number => {
+    if (saturationPrice <= 0 || entryPrice <= 0) return 0;
+
+    const exitPrice = entryPrice * (1 + priceGainPercent / 100);
+    const g0 = entryPrice / saturationPrice;
+    const g1 = exitPrice / saturationPrice;
+
+    const feeMultiplier = 1 + (leverage - 1) * baseFeeDecimal;
+    const feeFactor = feeMultiplier * feeMultiplier; // squared for mint + burn
+
+    const gain = fGain(g1, leverage) / fGain(g0, leverage) / feeFactor;
+    return (gain - 1) * 100; // Convert to percentage
+  }, [fGain]);
+
   // Calculate stats for Required Price Gain or Required Time
   const stats = useMemo(() => {
     // Check if we have valid values to calculate stats
@@ -467,22 +498,73 @@ export default function MintForm({ isApe }: Props) {
       // Get fee percentage
       const feePercent = parseFloat(fee ?? "0");
 
-      // Calculate value gains for fixed price gains
-      // Fixed price gains: +50%, +100%, +400%
-      const priceGains = [50, 100, 400];
+      // Fixed price gains: -50%, +100%, +250%
+      const priceGains = [-50, 100, 250];
 
-      const gains = priceGains.map((priceGain) => ({
+      // Calculate ideal gains (theoretical, constant leverage)
+      const idealGains = priceGains.map((priceGain) => ({
         priceGain,
-        debtGain: calculateValueGainFromPriceGain(
-          priceGain,
-          leverage,
-          feePercent,
-        ),
+        gain: calculateValueGainFromPriceGain(priceGain, leverage, feePercent),
       }));
+
+      // Calculate expected gains (with saturation effects)
+      let expectedGains: { priceGain: number; gain: number }[] | null = null;
+
+      if (
+        selectedVault.result &&
+        poolPrice?.price &&
+        poolPrice.price > 0
+      ) {
+        const apeReserve = BigInt(selectedVault.result.reserveApes || "0");
+        const teaReserve = BigInt(selectedVault.result.reserveLPers || "0");
+        const tax = parseInt(selectedVault.result.tax ?? "0");
+        const collDecimals = selectedVault.result.collateralToken.decimals;
+
+        // Calculate adjusted reserves after user's deposit (same as chart)
+        const feeMultiplier = 1 + (leverage - 1) * BASE_FEE;
+        const depositInCollateral = usingDebtToken && poolPrice.price > 0
+          ? initialDeposit / poolPrice.price
+          : initialDeposit;
+        const depositAfterFee = depositInCollateral / feeMultiplier;
+        const feeAmount = depositInCollateral - depositAfterFee;
+        const feeToLp = (feeAmount * (510 - tax)) / 510;
+
+        const depositAfterFeeBigInt = BigInt(
+          Math.floor(Math.max(0, depositAfterFee) * Math.pow(10, collDecimals))
+        );
+        const feeToLpBigInt = BigInt(
+          Math.floor(Math.max(0, feeToLp) * Math.pow(10, collDecimals))
+        );
+
+        const adjustedApeReserve = apeReserve + depositAfterFeeBigInt;
+        const adjustedTeaReserve = teaReserve + feeToLpBigInt;
+
+        // Calculate saturation price with adjusted reserves
+        const satPrice = calculateSaturationPrice(
+          poolPrice.price,
+          adjustedApeReserve,
+          adjustedTeaReserve,
+          leverage
+        );
+
+        if (satPrice > 0) {
+          expectedGains = priceGains.map((priceGain) => ({
+            priceGain,
+            gain: calculateExpectedGain(
+              priceGain,
+              satPrice,
+              poolPrice.price,
+              leverage,
+              BASE_FEE
+            ),
+          }));
+        }
+      }
 
       return {
         type: "priceGain" as const,
-        gains,
+        idealGains,
+        expectedGains,
       };
     } else if (!isApe && apyData?.apy !== undefined) {
       // Calculate Required Time for TEA tokens
@@ -530,6 +612,10 @@ export default function MintForm({ isApe }: Props) {
     leverageTier,
     apyData?.apy,
     fee,
+    selectedVault.result,
+    poolPrice?.price,
+    usingDebtToken,
+    calculateExpectedGain,
   ]);
 
   return (
@@ -647,32 +733,57 @@ export default function MintForm({ isApe }: Props) {
                     <div className="mt-2 border-t border-foreground/10 pt-2" />
                     {stats.type === "priceGain" ? (
                       <>
-                        {/* Simplified two-column display for APE tokens */}
-                        <div className="mb-2 flex justify-between text-[11px]">
+                        {/* Header row with column labels */}
+                        <div className="mb-2 grid grid-cols-3 gap-2 text-[11px]">
                           <div className="text-foreground/70">
-                            If {collateralTokenSymbol}/{debtTokenSymbol} gains:
+                            {collateralTokenSymbol}/{debtTokenSymbol}
                           </div>
-                          <div className="text-foreground/70">
-                            Your position gains:
+                          <div className="text-right text-foreground/70">
+                            Expected returns
+                          </div>
+                          <div className="text-right text-foreground/70">
+                            Ideal returns
                           </div>
                         </div>
 
-                        {/* Display each price gain and corresponding debt token gain */}
-                        {stats.gains.map((gain, index) => (
-                          <div
-                            key={index}
-                            className="mb-0.5 flex justify-between text-[13px]"
-                          >
-                            <div className="text-gray-300">
-                              +{gain.priceGain}%
+                        {/* Display each price gain with expected and ideal returns */}
+                        {stats.idealGains.map((idealGain, index) => {
+                          const expectedGain = stats.expectedGains?.[index];
+                          const priceChange = idealGain.priceGain;
+
+                          // Helper to format gain with color
+                          const formatGain = (gain: number) => {
+                            const isPositive = gain >= 0;
+                            const colorClass = isPositive ? "text-accent" : "text-red-400";
+                            const prefix = isPositive ? "+" : "";
+                            return (
+                              <span className={colorClass}>
+                                {prefix}<DisplayFormattedNumber num={gain} significant={3} />%
+                              </span>
+                            );
+                          };
+
+                          return (
+                            <div
+                              key={index}
+                              className="mb-0.5 grid grid-cols-3 gap-2 text-[13px]"
+                            >
+                              <div className="text-gray-300">
+                                {priceChange >= 0 ? "+" : ""}{priceChange}%
+                              </div>
+                              <div className="text-right">
+                                {expectedGain !== undefined ? (
+                                  formatGain(expectedGain.gain)
+                                ) : (
+                                  <span className="text-foreground/50">—</span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                {formatGain(idealGain.gain)}
+                              </div>
                             </div>
-                            <div>
-                              <PriceIncreaseDisplay
-                                percentage={gain.debtGain}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </>
                     ) : (
                       <>
@@ -693,7 +804,7 @@ export default function MintForm({ isApe }: Props) {
                     )}
                     <div className="mt-1 text-[10px] text-muted-foreground">
                       {isApe
-                        ? `Position gains calculated in ${debtTokenSymbol} terms, assuming constant leverage.`
+                        ? `Expected: based on current liquidity. Ideal: constant leverage.`
                         : "Time calculations assume price and APY remain constant"}
                     </div>
                   </>

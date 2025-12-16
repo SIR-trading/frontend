@@ -265,7 +265,7 @@ function SortableHeader({
       {children}
       <span className="flex flex-col">
         <ChevronUp
-          className={`h-3 w-3 -mb-1 ${isActive && direction === "asc" ? "text-foreground" : "text-muted-foreground/40"}`}
+          className={`-mb-1 h-3 w-3 ${isActive && direction === "asc" ? "text-foreground" : "text-muted-foreground/40"}`}
         />
         <ChevronDown
           className={`h-3 w-3 ${isActive && direction === "desc" ? "text-foreground" : "text-muted-foreground/40"}`}
@@ -322,9 +322,20 @@ function VaultTableRowHeaders({
         <th className="pb-1 pr-4 font-medium">
           <div className="flex items-center gap-x-1">
             <span>Fee</span>
-            <ToolTip iconSize={12}>
-              One-time APE minting fee. Half distributed to LPers at mint, and
-              half at burn.
+            <ToolTip iconSize={12} size="300">
+              <div className="space-y-2">
+                <div>
+                  <span className="font-medium">One-time fee</span> — no funding
+                  rates, no liquidations.
+                </div>
+                <div>
+                  SIR combines leverage tokens with option-like pricing: convex
+                  returns without volatility decay.*
+                </div>
+                <div className="text-[10px] italic opacity-60">
+                  *Volatility decay ay occur in saturation (low liquidity)
+                </div>
+              </div>
             </ToolTip>
           </div>
         </th>

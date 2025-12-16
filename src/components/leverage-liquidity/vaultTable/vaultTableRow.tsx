@@ -25,7 +25,6 @@ import { useFormContext } from "react-hook-form";
 import type { TCalculatorFormFields } from "@/components/providers/calculatorFormProvider";
 import { useDuneCharts } from "../mintForm/hooks/useDuneCharts";
 import { getSirSymbol } from "@/lib/assets";
-import { FeeExplanation } from "@/components/shared/FeeExplanation";
 import { getCurrentChainConfig } from "@/lib/chains";
 import DuneChartPopup from "@/components/shared/duneChartPopup";
 
@@ -685,12 +684,6 @@ export function VaultTableRow({
             >
               {roundDown(fee, 0)}%
             </h4>
-            {isApe && (
-              <FeeExplanation
-                leverageTier={vault.leverageTier.toString()}
-                compact
-              />
-            )}
           </div>
         )}
       </td>
