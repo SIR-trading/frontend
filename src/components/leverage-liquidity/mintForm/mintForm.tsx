@@ -881,8 +881,14 @@ export default function MintForm({ isApe }: Props) {
                 <span className="ml-1 text-foreground/80">
                   This vault has no liquidity. You cannot make any leverage
                   gains without LPers providing liquidity first. Consider
-                  providing liquidity on the Liquidity page before taking a
-                  leveraged position.
+                  providing{" "}
+                  <a
+                    href={`/liquidity?vault=${selectedVault.result?.id ?? ""}`}
+                    className="underline hover:text-foreground/70"
+                  >
+                    liquidity
+                  </a>{" "}
+                  and earn a yield.
                 </span>
               </div>
             </div>

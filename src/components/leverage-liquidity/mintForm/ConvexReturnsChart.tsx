@@ -13,6 +13,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 // Default axis bounds
 const DEFAULT_X_MIN = -100;
@@ -145,6 +146,25 @@ export default function ConvexReturnsChart({
   const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // LP liquidity multiplier with discrete values
+  // Below 1x: 0.02 increments (0.10, 0.12, ..., 0.98)
+  // At and above 1x: 0.1 increments (1.0, 1.1, ..., 10.0)
+  const LIQUIDITY_STEPS = useMemo(() => {
+    const steps: number[] = [];
+    // Below 1x: 0.10 to 0.98 in 0.02 increments
+    for (let v = 0.1; v < 1; v += 0.02) {
+      steps.push(Math.round(v * 100) / 100); // Avoid floating point issues
+    }
+    // At and above 1x: 1.0 to 10.0 in 0.1 increments
+    for (let v = 1; v <= 10; v += 0.1) {
+      steps.push(Math.round(v * 10) / 10);
+    }
+    return steps;
+  }, []);
+  const DEFAULT_LIQUIDITY_INDEX = LIQUIDITY_STEPS.findIndex(v => v === 1);
+  const [liquidityIndex, setLiquidityIndex] = useState(DEFAULT_LIQUIDITY_INDEX);
+  const liquidityMultiplier = LIQUIDITY_STEPS[liquidityIndex] ?? 1;
+
   // Reset to default view
   const resetZoom = useCallback(() => {
     setZoomBounds(null);
@@ -227,23 +247,28 @@ export default function ConvexReturnsChart({
     }
   }, [isDragging]);
 
-  // Calculate adjusted reserves after user's deposit
+  // Calculate adjusted reserves after LP liquidity multiplier and user's deposit
   // Upon minting: deposit is reduced by 1/(1+(l-1)*fBase)
   // Fee = deposit - depositAfterFee
   // Fee portion (510-tax)/510 goes to tea reserve
   // Deposit after fee goes to ape reserve
   const adjustedReserves = useMemo(() => {
+    // Apply liquidity multiplier to base tea reserve
+    const scaledTeaReserve = BigInt(
+      Math.floor(Number(teaReserve) * liquidityMultiplier)
+    );
+
     if (
       !depositAmount ||
       depositAmount <= 0 ||
       !Number.isFinite(depositAmount)
     ) {
-      return { apeReserve, teaReserve };
+      return { apeReserve, teaReserve: scaledTeaReserve };
     }
 
     const feeMultiplier = 1 + (leverageRatio - 1) * baseFee;
     if (feeMultiplier <= 0) {
-      return { apeReserve, teaReserve };
+      return { apeReserve, teaReserve: scaledTeaReserve };
     }
 
     const depositAfterFee = depositAmount / feeMultiplier;
@@ -264,7 +289,7 @@ export default function ConvexReturnsChart({
 
     return {
       apeReserve: apeReserve + depositAfterFeeBigInt,
-      teaReserve: teaReserve + feeToLpBigInt,
+      teaReserve: scaledTeaReserve + feeToLpBigInt,
     };
   }, [
     apeReserve,
@@ -274,6 +299,7 @@ export default function ConvexReturnsChart({
     baseFee,
     tax,
     collateralDecimals,
+    liquidityMultiplier,
   ]);
 
   // Check if this is a 0 TVL vault (no existing liquidity)
@@ -281,6 +307,11 @@ export default function ConvexReturnsChart({
 
   // Calculate saturation price and the price change % at which saturation occurs
   const saturationData = useMemo(() => {
+    // For 0 TVL vaults, saturation starts at -100% (no LP cushion)
+    if (isZeroTvl) {
+      return { saturationPrice: 0, saturationPriceChange: -100 };
+    }
+
     if (
       !currentPrice ||
       currentPrice === 0 ||
@@ -306,6 +337,7 @@ export default function ConvexReturnsChart({
     currentPrice,
     adjustedReserves.apeReserve,
     adjustedReserves.teaReserve,
+    isZeroTvl,
     leverageRatio,
   ]);
 
@@ -626,7 +658,7 @@ export default function ConvexReturnsChart({
   const zeroY = yScale(0);
   // Show saturation line if it falls within the current visible x-axis range
   const saturationX =
-    saturationData.saturationPriceChange > xMin &&
+    saturationData.saturationPriceChange >= xMin &&
     saturationData.saturationPriceChange < xMax
       ? xScale(saturationData.saturationPriceChange)
       : null;
@@ -728,9 +760,8 @@ export default function ConvexReturnsChart({
                 </svg>
                 <span>Spot</span>
               </div>
-              {/* Saturation threshold legend - hide for 0 TVL vaults */}
-              {!isZeroTvl && (
-                <div className="flex items-center gap-1.5">
+              {/* Saturation threshold legend */}
+              <div className="flex items-center gap-1.5">
                   <svg width="20" height="12" className="inline-block">
                     <defs>
                       <linearGradient id="legendSaturationGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -771,8 +802,49 @@ export default function ConvexReturnsChart({
                     </div>
                   </ToolTip>
                 </div>
-              )}
             </div>
+
+            {/* LP Liquidity Slider - hide for 0 TVL vaults */}
+            {!isZeroTvl && (
+              <div className="mb-3 px-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] text-foreground/70 whitespace-nowrap flex items-center gap-1">
+                    LP Liquidity:
+                    <ToolTip iconSize={12} size="300">
+                      As leveraged positions grow, fees paid to LPers increase,
+                      attracting more liquidity to the vault. Use this slider to
+                      simulate how returns change with different liquidity levels.
+                    </ToolTip>
+                  </span>
+                  <Slider
+                    value={[liquidityIndex]}
+                    onValueChange={(values) => setLiquidityIndex(values[0] ?? DEFAULT_LIQUIDITY_INDEX)}
+                    min={0}
+                    max={LIQUIDITY_STEPS.length - 1}
+                    step={1}
+                    className="flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setLiquidityIndex(DEFAULT_LIQUIDITY_INDEX)}
+                    className={`text-[11px] font-medium text-right ${
+                      liquidityIndex !== DEFAULT_LIQUIDITY_INDEX
+                        ? "text-foreground underline cursor-pointer hover:text-foreground/70"
+                        : "text-foreground cursor-default"
+                    }`}
+                    title={liquidityIndex !== DEFAULT_LIQUIDITY_INDEX ? "Click to reset to current" : undefined}
+                  >
+                    {liquidityIndex === DEFAULT_LIQUIDITY_INDEX
+                      ? "Current"
+                      : liquidityMultiplier < 1
+                        ? `${liquidityMultiplier.toFixed(2)}x`
+                        : liquidityMultiplier === 10
+                          ? "10x"
+                          : `${liquidityMultiplier.toFixed(1)}x`}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Chart area with lighter background for readability */}
             <div className="rounded bg-background/80 p-2 dark:bg-background/40">
@@ -863,7 +935,7 @@ export default function ConvexReturnsChart({
 
                 {/* Saturation zone gradient fill */}
                 {saturationX &&
-                  saturationX > CHART_PADDING.left &&
+                  saturationX >= CHART_PADDING.left &&
                   saturationX < CHART_WIDTH - CHART_PADDING.right && (
                     <rect
                       x={saturationX}
@@ -876,7 +948,7 @@ export default function ConvexReturnsChart({
 
                 {/* Saturation threshold line */}
                 {saturationX &&
-                  saturationX > CHART_PADDING.left &&
+                  saturationX >= CHART_PADDING.left &&
                   saturationX < CHART_WIDTH - CHART_PADDING.right && (
                     <g>
                       <line
