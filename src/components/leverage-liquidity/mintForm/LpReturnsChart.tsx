@@ -358,8 +358,17 @@ export default function LpReturnsChart({
     ratioMultiplier,
   ]);
 
+  // Check if this is a 0 TVL vault (no existing liquidity)
+  // For 0 TVL vaults, LP position is essentially spot collateral
+  const isZeroTvl = apeReserve === 0n && teaReserve === 0n;
+
   // Calculate saturation price
   const saturationData = useMemo(() => {
+    // For 0 TVL vaults, there's no saturation (no APE holders to cause IL)
+    if (isZeroTvl) {
+      return { saturationPrice: 0, saturationLogX: Infinity };
+    }
+
     if (
       !currentPrice ||
       currentPrice === 0 ||
@@ -388,6 +397,7 @@ export default function LpReturnsChart({
     adjustedReserves.apeReserve,
     adjustedReserves.teaReserve,
     leverageRatio,
+    isZeroTvl,
   ]);
 
   // Effective bounds (all in log space)
@@ -406,7 +416,8 @@ export default function LpReturnsChart({
     const entryPrice = currentPrice;
     const satPrice = saturationData.saturationPrice;
 
-    if (satPrice <= 0) return points;
+    // For 0 TVL vaults, use spot-like gains; otherwise need valid saturation price
+    if (satPrice <= 0 && !isZeroTvl) return points;
 
     // Generate points across log space with margin that scales with visible range
     const logRange = effectiveBounds.logXMax - effectiveBounds.logXMin;
@@ -416,24 +427,38 @@ export default function LpReturnsChart({
     const numPoints = 150;
     const logStep = (logMax - logMin) / numPoints;
 
+    // Fee factor for 0 TVL vaults (LP fee taken on mint)
+    const zeroTvlFeeMultiplier = 1 / (1 + lpFee);
+
     for (let logX = logMin; logX <= logMax; logX += logStep) {
       const priceChange = logToPercent(logX);
       const exitPrice = entryPrice * (1 + priceChange / 100);
 
       if (exitPrice <= 0) continue;
 
-      const gainDebt = calculateLpGainDebt(
-        entryPrice,
-        exitPrice,
-        satPrice,
-        leverageRatio,
-        lpFee,
-      );
-      const gainCollateral = calculateLpGainCollateral(
-        gainDebt,
-        entryPrice,
-        exitPrice,
-      );
+      let gainDebt: number;
+      let gainCollateral: number;
+
+      if (isZeroTvl) {
+        // For 0 TVL vaults, LP is just holding spot collateral (minus fee)
+        // Value in collateral: constant (just holding collateral, minus fee)
+        gainCollateral = zeroTvlFeeMultiplier;
+        // Value in debt: follows price (spot collateral valued in debt terms)
+        gainDebt = (exitPrice / entryPrice) * zeroTvlFeeMultiplier;
+      } else {
+        gainDebt = calculateLpGainDebt(
+          entryPrice,
+          exitPrice,
+          satPrice,
+          leverageRatio,
+          lpFee,
+        );
+        gainCollateral = calculateLpGainCollateral(
+          gainDebt,
+          entryPrice,
+          exitPrice,
+        );
+      }
 
       const gainDebtPercent = (gainDebt - 1) * 100;
       const gainCollateralPercent = (gainCollateral - 1) * 100;
@@ -469,6 +494,7 @@ export default function LpReturnsChart({
     saturationData.saturationPrice,
     effectiveBounds,
     yieldMultiplier,
+    isZeroTvl,
   ]);
 
   // Key points at positions based on current zoom bounds
@@ -477,7 +503,8 @@ export default function LpReturnsChart({
     const entryPrice = currentPrice;
     const satPrice = saturationData.saturationPrice;
 
-    if (satPrice <= 0) return [];
+    // For 0 TVL vaults, use spot-like gains; otherwise need valid saturation price
+    if (satPrice <= 0 && !isZeroTvl) return [];
 
     const logXMin = zoomBounds?.logXMin ?? DEFAULT_LOG_X_MIN;
     const logXMax = zoomBounds?.logXMax ?? DEFAULT_LOG_X_MAX;
@@ -489,22 +516,34 @@ export default function LpReturnsChart({
       logXMin + range * 0.75,
     ];
 
+    // Fee factor for 0 TVL vaults
+    const zeroTvlFeeMultiplier = 1 / (1 + lpFee);
+
     return logPositions.map((logX) => {
       const priceChange = logToPercent(logX);
       const exitPrice = entryPrice * (1 + priceChange / 100);
 
-      const gainDebt = calculateLpGainDebt(
-        entryPrice,
-        exitPrice,
-        satPrice,
-        leverageRatio,
-        lpFee,
-      );
-      const gainCollateral = calculateLpGainCollateral(
-        gainDebt,
-        entryPrice,
-        exitPrice,
-      );
+      let gainDebt: number;
+      let gainCollateral: number;
+
+      if (isZeroTvl) {
+        // For 0 TVL vaults, LP is just holding spot collateral (minus fee)
+        gainCollateral = zeroTvlFeeMultiplier;
+        gainDebt = (exitPrice / entryPrice) * zeroTvlFeeMultiplier;
+      } else {
+        gainDebt = calculateLpGainDebt(
+          entryPrice,
+          exitPrice,
+          satPrice,
+          leverageRatio,
+          lpFee,
+        );
+        gainCollateral = calculateLpGainCollateral(
+          gainDebt,
+          entryPrice,
+          exitPrice,
+        );
+      }
 
       // Apply yield multiplier if showing yield-adjusted values
       const adjustedGainDebt = showYieldLines
@@ -531,6 +570,7 @@ export default function LpReturnsChart({
     zoomBounds,
     showYieldLines,
     yieldMultiplier,
+    isZeroTvl,
   ]);
 
   // Zoom out - with maximum range limit to prevent extreme zoom
@@ -924,49 +964,51 @@ export default function LpReturnsChart({
                   <span className="text-foreground/60">(in {debtSymbol})</span>
                 </span>
               </div>
-              {/* Saturation threshold */}
-              <div className="flex items-center gap-1.5">
-                <svg width="20" height="12" className="inline-block">
-                  <defs>
-                    <linearGradient
-                      id="lpLegendSatGradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="0%"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="#f59e0b"
-                        stopOpacity="0.15"
-                      />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <rect
-                    x="8"
-                    y="0"
-                    width="12"
-                    height="12"
-                    fill="url(#lpLegendSatGradient)"
-                  />
-                  <line
-                    x1="8"
-                    y1="0"
-                    x2="8"
-                    y2="12"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeDasharray="6,3"
-                    className="text-foreground"
-                  />
-                </svg>
-                <span>Saturation</span>
-                <ToolTip iconSize={14} size="250">
-                  In the saturation zone, LP equity is fully denominated in{" "}
-                  {debtSymbol}.
-                </ToolTip>
-              </div>
+              {/* Saturation threshold - hide for 0 TVL vaults */}
+              {!isZeroTvl && (
+                <div className="flex items-center gap-1.5">
+                  <svg width="20" height="12" className="inline-block">
+                    <defs>
+                      <linearGradient
+                        id="lpLegendSatGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#f59e0b"
+                          stopOpacity="0.15"
+                        />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x="8"
+                      y="0"
+                      width="12"
+                      height="12"
+                      fill="url(#lpLegendSatGradient)"
+                    />
+                    <line
+                      x1="8"
+                      y1="0"
+                      x2="8"
+                      y2="12"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      strokeDasharray="6,3"
+                      className="text-foreground"
+                    />
+                  </svg>
+                  <span>Saturation</span>
+                  <ToolTip iconSize={14} size="250">
+                    In the saturation zone, LP equity is fully denominated in{" "}
+                    {debtSymbol}.
+                  </ToolTip>
+                </div>
+              )}
             </div>
 
             {/* APE/LP Ratio Slider - hide for 0 TVL vaults */}
