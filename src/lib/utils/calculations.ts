@@ -1,6 +1,6 @@
 // Calculation utilities for fees and leverage
 // All functions now accept parameters directly for maximum flexibility
-// Use BASE_FEE and MINTING_FEE from @/lib/buildData when calling these functions
+// Use BASE_FEE and LP_FEE from @/lib/buildData when calling these functions
 
 /**
  *
@@ -17,12 +17,11 @@ export function calculateApeVaultFee(k: number, baseFee: number) {
 
 /**
  *
- * @param k - Leverage Tier should be values -4 to 2
- * @param mintingFee - The minting fee as decimal (e.g., 0.005 for 0.5%)
+ * @param lpFee - The LP minting fee as decimal (e.g., 0.05 for 5%)
  * @returns number
  */
-export function calculateTeaVaultFee(mintingFee: number) {
-  const a = 1 / (1 + mintingFee);
+export function calculateTeaVaultFee(lpFee: number) {
+  const a = 1 / (1 + lpFee);
   return (1 * 10 - a * 10) / 10;
 }
 

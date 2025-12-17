@@ -227,7 +227,7 @@ function computePoolAddress(
 
 export interface SystemParams {
   baseFee: number; // converted from basis points
-  mintingFee: number; // converted from basis points  
+  lpFee: number; // LP minting fee, converted from basis points
   mintingStopped: boolean;
   cumulativeTax: number;
   lastUpdated: number;
@@ -375,7 +375,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
 
     const systemParams: SystemParams = {
       baseFee: rawParams.baseFee.fee / 10000, // Convert from basis points (e.g., 250 -> 0.025 = 2.5%)
-      mintingFee: rawParams.lpFee.fee / 10000, // Convert from basis points
+      lpFee: rawParams.lpFee.fee / 10000, // LP minting fee, convert from basis points
       mintingStopped: rawParams.mintingStopped,
       cumulativeTax: rawParams.cumulativeTax,
       lastUpdated: Date.now(),

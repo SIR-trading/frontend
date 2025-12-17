@@ -53,9 +53,11 @@ import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
 import { getLeverageRatio, calculateSaturationPrice } from "@/lib/utils/calculations";
 import { VaultUrlSync } from "./VaultUrlSync";
 import ConvexReturnsChart from "./ConvexReturnsChart";
+import LpReturnsChart from "./LpReturnsChart";
 import buildData from "@/../public/build-data.json";
 
 const BASE_FEE = buildData.systemParams.baseFee;
+const LP_FEE = buildData.systemParams.lpFee;
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -417,14 +419,12 @@ export default function MintForm({ isApe }: Props) {
       decimalsB: selectedVault.result?.debtToken.decimals,
     },
     {
-      enabled:
-        isApe &&
-        Boolean(
-          selectedVault.result?.collateralToken.id &&
-            selectedVault.result?.debtToken.id &&
-            selectedVault.result?.collateralToken.decimals &&
-            selectedVault.result?.debtToken.decimals,
-        ),
+      enabled: Boolean(
+        selectedVault.result?.collateralToken.id &&
+          selectedVault.result?.debtToken.id &&
+          selectedVault.result?.collateralToken.decimals &&
+          selectedVault.result?.debtToken.decimals,
+      ),
       staleTime: 60000, // Cache for 1 minute
     },
   );
@@ -965,6 +965,46 @@ export default function MintForm({ isApe }: Props) {
           ) : (
             <div className="pt-2">
               <h4 className="text-sm text-foreground">Potential Returns</h4>
+              <div className="pt-1"></div>
+              <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+                <p className="text-sm text-on-bg-subdued">
+                  Select a vault to see returns chart
+                </p>
+              </div>
+            </div>
+          ))}
+
+        {/* LP Returns Chart - only show for TEA (Liquidity page) */}
+        {!isApe &&
+          (selectedVault.result &&
+          poolPrice?.price &&
+          poolPrice.price > 0 ? (
+            <LpReturnsChart
+              leverageTier={parseFloat(leverageTier ?? "0")}
+              lpFee={LP_FEE}
+              apeReserve={BigInt(selectedVault.result.reserveApes || 0)}
+              teaReserve={BigInt(selectedVault.result.reserveLPers || 0)}
+              currentPrice={poolPrice.price}
+              collateralSymbol={collateralTokenSymbol}
+              debtSymbol={debtTokenSymbol}
+              depositAmount={parseFloat(deposit ?? "0")}
+              collateralDecimals={selectedVault.result.collateralToken.decimals}
+              apy={apyData?.apy}
+            />
+          ) : selectedVault.result && isPoolPriceFetching ? (
+            <div className="pt-2">
+              <h4 className="text-sm text-foreground">LP Returns Profile</h4>
+              <div className="pt-1"></div>
+              <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
+                <div className="flex items-center gap-2 text-sm text-on-bg-subdued">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground/60" />
+                  <span>Loading chart data...</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-2">
+              <h4 className="text-sm text-foreground">LP Returns Profile</h4>
               <div className="pt-1"></div>
               <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
                 <p className="text-sm text-on-bg-subdued">

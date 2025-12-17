@@ -77,16 +77,6 @@ export default function Estimations({
                   This creates dampened exposure - less upside than spot, but
                   also less downside.
                 </div>
-                <div className="pt-1 font-semibold">
-                  Think: {tokenSymbol}
-                  <sup>x</sup> (where x oscillates between 0-1) + fees
-                  {hasSirRewards === true
-                    ? " + SIR rewards"
-                    : hasSirRewards === undefined
-                      ? " + potential SIR rewards"
-                      : ""}
-                  .
-                </div>
               </div>
             </ToolTip>
           )}

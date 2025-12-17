@@ -6,8 +6,8 @@ import { getSirSymbol } from "@/lib/assets";
 import { calculateTeaVaultFee } from "@/lib/utils/calculations";
 import buildData from "@/../public/build-data.json";
 
-const MINTING_FEE = buildData.systemParams.mintingFee;
-const teaFeePercent = (calculateTeaVaultFee(MINTING_FEE) * 100).toPrecision(2);
+const LP_FEE = buildData.systemParams.lpFee;
+const teaFeePercent = (calculateTeaVaultFee(LP_FEE) * 100).toPrecision(2);
 
 export const Explainers: Partial<ExplainersMap> = {
   [EPage.LEVERAGE]: {
