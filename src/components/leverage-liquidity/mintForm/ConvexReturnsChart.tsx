@@ -693,12 +693,14 @@ export default function ConvexReturnsChart({
                 {zoomBounds ? (
                   <div className="flex items-center rounded-full border border-foreground/20 text-[11px]">
                     <button
+                      type="button"
                       onClick={resetZoom}
                       className="rounded-l-full px-2 py-0.5 text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
                     >
                       Reset
                     </button>
                     <button
+                      type="button"
                       onClick={zoomOut}
                       className="flex items-center gap-1 rounded-r-full border-l border-foreground/20 px-2 py-0.5 text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
                       title="Zoom out"
@@ -709,6 +711,7 @@ export default function ConvexReturnsChart({
                   </div>
                 ) : (
                   <button
+                    type="button"
                     onClick={zoomOut}
                     className="flex items-center gap-1 rounded-full border border-foreground/20 px-2 py-0.5 text-[11px] text-on-bg-subdued transition-colors hover:bg-background/50 hover:text-foreground"
                     title="Zoom out"
