@@ -401,14 +401,21 @@ export default function LpReturnsChart({
   ]);
 
   // Effective bounds (all in log space)
+  // When showing yield-adjusted lines, shift Y axis up to keep lines centered
   const effectiveBounds = useMemo(() => {
+    const baseLogYMin = zoomBounds?.logYMin ?? DEFAULT_LOG_Y_MIN;
+    const baseLogYMax = zoomBounds?.logYMax ?? DEFAULT_LOG_Y_MAX;
+
+    // Shift Y bounds up by log10(yieldMultiplier) when showing yield lines
+    const yieldShift = showYieldLines ? Math.log10(yieldMultiplier) : 0;
+
     return {
       logXMin: zoomBounds?.logXMin ?? DEFAULT_LOG_X_MIN,
       logXMax: zoomBounds?.logXMax ?? DEFAULT_LOG_X_MAX,
-      logYMin: zoomBounds?.logYMin ?? DEFAULT_LOG_Y_MIN,
-      logYMax: zoomBounds?.logYMax ?? DEFAULT_LOG_Y_MAX,
+      logYMin: baseLogYMin + yieldShift,
+      logYMax: baseLogYMax + yieldShift,
     };
-  }, [zoomBounds]);
+  }, [zoomBounds, showYieldLines, yieldMultiplier]);
 
   // Generate chart data points
   const chartData = useMemo(() => {
@@ -612,8 +619,11 @@ export default function LpReturnsChart({
     useMemo(() => {
       const logXMin = zoomBounds?.logXMin ?? DEFAULT_LOG_X_MIN;
       const logXMax = zoomBounds?.logXMax ?? DEFAULT_LOG_X_MAX;
-      const logYMin = zoomBounds?.logYMin ?? DEFAULT_LOG_Y_MIN;
-      const logYMax = zoomBounds?.logYMax ?? DEFAULT_LOG_Y_MAX;
+
+      // Apply yield shift to Y bounds when showing yield-adjusted lines
+      const yieldShift = showYieldLines ? Math.log10(yieldMultiplier) : 0;
+      const logYMin = (zoomBounds?.logYMin ?? DEFAULT_LOG_Y_MIN) + yieldShift;
+      const logYMax = (zoomBounds?.logYMax ?? DEFAULT_LOG_Y_MAX) + yieldShift;
 
       // X scale uses log space
       const xScale = (logVal: number) =>
@@ -689,7 +699,7 @@ export default function LpReturnsChart({
         yTicks: yTicksArr,
         xTicks: xTicksArr,
       };
-    }, [zoomBounds]);
+    }, [zoomBounds, showYieldLines, yieldMultiplier]);
 
   // Handle mouse up for zoom
   const handleMouseUp = useCallback(() => {
