@@ -511,10 +511,7 @@ export default function LpReturnsChart({
     const range = logXMax - logXMin;
 
     // Position at 25% and 75% of the visible range (skip center)
-    const logPositions = [
-      logXMin + range * 0.25,
-      logXMin + range * 0.75,
-    ];
+    const logPositions = [logXMin + range * 0.25, logXMin + range * 0.75];
 
     // Fee factor for 0 TVL vaults
     const zeroTvlFeeMultiplier = 1 / (1 + lpFee);
@@ -638,11 +635,16 @@ export default function LpReturnsChart({
         // Choose step size based on range - scales to any zoom level
         // For very large ranges, use integer steps (powers of 10)
         let step: number;
-        if (range > 20) step = 5; // 100,000x increments
-        else if (range > 10) step = 2; // 100x increments
-        else if (range > 8) step = 4 * LOG10_2; // 16x increments
-        else if (range > 4) step = 2 * LOG10_2; // 4x increments
-        else if (range > 2) step = LOG10_2; // 2x increments
+        if (range > 20)
+          step = 5; // 100,000x increments
+        else if (range > 10)
+          step = 2; // 100x increments
+        else if (range > 8)
+          step = 4 * LOG10_2; // 16x increments
+        else if (range > 4)
+          step = 2 * LOG10_2; // 4x increments
+        else if (range > 2)
+          step = LOG10_2; // 2x increments
         else if (range > 1) step = LOG10_2 / 2;
         else if (range > 0.5) step = LOG10_2 / 4;
         else step = LOG10_2 / 8;
@@ -655,7 +657,11 @@ export default function LpReturnsChart({
         }
 
         // Always include 0 if in range
-        if (min <= 0 && max >= 0 && !ticksArr.some((t) => Math.abs(t) < 0.0001)) {
+        if (
+          min <= 0 &&
+          max >= 0 &&
+          !ticksArr.some((t) => Math.abs(t) < 0.0001)
+        ) {
           ticksArr.push(0);
           ticksArr.sort((a, b) => a - b);
         }
@@ -873,15 +879,17 @@ export default function LpReturnsChart({
             {apy !== undefined && apy > 0 && (
               <div className="mb-3 flex flex-col items-center gap-2 rounded bg-accent/10 px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-foreground/70">Current APY:</span>
+                  <span className="text-sm text-foreground/70">
+                    Current APY:
+                  </span>
                   <span className="text-lg font-semibold text-accent">
                     <DisplayFormattedNumber num={apy} significant={3} />%
                   </span>
                   <ToolTip iconSize={14} size="300">
                     This yield comes from fees paid by leveraged traders (APE
-                    holders) and {getSirSymbol()} rewards. Price movements affect
-                    your position value, but you continuously earn this yield
-                    regardless of direction.
+                    holders) and {getSirSymbol()} rewards. Price movements
+                    affect your position value, but you continuously earn this
+                    yield regardless of direction.
                   </ToolTip>
                 </div>
                 <label className="flex cursor-pointer items-center gap-2 text-[11px] text-foreground/70">
@@ -981,7 +989,11 @@ export default function LpReturnsChart({
                           stopColor="#f59e0b"
                           stopOpacity="0.15"
                         />
-                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                        <stop
+                          offset="100%"
+                          stopColor="#f59e0b"
+                          stopOpacity="0"
+                        />
                       </linearGradient>
                     </defs>
                     <rect
@@ -1313,7 +1325,7 @@ export default function LpReturnsChart({
                   className="text-[9px]"
                   style={{ fill: "hsl(var(--foreground))" }}
                 >
-                  Value Change
+                  LP Equity
                 </text>
                 <text
                   x={CHART_WIDTH / 2}

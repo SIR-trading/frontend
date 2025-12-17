@@ -23,9 +23,12 @@ export const Explainers: Partial<ExplainersMap> = {
           >
             constant leverage
           </a>{" "}
-          with option-style pricing for a convex payoff: no funding fees, no
-          liquidations. Pay once at mint, then hold as long as you want while
-          gains compound.
+          with option-style pricing: no liquidations, no ongoing fees. Pay once
+          at mint, then hold as long as you want.
+        </p>
+        <p>
+          Gains are convex up to a threshold price set by vault liquidity;
+          beyond that, they grow linearly.
         </p>
       </>
     ),
@@ -35,9 +38,9 @@ export const Explainers: Partial<ExplainersMap> = {
     description: (
       <>
         <p>
-          Mint TEA tokens to provide liquidity and earn fees from APE traders.
-          You pay a one-time {teaFeePercent}% minting fee, recovered over time through
-          trading fees. Selected vaults also reward{" "}
+          Mint TEA tokens to provide liquidity. You pay a one-time{" "}
+          {teaFeePercent}% minting fee and earn from APE trader fees. Selected
+          vaults also reward{" "}
           <a
             href="https://docs.sir.trading/protocol-overview/sir-a-dividend-paying-token"
             className="underline"
@@ -48,8 +51,9 @@ export const Explainers: Partial<ExplainersMap> = {
           .
         </p>
         <p>
-          TEA softens price moves: you gain less when collateral rises and lose
-          less when it falls.
+          Ideal for those neutral on price direction. As price moves, your
+          equity shifts between tokens: gaining in one, losing in the other.
+          LPing is about earning yield, not making directional bets.
         </p>
       </>
     ),

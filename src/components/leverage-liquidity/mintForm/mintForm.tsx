@@ -993,7 +993,7 @@ export default function MintForm({ isApe }: Props) {
             />
           ) : selectedVault.result && isPoolPriceFetching ? (
             <div className="pt-2">
-              <h4 className="text-sm text-foreground">LP Returns Profile</h4>
+              <h4 className="text-sm text-foreground">LP Equity Profile</h4>
               <div className="pt-1"></div>
               <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
                 <div className="flex items-center gap-2 text-sm text-on-bg-subdued">
@@ -1004,7 +1004,7 @@ export default function MintForm({ isApe }: Props) {
             </div>
           ) : (
             <div className="pt-2">
-              <h4 className="text-sm text-foreground">LP Returns Profile</h4>
+              <h4 className="text-sm text-foreground">LP Equity Profile</h4>
               <div className="pt-1"></div>
               <div className="rounded-md bg-primary/5 p-4 dark:bg-primary">
                 <p className="text-sm text-on-bg-subdued">
