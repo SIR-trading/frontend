@@ -484,12 +484,22 @@ function IncentivesTab() {
   const { address } = useAccount();
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [refundee, setRefundee] = useState("");
-  const [rewardAmount, setRewardAmount] = useState("");
+  const [rewardAmount, setRewardAmount]  = useState("");
 
   const stakerAddress = buildData.contractAddresses.uniswapV3Staker as Address;
   const rewardToken = buildData.contractAddresses.sir as Address;
   const pool = buildData.contractAddresses.sirWethPool1Percent as Address;
+
+  // Check owner's SIR balance
+  const { data: sirBalance, isLoading: isLoadingBalance } = useReadContract({
+    address: rewardToken,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: [address!],
+    query: {
+      enabled: !!address,
+    },
+  });
 
   // Check SIR allowance
   const { data: allowance } = useReadContract({
@@ -516,7 +526,7 @@ function IncentivesTab() {
   };
 
   const handleCreateIncentive = () => {
-    if (!startTime || !endTime || !refundee || !rewardAmount) return;
+    if (!startTime || !endTime || !rewardAmount || !address) return;
 
     const startTimestamp = BigInt(Math.floor(new Date(startTime).getTime() / 1000));
     const endTimestamp = BigInt(Math.floor(new Date(endTime).getTime() / 1000));
@@ -531,7 +541,7 @@ function IncentivesTab() {
           pool,
           startTime: startTimestamp,
           endTime: endTimestamp,
-          refundee: refundee as Address,
+          refundee: address,
         },
         rewardAmountWei,
       ],
@@ -542,7 +552,6 @@ function IncentivesTab() {
     reset();
     setStartTime("");
     setEndTime("");
-    setRefundee("");
     setRewardAmount("");
   };
 
@@ -560,6 +569,18 @@ function IncentivesTab() {
             <span className="text-muted-foreground">Pool:</span>
             <p className="font-mono text-xs break-all">{pool}</p>
           </div>
+        </div>
+        <div className="text-sm">
+          <span className="text-muted-foreground">Your SIR Balance: </span>
+          {isLoadingBalance ? (
+            <span>...</span>
+          ) : (
+            <span className="font-mono text-foreground">
+              {sirBalance !== undefined
+                ? Number(formatUnits(sirBalance, 12)).toLocaleString()
+                : "0"} SIR
+            </span>
+          )}
         </div>
       </div>
 
@@ -583,20 +604,6 @@ function IncentivesTab() {
               className="w-full px-3 py-2 bg-background border border-foreground/20 rounded-md text-sm"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Refundee Address</label>
-          <input
-            type="text"
-            value={refundee}
-            onChange={(e) => setRefundee(e.target.value)}
-            placeholder="0x..."
-            className="w-full px-3 py-2 bg-background border border-foreground/20 rounded-md text-sm font-mono"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Address that can claim unclaimed rewards after end time
-          </p>
         </div>
 
         <div>
@@ -628,7 +635,7 @@ function IncentivesTab() {
             type="button"
             variant="submit"
             onClick={handleCreateIncentive}
-            disabled={isPending || isConfirming || !startTime || !endTime || !refundee || !rewardAmount}
+            disabled={isPending || isConfirming || !startTime || !endTime || !rewardAmount}
           >
             {isPending
               ? "Confirm in Wallet..."
