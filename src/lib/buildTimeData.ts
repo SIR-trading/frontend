@@ -173,11 +173,22 @@ const SIR_ABI = [
   },
 ] as const;
 
+const SYSTEM_CONTROL_ABI = [
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+] as const;
+
 export interface ContractAddresses {
   assistant: TAddressString;
   vault: TAddressString;
   sir: TAddressString;
   systemControl: TAddressString;
+  systemControlOwner: TAddressString;
   oracle: TAddressString;
   uniswapV3Staker: TAddressString;
   nftPositionManager: TAddressString;
@@ -292,7 +303,14 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       }),
     ]);
 
-    // Step 2.5: Get Contributors address and constants from SIR contract (HyperEVM and MegaETH)
+    // Step 2.5: Get SystemControl owner
+    const systemControlOwner = await client.readContract({
+      address: systemControlAddress,
+      abi: SYSTEM_CONTROL_ABI,
+      functionName: 'owner',
+    });
+
+    // Step 2.6: Get Contributors address and constants from SIR contract (HyperEVM and MegaETH)
     const isHyperEVMOrMegaETH = CHAIN_ID === 998 || CHAIN_ID === 999 || CHAIN_ID === 6343;
     let contributorsAddress: Address = '0x0000000000000000000000000000000000000000' as Address;
     let issuanceRate = 0n;
@@ -366,6 +384,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       vault: vaultAddress,
       sir: sirAddress,
       systemControl: systemControlAddress,
+      systemControlOwner: systemControlOwner,
       oracle: oracleAddress,
       uniswapV3Staker: uniswapV3StakerAddress,
       nftPositionManager: nftPositionManagerAddress,

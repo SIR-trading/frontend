@@ -6,7 +6,7 @@ import type { TAddressString, VaultFieldFragment } from "@/lib/types";
 import { multicall, readContract } from "@/lib/viemClient";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { executeSearchVaultsQuery } from "@/server/queries/searchVaults";
-import { executeVaultsQuery } from "@/server/queries/vaults";
+import { executeVaultsQuery, executeActiveIssuanceVaultsQuery } from "@/server/queries/vaults";
 import { executeGetVaultFees } from "@/server/queries/fees";
 import type { Address } from "viem";
 import { erc20Abi } from "viem";
@@ -625,6 +625,15 @@ function convertWrappedNativeTokenPriceToCollateralCached(
 }
 
 export const vaultRouter = createTRPCRouter({
+  // Get vaults with active issuance (tax > 0) for admin page
+  getActiveIssuanceVaults: publicProcedure.query(async () => {
+    const result = await executeActiveIssuanceVaultsQuery();
+    return result.vaults.map((v) => ({
+      id: v.id,
+      tax: v.tax,
+    }));
+  }),
+
   getVaults: publicProcedure
     .input(
       z

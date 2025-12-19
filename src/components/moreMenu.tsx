@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, Coins, LineChart, Trophy, Gavel, Plus, Calculator } from "lucide-react";
+import { ChevronDown, Coins, LineChart, Trophy, Gavel, Plus, Calculator, Settings } from "lucide-react";
 import React, { useState } from "react";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/index";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 import { useActiveAuctions } from "@/hooks/useActiveAuctions";
+import { useIsSystemControlOwner } from "@/hooks/useIsSystemControlOwner";
 
 interface MoreMenuProps {
   variant?: "medium" | "large";
@@ -31,6 +32,7 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const { hasDividendsAboveThreshold, hasContributorRewardsAboveThreshold, hasLpStakingRewardsAboveThreshold } = useClaimableBalances();
   const { hasActiveAuctions } = useActiveAuctions();
+  const isOwner = useIsSystemControlOwner();
 
   const mediumItems: MenuItem[] = [
     {
@@ -44,12 +46,14 @@ export default function MoreMenu({ variant = "large" }: MoreMenuProps) {
     { url: "/auctions", label: "Auctions", icon: Gavel, hasActiveAuctions },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
+    ...(isOwner ? [{ url: "/admin", label: "Admin", icon: Settings }] : []),
   ];
 
   const largeItems: MenuItem[] = [
     { url: "/market", label: "Market", icon: LineChart },
     { url: "/create-vault", label: "Create Vault", icon: Plus },
     { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
+    ...(isOwner ? [{ url: "/admin", label: "Admin", icon: Settings }] : []),
   ];
 
   const items = variant === "medium" ? mediumItems : largeItems;

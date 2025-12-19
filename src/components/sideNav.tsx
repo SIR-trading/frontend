@@ -11,6 +11,7 @@ import {
   Plus,
   Calculator,
   ChevronDown,
+  Settings,
 } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils/index";
 import NetworkBadge from "./networkBadge";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 import { useActiveAuctions } from "@/hooks/useActiveAuctions";
+import { useIsSystemControlOwner } from "@/hooks/useIsSystemControlOwner";
 import { CHAIN_CONFIGS } from "@/config/chains";
 import { env } from "@/env";
 import Image from "next/image";
@@ -55,6 +57,7 @@ export default function SideNav() {
     hasLpStakingRewardsAboveThreshold
   } = useClaimableBalances();
   const { hasActiveAuctions } = useActiveAuctions();
+  const isOwner = useIsSystemControlOwner();
 
   // Get all available networks with deployment URLs
   const availableNetworks = useMemo(() => {
@@ -92,6 +95,7 @@ export default function SideNav() {
         { url: "/market", label: "Market", icon: LineChart },
         { url: "/create-vault", label: "Create Vault", icon: Plus },
         { url: "/leverage-calculator", label: "Calculator", icon: Calculator },
+        ...(isOwner ? [{ url: "/admin", label: "Admin", icon: Settings }] : []),
       ],
     },
   ];

@@ -255,3 +255,22 @@ export type userPositionsQueryApe = { apePositions: (TUserPositionBase & {
     };
   };
 })[] };
+
+// Query for vaults with active issuance (tax > 0)
+const activeIssuanceVaultsQuery = gql`
+  query ActiveIssuanceVaults {
+    vaults(where: { tax_gt: 0 }, orderBy: id, orderDirection: asc) {
+      id
+      tax
+    }
+  }
+`;
+
+export type ActiveIssuanceVaultsResult = {
+  vaults: { id: string; tax: string }[];
+};
+
+export const executeActiveIssuanceVaultsQuery = async (): Promise<ActiveIssuanceVaultsResult> => {
+  const result = await graphqlClient.request<ActiveIssuanceVaultsResult>(activeIssuanceVaultsQuery);
+  return result;
+};
