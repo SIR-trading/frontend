@@ -30,25 +30,32 @@ export function Header() {
   // Check for active auctions
   const { hasActiveAuctions } = useActiveAuctions();
 
-  // Determine if we're on a HyperEVM chain
-  const isHyperEVM = useMemo(() => {
-    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-    return chainId === 998 || chainId === 999;
-  }, []);
-
   // Determine which logos to use based on chain
   const logos = useMemo(() => {
-    if (isHyperEVM) {
+    const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+
+    // MegaETH chains (testnet: 6343, mainnet TBD)
+    if (chainId === 6343) {
+      return {
+        dark: "/SIR+MegaETH_outline_white.svg",
+        light: "/SIR+MegaETH_outline_black.svg"
+      };
+    }
+
+    // HyperEVM chains (testnet: 998, mainnet: 999)
+    if (chainId === 998 || chainId === 999) {
       return {
         dark: "/SIR+HyperLiquid_outline_white.svg",
         light: "/SIR+HyperLiquid_outline_black.svg"
       };
     }
+
+    // Default (Ethereum)
     return {
       dark: "/SIR_outline_white.svg",
       light: "/SIR_outline_black.svg"
     };
-  }, [isHyperEVM]);
+  }, []);
 
   return (
     <div className="flex w-full max-w-[1280px] items-center justify-between px-3 py-[24px] lg:mx-auto">

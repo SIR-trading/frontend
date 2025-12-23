@@ -6,6 +6,7 @@ const SIR_ADDRESS = buildData.contractAddresses.sir as TAddressString;
 import type { StaticImageData } from "next/image";
 import sirIcon from "../../public/images/sir-logo.svg";
 import sirIconHyperEVM from "../../public/images/sir-logo-hyperevm.svg";
+import sirIconMegaETH from "../../public/images/sir-logo-megaeth.svg";
 import { getAddress } from "viem";
 import type { TAddressString } from "./types";
 import { assetSchema } from "./schemas";
@@ -31,9 +32,9 @@ export function getSirLogo(chainId?: string | number): StaticImageData {
     typeof chainId === "string"
       ? parseInt(chainId)
       : chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
-  return id === 999 || id === 998
-    ? (sirIconHyperEVM as StaticImageData)
-    : (sirIcon as StaticImageData);
+  if (id === 999 || id === 998) return sirIconHyperEVM as StaticImageData;
+  if (id === 6343) return sirIconMegaETH as StaticImageData;
+  return sirIcon as StaticImageData;
 }
 
 /**
@@ -67,15 +68,19 @@ export function getNativeTokenInfo(
 export function getSirTokenMetadata() {
   const chainId = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   const isHyperEVM = chainId === 999 || chainId === 998;
+  const isMegaETH = chainId === 6343;
+  const getLogoURI = () => {
+    if (isHyperEVM) return "https://app.sir.trading/images/sir-logo-hyperevm.svg";
+    if (isMegaETH) return "https://app.sir.trading/images/sir-logo-megaeth.svg";
+    return "https://app.sir.trading/images/sir-logo.svg";
+  };
   return {
     name: "Synthetics Implemented Right",
     address: SIR_ADDRESS,
     symbol: getSirSymbol(chainId),
     decimals: 12,
     chainId,
-    logoURI: isHyperEVM
-      ? "https://app.sir.trading/images/sir-logo-hyperevm.svg"
-      : "https://app.sir.trading/images/sir-logo.svg",
+    logoURI: getLogoURI(),
   };
 }
 
@@ -96,11 +101,15 @@ export function getLogoAssetWithFallback(
   if (address.toLowerCase() === SIR_ADDRESS.toLowerCase()) {
     const chainIdNum = chainId ? parseInt(chainId) : parseInt(env.NEXT_PUBLIC_CHAIN_ID);
     const isHyperEVM = chainIdNum === 999 || chainIdNum === 998;
+    const isMegaETH = chainIdNum === 6343;
+    const getFallbackUrl = () => {
+      if (isHyperEVM) return "https://app.sir.trading/images/sir-logo-hyperevm.svg";
+      if (isMegaETH) return "https://app.sir.trading/images/sir-logo-megaeth.svg";
+      return "https://app.sir.trading/images/sir-logo.svg";
+    };
     return {
       primary: getSirLogo(chainIdNum),
-      fallback: isHyperEVM
-        ? "https://app.sir.trading/images/sir-logo-hyperevm.svg"
-        : "https://app.sir.trading/images/sir-logo.svg",
+      fallback: getFallbackUrl(),
     };
   }
 
@@ -128,6 +137,9 @@ export function getLogoAssetWithFallback(
     }
     if (chainIdEnv === "998" || chainIdEnv === "999") {
       return "hyperevm"; // Will likely not exist in Trust Wallet, will fall back to logoURI
+    }
+    if (chainIdEnv === "6343") {
+      return "megaeth"; // Will likely not exist in Trust Wallet, will fall back to logoURI
     }
     // Default to ethereum for unknown chains
     return "ethereum";
@@ -178,6 +190,9 @@ export function getLogoJson(address: TAddressString | undefined) {
     }
     if (chainId === "998" || chainId === "999") {
       return "ethereum"; // Use ethereum assets for HyperEVM
+    }
+    if (chainId === "6343") {
+      return "ethereum"; // Use ethereum assets for MegaETH
     }
   };
 

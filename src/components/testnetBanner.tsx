@@ -4,7 +4,7 @@ import { env } from "@/env";
 import { useWriteContract, useAccount } from "wagmi";
 import { Button } from "./ui/button";
 import { useState } from "react";
-import { AlertTriangle, Coins } from "lucide-react";
+import { AlertTriangle, Coins, Copy, Check } from "lucide-react";
 
 const MOCK_TOKEN_A = "0x4460D83f91A224B2856F2103BAfd5B1076Dc58C8";
 const MOCK_TOKEN_B = "0xFDd3f0d6E5f400e8a6E2D6337716aeEedb2D6201";
@@ -31,6 +31,13 @@ export default function TestnetBanner() {
   const { isConnected } = useAccount();
   const { writeContract, isPending } = useWriteContract();
   const [mintingToken, setMintingToken] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+
+  const handleCopy = async (address: string) => {
+    await navigator.clipboard.writeText(address);
+    setCopiedAddress(address);
+    setTimeout(() => setCopiedAddress(null), 1500);
+  };
 
   // Only show on MegaETH testnet
   if (chainId !== 6343) {
@@ -67,24 +74,50 @@ export default function TestnetBanner() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-foreground/60 hidden sm:inline">|</span>
             <span className="text-xs text-foreground/60 hidden sm:inline">Mint test tokens:</span>
-            <Button
-              variant="outline"
-              onClick={() => handleMint(MOCK_TOKEN_A)}
-              disabled={isPending && mintingToken === MOCK_TOKEN_A}
-              className="h-7 text-xs py-1"
-            >
-              <Coins className="h-3 w-3 mr-1" />
-              Mock Token A
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleMint(MOCK_TOKEN_B)}
-              disabled={isPending && mintingToken === MOCK_TOKEN_B}
-              className="h-7 text-xs py-1"
-            >
-              <Coins className="h-3 w-3 mr-1" />
-              Mock Token B
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                onClick={() => handleMint(MOCK_TOKEN_A)}
+                disabled={isPending && mintingToken === MOCK_TOKEN_A}
+                className="h-7 text-xs py-1"
+              >
+                <Coins className="h-3 w-3 mr-1" />
+                Mock Token A
+              </Button>
+              <button
+                onClick={() => handleCopy(MOCK_TOKEN_A)}
+                className="p-1 rounded hover:bg-foreground/10 transition-colors"
+                title="Copy address"
+              >
+                {copiedAddress === MOCK_TOKEN_A ? (
+                  <Check className="h-3.5 w-3.5 text-green-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 text-foreground/60" />
+                )}
+              </button>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                onClick={() => handleMint(MOCK_TOKEN_B)}
+                disabled={isPending && mintingToken === MOCK_TOKEN_B}
+                className="h-7 text-xs py-1"
+              >
+                <Coins className="h-3 w-3 mr-1" />
+                Mock Token B
+              </Button>
+              <button
+                onClick={() => handleCopy(MOCK_TOKEN_B)}
+                className="p-1 rounded hover:bg-foreground/10 transition-colors"
+                title="Copy address"
+              >
+                {copiedAddress === MOCK_TOKEN_B ? (
+                  <Check className="h-3.5 w-3.5 text-green-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 text-foreground/60" />
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
