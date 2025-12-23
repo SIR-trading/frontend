@@ -83,7 +83,7 @@ export default function NetworkToggle() {
             height={20}
             className={cn(
               "rounded-full",
-              currentChainId === 6343 && "bg-[#f5f5dc]"
+              currentChainId === 6343 && "bg-white"
             )}
           />
         ) : (
@@ -119,7 +119,7 @@ export default function NetworkToggle() {
                 {logoUrl ? (
                   <div className={cn(
                     "w-5 h-5 rounded-full overflow-hidden flex items-center justify-center",
-                    network.chainId === 6343 && "bg-[#f5f5dc]"
+                    network.chainId === 6343 && "bg-white"
                   )}>
                     <Image
                       src={logoUrl}
