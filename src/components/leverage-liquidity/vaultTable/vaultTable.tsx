@@ -257,8 +257,16 @@ function SortableHeader({
   const isActive = currentColumn === column;
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSort(column)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSort(column);
+        }
+      }}
       className={`flex cursor-pointer items-center gap-x-1 transition-colors hover:text-foreground ${className ?? ""}`}
     >
       <span>{label}</span>
@@ -271,7 +279,7 @@ function SortableHeader({
           className={`h-3 w-3 ${isActive && direction === "desc" ? "text-foreground" : "text-muted-foreground/40"}`}
         />
       </span>
-    </button>
+    </div>
   );
 }
 
