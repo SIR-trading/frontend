@@ -44,10 +44,15 @@ const playfairDisplay = Playfair_Display({
 // Determine if this is a HyperEVM chain (998 or 999)
 const chainId = process.env.NEXT_PUBLIC_CHAIN_ID;
 const isHyperEVM = chainId === "998" || chainId === "999";
+const isMegaETH = chainId === "6343";
 const socialMediaImage = isHyperEVM
   ? "social-media-preview-hyper.png"
   : "social-media-preview.png";
-const favicon = isHyperEVM ? "/favicon-hyperevm.ico" : "/favicon.ico";
+const favicon = isHyperEVM
+  ? "/favicon-hyperevm.ico"
+  : isMegaETH
+    ? "/favicon-megaeth.ico"
+    : "/favicon.ico";
 
 export const metadata = {
   metadataBase: new URL("https://app.sir.trading"),
