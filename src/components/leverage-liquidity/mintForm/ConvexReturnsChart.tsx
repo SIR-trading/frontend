@@ -461,6 +461,7 @@ export default function ConvexReturnsChart({
     baseFee,
     saturationData.saturationPrice,
     effectiveBounds,
+    isZeroTvl,
   ]);
 
   // Zoom out - expand from current view center, cap xMin/yMin at -100%

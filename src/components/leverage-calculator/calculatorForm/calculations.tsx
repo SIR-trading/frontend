@@ -62,9 +62,6 @@ export default function Calculations({
   });
   const fee = Number(strFee);
 
-  // Get vault decimals (fallback to 18 if not available)
-  const vaultDecimals = selectedVault.result?.collateralToken?.decimals ?? 18;
-
   // Make sure entryPrice and exitPrice are provided to avoid calculation errors.
   const entryPrice = isDebtToken
     ? 1 / Number(formData.entryPrice)

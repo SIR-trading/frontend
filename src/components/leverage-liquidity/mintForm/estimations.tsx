@@ -23,7 +23,7 @@ export default function Estimations({
   vaultId,
   collateralSymbol,
   debtSymbol,
-  hasSirRewards,
+  hasSirRewards: _hasSirRewards,
 }: {
   ape: string;
   isApe: boolean;
