@@ -10,23 +10,22 @@ import { useBidConfig } from "@/components/auction/hooks/auctionSimulationHooks"
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { SirContract } from "@/contracts/sir";
 import { useResetAfterApprove } from "@/components/leverage-liquidity/mintForm/hooks/useResetAfterApprove";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
+import { api } from "@/trpc/react";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS, NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { getNativeCurrencySymbol } from "@/lib/chains";
 import React from "react";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import ExplorerLink from "@/components/shared/explorerLink";
-import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import Show from "@/components/shared/show";
 import ToolTip from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CircleCheck } from "lucide-react";
-import { motion } from "motion/react";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import {
   getAuctionBidIncreasePercentage,
   getWrappedTokenSymbol,
-  isHyperEVM,
+  supportsNativeTokenBidding,
 } from "@/lib/chains";
 
 export type TAuctionBidModalState = {
@@ -69,7 +68,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
 
       // Then auto-enable only if wrapped balance is 0 and native balance > 0
       if (
-        isHyperEVM() &&
+        supportsNativeTokenBidding() &&
         userBalance?.tokenBalance?.result === 0n &&
         userNativeTokenBalance &&
         userNativeTokenBalance > 0n
@@ -109,7 +108,6 @@ export function AuctionBidModal({ open, setOpen }: Props) {
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-    data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
 
   const onSubmit = useCallback(async () => {
@@ -121,8 +119,9 @@ export function AuctionBidModal({ open, setOpen }: Props) {
     if (!isConfirmed && token && bidAmount > 0n) {
       // Store the bid amount before submitting (for success screen)
       // For top-ups, show the total bid amount (current + top-up)
+      // Use bidAmount (already safely parsed) instead of re-parsing formData.bid
       const displayAmount = isTopUp
-        ? formatEther((currentBid ?? 0n) + parseEther(formData.bid))
+        ? formatEther((currentBid ?? 0n) + bidAmount)
         : formData.bid;
       setConfirmedBidAmount(displayAmount);
 
@@ -169,33 +168,37 @@ export function AuctionBidModal({ open, setOpen }: Props) {
 
   useResetAfterApprove({
     isConfirmed,
-    reset: () => {
-      reset();
-    },
+    reset,
     needsApproval,
   });
 
-  useResetAuctionsOnSuccess({
-    isConfirming: Boolean(isConfirming && !needsApproval),
-    isConfirmed: Boolean(isConfirmed && !needsApproval),
-    txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
-    auctionType: "ongoing",
-    actions: () => {
-      console.log("Taking Actions");
-      form.reset();
-      // Don't auto-close anymore - let user close manually after seeing success
-    },
-  });
+  // Invalidate auction queries when bid is confirmed (for the bidding user)
+  const utils = api.useUtils();
+  const hasInvalidatedRef = useRef(false);
+
+  useEffect(() => {
+    // Only invalidate once when bid (not approval) is confirmed
+    if (isConfirmed && !needsApproval && !hasInvalidatedRef.current) {
+      hasInvalidatedRef.current = true;
+      void utils.auction.getOngoingAuctions.invalidate();
+    }
+    // Reset the ref when modal closes or new transaction starts
+    if (!isConfirmed) {
+      hasInvalidatedRef.current = false;
+    }
+  }, [isConfirmed, needsApproval, utils]);
 
   const errorMessage = useMemo(() => {
     if (!isConfirmed) {
       if (!userBalanceFetching) {
         if (!balance)
           return `You don't have enough ${wrappedTokenSymbol} to ${isTopUp ? "top up" : "place"} this bid.`;
-        if (parseEther(formData.bid) > balance) {
+        // Guard against invalid input values (e.g., empty string, just ".")
+        const bidNum = Number(formData.bid);
+        if (bidNum > 0 && parseEther(formData.bid) > balance) {
           return `Bid exceeds your ${wrappedTokenSymbol} balance.`;
         }
-        if (Number(formData.bid) > 0) {
+        if (bidNum > 0) {
           if (!isTopUp && Number(formData.bid) <= +formatEther(nextBid)) {
             return `Bid must be ${bidIncreasePercentage}% higher than the current bid`;
           }
@@ -332,13 +335,8 @@ export function AuctionBidModal({ open, setOpen }: Props) {
               </AuctionBidInputs.Root>
             </>
           }>
-            {/* Success state content */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="space-y-4 p-8"
-            >
+            {/* Success state content - using CSS animation instead of motion.div to avoid Radix Presence conflict */}
+            <div className="animate-in fade-in duration-500 space-y-4 p-8">
               <div className="flex justify-center">
                 <CircleCheck size={60} color="hsl(173, 73%, 36%)" />
               </div>
@@ -373,7 +371,7 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 </div>
               </div>
               <ExplorerLink transactionHash={hash} align="center" />
-            </motion.div>
+            </div>
           </Show>
 
           <TransactionModal.StatSubmitContainer>
@@ -408,10 +406,12 @@ export function AuctionBidModal({ open, setOpen }: Props) {
                 isConfirmed && !needsApproval
                   ? false
                   : userBalanceFetching ||
-                    (Number(formData.bid) === 0 && !isConfirmed) ||
+                    // Disable if bid is not a valid positive number (catches empty, ".", NaN, 0, negative)
+                    (!(Number(formData.bid) > 0) && !isConfirmed) ||
                     (!balance && !isConfirmed) ||
                     isSimulationFailure ||
-                    (parseEther(formData.bid) > balance! && !isConfirmed) ||
+                    // Guard: only parse when we have a valid positive number
+                    (Number(formData.bid) > 0 && parseEther(formData.bid) > balance! && !isConfirmed) ||
                     (!isConfirmed && isTopUp
                       ? Number(formData.bid) <=
                         +formatEther(nextBid - (currentBid ?? BigInt(0)))

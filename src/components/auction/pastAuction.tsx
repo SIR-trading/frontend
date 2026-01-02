@@ -12,7 +12,6 @@ import { api } from "@/trpc/react";
 import { compareAddress } from "@/lib/utils/index";
 import TransactionModal from "@/components/shared/transactionModal";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
-import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import Show from "@/components/shared/show";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
@@ -61,7 +60,6 @@ const PastAuction = ({
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-    data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
 
   const { openTransactionModal, setOpenTransactionModal } =
@@ -108,16 +106,7 @@ const PastAuction = ({
     }
   };
 
-  useResetAuctionsOnSuccess({
-    isConfirming,
-    isConfirmed,
-    txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
-    actions: () => {
-      setId(undefined);
-      setOpenTransactionModal(false);
-    },
-    auctionType: "past",
-  });
+  // WebSocket handles auction data refresh via useRealtimeAuctions hook
 
   return (
     <div>
@@ -282,7 +271,6 @@ const PastAuction = ({
                   startTime,
                 }) => (
                   <AuctionCard
-                    auctionType="past"
                     data={[
                       [
                         {

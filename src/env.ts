@@ -25,6 +25,7 @@ export const env = createEnv({
     NEXT_PUBLIC_ASSISTANT_ADDRESS: z.string(),
     NEXT_PUBLIC_CHAIN_ID: z.string(),
     NEXT_PUBLIC_RPC_URL: z.string().url(),
+    NEXT_PUBLIC_WEBSOCKET_URL: z.string().url().optional(),
 
     // Note: BASE_FEE and MINTING_FEE are now fetched at build time from contracts
   },
@@ -37,6 +38,7 @@ export const env = createEnv({
     ALCHEMY_BEARER: process.env.ALCHEMY_BEARER,
     NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
     NEXT_PUBLIC_RPC_URL: process.env.NEXT_PUBLIC_RPC_URL,
+    NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
     RPC_URL: process.env.RPC_URL,
     SUBGRAPH_URL: process.env.SUBGRAPH_URL,
     NEXT_PUBLIC_ASSISTANT_ADDRESS: process.env.NEXT_PUBLIC_ASSISTANT_ADDRESS,

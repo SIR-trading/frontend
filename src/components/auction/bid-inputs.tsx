@@ -11,7 +11,7 @@ import { BidPercent } from "@/components/auction/bidPercent";
 import { useTokenUsdPrice } from "@/components/leverage-liquidity/mintForm/hooks/useTokenUsdPrice";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import { Switch } from "@/components/ui/switch";
-import { getNativeCurrencySymbol, isHyperEVM } from "@/lib/chains";
+import { getNativeCurrencySymbol, supportsNativeTokenBidding } from "@/lib/chains";
 
 function Root({ children }: { children: React.ReactNode }) {
   return (
@@ -107,7 +107,7 @@ function Inputs({
               ≈ $<DisplayFormattedNumber num={usdValue.toString()} />
             </div>
           )}
-          {isHyperEVM() && (
+          {supportsNativeTokenBidding() && (
             <div className="flex items-center gap-x-2 pt-1">
               <h3 className="text-[12px] text-foreground">Use {getNativeCurrencySymbol()}</h3>
               <Switch

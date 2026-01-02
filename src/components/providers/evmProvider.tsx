@@ -1,4 +1,17 @@
 "use client";
+
+// Filter out noisy Wagmi connector logs
+if (typeof window !== "undefined") {
+  const originalLog = console.log;
+  console.log = (...args: unknown[]) => {
+    const firstArg = args[0];
+    if (typeof firstArg === "string" && firstArg.includes("[injected]")) {
+      return;
+    }
+    originalLog.apply(console, args);
+  };
+}
+
 import "@rainbow-me/rainbowkit/styles.css";
 import {
   darkTheme,

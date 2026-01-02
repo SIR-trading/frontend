@@ -449,10 +449,14 @@ function UpdateVaultsIssuancesForm() {
   const { data: activeVaults, isLoading: isLoadingVaults } =
     api.vault.getActiveIssuanceVaults.useQuery();
 
-  // Pre-populate oldVaults when data is loaded
+  // Pre-populate oldVaults when data is loaded (convert hex IDs to decimal)
   useEffect(() => {
     if (activeVaults && activeVaults.length > 0) {
-      const vaultIds = activeVaults.map((v) => v.id).join(", ");
+      const vaultIds = activeVaults.map((v) => {
+        // Convert hex string to decimal number
+        const hexId = v.id.startsWith("0x") ? v.id : `0x${v.id}`;
+        return BigInt(hexId).toString();
+      }).join(", ");
       setOldVaults(vaultIds);
     }
   }, [activeVaults]);

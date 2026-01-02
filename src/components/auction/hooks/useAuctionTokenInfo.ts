@@ -53,10 +53,14 @@ export default function useAuctionTokenInfo({
   );
 
   // Skip approval logic when using native HYPE
+  // Guard against invalid input (empty, ".", NaN) - only parse valid positive numbers
+  const numAmount = Number(amount);
+  const safeAmount = numAmount > 0 ? amount : "0";
+
   const { approveSimulate, needsApproval, needs0Approval } = useApproveErc20({
     tokenAddr: useNativeToken ? "" : (tokenAddress ?? ""),
     approveContract: SirContract.address,
-    amount: parseUnits(amount ?? "0", tokenDecimals ?? 18),
+    amount: parseUnits(safeAmount, tokenDecimals ?? 18),
     allowance: userBalance?.tokenAllowance?.result ?? 0n,
     useMaxApprove: maxApprove,
   });

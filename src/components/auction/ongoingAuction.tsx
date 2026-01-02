@@ -15,7 +15,6 @@ import { BidDisplayWithDiscount } from "@/components/auction/BidDisplayWithDisco
 import { AUCTION_DURATION } from "@/components/auction/__constants";
 import Countdown from "react-countdown";
 import { compareAddress } from "@/lib/utils/index";
-import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import AddressExplorerLink from "@/components/shared/addressExplorerLink";
 import AuctionContentSkeleton from "@/components/auction/AuctionContentSkeleton";
 import Show from "@/components/shared/show";
@@ -23,27 +22,73 @@ import type { Address } from "viem";
 import { hexToBigInt } from "viem";
 import { TokenImage } from "@/components/shared/TokenImage";
 import { getNativeCurrencySymbol } from "@/lib/chains";
-import { useAuctionRpcPolling } from "@/components/auction/hooks/useAuctionRpcPolling";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
+
+interface BidReceivedEvent {
+  bidder: string;
+  token: string;
+  previousBid: string;
+  newBid: string;
+  txHash: string;
+  blockNumber: number;
+}
 
 const OngoingAuction = ({
   uniqueAuctionCollection,
+  lastBid,
 }: {
   uniqueAuctionCollection: TUniqueAuctionCollection;
+  lastBid: BidReceivedEvent | null;
 }) => {
   const [openModal, setOpenModal] = useState<TAuctionBidModalState>({
     open: false,
   });
   const { address } = useAccount();
-  const [pulsingTokens, setPulsingTokens] = useState<Set<Address>>(new Set());
+  const utils = api.useUtils();
+  const [pulsingTokens, setPulsingTokens] = useState<Set<string>>(new Set());
 
   // Store timeout IDs for cleanup
-  const pulsingTimeoutsRef = useRef<Map<Address, NodeJS.Timeout>>(new Map());
+  const pulsingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Trigger pulsing animation when new bid comes in via WebSocket
+  useEffect(() => {
+    if (lastBid?.token) {
+      // Normalize to lowercase for consistent comparison
+      const token = lastBid.token.toLowerCase();
+
+      // Only pulse if the bidder is not the current user
+      if (!address || !compareAddress(lastBid.bidder, address)) {
+        setPulsingTokens(prev => {
+          const next = new Set(prev);
+          next.add(token);
+          return next;
+        });
+
+        // Clear any existing timeout for this token
+        const existingTimeout = pulsingTimeoutsRef.current.get(token);
+        if (existingTimeout) {
+          clearTimeout(existingTimeout);
+        }
+
+        // Set new timeout for pulsing animation
+        const timeoutId = setTimeout(() => {
+          setPulsingTokens(prev => {
+            const next = new Set(prev);
+            next.delete(token);
+            return next;
+          });
+          pulsingTimeoutsRef.current.delete(token);
+        }, 12000);
+
+        pulsingTimeoutsRef.current.set(token, timeoutId);
+      }
+    }
+  }, [lastBid, address]);
 
   const { data: auctions, isLoading } = api.auction.getOngoingAuctions.useQuery(
     address,
     {
-      refetchInterval: 60 * 1000,
+      refetchInterval: 5 * 60 * 1000, // 5-minute backup polling (WebSocket handles real-time)
     },
   );
   const { data: auctionLots, isLoading: isLoadingBal } =
@@ -51,90 +96,24 @@ const OngoingAuction = ({
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
       {
         enabled: uniqueAuctionCollection.uniqueCollateralToken.size > 0,
-        refetchInterval: 60 * 1000,
+        refetchInterval: 5 * 60 * 1000, // 5-minute backup polling (WebSocket handles real-time)
       },
     );
 
-  const [isTriggered, setIsTriggered] = useState(false);
-  const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
-
-  const activeTokens = useMemo(() => {
-    if (!auctions) return [];
-    return auctions.map(a => a.token.id as Address);
-  }, [auctions]);
-
-  const {
-    mergeWithServerData,
-    pollingError,
-  } = useAuctionRpcPolling({
-    tokens: activeTokens,
-    enabled: !openModal.open && activeTokens.length > 0,
-    onNewBid: (update) => {
-      setPulsingTokens(prev => {
-        const next = new Set(prev);
-        next.add(update.token);
-        return next;
-      });
-
-      // Clear any existing timeout for this token
-      const existingTimeout = pulsingTimeoutsRef.current.get(update.token);
-      if (existingTimeout) {
-        clearTimeout(existingTimeout);
-      }
-
-      // Set new timeout and store its ID
-      const timeoutId = setTimeout(() => {
-        setPulsingTokens(prev => {
-          const next = new Set(prev);
-          next.delete(update.token);
-          return next;
-        });
-        // Remove timeout ID from map after it fires
-        pulsingTimeoutsRef.current.delete(update.token);
-      }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
-
-      pulsingTimeoutsRef.current.set(update.token, timeoutId);
-    },
-  });
+  // Countdown completion handler - invalidate queries when auction time expires
+  const handleCountdownComplete = useCallback(() => {
+    void utils.auction.getOngoingAuctions.invalidate();
+    void utils.auction.getExpiredAuctions.invalidate();
+    void utils.auction.getallAuctions.invalidate();
+  }, [utils]);
 
   const sortedAuctions = useMemo(() => {
     if (!auctions) {
       return [];
     }
 
-    const { merged, newBidsDetected } = mergeWithServerData(auctions);
-
-    if (newBidsDetected.length > 0) {
-      setPulsingTokens(prev => {
-        const next = new Set(prev);
-        newBidsDetected.forEach(token => next.add(token));
-        return next;
-      });
-
-      // Clear any existing timeouts for these tokens
-      newBidsDetected.forEach(token => {
-        const existingTimeout = pulsingTimeoutsRef.current.get(token);
-        if (existingTimeout) {
-          clearTimeout(existingTimeout);
-        }
-
-        // Set new timeout and store its ID
-        const timeoutId = setTimeout(() => {
-          setPulsingTokens(prev => {
-            const next = new Set(prev);
-            next.delete(token);
-            return next;
-          });
-          // Remove timeout ID from map after it fires
-          pulsingTimeoutsRef.current.delete(token);
-        }, 12000); // 12 seconds timeout (1.5s × 7 iterations = 10.5s + buffer)
-
-        pulsingTimeoutsRef.current.set(token, timeoutId);
-      });
-    }
-
     // Sort auctions: user's auctions first, then others
-    return merged.sort((a, b) => {
+    return [...auctions].sort((a, b) => {
       const aIsParticipant = Boolean(a.isParticipant.length);
       const bIsParticipant = Boolean(b.isParticipant.length);
 
@@ -142,41 +121,18 @@ const OngoingAuction = ({
       if (!aIsParticipant && bIsParticipant) return 1;
       return 0;
     });
-  }, [auctions, mergeWithServerData]);
-
-  const handleTrigger = useCallback(() => {
-    if (isTriggered) {
-      return;
-    }
-    setIsTriggered(true);
-    resetAuctionOnTrigger("ongoing");
-
-    setIsTriggered(false);
-  }, [isTriggered, resetAuctionOnTrigger]);
-
-  useEffect(() => {
-    if (pollingError) {
-      console.error("RPC polling error:", pollingError);
-    }
-  }, [pollingError]);
+  }, [auctions]);
 
   // Cleanup all timeouts on unmount
   useEffect(() => {
     const timeouts = pulsingTimeoutsRef.current;
     return () => {
-      // Clear all pending timeouts
       timeouts.forEach((timeout) => {
         clearTimeout(timeout);
       });
       timeouts.clear();
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (!openModal.open) {
-  //     refetch();
-  //   }
-  // }, [openModal.open, refetch]);
 
   return (
     <div>
@@ -203,8 +159,7 @@ const OngoingAuction = ({
 
                 return (
                   <AuctionCard
-                    auctionType="ongoing"
-                    isPulsing={pulsingTokens.has(token.id as Address)}
+                    isPulsing={pulsingTokens.has(token.id.toLowerCase())}
                     data={[
                       [
                         {
@@ -300,7 +255,7 @@ const OngoingAuction = ({
                           content: (
                             <Countdown
                               date={(+startTime + AUCTION_DURATION) * 1000}
-                              onComplete={handleTrigger}
+                              onComplete={handleCountdownComplete}
                             />
                           ),
                         },

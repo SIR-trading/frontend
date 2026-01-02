@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils/index";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import Countdown from "react-countdown";
-import { useResetAuctionsOnTrigger } from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import { useAccount } from "wagmi";
 
 export enum AuctionCardTitle {
@@ -44,22 +43,21 @@ const AuctionCard = ({
   id,
   actionDelay,
   disabled,
-  auctionType,
   className,
   isPulsing,
+  onCountdownComplete,
 }: {
   data: TAuctionData[];
   action?: TAuctionAction;
   id?: string;
   actionDelay?: number;
   disabled?: boolean;
-  auctionType: "new" | "ongoing" | "past";
   className?: string;
   isPulsing?: boolean;
+  onCountdownComplete?: () => void;
 }) => {
   const { isConnected } = useAccount();
   const shouldDelay = Boolean(actionDelay && actionDelay > Date.now() / 1000);
-  const resetAuctionOnTrigger = useResetAuctionsOnTrigger();
   return (
     <Card
       className={cn(
@@ -105,7 +103,7 @@ const AuctionCard = ({
               <>Starting in</>{" "}
               <Countdown
                 date={actionDelay! * 1000}
-                onComplete={() => resetAuctionOnTrigger(auctionType)}
+                onComplete={onCountdownComplete}
                 className="w-[120px] text-left"
               />
             </div>

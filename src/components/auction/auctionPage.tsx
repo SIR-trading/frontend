@@ -13,6 +13,7 @@ import { AUCTION_COOLDOWN } from "@/components/auction/__constants";
 import { getNativeCurrencySymbol, getAuctionBidIncreasePercentage } from "@/lib/chains";
 import { getSirSymbol } from "@/lib/assets";
 import { useVaultData } from "@/contexts/VaultDataContext";
+import { useRealtimeAuctions } from "@/hooks/useRealtimeAuctions";
 
 export type TUniqueAuctionCollection = {
   uniqueCollateralToken: Set<string>;
@@ -22,6 +23,10 @@ export type TUniqueAuctionCollection = {
 
 const AuctionPage = () => {
   const { allVaults: vaultsData } = useVaultData();
+
+  // WebSocket for real-time auction updates across all tabs
+  const { lastBid } = useRealtimeAuctions();
+
   const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
   const { data: expiredAuctions } = api.auction.getExpiredAuctions.useQuery({});
   const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery();
@@ -154,7 +159,7 @@ const AuctionPage = () => {
                 Minimum bid increase: {getAuctionBidIncreasePercentage()}%
               </span>
             </div>
-            <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} />
+            <OngoingAuction uniqueAuctionCollection={uniqueAuctionCollection} lastBid={lastBid} />
           </TabsContent>
           <TabsContent value="history" className="mt-10">
             <div className="mb-6 text-center text-sm text-muted-foreground">

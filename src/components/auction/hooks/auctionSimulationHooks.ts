@@ -13,7 +13,10 @@ export const useBidConfig = ({
   tokenDecimals?: number;
   useNativeToken?: boolean;
 }) => {
-  const bidAmount = parseUnits(amount || "0", tokenDecimals ?? 18);
+  // Guard against invalid input (empty, ".", NaN) - only parse valid positive numbers
+  const numAmount = Number(amount);
+  const safeAmount = numAmount > 0 ? amount : "0";
+  const bidAmount = parseUnits(safeAmount, tokenDecimals ?? 18);
 
   return {
     token: token as Address | undefined,

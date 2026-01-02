@@ -12,7 +12,6 @@ export const subgraphSyncPoll = async (
     const resp = (await fetch(
       `/api/sync?${blockNumber ? `block=${blockNumber}` : ""}`,
     ).then((r) => r.json())) as unknown;
-    console.log(resp, "RESPONSE");
     const safe = respSchema.safeParse(resp);
     if (safe.success) {
       if (safe.data.success) {

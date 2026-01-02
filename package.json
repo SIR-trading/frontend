@@ -7,13 +7,16 @@
     "build": "pnpm run generate:build-data && pnpm run fetch:tokens && next build",
     "generate:build-data": "tsx scripts/generate-build-data.ts",
     "fetch:tokens": "tsx scripts/fetch-token-lists.ts",
-    "dev": "pnpm run generate:build-data && pnpm run fetch:tokens && next dev --turbo",
+    "dev": "pnpm run generate:build-data && pnpm run fetch:tokens && concurrently -n ws,next -c blue,green \"pnpm ws:dev\" \"next dev --turbo\"",
     "lint": "next lint",
     "start": "next start",
     "test": "vitest",
     "type-check": "tsc --noEmit --incremental",
     "build-graph": "graphclient build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ws:dev": "pnpm --filter sir-websocket-server dev",
+    "ws:build": "pnpm --filter sir-websocket-server build",
+    "ws:start": "pnpm --filter sir-websocket-server start"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -63,7 +66,7 @@
     "lodash.groupby": "^4.6.0",
     "lucide-react": "^0.368.0",
     "motion": "^11.11.17",
-    "next": "^14.2.33",
+    "next": "^14.2.35",
     "next-themes": "^0.4.6",
     "numeral": "^2.0.6",
     "pino-pretty": "^11.0.0",
@@ -73,6 +76,7 @@
     "react-hook-form": "^7.51.3",
     "redis": "^5.6.1",
     "server-only": "^0.0.1",
+    "socket.io-client": "^4.8.3",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
@@ -95,6 +99,7 @@
     "@typescript-eslint/eslint-plugin": "^7.6.0",
     "@typescript-eslint/parser": "^7.6.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^9.2.1",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.1",

@@ -317,6 +317,32 @@ const { data: prices } = api.vault.getBatchCollateralPrices.useQuery(
 
 ## Feature-Specific Implementations
 
+### Real-Time Updates with WebSocket
+
+**Pattern**: WebSocket for instant updates + 5-minute polling as fallback.
+
+**Why both:**
+- WebSocket provides instant updates for bids, auction starts, settlements
+- 5-minute polling catches edge cases: connection drops, browser tab sleep, server restarts
+
+**Implementation:**
+```typescript
+// 1. WebSocket hook at page level for real-time invalidation
+const { lastBid } = useRealtimeAuctions();
+
+// 2. Queries use 5-minute backup polling
+const { data } = api.auction.getOngoingAuctions.useQuery(address, {
+  refetchInterval: 5 * 60 * 1000, // 5-minute backup polling (WebSocket handles real-time)
+});
+```
+
+**WebSocket events handled:**
+- `bidReceived` → invalidates `getOngoingAuctions`
+- `auctionStarted` → invalidates `getallAuctions`, `getTotalCollateralFeesInVault`
+- `auctionSettled` → invalidates `getOngoingAuctions`, `getExpiredAuctions`
+
+**Reference**: `src/hooks/useRealtimeAuctions.ts`, `src/components/auction/auctionPage.tsx`
+
 ### LP Staking
 
 **Key components:**

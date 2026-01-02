@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import AuctionContentWrapper from "@/components/auction/auctionContentWrapper";
 import AuctionCard, {
   AuctionCardTitle,
@@ -13,7 +13,6 @@ import TransactionModal from "@/components/shared/transactionModal";
 import { TransactionStatus } from "@/components/leverage-liquidity/mintForm/transactionStatus";
 import React from "react";
 import { useResetTransactionModal } from "@/components/leverage-liquidity/mintForm/hooks/useResetTransactionModal";
-import useResetAuctionsOnSuccess from "@/components/auction/hooks/useResetAuctionsOnSuccess";
 import { compareAddress } from "@/lib/utils/index";
 import { WRAPPED_NATIVE_TOKEN_ADDRESS } from "@/data/constants";
 import Show from "@/components/shared/show";
@@ -39,17 +38,25 @@ const NewAuction = ({
 }: {
   uniqueAuctionCollection: TUniqueAuctionCollection;
 }) => {
+  const utils = api.useUtils();
+
+  const handleCountdownComplete = useCallback(() => {
+    void utils.vault.getVaults.invalidate();
+    void utils.vault.getTotalCollateralFeesInVault.invalidate();
+    void utils.auction.getallAuctions.invalidate();
+  }, [utils]);
+
   const { data: tokenWithFeesMap, isLoading: isLoadingBal } =
     api.vault.getTotalCollateralFeesInVault.useQuery(
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
       {
         enabled: uniqueAuctionCollection.uniqueCollateralToken.size > 0,
-        refetchInterval: 60 * 1000,
+        refetchInterval: 5 * 60 * 1000, // 5-minute backup polling (WebSocket handles real-time)
       },
     );
   const { data: allExistingAuctions, isLoading } =
     api.auction.getallAuctions.useQuery(undefined, {
-      refetchInterval: 60 * 1000,
+      refetchInterval: 5 * 60 * 1000, // 5-minute backup polling (WebSocket handles real-time)
     });
 
   const { writeContract, data: hash, isPending, reset, error: writeError } = useWriteContract();
@@ -57,7 +64,6 @@ const NewAuction = ({
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-    data: transactionData,
   } = useWaitForTransactionReceipt({ hash });
 
   const { openTransactionModal, setOpenTransactionModal } =
@@ -142,17 +148,7 @@ const NewAuction = ({
     }
   };
 
-  useResetAuctionsOnSuccess({
-    isConfirming,
-    isConfirmed,
-    txBlock: parseInt(transactionData?.blockNumber.toString() ?? "0"),
-    actions: () => {
-      // Don't close modal or reset ID here - let user close it manually after seeing success
-      // setId(undefined);
-      // setOpenTransactionModal(false);
-    },
-    auctionType: "new",
-  });
+  // WebSocket handles auction data refresh via useRealtimeAuctions hook
 
   return (
     <div>
@@ -371,7 +367,6 @@ const NewAuction = ({
             <AuctionContentWrapper>
               {readyToStart.map((auction, index) => (
                 <AuctionCard
-                  auctionType="new"
                   data={[
                     [
                       {
@@ -428,6 +423,7 @@ const NewAuction = ({
                   }}
                   disabled={isPending || isConfirming}
                   actionDelay={auction.timeToStart}
+                  onCountdownComplete={handleCountdownComplete}
                   id={auction.token}
                   key={index}
                 />
@@ -440,7 +436,6 @@ const NewAuction = ({
           <AuctionContentWrapper>
             {onHold.map((auction, index) => (
               <AuctionCard
-                auctionType="new"
                 data={[
                   [
                     {
@@ -495,6 +490,7 @@ const NewAuction = ({
                   },
                 }}
                 actionDelay={auction.timeToStart}
+                onCountdownComplete={handleCountdownComplete}
               />
             ))}
           </AuctionContentWrapper>

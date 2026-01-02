@@ -224,3 +224,13 @@ export function isHyperEVM(chainId?: number): boolean {
   const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
   return targetChainId === 998 || targetChainId === 999;
 }
+
+/**
+ * Returns true if native token bidding is supported on this chain.
+ * Native bidding is available on all chains except Ethereum mainnet and Sepolia.
+ */
+export function supportsNativeTokenBidding(chainId?: number): boolean {
+  const targetChainId = chainId ?? parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+  // Ethereum mainnet (1) and Sepolia (11155111) don't support native token bidding
+  return targetChainId !== 1 && targetChainId !== 11155111;
+}
