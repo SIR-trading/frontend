@@ -5,7 +5,7 @@ import AuctionCard, {
 import { TokenDisplay } from "@/components/ui/token-display";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { SirContract } from "@/contracts/sir";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { api } from "@/trpc/react";
@@ -27,7 +27,7 @@ import ExplorerLink from "@/components/shared/explorerLink";
 import DisplayFormattedNumber from "@/components/shared/displayFormattedNumber";
 import { formatUnits } from "viem";
 
-const length = 4; // Number of auctions per page
+const PAGE_SIZE = 4; // Number of auctions per page
 
 const PastAuction = ({
   uniqueAuctionCollection,
@@ -36,17 +36,27 @@ const PastAuction = ({
 }) => {
   const { address } = useAccount();
   const [page, setPage] = useState(1);
+  // Track cursors for each page: cursorHistory[0] = cursor for page 2, cursorHistory[1] = cursor for page 3, etc.
+  const [cursorHistory, setCursorHistory] = useState<number[]>([]);
 
-  const { data: allAuctions } = api.auction.getExpiredAuctions.useQuery({
-    user: address,
-  });
+  // Current cursor: undefined for page 1, otherwise use the cursor from history
+  const currentCursor = page === 1 ? undefined : cursorHistory[page - 2];
 
-  const { data: auctions, isPending: isLoading } =
+  // Fetch PAGE_SIZE + 1 to detect if there are more results
+  const { data: rawAuctions, isPending: isLoading } =
     api.auction.getExpiredAuctions.useQuery({
       user: address,
-      skip: (page - 1) * length,
-      first: length,
+      first: PAGE_SIZE + 1,
+      cursor: currentCursor,
     });
+
+  // Determine if there are more pages and get the display auctions
+  const { auctions, hasMore } = useMemo(() => {
+    if (!rawAuctions) return { auctions: undefined, hasMore: false };
+    const hasMorePages = rawAuctions.length > PAGE_SIZE;
+    const displayAuctions = hasMorePages ? rawAuctions.slice(0, PAGE_SIZE) : rawAuctions;
+    return { auctions: displayAuctions, hasMore: hasMorePages };
+  }, [rawAuctions]);
   const { data: auctionLots, isPending: isLoadingBal } =
     api.auction.getAuctionBalances.useQuery(
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
@@ -88,21 +98,26 @@ const PastAuction = ({
   };
 
   const nextPage = () => {
-    const currentLength = auctions?.length;
+    const lastAuction = auctions?.[auctions.length - 1];
+    if (hasMore && lastAuction) {
+      // Get the startTime of the last displayed auction as the cursor for the next page
+      const nextCursor = parseInt(lastAuction.startTime);
 
-    if (length === currentLength && allAuctions) {
-      if (allAuctions?.[length - 1]?.id) {
-        setPage((page) => page + 1);
-      }
+      // Store this cursor for navigating back
+      setCursorHistory((prev) => {
+        const newHistory = [...prev];
+        // Store cursor at index (page - 1) for accessing page (page + 1)
+        newHistory[page - 1] = nextCursor;
+        return newHistory;
+      });
+
+      setPage((p) => p + 1);
     }
   };
+
   const prevPage = () => {
     if (page > 1) {
-      if (page - 1 === 1) {
-        setPage(1);
-      } else {
-        setPage(page - 1);
-      }
+      setPage((p) => p - 1);
     }
   };
 
@@ -373,13 +388,12 @@ const PastAuction = ({
               )}
             </AuctionContentWrapper>{" "}
             <div className="pr-4">
-              {(() => { console.log('Pagination debug:', { page, length, allAuctionsLength: allAuctions?.length, isLastPage: page * length >= (allAuctions?.length ?? 0) }); return null; })()}
               <Pagination
-                max={length}
+                max={PAGE_SIZE}
                 page={page}
                 nextPage={nextPage}
                 prevPage={prevPage}
-                length={page * length >= (allAuctions?.length ?? 0) ? 0 : length}
+                length={hasMore ? PAGE_SIZE : 0}
                 size="lg"
               />
             </div>

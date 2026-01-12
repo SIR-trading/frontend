@@ -18,12 +18,12 @@ export const auctionRouter = createTRPCRouter({
     .input(
       z.object({
         user: z.string().startsWith("0x").length(42).optional(),
-        skip: z.number().optional(),
-        first: z.number().default(100),
+        first: z.number().default(5),
+        cursor: z.number().optional(), // startTime cursor for pagination
       }),
     )
-    .query(async ({ input: { user, skip, first } }) => {
-      const auctions = await getAuctions(user, "expired", skip, first);
+    .query(async ({ input: { user, first, cursor } }) => {
+      const auctions = await getAuctions(user, "expired", undefined, first, cursor);
       return auctions.auctions;
     }),
 
