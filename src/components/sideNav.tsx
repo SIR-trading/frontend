@@ -28,12 +28,17 @@ import NetworkBadge from "./networkBadge";
 import { useClaimableBalances } from "@/hooks/useClaimableBalances";
 import { useActiveAuctions } from "@/hooks/useActiveAuctions";
 import { useIsSystemControlOwner } from "@/hooks/useIsSystemControlOwner";
-import { CHAIN_CONFIGS } from "@/config/chains";
+import { CHAIN_CONFIGS, type ChainConfig } from "@/config/chains";
 import { env } from "@/env";
 import Image from "next/image";
 
 // Helper function to get logo URL for any network's native token
-function getNetworkLogoUrl(symbol: string): string {
+function getNetworkLogoUrl(chain: ChainConfig): string {
+  // MegaETH uses its own logo, not ETH
+  if (chain.chainId === 6343) {
+    return "https://coin-images.coingecko.com/coins/images/69995/large/ICON.png?1760337992";
+  }
+  const symbol = chain.nativeCurrency.symbol;
   if (symbol === "ETH") {
     return "https://coin-images.coingecko.com/coins/images/279/large/ethereum.png?1696501628";
   }
@@ -118,14 +123,17 @@ export default function SideNav() {
                 )}
               >
                 {(() => {
-                  const logoUrl = getNetworkLogoUrl(currentChain?.nativeCurrency.symbol ?? "");
+                  const logoUrl = currentChain ? getNetworkLogoUrl(currentChain) : "";
                   return logoUrl ? (
                     <Image
                       src={logoUrl}
                       alt={currentChain?.nativeCurrency.symbol ?? "Network"}
                       width={16}
                       height={16}
-                      className="rounded-full flex-shrink-0"
+                      className={cn(
+                        "rounded-full flex-shrink-0",
+                        currentChainId === 6343 && "bg-white"
+                      )}
                     />
                   ) : null;
                 })()}
@@ -145,7 +153,7 @@ export default function SideNav() {
               >
                 {availableNetworks.map((network) => {
                   const isCurrentNetwork = network.chainId === currentChainId;
-                  const logoUrl = getNetworkLogoUrl(network.nativeCurrency.symbol);
+                  const logoUrl = getNetworkLogoUrl(network);
                   return (
                     <DropdownMenuItem
                       key={network.chainId}
@@ -162,7 +170,10 @@ export default function SideNav() {
                             alt={network.nativeCurrency.symbol}
                             width={16}
                             height={16}
-                            className="rounded-full flex-shrink-0"
+                            className={cn(
+                              "rounded-full flex-shrink-0",
+                              network.chainId === 6343 && "bg-white"
+                            )}
                           />
                         )}
                         <span className={cn(

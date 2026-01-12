@@ -51,6 +51,7 @@ public/assets.json
 
 # Claude
 .claude
+tmpclaude-*
 
 # VSCode
 .vscode
