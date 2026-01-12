@@ -10,7 +10,6 @@ import Show from "@/components/shared/show";
 import BurnTableRowSkeleton from "./burnTableRowSkeleton";
 import type { TUserPosition } from "@/server/queries/vaults";
 import { useVaultData } from "@/contexts/VaultDataContext";
-import type { TAddressString } from "@/lib/types";
 
 export default function BurnTable({
   filter,
@@ -30,34 +29,28 @@ export default function BurnTable({
     api.user.getUserBalancesInVaults.useQuery({ address });
   const ape = api.user.getApePositions.useQuery({ address });
   const tea = api.user.getTeaPositions.useQuery({ address });
-  const { getVaultById } = useVaultData();
+  const { getVaultById, allVaultsLoading, allVaults } = useVaultData();
 
-  // Merge TEA positions with orphaned SIR rewards (vaults with rewards but no TEA position)
-  const teaPositionsWithOrphanedRewards = useMemo(() => {
-    const teaPositions = tea.data?.teaPositions ?? [];
-    const unclaimedSirRewards = userBalancesInVaults?.unclaimedSirRewards ?? [];
-    const teaBalances = userBalancesInVaults?.teaBalances ?? [];
+  // Combine GraphQL positions with orphaned rewards (rewards exist but subgraph deleted the position)
+  const teaPositions = useMemo(() => {
+    const graphqlPositions = tea.data?.teaPositions ?? [];
+    const rewards = userBalancesInVaults?.unclaimedSirRewards ?? [];
 
-    // Find vault IDs that have TEA positions from GraphQL
-    const teaPositionVaultIds = new Set(teaPositions.map((p) => p.vault.id));
+    // Find which vault IDs are already in GraphQL results
+    const existingVaultIds = new Set(graphqlPositions.map((p) => p.vault.id));
 
-    // Find vaults with unclaimed SIR rewards but no TEA position (or zero TEA balance)
-    const orphanedRewardsPositions: typeof teaPositions = [];
-
-    unclaimedSirRewards.forEach((rewards, index) => {
-      const vaultId = String(index + 1); // Vault IDs are 1-indexed
-      const teaBalance = teaBalances[index] ?? 0n;
-      const hasRewards = rewards && rewards > 0n;
-      const hasTeaPosition = teaPositionVaultIds.has(vaultId);
-
-      // If there are rewards but no TEA position in GraphQL, create a synthetic one
-      if (hasRewards && !hasTeaPosition && teaBalance === 0n) {
+    // Find vaults with rewards > 0 that aren't in GraphQL
+    const orphanedPositions: typeof graphqlPositions = [];
+    rewards.forEach((reward, index) => {
+      // Vault IDs are hex strings like "0x01", "0x02", etc.
+      const vaultId = "0x" + (index + 1).toString(16).padStart(2, "0");
+      if (reward && reward > 0n && !existingVaultIds.has(vaultId)) {
         const vault = getVaultById(vaultId);
         if (vault) {
-          orphanedRewardsPositions.push({
-            id: `synthetic-tea-${vaultId}`,
+          orphanedPositions.push({
+            id: `orphaned-${vaultId}`,
             balance: 0n,
-            user: (address ?? "0x"),
+            user: address ?? "0x",
             collateralTotal: "0",
             dollarTotal: "0",
             debtTokenTotal: "0",
@@ -80,23 +73,8 @@ export default function BurnTable({
       }
     });
 
-    // Filter out TEA positions where both balance is 0 AND no SIR rewards
-    const filteredTeaPositions = teaPositions.filter((p) => {
-      const vaultIndex = Number(p.vault.id) - 1;
-      const teaBalance = teaBalances[vaultIndex] ?? 0n;
-      const rewards = unclaimedSirRewards[vaultIndex] ?? 0n;
-      // Keep if has TEA balance OR has unclaimed rewards
-      return teaBalance > 0n || rewards > 0n;
-    });
-
-    return [...filteredTeaPositions, ...orphanedRewardsPositions];
-  }, [
-    tea.data?.teaPositions,
-    userBalancesInVaults?.unclaimedSirRewards,
-    userBalancesInVaults?.teaBalances,
-    getVaultById,
-    address,
-  ]);
+    return [...graphqlPositions, ...orphanedPositions];
+  }, [tea.data?.teaPositions, userBalancesInVaults?.unclaimedSirRewards, getVaultById, address, allVaults]);
 
   const selectedRowParamsApe = useMemo(() => {
     const position = ape.data?.apePositions.find(
@@ -118,7 +96,7 @@ export default function BurnTable({
   }, [ape.data?.apePositions, selectedRow]);
 
   const selectedRowParamsTea = useMemo(() => {
-    const position = teaPositionsWithOrphanedRewards.find(
+    const position = teaPositions.find(
       (r) => r.vault.id === selectedRow?.vaultId && !selectedRow.isApe,
     );
     if (!position) return undefined;
@@ -133,10 +111,10 @@ export default function BurnTable({
       debtToken: position.vault.debtToken.id,
       debtSymbol: position.vault.debtToken.symbol ?? "Unknown",
     } as TUserPosition;
-  }, [selectedRow, teaPositionsWithOrphanedRewards]);
+  }, [selectedRow, teaPositions]);
 
   const apeLength = ape?.data?.apePositions?.length ?? 0;
-  const teaLength = teaPositionsWithOrphanedRewards.length;
+  const teaLength = teaPositions.length;
   const hasPositions = useCheckUserHasPositions({
     apeLength,
     teaLength,
@@ -258,7 +236,7 @@ export default function BurnTable({
                 {apePosition}
               </Show>
               <Show when={filter === "tea" || filter === "all"}>
-                {teaPositionsWithOrphanedRewards.map((r, index) => {
+                {teaPositions.map((r, index) => {
                   return (
                     <BurnTableRow
                       key={(r.vault.id || index) + "tea"}

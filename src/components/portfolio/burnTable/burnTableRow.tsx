@@ -1207,6 +1207,8 @@ export function BurnTableRow({
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
             </div>
+          ) : !currentBalance || currentBalance === 0n ? (
+            <span className="text-xs text-muted-foreground">-</span>
           ) : (
             <div className="flex flex-col gap-0.5">
               <span className="text-sm">
@@ -1240,6 +1242,8 @@ export function BurnTableRow({
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
             </div>
+          ) : !currentBalance || currentBalance === 0n ? (
+            <span className="text-xs text-muted-foreground">-</span>
           ) : (
             <div className="flex flex-col gap-0.5">
               <span className="text-sm">
@@ -1273,6 +1277,8 @@ export function BurnTableRow({
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
               <div className="h-5 w-16 animate-pulse rounded bg-foreground/10"></div>
             </div>
+          ) : !currentBalance || currentBalance === 0n ? (
+            <span className="text-xs text-muted-foreground">-</span>
           ) : (
             <div className="flex flex-col gap-0.5">
               <span className="text-sm">

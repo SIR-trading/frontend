@@ -28,7 +28,6 @@ const AuctionPage = () => {
   const { lastBid } = useRealtimeAuctions();
 
   const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
-  const { data: expiredAuctions } = api.auction.getExpiredAuctions.useQuery({});
   const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery();
 
   // Transform the vault data to match the expected format
@@ -105,7 +104,6 @@ const AuctionPage = () => {
   }, [allExistingAuctions, tokenWithFeesMap, uniqueAuctionCollection.uniqueCollateralToken]);
 
   const ongoingCount = ongoingAuctions?.length ?? 0;
-  const pastCount = expiredAuctions?.length ?? 0;
 
   return (
     <div>
@@ -136,11 +134,6 @@ const AuctionPage = () => {
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>📋</span>
                 <span>History</span>
-                {pastCount > 0 && (
-                  <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
-                    {pastCount}
-                  </span>
-                )}
               </div>
             </TabsTrigger>
           </TabsList>
