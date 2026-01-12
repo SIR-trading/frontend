@@ -27,6 +27,11 @@ import {
 } from "viem";
 import buildData from "@/../public/build-data.json";
 import { api } from "@/trpc/react";
+import { env } from "@/env";
+
+// Check if LP Lock Time feature is available (not on Ethereum or HyperEVM)
+const CHAIN_ID = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+const hasLpLockTimeFeature = CHAIN_ID !== 1 && CHAIN_ID !== 998 && CHAIN_ID !== 999;
 
 export default function AdminPage() {
   const { address, isConnected } = useAccount();
@@ -81,6 +86,9 @@ export default function AdminPage() {
           {hasStaker && (
             <TabsTrigger value="incentives">Incentives</TabsTrigger>
           )}
+          {hasLpLockTimeFeature && (
+            <TabsTrigger value="lplocktime">LP Lock Time</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="contracts">
@@ -106,6 +114,12 @@ export default function AdminPage() {
         {hasStaker && (
           <TabsContent value="incentives">
             <IncentivesTab />
+          </TabsContent>
+        )}
+
+        {hasLpLockTimeFeature && (
+          <TabsContent value="lplocktime">
+            <LpLockTimeTab />
           </TabsContent>
         )}
       </Tabs>
@@ -1424,6 +1438,143 @@ function DeployAssistantForm() {
         {error && (
           <div className="bg-red-500/10 border-red-500/30 rounded-md border p-3">
             <p className="text-red-500 text-sm">Deployment failed</p>
+            <p className="mt-1 break-all text-xs text-muted-foreground">
+              {error.message.split("\n")[0]}
+            </p>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+function LpLockTimeTab() {
+  // LP_LOCK_TIME may not exist in older build-data.json, default to 0
+  const lpLockTime = (buildData.systemParams as { lpLockTime?: number }).lpLockTime ?? 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Current LP Lock Time Info */}
+      <div className="rounded-lg border border-foreground/20 p-6">
+        <h2 className="mb-4 text-lg font-semibold">Current LP Lock Time</h2>
+        <p className="text-sm text-muted-foreground">Max Lock Duration:</p>
+        <p className="font-mono text-lg">
+          {lpLockTime} seconds
+          <span className="ml-2 text-sm text-muted-foreground">
+            ({(lpLockTime / 86400).toFixed(1)} days)
+          </span>
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          This is the maximum lock duration LPs can choose to reduce their
+          minting fee. portionLockTime of 255 = full lock (no fee), 0 = no lock
+          (full fee).
+        </p>
+      </div>
+
+      {/* Set LP Lock Time Form */}
+      <SetLpLockTimeForm />
+    </div>
+  );
+}
+
+function SetLpLockTimeForm() {
+  const [lpLockTimeDays, setLpLockTimeDays] = useState("");
+
+  const {
+    writeContract,
+    data: hash,
+    isPending,
+    error,
+    reset,
+  } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({ hash });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!lpLockTimeDays) return;
+
+    // Convert days to seconds
+    const lpLockTimeSeconds = Math.floor(parseFloat(lpLockTimeDays) * 86400);
+
+    writeContract({
+      ...SystemControlContract,
+      functionName: "setLPLockTime",
+      args: [lpLockTimeSeconds],
+    });
+  };
+
+  const handleReset = () => {
+    reset();
+    setLpLockTimeDays("");
+  };
+
+  return (
+    <div className="rounded-lg border border-foreground/20 p-6">
+      <h2 className="mb-2 text-lg font-semibold">Set LP Lock Time</h2>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Set the maximum lock duration for LP fee reduction. LPs who lock their
+        TEA for this duration pay no fee. Shorter locks pay proportionally more.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Lock Time (Days)
+          </label>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            value={lpLockTimeDays}
+            onChange={(e) => setLpLockTimeDays(e.target.value)}
+            placeholder="e.g., 30"
+            className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 font-mono text-sm"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {lpLockTimeDays
+              ? `= ${Math.floor(parseFloat(lpLockTimeDays) * 86400)} seconds`
+              : "Enter duration in days"}
+          </p>
+        </div>
+
+        <Button
+          type="submit"
+          variant="submit"
+          disabled={isPending || isConfirming || !lpLockTimeDays}
+        >
+          {isPending
+            ? "Confirm in Wallet..."
+            : isConfirming
+              ? "Confirming..."
+              : "Set LP Lock Time"}
+        </Button>
+
+        {isConfirmed && (
+          <div className="bg-green-500/10 border-green-500/30 rounded-md border p-3">
+            <p className="text-green-500 text-sm">Transaction confirmed!</p>
+            <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+              Hash: {hash}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Note: Changes take effect after a delay. Rebuild the frontend to
+              update build-data.json.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReset}
+              className="mt-2"
+            >
+              Reset
+            </Button>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-500/10 border-red-500/30 rounded-md border p-3">
+            <p className="text-red-500 text-sm">Transaction failed</p>
             <p className="mt-1 break-all text-xs text-muted-foreground">
               {error.message.split("\n")[0]}
             </p>

@@ -25,6 +25,15 @@ export const SystemControlContract = {
       outputs: [],
       stateMutability: "nonpayable",
     },
+    {
+      type: "function",
+      name: "setLPLockTime",
+      inputs: [
+        { name: "lpLockTime_", type: "uint40", internalType: "uint40" },
+      ],
+      outputs: [],
+      stateMutability: "nonpayable",
+    },
   ] as const,
 };
 

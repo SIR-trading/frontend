@@ -235,6 +235,11 @@ export const VaultContract = {
           internalType: "uint144",
         },
         { name: "deadline", type: "uint40", internalType: "uint40" },
+        {
+          name: "portionLockTime",
+          type: "uint8",
+          internalType: "uint8",
+        },
       ],
       outputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
       stateMutability: "payable",
@@ -351,6 +356,7 @@ export const VaultContract = {
             },
             { name: "mintingStopped", type: "bool", internalType: "bool" },
             { name: "cumulativeTax", type: "uint16", internalType: "uint16" },
+            { name: "lpLockTime", type: "uint40", internalType: "uint40" },
           ],
         },
       ],
@@ -557,6 +563,7 @@ export const VaultContract = {
       ],
       anonymous: false,
     },
+    // Mint event for Ethereum/HyperEVM (without portionLockTime)
     {
       type: "event",
       name: "Mint",
@@ -597,6 +604,57 @@ export const VaultContract = {
           type: "uint256",
           indexed: false,
           internalType: "uint256",
+        },
+      ],
+      anonymous: false,
+    },
+    // Mint event for MegaETH and other chains (with portionLockTime)
+    {
+      type: "event",
+      name: "Mint",
+      inputs: [
+        {
+          name: "vaultId",
+          type: "uint48",
+          indexed: true,
+          internalType: "uint48",
+        },
+        {
+          name: "minter",
+          type: "address",
+          indexed: true,
+          internalType: "address",
+        },
+        { name: "isAPE", type: "bool", indexed: false, internalType: "bool" },
+        {
+          name: "collateralIn",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToStakers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "collateralFeeToLPers",
+          type: "uint144",
+          indexed: false,
+          internalType: "uint144",
+        },
+        {
+          name: "tokenOut",
+          type: "uint256",
+          indexed: false,
+          internalType: "uint256",
+        },
+        {
+          name: "portionLockTime",
+          type: "uint8",
+          indexed: false,
+          internalType: "uint8",
         },
       ],
       anonymous: false,

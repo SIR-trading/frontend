@@ -142,6 +142,7 @@ const VAULT_ABI = [
           },
           { name: "mintingStopped", type: "bool", internalType: "bool" },
           { name: "cumulativeTax", type: "uint16", internalType: "uint16" },
+          { name: "lpLockTime", type: "uint40", internalType: "uint40" },
         ],
       },
     ],
@@ -241,6 +242,7 @@ export interface SystemParams {
   lpFee: number; // LP minting fee, converted from basis points
   mintingStopped: boolean;
   cumulativeTax: number;
+  lpLockTime: number; // Max lock duration for LP fee reduction (in seconds)
   lastUpdated: number;
 }
 
@@ -377,6 +379,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lpFee: { fee: number; feeNew: number; timestampUpdate: number };
       mintingStopped: boolean;
       cumulativeTax: number;
+      lpLockTime: number;
     };
 
     const contractAddresses: ContractAddresses = {
@@ -397,6 +400,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lpFee: rawParams.lpFee.fee / 10000, // LP minting fee, convert from basis points
       mintingStopped: rawParams.mintingStopped,
       cumulativeTax: rawParams.cumulativeTax,
+      lpLockTime: rawParams.lpLockTime, // Max lock duration in seconds
       lastUpdated: Date.now(),
     };
 

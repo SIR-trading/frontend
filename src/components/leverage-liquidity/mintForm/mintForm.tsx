@@ -50,14 +50,22 @@ import {
   calculateValueGainFromPriceGain,
 } from "@/lib/utils/breakeven";
 import { TimeDisplay } from "@/components/portfolio/burnTable/TimeDisplay";
-import { getLeverageRatio, calculateSaturationPrice } from "@/lib/utils/calculations";
+import { getLeverageRatio, calculateSaturationPrice, calculateTeaVaultFee } from "@/lib/utils/calculations";
 import { VaultUrlSync } from "./VaultUrlSync";
 import ConvexReturnsChart from "./ConvexReturnsChart";
 import LpReturnsChart from "./LpReturnsChart";
 import buildData from "@/../public/build-data.json";
+import { env } from "@/env";
+import { Slider } from "@/components/ui/slider";
 
 const BASE_FEE = buildData.systemParams.baseFee;
 const LP_FEE = buildData.systemParams.lpFee;
+// LP_LOCK_TIME may not exist in older build-data.json, default to 0
+const LP_LOCK_TIME = (buildData.systemParams as { lpLockTime?: number }).lpLockTime ?? 0;
+
+// Check if LP Lock Time feature is available (not on Ethereum or HyperEVM)
+const CHAIN_ID = parseInt(env.NEXT_PUBLIC_CHAIN_ID);
+const hasLpLockTimeFeature = CHAIN_ID !== 1 && CHAIN_ID !== 998 && CHAIN_ID !== 999;
 
 interface Props {
   vaultsQuery?: TVaults;
@@ -69,6 +77,10 @@ interface Props {
  */
 export default function MintForm({ isApe }: Props) {
   const [useNativeTokenRaw, setUseNativeToken] = useState(false);
+  // portionLockTime: 0 = full fee (no lock), 255 = no fee (full lock)
+  // Only used for TEA minting on chains with LP lock time feature
+  const [portionLockTime, setPortionLockTime] = useState(0);
+
   const { vaults: vaultsQuery } = useVaultProvider();
   const {
     userNativeTokenBalance,
@@ -333,6 +345,8 @@ export default function MintForm({ isApe }: Props) {
         useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
         minCollateralOutWithSlippage,
         Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
+        // portionLockTime: 0 = full fee (no lock), 255 = no fee (full lock). Ignored for APE.
+        isApe ? 0 : (hasLpLockTimeFeature ? portionLockTime : 0),
       ],
       value: useNativeToken
         ? parseUnits(deposit ?? "0", depositDecimals ?? 18)
@@ -355,6 +369,7 @@ export default function MintForm({ isApe }: Props) {
     useNativeToken,
     depositToken,
     minCollateralOut,
+    portionLockTime,
   ]);
 
   let balance = userBalance?.tokenBalance?.result;
@@ -379,7 +394,11 @@ export default function MintForm({ isApe }: Props) {
     rootErrorMessage: formState.errors.root?.message,
   });
 
-  const fee = useFormFee({ leverageTier, isApe });
+  const fee = useFormFee({
+    leverageTier,
+    isApe,
+    portionLockTime: hasLpLockTimeFeature ? portionLockTime : 0
+  });
   const modalSubmit = () => {
     if (!isConfirmed) {
       onSubmit();
@@ -721,10 +740,50 @@ export default function MintForm({ isApe }: Props) {
                   }
                 />
 
+                {/* LP Lock Time Selector - only for TEA on chains with the feature */}
+                {!isApe && hasLpLockTimeFeature && LP_LOCK_TIME > 0 && (
+                  <>
+                    <TransactionModal.StatRow
+                      title="Lock Duration"
+                      value={
+                        <span>
+                          {portionLockTime === 0 ? (
+                            "No lock"
+                          ) : (
+                            <>
+                              <DisplayFormattedNumber
+                                num={(LP_LOCK_TIME * portionLockTime / 255 / 86400).toString()}
+                                significant={2}
+                              />
+                              {" days"}
+                            </>
+                          )}
+                        </span>
+                      }
+                    />
+                    <div className="mt-2 mb-1">
+                      <Slider
+                        value={[portionLockTime]}
+                        onValueChange={(value) => setPortionLockTime(value[0] ?? 0)}
+                        max={255}
+                        min={0}
+                        step={1}
+                        className="w-full"
+                      />
+                      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                        <span>Full fee</span>
+                        <span>No fee</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="mt-1 text-[10px] text-muted-foreground">
                   {isApe
                     ? "You pay a one-time fee. No recurring fees are charged while holding APE tokens regardless of the duration."
-                    : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
+                    : hasLpLockTimeFeature && LP_LOCK_TIME > 0
+                      ? "Choose between paying a fee or locking your TEA. Longer locks reduce the fee."
+                      : "As an LPer, you pay a one-time fee to mitigate some types of economic attacks, which you will recover over time as you earn fees."}
                 </div>
 
                 {/* Stats for Required Price Gain or Required Time */}
