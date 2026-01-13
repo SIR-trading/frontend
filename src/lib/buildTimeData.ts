@@ -1,5 +1,5 @@
 import { createPublicClient, http, type Address, keccak256, getAddress, encodePacked, encodeAbiParameters } from 'viem';
-import { base } from 'viem/chains';
+import { mainnet, sepolia, base } from 'viem/chains';
 import type { TAddressString } from './types';
 import { CHAIN_CONFIGS } from '@/config/chains';
 
@@ -22,6 +22,27 @@ const UNIV3_STAKER_ADDRESS = chainConfig.contracts.uniswapV3Staker;
 const UNIV3_FACTORY = chainConfig.contracts.uniswapV3Factory;
 const POOL_INIT_CODE_HASH = chainConfig.contracts.uniswapV3PoolInitCodeHash;
 const WRAPPED_NATIVE_TOKEN = chainConfig.wrappedNativeToken.address;
+
+// Map chain IDs to viem chain definitions
+function getViemChain(chainId: number) {
+  switch (chainId) {
+    case 1:
+      return mainnet;
+    case 11155111:
+      return sepolia;
+    default:
+      // For HyperEVM and other chains, create a minimal chain definition
+      // chainConfig is guaranteed to be defined by the module-level check at line 17-19
+      return {
+        id: chainId,
+        name: chainConfig!.name,
+        nativeCurrency: chainConfig!.nativeCurrency,
+        rpcUrls: {
+          default: { http: [RPC_URL!] },
+        },
+      };
+  }
+}
 
 console.log('Environment variables:');
 console.log('RPC_URL:', RPC_URL ? 'SET' : 'NOT SET');
@@ -264,9 +285,9 @@ export interface BuildTimeData {
  * Only requires ASSISTANT_ADDRESS in environment variables
  */
 export async function fetchBuildTimeData(): Promise<BuildTimeData> {
-  // Create public client for Base network
+  // Create public client for the configured chain
   const client = createPublicClient({
-    chain: base,
+    chain: getViemChain(CHAIN_ID),
     transport: http(RPC_URL),
   });
 
@@ -483,7 +504,7 @@ export async function validateIncentives(
   }
 
   const client = createPublicClient({
-    chain: base,
+    chain: getViemChain(CHAIN_ID),
     transport: http(RPC_URL),
   });
 
