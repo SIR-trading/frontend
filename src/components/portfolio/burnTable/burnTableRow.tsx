@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Send, XCircle } from "lucide-react";
+import { MoreVertical, Send, XCircle, Lock } from "lucide-react";
 import HoverPopup from "@/components/ui/hover-popup";
 import { parseUnits } from "viem";
 import { useVaultData } from "@/contexts/VaultDataContext";
@@ -138,14 +138,16 @@ export function BurnTableRow({
   let spotPnlPercent = 0;
   let spotPnlDebt = 0;
 
-  if (initialDebtTokenValue > 0 && initialCollateral > 0) {
-    // Collateral PnL percentage
+  // Calculate collateral PnL percentage (works for both APE and TEA)
+  if (initialCollateral > 0) {
     collateralPnlPercent = (pnlCollateral / initialCollateral) * 100;
+  }
 
-    // Debt token PnL percentage
+  // Calculate debt token PnL percentage (requires initial debt token value)
+  if (initialDebtTokenValue > 0) {
     leveragedPnlPercent = (pnlDebtToken / initialDebtTokenValue) * 100;
 
-    if (isApe) {
+    if (isApe && initialCollateral > 0) {
       // Spot PnL: What if user held the collateral instead of taking leverage
       const priceChange = currentPrice / initialPrice;
 
@@ -158,6 +160,26 @@ export function BurnTableRow({
   const teaBalance = formatUnits(teaBal ?? 0n, tokenDecimals);
 
   const rewards = Number(formatUnits(teaRewards ?? 0n, 12)); // SIR always has 12 decimals
+
+  // Check if TEA position is locked (lockEnd is a timestamp in seconds)
+  const lockEndTimestamp = row.lockEnd ? parseInt(row.lockEnd) : 0;
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const isLocked = !isApe && lockEndTimestamp > currentTimestamp;
+  const remainingLockTime = isLocked ? lockEndTimestamp - currentTimestamp : 0;
+
+  // Format remaining lock time for display
+  const formatLockTime = (seconds: number): string => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    }
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
 
   const getDisplayVaultId = (vaultId: string) => {
     // Convert hex string to number if it starts with 0x, otherwise use as-is
@@ -963,6 +985,20 @@ export function BurnTableRow({
               ) : (
                 <span className="">TEA</span>
               )}
+              {isLocked && (
+                <HoverPopup
+                  size="200"
+                  trigger={
+                    <span className="ml-1 cursor-pointer text-amber-500">
+                      <Lock className="inline h-3.5 w-3.5" />
+                    </span>
+                  }
+                >
+                  <span className="text-[13px] font-medium">
+                    Unlocks in {formatLockTime(remainingLockTime)}
+                  </span>
+                </HoverPopup>
+              )}
               <span className="text-foreground/70">-</span>
               <span className="text-xl text-accent-100">
                 {getDisplayVaultId(row.vaultId)}
@@ -1345,29 +1381,42 @@ export function BurnTableRow({
                     </span>
                   </DropdownMenuItem>
                 </Show>
-                <DropdownMenuItem
-                  onClick={() => setSelectedRow("burn")}
-                  disabled={
-                    isApe
-                      ? parseFloat(apeBalance) === 0
-                      : parseFloat(teaBalance) === 0
-                  }
-                  className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
-                >
-                  <XCircle className="mr-2 h-3 w-3" />
-                  Close
-                </DropdownMenuItem>
+                {isLocked ? (
+                  <HoverPopup
+                    size="200"
+                    trigger={
+                      <div>
+                        <DropdownMenuItem
+                          disabled={true}
+                          className="cursor-not-allowed opacity-50"
+                        >
+                          <Lock className="mr-2 h-3 w-3 text-amber-500" />
+                          Close
+                        </DropdownMenuItem>
+                      </div>
+                    }
+                  >
+                    <span className="text-[13px] font-medium">
+                      Locked for {formatLockTime(remainingLockTime)}
+                    </span>
+                  </HoverPopup>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => setSelectedRow("burn")}
+                    disabled={parseFloat(teaBalance) === 0}
+                    className="cursor-pointer hover:bg-primary/20 dark:hover:bg-primary"
+                  >
+                    <XCircle className="mr-2 h-3 w-3" />
+                    Close
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator className="bg-foreground/10" />
                 <DropdownMenuItem
                   onClick={() => {
                     setDropdownOpen(false);
                     setTimeout(() => setSelectedRow("transfer"), 100);
                   }}
-                  disabled={
-                    isApe
-                      ? parseFloat(apeBalance) === 0
-                      : parseFloat(teaBalance) === 0
-                  }
+                  disabled={parseFloat(teaBalance) === 0}
                   className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
                 >
                   <Send className="mr-2 h-3 w-3" />
@@ -1379,20 +1428,38 @@ export function BurnTableRow({
 
           {/* Large screens: Close button + Share button + More dropdown */}
           <div className="hidden justify-center space-x-1 xl:flex">
-            <Button
-              onClick={() => {
-                setSelectedRow("burn");
-              }}
-              disabled={
-                isApe
-                  ? parseFloat(apeBalance) === 0
-                  : parseFloat(teaBalance) === 0
-              }
-              type="button"
-              className="h-7 rounded-md px-3 text-[12px]"
-            >
-              Close
-            </Button>
+            {isLocked ? (
+              <HoverPopup
+                size="200"
+                trigger={
+                  <div>
+                    <Button
+                      disabled={true}
+                      type="button"
+                      className="h-7 rounded-md px-3 text-[12px]"
+                    >
+                      <Lock className="mr-1 h-3 w-3" />
+                      Close
+                    </Button>
+                  </div>
+                }
+              >
+                <span className="text-[13px] font-medium">
+                  Locked for {formatLockTime(remainingLockTime)}
+                </span>
+              </HoverPopup>
+            ) : (
+              <Button
+                onClick={() => {
+                  setSelectedRow("burn");
+                }}
+                disabled={parseFloat(teaBalance) === 0}
+                type="button"
+                className="h-7 rounded-md px-3 text-[12px]"
+              >
+                Close
+              </Button>
+            )}
             {/* Share button */}
             <Button
               onClick={() => setShareModalOpen(true)}
@@ -1441,11 +1508,7 @@ export function BurnTableRow({
                     setDropdownOpenLg(false);
                     setTimeout(() => setSelectedRow("transfer"), 100);
                   }}
-                  disabled={
-                    isApe
-                      ? parseFloat(apeBalance) === 0
-                      : parseFloat(teaBalance) === 0
-                  }
+                  disabled={parseFloat(teaBalance) === 0}
                   className="cursor-pointer hover:bg-accent/60 dark:hover:bg-accent"
                 >
                   <Send className="mr-2 h-3 w-3" />

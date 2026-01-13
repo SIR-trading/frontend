@@ -102,6 +102,7 @@ const userTeaPositionsQuery = gql`
       collateralTotal
       dollarTotal
       debtTokenTotal
+      lockEnd
       vault {
         id
         leverageTier
@@ -178,6 +179,7 @@ export type TUserPositionBase = {
   collateralTotal: string;
   dollarTotal: string;
   debtTokenTotal: string;
+  lockEnd?: string; // Timestamp when TEA becomes unlocked (only for TEA on networks with LP lock feature)
   vault: {
     id: string;
     leverageTier: number;
@@ -209,6 +211,7 @@ export type TUserPosition = TUserPositionBase & {
   decimals: number;
   debtToken: TAddressString;
   debtSymbol: string;
+  lockEnd?: string; // Timestamp when TEA becomes unlocked (only for TEA on networks with LP lock feature)
 };
 export type TUserApePosition = TUserPosition & {
   vault: {
