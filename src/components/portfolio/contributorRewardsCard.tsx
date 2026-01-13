@@ -14,7 +14,6 @@ import { SirRewardsClaimModal } from "../shared/SirRewardsClaimModal";
 import { TokenDisplay } from "../ui/token-display";
 import Show from "../shared/show";
 import { getSirSymbol } from "@/lib/assets";
-import { isHyperEVM } from "@/lib/chains";
 import buildData from "@/../public/build-data.json";
 import ToolTip from "../ui/tooltip";
 import DisplayFormattedNumber from "../shared/displayFormattedNumber";
@@ -22,7 +21,8 @@ import DisplayFormattedNumber from "../shared/displayFormattedNumber";
 export default function ContributorRewardsCard() {
   const { isConnected, address } = useAccount();
   const chainId = useChainId();
-  const showAllocation = isHyperEVM(chainId);
+  // Show allocation % for non-Ethereum chains (not mainnet or Sepolia)
+  const showAllocation = chainId !== 1 && chainId !== 11155111;
 
   const { data: unclaimedData, isLoading: rewardsLoading } =
     api.user.getUnclaimedContributorRewards.useQuery(
@@ -48,7 +48,7 @@ export default function ContributorRewardsCard() {
   });
 
   // Calculate allocation percentage
-  // Formula: allocation / type(uint56).max * (ISSUANCE - LP_ISSUANCE_FIRST_3_YEARS) / ISSUANCE * 100
+  // Formula: allocation / maxAllocation * (ISSUANCE - LP_ISSUANCE_FIRST_3_YEARS) / ISSUANCE * 100
   const calculateAllocationPercentage = (): number | null => {
     if (!userAllocation || userAllocation === 0n) return null;
 
@@ -62,7 +62,14 @@ export default function ContributorRewardsCard() {
 
     if (!buildDataWithConstants.contributorConstants) return null;
 
+    // Ethereum (1), Sepolia (11155111), and HyperEVM (998, 999) use uint56, all others use uint16
     const UINT56_MAX = 72057594037927935n; // 2^56 - 1
+    const UINT16_MAX = 65535n; // 2^16 - 1
+    const maxAllocation =
+      chainId === 1 || chainId === 11155111 || chainId === 998 || chainId === 999
+        ? UINT56_MAX
+        : UINT16_MAX;
+
     const issuanceRate = BigInt(
       buildDataWithConstants.contributorConstants.issuanceRate,
     );
@@ -70,8 +77,8 @@ export default function ContributorRewardsCard() {
       buildDataWithConstants.contributorConstants.lpIssuanceFirst3Years,
     );
 
-    // Calculate: allocation / UINT56_MAX
-    const allocationRatio = Number(userAllocation) / Number(UINT56_MAX);
+    // Calculate: allocation / maxAllocation
+    const allocationRatio = Number(userAllocation) / Number(maxAllocation);
 
     // Calculate: (ISSUANCE - LP_ISSUANCE_FIRST_3_YEARS) / ISSUANCE
     const contributorIssuanceRatio =
