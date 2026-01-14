@@ -30,7 +30,11 @@ async function main() {
     console.log('⚙️  System Parameters:');
     console.log('   Base Fee:', `${(data.systemParams.baseFee * 100).toFixed(2)}%`);
     console.log('   LP Fee:', `${(data.systemParams.lpFee * 100).toFixed(2)}%`);
-    console.log('   LP Lock Time:', `${data.systemParams.lpLockTime} seconds (${(data.systemParams.lpLockTime / 86400).toFixed(1)} days)`);
+    if (data.systemParams.lpLockTime !== undefined) {
+      console.log('   LP Lock Time:', `${data.systemParams.lpLockTime} seconds (${(data.systemParams.lpLockTime / 86400).toFixed(1)} days)`);
+    } else {
+      console.log('   LP Lock Time: Not supported on this chain');
+    }
     console.log('   Timestamp Issuance Start:', `${data.timestampIssuanceStart} (${new Date(data.timestampIssuanceStart * 1000).toISOString()})`);
 
     if (data.contributorConstants) {

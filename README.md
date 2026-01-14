@@ -1,8 +1,5 @@
 # SIR-FRONTEND
 
-website:
-twitter:
-
 ### DEPLOY LOCALLY
 
 `pnpm i`
@@ -15,8 +12,9 @@ twitter:
 ### ENVIRONMENT VARIABLES
 
 #### Server-side Environment Variables
+
 ```
-SECRET_KEY=Secret key for server operations  
+SECRET_KEY=Secret key for server operations
 DATABASE_URL=Database connection URL for error logging
 RPC_URL=RPC URL for backend calls
 SUBGRAPH_URL=Subgraph query url
@@ -27,7 +25,8 @@ KV_URL=Vercel KV connection URL
 ALCHEMY_BEARER=Alchemy API bearer token for price data
 ```
 
-#### Client-side Environment Variables (NEXT_PUBLIC_*)
+#### Client-side Environment Variables (NEXT*PUBLIC*\*)
+
 ```
 NEXT_PUBLIC_ASSISTANT_ADDRESS=Assistant Contract Address
 NEXT_PUBLIC_ORACLE_ADDRESS=Oracle Contract Address

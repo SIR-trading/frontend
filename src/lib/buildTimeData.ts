@@ -94,7 +94,8 @@ const UNIV3_STAKER_ABI = [
   },
 ] as const;
 
-const VAULT_ABI = [
+// Base vault ABI (without systemParams - that's chain-specific)
+const VAULT_ABI_BASE = [
   {
     type: "function",
     name: "SIR",
@@ -123,6 +124,59 @@ const VAULT_ABI = [
     outputs: [{ name: "", type: "uint40", internalType: "uint40" }],
     stateMutability: "view",
   },
+] as const;
+
+// systemParams ABI for Ethereum, Sepolia, HyperEVM (no lpLockTime)
+const SYSTEM_PARAMS_ABI_LEGACY = [
+  {
+    type: "function",
+    name: "systemParams",
+    inputs: [],
+    outputs: [
+      {
+        name: "systemParams_",
+        type: "tuple",
+        internalType: "struct SirStructs.SystemParameters",
+        components: [
+          {
+            name: "baseFee",
+            type: "tuple",
+            internalType: "struct SirStructs.FeeStructure",
+            components: [
+              { name: "fee", type: "uint16", internalType: "uint16" },
+              { name: "feeNew", type: "uint16", internalType: "uint16" },
+              {
+                name: "timestampUpdate",
+                type: "uint40",
+                internalType: "uint40",
+              },
+            ],
+          },
+          {
+            name: "lpFee",
+            type: "tuple",
+            internalType: "struct SirStructs.FeeStructure",
+            components: [
+              { name: "fee", type: "uint16", internalType: "uint16" },
+              { name: "feeNew", type: "uint16", internalType: "uint16" },
+              {
+                name: "timestampUpdate",
+                type: "uint40",
+                internalType: "uint40",
+              },
+            ],
+          },
+          { name: "mintingStopped", type: "bool", internalType: "bool" },
+          { name: "cumulativeTax", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+] as const;
+
+// systemParams ABI for MegaETH and future deployments (with lpLockTime)
+const SYSTEM_PARAMS_ABI_WITH_LOCK_TIME = [
   {
     type: "function",
     name: "systemParams",
@@ -170,6 +224,15 @@ const VAULT_ABI = [
     stateMutability: "view",
   },
 ] as const;
+
+// Chains that don't have lpLockTime in systemParams
+const CHAINS_WITHOUT_LP_LOCK_TIME = [1, 11155111, 998, 999]; // Ethereum, Sepolia, HyperEVM mainnet, HyperEVM testnet
+
+function getSystemParamsAbi(chainId: number) {
+  return CHAINS_WITHOUT_LP_LOCK_TIME.includes(chainId)
+    ? SYSTEM_PARAMS_ABI_LEGACY
+    : SYSTEM_PARAMS_ABI_WITH_LOCK_TIME;
+}
 
 const SIR_ABI = [
   {
@@ -263,7 +326,7 @@ export interface SystemParams {
   lpFee: number; // LP minting fee, converted from basis points
   mintingStopped: boolean;
   cumulativeTax: number;
-  lpLockTime: number; // Max lock duration for LP fee reduction (in seconds)
+  lpLockTime?: number; // Max lock duration for LP fee reduction (in seconds) - only on MegaETH and future deployments
   lastUpdated: number;
 }
 
@@ -306,22 +369,22 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
     const [sirAddress, systemControlAddress, oracleAddress, timestampIssuanceStart] = await Promise.all([
       client.readContract({
         address: vaultAddress,
-        abi: VAULT_ABI,
+        abi: VAULT_ABI_BASE,
         functionName: 'SIR',
       }),
       client.readContract({
         address: vaultAddress,
-        abi: VAULT_ABI,
+        abi: VAULT_ABI_BASE,
         functionName: 'SYSTEM_CONTROL',
       }),
       client.readContract({
         address: vaultAddress,
-        abi: VAULT_ABI,
+        abi: VAULT_ABI_BASE,
         functionName: 'ORACLE',
       }),
       client.readContract({
         address: vaultAddress,
-        abi: VAULT_ABI,
+        abi: VAULT_ABI_BASE,
         functionName: 'TIMESTAMP_ISSUANCE_START',
       }),
     ]);
@@ -388,10 +451,13 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
 
     console.log('📊 Computed SIR/WETH 1% pool address:', sirWethPoolAddress);
 
-    // Step 4: Get system parameters
+    // Step 4: Get system parameters (using chain-specific ABI)
+    const hasLpLockTime = !CHAINS_WITHOUT_LP_LOCK_TIME.includes(CHAIN_ID);
+    const systemParamsAbi = getSystemParamsAbi(CHAIN_ID);
+
     const systemParamsResult = await client.readContract({
       address: vaultAddress,
-      abi: VAULT_ABI,
+      abi: systemParamsAbi,
       functionName: 'systemParams',
     });
 
@@ -400,7 +466,7 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lpFee: { fee: number; feeNew: number; timestampUpdate: number };
       mintingStopped: boolean;
       cumulativeTax: number;
-      lpLockTime: number;
+      lpLockTime?: number; // Only present on MegaETH and future deployments
     };
 
     const contractAddresses: ContractAddresses = {
@@ -421,9 +487,13 @@ export async function fetchBuildTimeData(): Promise<BuildTimeData> {
       lpFee: rawParams.lpFee.fee / 10000, // LP minting fee, convert from basis points
       mintingStopped: rawParams.mintingStopped,
       cumulativeTax: rawParams.cumulativeTax,
-      lpLockTime: rawParams.lpLockTime, // Max lock duration in seconds
       lastUpdated: Date.now(),
     };
+
+    // Only include lpLockTime for chains that support it
+    if (hasLpLockTime && rawParams.lpLockTime !== undefined) {
+      systemParams.lpLockTime = rawParams.lpLockTime;
+    }
 
     // Only include contributor constants for HyperEVM chains
     const buildData: BuildTimeData = {
