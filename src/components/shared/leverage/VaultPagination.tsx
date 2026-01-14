@@ -3,21 +3,19 @@ import React from "react";
 import { useVaultProvider } from "@/components/providers/vaultProvider";
 import Pagination from "@/components/shared/pagination";
 
-const VaultPagination = ({}: { max: number }) => {
+const ITEMS_PER_PAGE = 10;
+
+const VaultPagination = () => {
   const { nextPage, vaultLength, prevPage, page } = useVaultProvider();
 
-  // Calculate the number of items on the current page
-  const itemsPerPage = 10;
-  const startIndex = (page - 1) * itemsPerPage;
-  const currentPageLength = Math.min(itemsPerPage, Math.max(0, vaultLength - startIndex));
+  const totalPages = Math.ceil(vaultLength / ITEMS_PER_PAGE);
 
   return (
     <Pagination
-      length={currentPageLength}
-      nextPage={nextPage}
+      totalPages={totalPages || 1}
       page={page}
+      nextPage={nextPage}
       prevPage={prevPage}
-      max={10}
     />
   );
 };

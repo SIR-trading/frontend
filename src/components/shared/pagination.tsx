@@ -1,32 +1,32 @@
 import { ChevronRight, ChevronLeft } from "lucide-react";
+
 export default function Pagination({
-  max,
-  nextPage,
+  totalPages,
   page,
+  nextPage,
   prevPage,
-  length,
   size = "sm",
+  totalLabel,
 }: {
-  max: number;
+  totalPages: number;
   page: number;
   nextPage: () => void;
   prevPage: () => void;
-  length: number;
   size?: "sm" | "lg";
+  totalLabel?: string;
 }) {
-  if (max < 1) {
-    max = 10;
-  }
-  // Disable next button when current page has less items than max (indicates last page)
-  const isLastPage = length < max;
+  const isLastPage = page >= totalPages;
 
   return (
     <div className="flex items-center justify-center gap-x-3 pt-4">
+      {totalLabel && (
+        <span className="text-sm text-muted-foreground">{totalLabel}</span>
+      )}
       <div className="flex items-center gap-x-3">
         <div>
           <button
             disabled={page === 1}
-            aria-label="Left"
+            aria-label="Previous page"
             onClick={prevPage}
             className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
           >
@@ -36,12 +36,11 @@ export default function Pagination({
         <div
           className={`${size === "sm" ? "h-[25px]" : "h-[30px]"} dark:bg-primary" flex items-center rounded-lg bg-gold/10 px-3 text-[15px]`}
         >
-          {page}
+          {`${page} / ${totalPages}`}
         </div>
         <div>
           <button
-            role="link"
-            aria-label="Scroll Vaults Right"
+            aria-label="Next page"
             disabled={isLastPage}
             className="rounded-full bg-gold/10 p-[5px] disabled:opacity-50 dark:bg-primary"
             onClick={() => nextPage()}

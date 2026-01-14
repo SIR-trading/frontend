@@ -1,6 +1,10 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { z } from "zod";
-import { getAuctions } from "@/server/queries/auctions";
+import {
+  getAuctions,
+  getOngoingAuctionsCount,
+  getExpiredAuctionsCount,
+} from "@/server/queries/auctions";
 import { multicall } from "@/lib/viemClient";
 import { SirContract } from "@/contracts/sir";
 import type { Address } from "viem";
@@ -19,13 +23,27 @@ export const auctionRouter = createTRPCRouter({
       z.object({
         user: z.string().startsWith("0x").length(42).optional(),
         first: z.number().default(5),
-        cursor: z.number().optional(), // startTime cursor for pagination
+        skip: z.number().default(0), // offset for pagination
       }),
     )
-    .query(async ({ input: { user, first, cursor } }) => {
-      const auctions = await getAuctions(user, "expired", undefined, first, cursor);
+    .query(async ({ input: { user, first, skip } }) => {
+      const auctions = await getAuctions(user, "expired", skip, first);
       return auctions.auctions;
     }),
+
+  // Get total and expired auction counts for pagination
+  getAuctionCounts: publicProcedure.query(async () => {
+    const [ongoingCount, expiredCount] = await Promise.all([
+      getOngoingAuctionsCount(),
+      getExpiredAuctionsCount(),
+    ]);
+
+    return {
+      totalAuctions: ongoingCount + expiredCount,
+      ongoingAuctions: ongoingCount,
+      expiredAuctions: expiredCount,
+    };
+  }),
 
   getallAuctions: publicProcedure
     .input(z.string().startsWith("0x").length(42).optional())

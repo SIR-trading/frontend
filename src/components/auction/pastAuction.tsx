@@ -5,7 +5,7 @@ import AuctionCard, {
 import { TokenDisplay } from "@/components/ui/token-display";
 import { useAccount, useWaitForTransactionReceipt } from "wagmi";
 import { SirContract } from "@/contracts/sir";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import type { TUniqueAuctionCollection } from "@/components/auction/auctionPage";
 import { api } from "@/trpc/react";
@@ -36,27 +36,24 @@ const PastAuction = ({
 }) => {
   const { address } = useAccount();
   const [page, setPage] = useState(1);
-  // Track cursors for each page: cursorHistory[0] = cursor for page 2, cursorHistory[1] = cursor for page 3, etc.
-  const [cursorHistory, setCursorHistory] = useState<number[]>([]);
 
-  // Current cursor: undefined for page 1, otherwise use the cursor from history
-  const currentCursor = page === 1 ? undefined : cursorHistory[page - 2];
+  // Get auction counts for pagination
+  const { data: auctionCounts } = api.auction.getAuctionCounts.useQuery();
 
-  // Fetch PAGE_SIZE + 1 to detect if there are more results
-  const { data: rawAuctions, isPending: isLoading } =
+  // Calculate skip offset for current page
+  const skip = (page - 1) * PAGE_SIZE;
+
+  // Fetch auctions for current page
+  const { data: auctions, isPending: isLoading } =
     api.auction.getExpiredAuctions.useQuery({
       user: address,
-      first: PAGE_SIZE + 1,
-      cursor: currentCursor,
+      first: PAGE_SIZE,
+      skip,
     });
 
-  // Determine if there are more pages and get the display auctions
-  const { auctions, hasMore } = useMemo(() => {
-    if (!rawAuctions) return { auctions: undefined, hasMore: false };
-    const hasMorePages = rawAuctions.length > PAGE_SIZE;
-    const displayAuctions = hasMorePages ? rawAuctions.slice(0, PAGE_SIZE) : rawAuctions;
-    return { auctions: displayAuctions, hasMore: hasMorePages };
-  }, [rawAuctions]);
+  // Calculate total pages from counter
+  const totalExpired = auctionCounts?.expiredAuctions ?? 0;
+  const totalPages = Math.ceil(totalExpired / PAGE_SIZE);
   const { data: auctionLots, isPending: isLoadingBal } =
     api.auction.getAuctionBalances.useQuery(
       Array.from(uniqueAuctionCollection.uniqueCollateralToken),
@@ -98,19 +95,7 @@ const PastAuction = ({
   };
 
   const nextPage = () => {
-    const lastAuction = auctions?.[auctions.length - 1];
-    if (hasMore && lastAuction) {
-      // Get the startTime of the last displayed auction as the cursor for the next page
-      const nextCursor = parseInt(lastAuction.startTime);
-
-      // Store this cursor for navigating back
-      setCursorHistory((prev) => {
-        const newHistory = [...prev];
-        // Store cursor at index (page - 1) for accessing page (page + 1)
-        newHistory[page - 1] = nextCursor;
-        return newHistory;
-      });
-
+    if (page < totalPages) {
       setPage((p) => p + 1);
     }
   };
@@ -389,11 +374,10 @@ const PastAuction = ({
             </AuctionContentWrapper>{" "}
             <div className="pr-4">
               <Pagination
-                max={PAGE_SIZE}
+                totalPages={totalPages || 1}
                 page={page}
                 nextPage={nextPage}
                 prevPage={prevPage}
-                length={hasMore ? PAGE_SIZE : 0}
                 size="lg"
               />
             </div>

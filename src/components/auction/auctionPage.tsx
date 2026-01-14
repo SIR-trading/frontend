@@ -29,6 +29,7 @@ const AuctionPage = () => {
 
   const { data: ongoingAuctions } = api.auction.getOngoingAuctions.useQuery();
   const { data: allExistingAuctions } = api.auction.getallAuctions.useQuery();
+  const { data: auctionCounts } = api.auction.getAuctionCounts.useQuery();
 
   // Transform the vault data to match the expected format
   const vaults = useMemo(() => {
@@ -134,6 +135,9 @@ const AuctionPage = () => {
               <div className="flex items-center justify-center gap-1.5 px-2">
                 <span>📋</span>
                 <span>History</span>
+                <span className="inline-flex h-5 items-center justify-center rounded-md border border-foreground/20 bg-background px-1.5 text-xs">
+                  {auctionCounts?.expiredAuctions ?? 0}
+                </span>
               </div>
             </TabsTrigger>
           </TabsList>

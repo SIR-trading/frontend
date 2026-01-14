@@ -551,11 +551,10 @@ export const ActiveApePositionsTable: React.FC<
       {/* Pagination Controls */}
       {dataWithUserOnTop.length > itemsPerPage && (
         <Pagination
-          max={paginatedData.length}
+          totalPages={Math.ceil(dataWithUserOnTop.length / itemsPerPage)}
           page={currentPage}
           nextPage={nextPage}
           prevPage={prevPage}
-          length={itemsPerPage}
           size="lg"
         />
       )}

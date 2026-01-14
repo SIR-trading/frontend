@@ -76,9 +76,7 @@ export default function LeverageLiquidityContent({
             >
               <VaultTable isApe={isApe} />
             </NoSSR>
-            <VaultPagination
-              max={Math.ceil((vaultQuery?.vaultQuery?.vaults.length ?? 0) / 8)}
-            />
+            <VaultPagination />
           </div>
         </Card>
       </div>
