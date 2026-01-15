@@ -5,7 +5,7 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { useClaim } from "../stake/hooks/useClaim";
+import { SirContract } from "@/contracts/sir";
 import TransactionModal from "../shared/transactionModal";
 import TransactionSuccess from "../shared/transactionSuccess";
 import { TokenDisplay } from "../ui/token-display";
@@ -22,8 +22,6 @@ import { useNativeTokenUsdPrice } from "./hooks/useNativeTokenUsdPrice";
 
 export default function ClaimCard() {
   const [openModal, setOpenModal] = useState(false);
-
-  const { claimData } = useClaim();
 
   const { isConnected } = useAccount();
 
@@ -46,18 +44,18 @@ export default function ClaimCard() {
   const { writeContract, data: hash, isPending, reset } = useWriteContract();
   const { isSuccess: isConfirmed, isLoading: isConfirming } =
     useWaitForTransactionReceipt({ hash });
-  const isValid = useMemo(() => {
-    if (claimData?.request) {
-      return { isValid: true, error: null };
-    } else {
-      return { isValid: false, error: "Error Occured." };
-    }
-  }, [claimData?.request]);
+
+  // Simple validation - button enabled when connected and has dividends
+  // Following CLAUDE.md: don't gate on simulation results
+  const isValid = isConnected && dividends && dividends > 0n;
 
   const onSubmit = () => {
-    if (claimData?.request) {
-      writeContract(claimData?.request);
-    }
+    // Direct contract call - Wagmi handles simulation internally
+    writeContract({
+      ...SirContract,
+      functionName: "claim",
+      args: [],
+    });
   };
   const utils = api.useUtils();
   useEffect(() => {
@@ -178,9 +176,9 @@ export default function ClaimCard() {
           <div className="flex items-end">
             <Button
               data-claim-dividends
-              disabled={!isConnected || !dividends || !isValid.isValid}
+              disabled={!isValid}
               onClick={() => {
-                if (isValid.isValid) setOpenModal(true);
+                if (isValid) setOpenModal(true);
               }}
               className="w-20 py-2"
             >

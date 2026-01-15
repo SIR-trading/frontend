@@ -381,11 +381,8 @@ export default function MintForm({ isApe }: Props) {
     nativeTokenBalance: userNativeTokenBalance,
     decimals: depositDecimals ?? 18,
     useNativeToken,
-    requests,
     tokenBalance: userBalance?.tokenBalance?.result,
     tokenAllowance: userBalance?.tokenAllowance?.result,
-    approveFetching: isApproveFetching,
-    hasValidQuote: Boolean(amountTokens && amountTokens > 0n),
   });
 
   useSetRootError({
