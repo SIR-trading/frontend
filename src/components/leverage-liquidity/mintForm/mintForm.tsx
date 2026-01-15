@@ -331,23 +331,28 @@ export default function MintForm({ isApe }: Props) {
       ? minCollateralOut
       : 0n;
 
+    // Build args based on chain - Ethereum/Sepolia/HyperEVM use old 5-param mint,
+    // other chains use new 6-param mint with portionLockTime
+    const baseArgs = [
+      isApe,
+      {
+        debtToken: formatDataInput(versusInput),
+        collateralToken: formatDataInput(longInput),
+        leverageTier: Number(leverageTier),
+      },
+      useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
+      minCollateralOutWithSlippage,
+      Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
+    ] as const;
+
     const mintRequest = {
       address: VaultContract.address,
       abi: VaultContract.abi,
       functionName: "mint" as const,
-      args: [
-        isApe,
-        {
-          debtToken: formatDataInput(versusInput),
-          collateralToken: formatDataInput(longInput),
-          leverageTier: Number(leverageTier),
-        },
-        useNativeToken ? 0n : parseUnits(deposit ?? "0", depositDecimals ?? 18),
-        minCollateralOutWithSlippage,
-        Math.floor(Date.now() / 1000) + 600, // 10 minutes deadline
-        // portionLockTime: 0 = full fee (no lock), 255 = no fee (full lock). Ignored for APE.
-        isApe ? 0 : (hasLpLockTimeFeature ? portionLockTime : 0),
-      ],
+      // Only include portionLockTime arg for chains that support LP lock time feature
+      args: hasLpLockTimeFeature
+        ? [...baseArgs, isApe ? 0 : portionLockTime]
+        : baseArgs,
       value: useNativeToken
         ? parseUnits(deposit ?? "0", depositDecimals ?? 18)
         : 0n,

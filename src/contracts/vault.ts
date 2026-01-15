@@ -209,6 +209,38 @@ export const VaultContract = {
       outputs: [{ name: "", type: "bool", internalType: "bool" }],
       stateMutability: "view",
     },
+    // Old mint function for Ethereum/Sepolia/HyperEVM (5 params, no portionLockTime)
+    {
+      type: "function",
+      name: "mint",
+      inputs: [
+        { name: "isAPE", type: "bool", internalType: "bool" },
+        {
+          name: "vaultParams",
+          type: "tuple",
+          internalType: "struct SirStructs.VaultParameters",
+          components: [
+            { name: "debtToken", type: "address", internalType: "address" },
+            {
+              name: "collateralToken",
+              type: "address",
+              internalType: "address",
+            },
+            { name: "leverageTier", type: "int8", internalType: "int8" },
+          ],
+        },
+        { name: "amountToDeposit", type: "uint256", internalType: "uint256" },
+        {
+          name: "collateralToDepositMin",
+          type: "uint144",
+          internalType: "uint144",
+        },
+        { name: "deadline", type: "uint40", internalType: "uint40" },
+      ],
+      outputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+      stateMutability: "payable",
+    },
+    // New mint function for MegaETH and other chains (6 params, with portionLockTime)
     {
       type: "function",
       name: "mint",
