@@ -76,24 +76,33 @@ const AuctionPage = () => {
   // Calculate ready to start count
   const readyToStartCount = useMemo(() => {
     if (!tokenWithFeesMap || !allExistingAuctions) return 0;
-    
+
     let count = 0;
     const currentTime = Math.floor(Date.now() / 1000);
 
-    // Check existing auctions that can be restarted
+    // Step 1: Find the most recent auction per token (same logic as newAuction.tsx)
+    const latestAuctionPerToken = new Map<string, number>();
     allExistingAuctions.forEach((auction) => {
-      const amount = tokenWithFeesMap.get(auction.token.id);
+      const existing = latestAuctionPerToken.get(auction.token.id);
+      if (!existing || +auction.startTime > existing) {
+        latestAuctionPerToken.set(auction.token.id, +auction.startTime);
+      }
+    });
+
+    // Step 2: Count tokens where the most recent auction's cooldown has passed
+    latestAuctionPerToken.forEach((startTime, token) => {
+      const amount = tokenWithFeesMap.get(token);
       if (amount && amount > BigInt(0)) {
-        const timeToStart = +auction.startTime + AUCTION_COOLDOWN;
+        const timeToStart = startTime + AUCTION_COOLDOWN;
         if (timeToStart <= currentTime) {
           count++;
         }
       }
     });
 
-    // Check new tokens that have never had an auction
+    // Step 3: Check new tokens that have never had an auction
     uniqueAuctionCollection.uniqueCollateralToken.forEach((token) => {
-      if (!allExistingAuctions.some((auction) => auction.token.id === token)) {
+      if (!latestAuctionPerToken.has(token)) {
         const amount = tokenWithFeesMap.get(token);
         if (amount && amount > BigInt(0)) {
           count++;
