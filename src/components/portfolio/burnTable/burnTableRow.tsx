@@ -20,8 +20,10 @@ import { parseUnits } from "viem";
 import { useVaultData } from "@/contexts/VaultDataContext";
 import {
   calculatePriceIncreaseToTarget,
+  calculatePriceIncreaseWithSaturation,
   calculateBreakevenTime,
 } from "@/lib/utils/breakeven";
+import { calculateSaturationPrice } from "@/lib/utils/calculations";
 import { PriceIncreaseDisplay } from "./PriceIncreaseDisplay";
 import { TimeDisplay } from "./TimeDisplay";
 import type { TUserPosition } from "@/server/queries/vaults";
@@ -40,6 +42,7 @@ export function BurnTableRow({
   teaBal,
   apeBal,
   teaRewards,
+  useSaturationMode,
 }: {
   row: TUserPosition;
   isApe: boolean;
@@ -48,14 +51,15 @@ export function BurnTableRow({
   teaBal?: bigint;
   apeBal?: bigint;
   teaRewards?: bigint;
+  useSaturationMode?: boolean;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownOpenLg, setDropdownOpenLg] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
-  // Get vault data from context to get the rate for TEA rewards
+  // Get vault data from context to get the rate for TEA rewards and reserves for APE
   const { getVaultById } = useVaultData();
-  const vaultData = !isApe ? getVaultById(row.vaultId) : undefined;
+  const vaultData = getVaultById(row.vaultId);
 
   // Get token map for logo lookups
   const { tokenMap } = useTokenlistContext();
@@ -218,48 +222,81 @@ export function BurnTableRow({
     const leverageTier = parseInt(row.leverageTier);
     const leverage = 1 + Math.pow(2, leverageTier);
 
+    // Calculate saturation price if we have vault data and are in saturation mode
+    let saturationPrice: number | null = null;
+    if (useSaturationMode && vaultData && currentPrice > 0) {
+      const reserveApes = parseUnits(vaultData.reserveApes || "0", 0);
+      const reserveLPers = parseUnits(vaultData.reserveLPers || "0", 0);
+      if (reserveApes > 0n && reserveLPers > 0n) {
+        saturationPrice = calculateSaturationPrice(
+          currentPrice,
+          reserveApes,
+          reserveLPers,
+          leverage,
+        );
+      }
+    }
+
+    // Helper to calculate price increase with or without saturation
+    const calcPriceIncrease = (
+      targetValue: number,
+      currentValue: number,
+      isCollateral: boolean,
+    ): number | null => {
+      if (useSaturationMode && saturationPrice && saturationPrice > 0) {
+        return calculatePriceIncreaseWithSaturation(
+          targetValue,
+          currentValue,
+          leverage,
+          currentPrice,
+          saturationPrice,
+          isCollateral,
+        );
+      }
+      return calculatePriceIncreaseToTarget(
+        targetValue,
+        currentValue,
+        leverage,
+        isCollateral,
+      );
+    };
+
     // Break-even: target = initial value
-    priceIncreaseTargets.breakeven.collateral = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.breakeven.collateral = calcPriceIncrease(
       initialCollateral,
       currentCollateral,
-      leverage,
       true, // isCollateral
     );
 
-    priceIncreaseTargets.breakeven.debtToken = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.breakeven.debtToken = calcPriceIncrease(
       initialDebtTokenValue,
       currentDebtTokenValue,
-      leverage,
       false, // isDebtToken
     );
 
     // 2x: target = 2 * initial value
-    priceIncreaseTargets.double.collateral = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.double.collateral = calcPriceIncrease(
       initialCollateral * 2,
       currentCollateral,
-      leverage,
       true,
     );
 
-    priceIncreaseTargets.double.debtToken = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.double.debtToken = calcPriceIncrease(
       initialDebtTokenValue * 2,
       currentDebtTokenValue,
-      leverage,
       false,
     );
 
     // 10x: target = 10 * initial value
-    priceIncreaseTargets.tenx.collateral = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.tenx.collateral = calcPriceIncrease(
       initialCollateral * 10,
       currentCollateral,
-      leverage,
       true,
     );
 
-    priceIncreaseTargets.tenx.debtToken = calculatePriceIncreaseToTarget(
+    priceIncreaseTargets.tenx.debtToken = calcPriceIncrease(
       initialDebtTokenValue * 10,
       currentDebtTokenValue,
-      leverage,
       false,
     );
   } else {

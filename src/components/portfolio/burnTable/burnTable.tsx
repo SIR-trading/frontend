@@ -24,6 +24,8 @@ export default function BurnTable({
       }
     | undefined
   >();
+  // Toggle for saturation mode (actual liquidity vs ideal/infinite liquidity)
+  const [useSaturationMode, setUseSaturationMode] = useState(false);
   const { address, isConnected } = useAccount();
   const { data: userBalancesInVaults } =
     api.user.getUserBalancesInVaults.useQuery({ address });
@@ -155,6 +157,7 @@ export default function BurnTable({
       teaRewards={
         userBalancesInVaults?.unclaimedSirRewards[Number(r.vault.id) - 1]
       }
+      useSaturationMode={useSaturationMode}
     />
   ));
   let showTea = undefined;
@@ -219,7 +222,15 @@ export default function BurnTable({
       {loading ? (
         <div className="w-full animate-fade-in">
           <table className="w-full table-auto">
-            <BurnTableHeaders isApe={filter === "ape"} />
+            <BurnTableHeaders
+              isApe={filter === "ape"}
+              useSaturationMode={useSaturationMode}
+              onSaturationModeChange={
+                filter === "ape" || filter === "all"
+                  ? setUseSaturationMode
+                  : undefined
+              }
+            />
             <tbody>
               <BurnTableRowSkeleton />
               <BurnTableRowSkeleton />
@@ -230,7 +241,15 @@ export default function BurnTable({
       ) : hasPositions ? (
         <div className="w-full animate-fade-in">
           <table className="w-full table-auto">
-            <BurnTableHeaders isApe={filter === "ape"} />
+            <BurnTableHeaders
+              isApe={filter === "ape"}
+              useSaturationMode={useSaturationMode}
+              onSaturationModeChange={
+                filter === "ape" || filter === "all"
+                  ? setUseSaturationMode
+                  : undefined
+              }
+            />
             <tbody>
               <Show when={filter === "ape" || filter === "all"}>
                 {apePosition}
@@ -294,7 +313,9 @@ export default function BurnTable({
       {(filter === "ape" || filter === "all") && apeLength > 0 && (
         <div className="mt-3 text-xs text-muted-foreground">
           <span className="mr-1">*</span>
-          Required price gains assume sufficient liquidity in the vault
+          {useSaturationMode
+            ? "Required price gains account for current vault liquidity"
+            : "Required price gains assume sufficient liquidity in the vault"}
         </div>
       )}
 

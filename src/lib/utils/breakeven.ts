@@ -158,3 +158,105 @@ export function calculateValueGainFromPriceGain(
 
   return valueGainPercent;
 }
+
+/**
+ * Core gain function f(x) for APE positions with saturation:
+ * - f(x) = x^exp if x <= 1 (power zone - convex gains)
+ * - f(x) = exp*(x-1) + 1 if x > 1 (saturation zone - linear gains)
+ *
+ * Where x = price / saturationPrice
+ * exp = (l-1) for collateral-denominated, l for debt-denominated
+ *
+ * The exponent difference:
+ * - Collateral gain = priceRatio^(l-1)
+ * - Debt gain = priceRatio^l = collateralGain * priceRatio
+ */
+function f(x: number, exp: number): number {
+  if (x <= 1) {
+    return Math.pow(x, exp);
+  } else {
+    return exp * (x - 1) + 1;
+  }
+}
+
+/**
+ * Inverse of the gain function f(x)
+ * Given F = f(x), returns x
+ */
+function fInverse(F: number, exp: number): number {
+  if (F <= 1) {
+    // Power zone: F = x^exp => x = F^(1/exp)
+    return Math.pow(F, 1 / exp);
+  } else {
+    // Saturation zone: F = exp*(x-1) + 1 => x = (F - 1)/exp + 1
+    return (F - 1) / exp + 1;
+  }
+}
+
+
+/**
+ * Calculate the price increase needed to reach a target value, accounting for
+ * saturation (limited LP liquidity).
+ *
+ * The gain formula with saturation is:
+ *   G = f(g₁) / f(g₀)
+ *
+ * Where:
+ * - g₀ = currentPrice / saturationPrice (current normalized price)
+ * - g₁ = targetPrice / saturationPrice (target normalized price)
+ * - f(x) = x^l for x ≤ 1 (power zone), l*(x-1)+1 for x > 1 (saturation zone)
+ *
+ * For collateral-denominated targets:
+ *   We solve f(g₁) = R × f(g₀) where R = targetValue / currentValue
+ *
+ * For debt-token-denominated targets:
+ *   Gain includes price change: G_debt = [f(g₁)/f(g₀)] × [g₁/g₀]
+ *   We solve f(g₁) × g₁ = R × f(g₀) × g₀
+ *
+ * @param targetValue - The target value to reach (e.g., initialCollateral for break-even)
+ * @param currentValue - The current value (from quoteBurn)
+ * @param leverage - The leverage ratio (e.g., 2, 3, 5, 9)
+ * @param currentPrice - Current market price of collateral/debt pair
+ * @param saturationPrice - The saturation price (from vault reserves)
+ * @param isCollateral - Whether computing for collateral or debt token denomination
+ * @returns The required price increase percentage, or null if can't calculate
+ */
+export function calculatePriceIncreaseWithSaturation(
+  targetValue: number,
+  currentValue: number,
+  leverage: number,
+  currentPrice: number,
+  saturationPrice: number,
+  isCollateral: boolean,
+): number | null {
+  // Validation
+  if (currentValue <= 0 || currentPrice <= 0 || saturationPrice <= 0) {
+    return null;
+  }
+
+  // If already at or above target, return 0 (no increase needed)
+  if (currentValue >= targetValue) return 0;
+
+  // Required gain ratio
+  const R = targetValue / currentValue;
+
+  // Current normalized price
+  const g0 = currentPrice / saturationPrice;
+
+  // The exponent differs based on denomination:
+  // - Collateral gain = priceRatio^(l-1)
+  // - Debt gain = priceRatio^l
+  // Both use: gain = f(g1)/f(g0), just with different exponents
+  const exp = isCollateral ? leverage - 1 : leverage;
+
+  // Solve f(g₁) = R × f(g₀)
+  const f0 = f(g0, exp);
+  const F = R * f0;
+  const g1 = fInverse(F, exp);
+
+  // Calculate required price increase percentage
+  const priceIncrease = (g1 / g0 - 1) * 100;
+
+  // Ensure we don't return negative values
+  return Math.max(0, priceIncrease);
+}
