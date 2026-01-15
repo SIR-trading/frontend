@@ -83,45 +83,56 @@ const NewAuction = ({
   };
 
   const { readyToStart, onHold } = useMemo(() => {
-    const readyToStart = new Set<TNewAuctionData>();
-    const onHold = new Set<TNewAuctionData>();
     const currentTime = Math.floor(Date.now() / 1000);
 
+    // Step 1: Find the most recent auction per token
+    const latestAuctionPerToken = new Map<string, { startTime: number }>();
     allExistingAuctions?.forEach((auction) => {
-      const amount = tokenWithFeesMap?.get(auction.token.id);
+      const existing = latestAuctionPerToken.get(auction.token.id);
+      if (!existing || +auction.startTime > existing.startTime) {
+        latestAuctionPerToken.set(auction.token.id, { startTime: +auction.startTime });
+      }
+    });
 
+    // Step 2: Categorize tokens based on their most recent auction's cooldown
+    const readyToStartList: TNewAuctionData[] = [];
+    const onHoldList: TNewAuctionData[] = [];
+
+    latestAuctionPerToken.forEach((auctionData, token) => {
+      const amount = tokenWithFeesMap?.get(token);
       if (amount && amount > BigInt(0)) {
+        const timeToStart = auctionData.startTime + AUCTION_COOLDOWN;
         const newData: TNewAuctionData = {
           amount,
-          timeToStart: +auction.startTime + AUCTION_COOLDOWN,
-          token: auction.token.id,
+          timeToStart,
+          token,
         };
 
-        if (newData.timeToStart > currentTime) {
-          onHold.add(newData);
+        if (timeToStart > currentTime) {
+          onHoldList.push(newData);
         } else {
-          readyToStart.add(newData);
+          readyToStartList.push(newData);
         }
       }
     });
+
+    // Step 3: Add tokens that have never had an auction
     uniqueAuctionCollection.uniqueCollateralToken.forEach((token) => {
-      if (
-        allExistingAuctions &&
-        !allExistingAuctions?.some((auction) => auction.token.id === token)
-      ) {
+      if (!latestAuctionPerToken.has(token)) {
         const amount = tokenWithFeesMap?.get(token);
-        if (amount && amount > BigInt(0))
-          readyToStart.add({
+        if (amount && amount > BigInt(0)) {
+          readyToStartList.push({
             amount,
             timeToStart: 0,
             token,
           });
+        }
       }
     });
 
     return {
-      readyToStart: Array.from(readyToStart),
-      onHold: Array.from(onHold),
+      readyToStart: readyToStartList,
+      onHold: onHoldList,
     };
   }, [
     allExistingAuctions,

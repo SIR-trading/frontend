@@ -442,6 +442,20 @@ const results = await multicall({ contracts: multicallContracts, allowFailure: t
 
 ## UI Component Guidelines
 
+### Auction Content Skeleton
+
+**Default count is 4** to match `PAGE_SIZE` in auction history pagination.
+
+```tsx
+// Default shows 4 skeleton cards
+<AuctionContentSkeleton />
+
+// Override for specific cases
+<AuctionContentSkeleton count={2} />
+```
+
+**Reference**: `src/components/auction/AuctionContentSkeleton.tsx`
+
 ### Button Component
 
 **Centralized Button** (`src/components/ui/button.tsx`) with CVA variants:

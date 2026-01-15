@@ -1,35 +1,17 @@
-import type { CSSProperties } from "react";
-
-const AuctionContentSkeleton = () => {
+const AuctionContentSkeleton = ({ count = 4 }: { count?: number }) => {
   return (
     <div>
-      <h3 className="mb-4 flex h-[20px] justify-center font-geist text-[24px] font-normal leading-[32px] text-foreground">
-        <Skeleton
-          width="200px"
-          height="32px"
-          borderRadius="6px"
-          background="#090523AA"
-        />
-      </h3>
-      <div className="grid min-h-[172px] gap-4 gap-y-8 md:grid-cols-2 lg:gap-8">
-        {[1, 2].map((i) => (
-          <Skeleton
+      <div className="pb-4"></div>
+      <div className="grid min-h-[172px] gap-4 gap-y-4 md:grid-cols-2 lg:gap-6">
+        {Array.from({ length: count }, (_, i) => (
+          <div
             key={i}
-            borderRadius="16px"
-            maxWidth="436px"
-            width="100%"
-            margin="auto"
-            height="200px"
-            background="#090523AA"
+            className="mx-auto h-[259px] w-full max-w-[436px] animate-pulse rounded-2xl bg-[#090523AA] md:h-[271px]"
           />
         ))}
       </div>
     </div>
   );
 };
-
-function Skeleton(props: CSSProperties) {
-  return <div style={{ ...props }} className="animate-pulse"></div>;
-}
 
 export default AuctionContentSkeleton;

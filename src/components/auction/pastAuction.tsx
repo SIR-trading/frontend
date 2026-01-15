@@ -371,16 +371,7 @@ const PastAuction = ({
                   />
                 ),
               )}
-            </AuctionContentWrapper>{" "}
-            <div className="pr-4">
-              <Pagination
-                totalPages={totalPages || 1}
-                page={page}
-                nextPage={nextPage}
-                prevPage={prevPage}
-                size="lg"
-              />
-            </div>
+            </AuctionContentWrapper>
           </>
         ) : (
           <div className="flex h-[300px] items-center justify-center">
@@ -388,6 +379,17 @@ const PastAuction = ({
           </div>
         )}
       </Show>
+      {totalPages > 0 && (
+        <div className="pr-4">
+          <Pagination
+            totalPages={totalPages}
+            page={page}
+            nextPage={nextPage}
+            prevPage={prevPage}
+            size="lg"
+          />
+        </div>
+      )}
     </div>
   );
 };

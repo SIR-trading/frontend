@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import Countdown from "react-countdown";
 import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export enum AuctionCardTitle {
   AUCTION_DETAILS = "Token Address",
@@ -57,6 +58,7 @@ const AuctionCard = ({
   onCountdownComplete?: () => void;
 }) => {
   const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const shouldDelay = Boolean(actionDelay && actionDelay > Date.now() / 1000);
   return (
     <Card
@@ -89,28 +91,38 @@ const AuctionCard = ({
         </div>
       ))}
       {action && (
-        <Button
-          variant="submit"
-          className={cn(
-            "w-full md:w-full",
-            shouldDelay && "bg-[#414158] text-white !opacity-100",
-          )}
-          onClick={() => action.onClick(id)}
-          disabled={!isConnected || shouldDelay || disabled}
-        >
-          {shouldDelay ? (
-            <div className="flex items-center justify-center gap-1">
-              <>Starting in</>{" "}
-              <Countdown
-                date={actionDelay! * 1000}
-                onComplete={onCountdownComplete}
-                className="w-[120px] text-left"
-              />
-            </div>
-          ) : (
-            action.title
-          )}
-        </Button>
+        !isConnected ? (
+          <Button
+            variant="submit"
+            className="w-full md:w-full"
+            onClick={() => openConnectModal?.()}
+          >
+            Connect Wallet
+          </Button>
+        ) : (
+          <Button
+            variant="submit"
+            className={cn(
+              "w-full md:w-full",
+              shouldDelay && "bg-[#414158] text-white !opacity-100",
+            )}
+            onClick={() => action.onClick(id)}
+            disabled={shouldDelay || disabled}
+          >
+            {shouldDelay ? (
+              <div className="flex items-center justify-center gap-1">
+                <>Starting in</>{" "}
+                <Countdown
+                  date={actionDelay! * 1000}
+                  onComplete={onCountdownComplete}
+                  className="w-[120px] text-left"
+                />
+              </div>
+            ) : (
+              action.title
+            )}
+          </Button>
+        )
       )}
     </Card>
   );
