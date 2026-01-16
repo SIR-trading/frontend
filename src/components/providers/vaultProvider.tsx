@@ -93,15 +93,7 @@ export const VaultProvider = ({ children }: Props) => {
     }
 
     setFilters({ filterCollateralToken, filterDebtToken, filterLeverage });
-  }, [
-    data,
-    data?.vaultQuery?.vaults,
-    filterCollateralToken,
-    filterDebtToken,
-    filterLeverage,
-    page,
-    queryClient,
-  ]);
+  }, [data, filterCollateralToken, filterDebtToken, filterLeverage, queryClient]);
   const nextPage = () => {
     const totalVaults = data?.vaultQuery?.vaults.length ?? 0;
     const totalPages = Math.ceil(totalVaults / 10);

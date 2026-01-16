@@ -735,12 +735,14 @@ export function useUserLpPositions() {
   const refetchAll = useCallback(async () => {
     if (!isLpStakingEnabled) return;
     // Refetch position data only (skip prices - they don't change from staking actions)
-    await refetchUserBalance();
-    await refetchStakerBalance();
-    await refetchTokenIds();
-    await refetchPositions();
-    await refetchRewards();
-    await refetchGlobalStats();
+    await Promise.all([
+      refetchUserBalance(),
+      refetchStakerBalance(),
+      refetchTokenIds(),
+      refetchPositions(),
+      refetchRewards(),
+      refetchGlobalStats(),
+    ]);
   }, [
     isLpStakingEnabled,
     refetchUserBalance,
